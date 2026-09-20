@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Account Created - Better Life</title>
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="better-life.css" />
+
+  <style>
+    .get-started-container {
+      width: 100%;
+      max-width: 440px; 
+      margin: 0 auto;
+      background-color: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .main-content {
+      flex-grow: 1; 
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      text-align: center;
+      z-index: 2;
+    }
+    
+    .footer-drawer {
+      background-color: #daf2e5;
+      border-radius: 24px 24px 0 0;
+      padding: 2.5rem 1.5rem 2rem 1.5rem; 
+      text-align: center;
+      z-index: 10; 
+      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
+    }
+    
+    .main-illustration {
+      width: 324px;
+      height: 243px;
+      max-width: 100%;
+      object-fit: contain;
+      animation: fadeInSlideUp 0.6s ease-out;
+    }
+    
+    .title-horray {
+      font-family: var(--font-family-display);
+      font-weight: 600;
+      color: #000000;
+      font-size: 32px;
+      margin-bottom: 0.5rem;
+    }
+    
+    .subtitle-created {
+      font-family: var(--font-family-semibold);
+      font-weight: 600;
+      color: #333333;
+      font-size: 18px;
+      letter-spacing: 0.5px;
+      margin-bottom: 2rem;
+    }
+
+    .ellipse-wrapper {
+      position: absolute;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background-color: #daf2e5;
+      top: -90px;
+      right: -90px;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .ellipse {
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      background-color: rgba(103, 192, 144, 0.48);
+      margin: 30px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="get-started-container animate-fade-in">
+    
+    <main class="main-content">
+      <img class="main-illustration" src="assets/get started 1.svg" alt="Account created celebration illustration" />
+    </main>
+
+    <footer class="footer-drawer">
+      <h1 class="title-horray">Horray!</h1>
+      <p class="subtitle-created">Your account has been created</p>
+      
+      <!-- Navigasi ke Personalization Step 1 -->
+      <a href="person/person1.html" class="btn-ijo-utama w-100 mb-2" style="height: 50px; font-size: 17px;">
+        Get Started
+      </a>
+      
+      <!-- Navigasi kembali ke Signup Step 3 -->
+      <a href="signup/signup4.html" class="btn-back w-100" style="height: 50px; font-size: 17px; background-color: #ffffff; color: var(--color-primary) !important; border-color: var(--color-primary);">
+        Previous
+      </a>
+    </footer>
+    
+    <div class="ellipse-wrapper" aria-hidden="true"><div class="ellipse"></div></div>
+
+  </div>
+
+  <script src="storage.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+</body>
+</html>

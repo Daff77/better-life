@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Get Started - Better Life</title>
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../better-life.css" />
+
+  <style>
+    .header-section, .main-section, .footer-section {
+      padding: 0 1.5rem;
+    }
+    
+    .header-section {
+      padding-top: 2rem;
+    }
+    
+    .main-section {
+      flex-grow: 1;
+      padding-top: 1rem;
+      padding-bottom: 2rem;
+    }
+    
+    .footer-section {
+      padding-bottom: 3rem;
+    }
+
+    .back-button {
+      cursor: pointer;
+      padding: 6px 12px 6px 0;
+      display: inline-block;
+      transition: transform var(--duration-micro) var(--ease-smooth);
+    }
+    .back-button:hover {
+      transform: translateX(-3px);
+    }
+    
+    .header-logo-text {
+      padding-top: 0.5rem;
+    }
+
+    .title-get-started {
+      font-family: var(--font-family-display);
+      font-weight: 700;
+      color: var(--color-primary);
+      font-size: 32px;
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle-join {
+      font-family: var(--font-family-semibold);
+      font-weight: 600;
+      color: var(--color-muted);
+      font-size: 17px;
+      letter-spacing: 0.5px;
+      margin-bottom: 2.5rem;
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    .divider-or {
+      font-family: var(--font-family-semibold);
+      font-weight: 600;
+      color: var(--color-muted);
+      font-size: 16px;
+    }
+
+    .btn-social img {
+      width: 22px;
+      height: 22px;
+      object-fit: contain;
+    }
+
+    .login-area {
+      margin-top: 2.5rem;
+      text-align: center;
+    }
+    .text-already-have {
+      font-family: var(--font-family-semibold);
+      font-weight: 600;
+      color: var(--color-muted);
+      font-size: 15px;
+    }
+    .text-login-now {
+      font-family: var(--font-family-extrabold);
+      font-weight: 800;
+      color: var(--color-primary);
+      font-size: 15px;
+      margin-left: 5px;
+      text-decoration: none;
+    }
+    .text-login-now:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="signup-container animate-fade-in">
+    
+    <header class="header-section">
+      <a href="../login/login1.html" class="back-button" aria-label="Go back to welcome screen">
+        <img src="../assets/back2.svg" alt="" width="18" height="36">
+      </a>
+      <div class="text-center header-logo-text">
+        <img class="mb-3" src="../assets/Better Life.png" alt="Better Life Logo" style="width: 130px; height: 130px; object-fit: contain;" />
+        <h1 class="title-get-started">Get Started</h1>
+        <p class="subtitle-join">Join today and start making the <br />life better</p>
+      </div>
+    </header>
+
+    <main class="main-section">
+      <a href="signup2.html" class="btn-ijo-utama w-100 mb-4" style="height: 50px; font-size: 17px;">
+        Create Account
+      </a>
+
+      <div class="d-flex align-items-center mb-4">
+        <hr class="flex-grow-1" style="border-color: var(--color-border-light);">
+        <span class="px-3 divider-or">OR</span>
+        <hr class="flex-grow-1" style="border-color: var(--color-border-light);">
+      </div>
+
+      <div class="d-grid gap-3">
+        <a href="../getstarted.html" class="btn-social" role="button" onclick="handleSocialRegister('Facebook')">
+          <img src="../assets/fb.svg" alt="Facebook logo">
+          <span>Register with Facebook</span>
+        </a>
+        <a href="../getstarted.html" class="btn-social" role="button" onclick="handleSocialRegister('Google')">
+          <img src="../assets/google.svg" alt="Google logo">
+          <span>Register with Google</span>
+        </a>
+        <a href="../getstarted.html" class="btn-social" role="button" onclick="handleSocialRegister('Apple')">
+          <img src="../assets/apple.svg" alt="Apple logo">
+          <span>Register with Apple</span>
+        </a>
+      </div>
+    </main>
+    
+    <footer class="footer-section">
+      <div class="login-area">
+        <span class="text-already-have">Already have an account?</span>
+        <a href="../login/login1.html" class="text-login-now">Login</a>
+      </div>
+    </footer>
+
+  </div>
+
+  <script src="../storage.js"></script>
+  <script>
+    function handleSocialRegister(provider) {
+      if (window.BetterLifeState) {
+        BetterLifeState.updateUser({ name: 'John Doe' });
+      }
+    }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+</body>
+</html>

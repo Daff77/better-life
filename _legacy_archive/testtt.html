@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steamed Tofu - Instructions</title>
+
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        akatab: ['Akatab-SemiBold', 'sans-serif'],
+                        'akatab-extrabold': ['Akatab-ExtraBold', 'sans-serif'],
+                    },
+                    colors: {
+                        'ijo-utama': '#67c090',      /* Warna Hijau Utama */
+                        'gray-text': '#888888',      /* Warna Teks Abu */
+                        'bg-light': '#f2f2f2',       /* Background Tab */
+                        'black-content': '#191919',  /* Teks Hitam */
+                        'card-border': '#e5e7eb',    /* Border Card */
+                        'secondary': '#daf2e5',      /* Background Hijau Muda */
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px rgba(0, 0, 0, 0.05)',
+                        'nav': '0 -4px 20px rgba(0, 0, 0, 0.05)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Font Setup */
+        @font-face {
+            font-family: "Akatab-SemiBold";
+            src: url('Akatab-SemiBold.ttf') format('truetype');
+            font-weight: 600;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: "Akatab-ExtraBold";
+            src: url('Akatab-ExtraBold.ttf') format('truetype');
+            font-weight: 800;
+            font-style: normal;
+        }
+
+        .page-container {
+            margin: 0 auto;
+            background-color: #ffffff;
+            min-height: 100vh;
+            padding-bottom: 80px;
+            
+        }
+        body {
+            background-color: #f0f2f5; 
+            font-family: 'Akatab-SemiBold', sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        /* Container utama */
+        .app-container {
+            background-color: white;
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Hide scrollbar */
+        ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+
+        .content-scroll {
+            padding-bottom: 80px; /* Space untuk navbar bawah */
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        /* Custom Styles untuk Navigasi */
+        .nav-icon img {
+            width: 26px;
+            height: 26px;
+            object-fit: contain;
+        }
+
+        .cook-btn {
+            border: 1.5px solid #67c090;
+            border-radius: 20px;
+            padding: 6px 16px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #67c090;
+            background: white;
+        }
+        
+        .cook-btn img {
+            width: 20px;
+            height: 20px;
+            object-fit: contain;
+        }
+        
+        .cook-btn span {
+            font-family: 'Akatab-ExtraBold', sans-serif;
+            font-weight: 800;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Responsive Container -->
+    <div class="app-container w-full max-w-md md:max-w-4xl mx-auto transition-all duration-300">
+        
+        <!-- HEADER AREA -->
+        <div class="pt-6 pb-2 px-5 bg-white sticky top-0 z-20">
+            <!-- Top Header -->
+            <div class="relative flex items-center justify-center mb-4">
+                <!-- Back Button -->
+                <button class="absolute left-0 p-2 -ml-2 hover:bg-gray-50 rounded-full transition cursor-pointer" onclick="window.location.href='home.html'">
+                    <img src="assets/back2.svg" alt="Back" style="width: 20px; height: 20px;">
+                </button>
+
+                <!-- Title -->
+                <h1 class="text-center font-akatab-extrabold text-black-content text-[18px] md:text-[22px] leading-tight w-3/4">
+                    Steamed Tofu
+                </h1>
+            </div>
+
+            <!-- Tab Switcher -->
+            <div class="flex justify-center">
+                <div class="bg-bg-light p-1 rounded-full flex w-auto">
+                    <!-- Ingredients (Inactive) -->
+                    <button class="px-6 py-2 text-gray-text rounded-full font-akatab-extrabold text-sm md:text-base hover:text-black-content transition-all">
+                        Ingredients
+                    </button>
+                    <!-- Instructions (Active) -->
+                    <button class="px-6 py-2 bg-ijo-utama text-white rounded-full font-akatab-extrabold text-sm md:text-base shadow-sm transition-all">
+                        Instructions
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCROLLABLE CONTENT -->
+        <div class="content-scroll px-5 mt-2">
+            
+            <div class="mb-8">
+                <h2 class="text-center font-akatab-extrabold text-black-content text-[16px] md:text-[18px] mb-4">
+                    How to cook
+                </h2>
+
+                <div class="space-y-4">
+                    
+                    <!-- Step 1 -->
+                    <div class="flex gap-4 p-4 border border-card-border rounded-xl hover:shadow-sm transition-shadow items-center">
+                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
+                            <span class="font-akatab-extrabold text-ijo-utama text-sm">1</span>
+                        </div>
+                        <p class="font-akatab text-black-content text-[15px] md:text-[16px] leading-relaxed">
+                            Mash all the ingredients and mix until well combined.
+                        </p>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="flex gap-4 p-4 border border-card-border rounded-xl hover:shadow-sm transition-shadow items-center">
+                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
+                            <span class="font-akatab-extrabold text-ijo-utama text-sm">2</span>
+                        </div>
+                        <p class="font-akatab text-black-content text-[15px] md:text-[16px] leading-relaxed">
+                            Wrap the mixture using banana leaves.
+                        </p>
+                    </div>
+
+                    <!-- Step 3 (With Timer) -->
+                    <div class="flex gap-4 p-4 border border-card-border rounded-xl hover:shadow-sm transition-shadow items-start">
+                        <!-- Number Badge -->
+                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
+                            <span class="font-akatab-extrabold text-ijo-utama text-sm">3</span>
+                        </div>
+                        <!-- Content -->
+                        <div class="flex-grow">
+                            <p class="font-akatab text-black-content text-[15px] md:text-[16px] leading-relaxed">
+                                Steam for 15 minutes until fully cooked
+                            </p>
+                            <!-- Timer -->
+                            <div class="mt-3 inline-flex items-center px-4 py-1.5 rounded-full bg-secondary">
+                                <img src="assets/jam.svg" alt="Timer" class="w-4 h-4">
+                                <span class="text-ijo-utama font-akatab-extrabold text-sm ml-2">15:00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- BOTTOM NAVIGATION (FIXED) -->
+        <div class="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-md md:max-w-4xl bg-white border-t border-gray-100 flex justify-between items-center px-6 py-4 z-30 shadow-nav transition-all duration-300">
+            
+            <!-- Home -->
+            <button class="nav-icon hover:opacity-80 transition-opacity cursor-pointer" onclick="window.location.href='home.html'">
+                <img src="assets/home.svg" alt="Home" style="width: 26px; height: 26px;">
+            </button>
+
+            <!-- Cook (Active) -->
+            <button class="cook-btn hover:bg-green-50 transition-colors cursor-pointer">
+                <img src="assets/cook.svg" alt="Cook" style="width: 20px; height: 20px;">
+                <span>Cook</span>
+            </button>
+
+            <!-- Community -->
+            <button class="nav-icon hover:opacity-80 transition-opacity cursor-pointer" onclick="window.location.href='signup/testt.html'">
+                 <img src="assets/comm.svg" alt="Community" style="width: 26px; height: 26px;">
+            </button>
+
+            <!-- Stats/Progress -->
+            <button class="nav-icon hover:opacity-80 transition-opacity cursor-pointer" onclick="window.location.href='home.html'">
+                <img src="assets/progress.svg" alt="Progress" style="width: 26px; height: 26px;">
+            </button>
+
+            <!-- Profile -->
+            <button class="nav-icon hover:opacity-80 transition-opacity cursor-pointer" onclick="window.location.href='profile/profile1.html'">
+                 <img src="assets/profile.svg" alt="Profile" style="width: 26px; height: 26px;">
+            </button>
+
+        </div>
+    </div>
+
+</body>
+</html>

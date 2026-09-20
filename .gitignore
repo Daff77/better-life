@@ -1,0 +1,52 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Large Archives / Zips
+*.zip
+mobile.zip
+
+# Expo & Web builds
+.expo/
+*/.expo/
+dist/
+*/dist/
+web-build/
+*/web-build/
+expo-env.d.ts
+
+# Environment variables & secrets
+.env
+.env.*
+!.env.example
+*/.env
+*/.env.*
+!*/.env.example
+
+# Native builds
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+/mobile/ios/
+/mobile/android/
+
+# Metro & Bundler
+.metro-health-check*
+
+# Logs & debugging
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
+*.pem
+
+# TypeScript
+*.tsbuildinfo

@@ -1,0 +1,445 @@
+@import url("https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css");
+
+/* === Font Setup === */
+@font-face {
+  font-family: "Akatab-SemiBold";
+  src: url('akatab/Akatab-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+}
+@font-face {
+  font-family: "Akatab-ExtraBold";
+  src: url('akatab/Akatab-ExtraBold.ttf') format('truetype');
+  font-weight: 800;
+}
+@font-face {
+  font-family: "Akatab-Bold";
+  src: url('akatab/Akatab-ExtraBold.ttf') format('truetype');
+  font-weight: 700;
+}
+@font-face {
+  font-family: "Akatab-Regular";
+  src: url('akatab/Akatab-SemiBold.ttf') format('truetype');
+  font-weight: 400;
+}
+
+/* === Variables === */
+:root {
+  --variable-collection-ijo-utama: rgba(103, 192, 144, 1);
+  --variable-collection-gray: rgba(224, 224, 224, 1);
+  --variable-collection-gray-pekat: rgba(136, 136, 136, 1);
+  --variable-collection-gray2: rgba(207, 207, 207, 1);
+  --variable-collection-gray3: rgba(136, 136, 136, 1);
+  --variable-collection-secondary: rgba(218, 242, 229, 1);
+  --variable-collection-black: rgba(25, 25, 25, 1);
+}
+
+/* === Main Layout === */
+html { height: 100%; }
+
+body {
+  min-height: 100vh;
+  background-color: #f4f7f6; 
+  -webkit-font-smoothing: antialiased;
+}
+
+.home-container {
+  width: 100%;
+  max-width: 440px; 
+  margin: 0 auto;
+  background-color: #ffffff;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ==================================================
+  KUNCI OVERLAP 1: Header (lapisan bawah)
+  ==================================================
+*/
+.home-header {
+  /*
+    Menggunakan tinggi 189px dari CSS Anda,
+    bukan 124px, agar overlapnya benar.
+  */
+  background-color: var(--variable-collection-ijo-utama);
+  height: 189px; 
+  padding: 3rem 1.5rem 0 1.5rem;
+  position: relative; 
+  z-index: 1; /* Lapisan dasar */
+}
+
+/* ==================================================
+  KUNCI OVERLAP 2: Konten (lapisan atas)
+  ==================================================
+*/
+.main-content {
+  flex-grow: 1;
+  overflow-y: auto; /* Scroll vertikal */
+  position: relative;
+  z-index: 2; /* Menimpa header */
+  padding-bottom: 100px; /* Ruang untuk nav bar */
+}
+
+.footer-nav {
+  /*
+    ==================================================
+    KUNCI LAYOUT 3: Footer
+    'margin-top: auto' mendorong footer ke bawah.
+    'position: sticky' membuatnya tetap terlihat saat scroll.
+    ==================================================
+  */
+  margin-top: auto;
+  position: sticky;
+  bottom: 0;
+  background-color: #ffffff;
+  border-top: 1px solid var(--variable-collection-gray);
+  padding: 0.75rem 1rem;
+  z-index: 100;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+/* === Elements === */
+
+.good-morning-john {
+  font-family: "Akatab-ExtraBold", Helvetica;
+  font-weight: 800;
+  color: #ffffff;
+  font-size: 30px;
+  text-align: center;
+  line-height: 36.0px;
+  /* Posisi top: 49px; sudah diatur oleh padding header */
+}
+
+/* Wrapper untuk padding kartu (20px dari .group) */
+.main-content-padding {
+    padding: 0 20px;
+}
+
+/* ==================================================
+  KUNCI OVERLAP 4: Kartu Kalori
+  ==================================================
+*/
+.calorie-card {
+  background-color: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0px 4px 4px #00000040;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  
+  /* Tarik ke atas (189px header - 145px top = 44px) */
+  margin-top: -44px; 
+  position: relative; 
+}
+
+.calorie-card-content { flex-grow: 1; }
+
+/* Menggunakan style dari .text-wrapper-4 */
+.calorie-card-content .consumed-label {
+  font-family: "Akatab-ExtraBold", Helvetica;
+  font-weight: 800;
+  color: #26667f;
+  font-size: 23.5px;
+  letter-spacing: 0.70px;
+}
+/* Menggunakan style dari .text-wrapper-5 */
+.calorie-card-content .consumed-value {
+  font-family: "Akatab-ExtraBold", Helvetica;
+  font-weight: 800;
+  color: #000000;
+  font-size: 31px;
+  letter-spacing: 0.93px;
+}
+/* Menggunakan style dari .text-wrapper */
+.calorie-card-content .consumed-unit {
+  font-family: "Akatab-Bold", Helvetica;
+  font-weight: 700;
+  color: var(--variable-collection-gray3);
+  font-size: 23.5px;
+  letter-spacing: 0.70px;
+  margin-left: 5px;
+}
+/* Menggunakan style dari .remaining */
+.calorie-card-content .remaining-label {
+  font-family: "Akatab-Bold", Helvetica;
+  font-weight: 700;
+  color: #090909;
+  font-size: 20px;
+  letter-spacing: 0.12px;
+}
+/* Menggunakan style dari .div */
+.calorie-card-content .remaining-unit-small { 
+  font-family: "Akatab-Bold", Helvetica;
+  font-weight: 700;
+  color: var(--variable-collection-gray3);
+  font-size: 15px;
+  letter-spacing: 0.45px;
+  margin-left: 5px;
+}
+
+.progress-circle {
+  width: 121px;
+  height: 121px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  border: 10px solid #daf2e5; /* Dari .ellipse */
+}
+/* Menggunakan style dari .text-wrapper-6 */
+.progress-circle .progress-value {
+    font-family: "Akatab-ExtraBold", Helvetica;
+    font-weight: 800;
+    color: #000000;
+    font-size: 31px;
+    letter-spacing: 0.93px;
+}
+/* Menggunakan style dari .text-wrapper-2 */
+.progress-circle .progress-label {
+    font-family: "Akatab-Bold", Helvetica;
+    font-weight: 700;
+    color: var(--variable-collection-gray3);
+    font-size: 15px;
+    letter-spacing: 0.45px;
+}
+
+
+/* Steps Card (top: 330px) */
+.steps-card {
+  background-color: #ffffff;
+  border-radius: 10px;
+  padding: 1rem;
+  position: relative;
+  box-shadow: 0px 4px 4px #00000040, 0px 0px 4px #00000040;
+  /* Margin top = 330px - (145px + 156px) = 29px */
+  margin-top: 29px;
+}
+.steps-card .steps-title {
+  font-family: "Akatab-ExtraBold", Helvetica;
+  font-weight: 800;
+  color: #191919;
+  font-size: 17px;
+}
+.steps-card .steps-count {
+  font-family: "Akatab-ExtraBold", Helvetica;
+  font-weight: 800;
+  color: #191919;
+  font-size: 22px;
+}
+.steps-card .steps-goal {
+  font-family: "Akatab-SemiBold", Helvetica;
+  font-weight: 600;
+  color: #191919;
+  font-size: 14.5px;
+}
+.steps-card .steps-icon {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 26px; /* Dari CSS .vector */
+    height: 24px; /* Dari CSS .vector */
+}
+.steps-card .steps-progress-bar-bg {
+  height: 11px;
+  background-color: #daf2e5;
+  border-radius: 10px;
+  margin-top: 1rem;
+  overflow: hidden;
+}
+.steps-card .steps-progress-bar-fg {
+  height: 100%;
+  background-color: var(--variable-collection-ijo-utama);
+  border-radius: 10px;
+}
+
+/* Exercise Card (top: 325px) */
+.exercise-card {
+  border-radius: 10px;
+  padding: 1rem;
+  background-color: #ffffff;
+  box-shadow: 0px 4px 4px #00000040, 0px 0px 4px #00000040;
+  /* Margin top = 325px - (145px + 156px) = 24px */
+  margin-top: 24px;
+}
+.exercise-title {
+  font-family: "Akatab-ExtraBold", Helvetica;
+  font-weight: 800;
+  color: #191919;
+  font-size: 17px;
+}
+.exercise-stat {
+  font-family: "Akatab-ExtraBold", Helvetica;
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--variable-collection-gray3);
+}
+.exercise-stat img {
+    margin-right: 8px;
+    width: 24px;
+    height: 24px;
+}
+
+/* === Journal & Breakfast Section === */
+.journal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  /* Margin top = 489px - (330px + 140px) = 19px */
+  margin-top: 19px;
+  margin-bottom: 1rem;
+  padding: 0 1.5rem; 
+}
+
+.journal-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Jarak antara ikon kalender dan teks */
+}
+.journal-title {
+  font-family: "Akatab-ExtraBold", Helvetica;
+  font-weight: 800;
+  color: #26667f;
+  font-size: 18px;
+}
+.journal-controls .journal-btn {
+  background-color: var(--variable-collection-secondary);
+  border-radius: 10px;
+  border: none;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.journal-controls .journal-btn.btn-add {
+  border-radius: 22px; /* Sesuai .ellipse-2 */
+}
+
+/* ==================================================
+  PERBAIKAN SCROLL HORIZONTAL
+  ==================================================
+*/
+.horizontal-scroll-container {
+  display: flex;
+  overflow-x: auto; /* Memastikan scroll horizontal */
+  padding-bottom: 15px; /* Ruang jika scrollbar muncul */
+  scrollbar-width: none; 
+  -ms-overflow-style: none;
+  /* Margin top = 557px - (489px + 44px) = 24px */
+  margin-top: 24px;
+}
+.horizontal-scroll-container::-webkit-scrollbar {
+  display: none;
+}
+
+.breakfast-card {
+  position: relative;
+  border-radius: 20px;
+  background-color: #f2f2f2;
+  min-height: 255px; 
+  overflow: hidden;
+  flex-shrink: 0; 
+  width: 365px; 
+  margin-right: 18px; 
+}
+
+/* Padding untuk card pertama dan terakhir di dalam scroll */
+.horizontal-scroll-container .breakfast-card:first-child {
+  margin-left: 1.5rem; 
+}
+.horizontal-scroll-container .breakfast-card:last-child {
+  margin-right: 1.5rem; 
+}
+
+.breakfast-card .img-breakfast {
+  width: 100%;
+  height: 188px;
+  object-fit: cover;
+}
+.breakfast-card-body {
+  padding: 1rem;
+  position: relative; /* Untuk tombol 'Add' */
+}
+.breakfast-card-title {
+  font-family: "Akatab-ExtraBold", Helvetica;
+  font-weight: 800;
+  color: var(--variable-collection-black);
+  font-size: 23.5px;
+}
+.breakfast-card-cal {
+  font-family: "Akatab-ExtraBold", Helvetica;
+  font-weight: 800;
+  color: var(--variable-collection-ijo-utama);
+  font-size: 15px;
+  margin-left: 8px;
+}
+.breakfast-card-desc {
+  font-family: "Akatab-Regular", Helvetica;
+  font-weight: 400;
+  color: var(--variable-collection-black);
+  font-size: 16px;
+}
+.breakfast-card-add {
+  font-family: "Akatab-ExtraBold", Helvetica;
+  font-weight: 800;
+  color: var(--variable-collection-ijo-utama);
+  font-size: 15px;
+  text-decoration: none;
+  
+  /* Posisikan tombol 'Add' */
+  position: absolute;
+  right: 1rem;
+  top: 1.5rem; /* Disesuaikan agar lebih rapi */
+}
+
+
+/* Nav Bar Footer */
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  font-family: "Akatab-Bold", Helvetica, sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--variable-collection-gray-pekat);
+  position: relative;
+  padding: 0 5px;
+}
+.nav-item.active .nav-text {
+  color: var(--variable-collection-ijo-utama);
+}
+.nav-item .nav-icon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  margin-bottom: 4px;
+}
+.nav-icon-stats {
+    position: relative;
+    width: 28px;
+    height: 28px;
+}
+.nav-icon-stats img { position: absolute; }
+.nav-icon-stats .bar1 { width: 32%; height: 53.57%; top: 46.43%; left: 0; }
+.nav-icon-stats .bar2 { width: 32%; height: 71.43%; top: 28.57%; left: 34%; }
+.nav-icon-stats .bar3 { width: 32%; height: 100%; top: 0; left: 68%; }
+
+.nav-item.active .nav-highlight {
+  position: absolute;
+  top: -15px;
+  left: -15px;
+  right: -15px;
+  bottom: -10px;
+  width: 103px; 
+  height: 49px;
+  background-color: #67c0900d;
+  border-radius: 20px;
+  border: 1px solid var(--variable-collection-ijo-utama);
+  z-index: -1;
+}

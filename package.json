@@ -1,0 +1,26 @@
+{
+  "name": "better-life-workspace",
+  "version": "1.0.0",
+  "description": "Better Life - Nutrition & Healthy Living Ecosystem (Mobile, Web & Backend)",
+  "scripts": {
+    "dev:mobile": "npm run start --prefix mobile",
+    "dev:backend": "npm run dev --prefix backend",
+    "build:mobile": "npx expo export -p web --prefix mobile",
+    "build:backend": "npm run build --prefix backend"
+  },
+  "keywords": [
+    "nutrition",
+    "calorie-tracker",
+    "health",
+    "react-native",
+    "expo",
+    "node"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/react": "~19.2.4",
+    "typescript": "~6.0.3"
+  }
+}
+

@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Calorie Tracker - Home | Better Life</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="better-life.css" />
+
+  <style>
+    /* Wrapper utama untuk meniru frame 440px */
+    .page-container {
+      max-width: 440px;
+      margin: 0 auto;
+      background-color: #ffffff;
+      min-height: 100vh;
+      padding-bottom: 90px; /* Ruang untuk bottom nav */
+      position: relative;
+    }
+
+    /* Header */
+    .home-header {
+      background: linear-gradient(180deg, var(--variable-collection-ijo-utama) 0%, #58b382 100%);
+      padding: 2.2rem 1.25rem 3.5rem;
+      border-bottom-left-radius: 24px;
+      border-bottom-right-radius: 24px;
+      color: #ffffff;
+      position: relative;
+    }
+
+    .greeting-subtitle {
+      font-family: var(--font-semibold);
+      font-size: 14px;
+      opacity: 0.9;
+      letter-spacing: 0.5px;
+    }
+
+    .greeting-title {
+      font-family: var(--font-extrabold);
+      font-weight: 800;
+      font-size: 24px;
+      letter-spacing: 0.4px;
+      line-height: 1.25;
+    }
+
+    /* Kartu Progress Utama */
+    .progress-card {
+      border-radius: 20px;
+      box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.08);
+      margin-top: -36px;
+      position: relative;
+      z-index: 10;
+      background: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.04);
+      transition: transform var(--transition-normal);
+    }
+    
+    .progress-card:hover {
+      transform: translateY(-2px);
+    }
+
+    .progress-card .consumed-title {
+      color: #26667f;
+      font-size: 1.35rem;
+      letter-spacing: 0.5px;
+    }
+    
+    .progress-card .consumed-value {
+      font-size: 2rem;
+      letter-spacing: 0.5px;
+      color: #191919;
+      line-height: 1.1;
+    }
+    
+    .progress-card .remaining-text {
+      font-size: 1.05rem;
+      color: #090909;
+    }
+
+    .progress-card .cal-text {
+      font-family: var(--font-bold);
+      font-weight: 700;
+      color: var(--variable-collection-gray3);
+      font-size: 0.75em;
+      letter-spacing: 0.45px;
+      margin-left: 3px;
+    }
+
+    /* Animated SVG Progress Gauge */
+    .progress-circle-wrap {
+      position: relative;
+      width: 124px;
+      height: 124px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .progress-circle-wrap svg {
+      transform: rotate(-90deg);
+      width: 124px;
+      height: 124px;
+    }
+
+    .progress-circle-bg {
+      fill: none;
+      stroke: #daf2e5;
+      stroke-width: 10;
+    }
+
+    .progress-circle-bar {
+      fill: none;
+      stroke: var(--variable-collection-ijo-utama);
+      stroke-width: 10;
+      stroke-linecap: round;
+      stroke-dasharray: 326.7; /* 2 * PI * 52 */
+      stroke-dashoffset: 326.7;
+      transition: stroke-dashoffset 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .progress-circle-content {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .progress-circle-value {
+      font-size: 1.65rem;
+      letter-spacing: 0.5px;
+      line-height: 1;
+      color: #191919;
+    }
+    
+    .progress-text {
+      font-family: var(--font-bold);
+      font-weight: 700;
+      color: var(--variable-collection-gray3);
+      font-size: 0.78rem;
+      letter-spacing: 0.4px;
+      margin-top: 2px;
+    }
+
+    /* Kartu Steps & Exercise */
+    .info-card {
+      border-radius: 16px;
+      box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.06);
+      background: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.04);
+      transition: transform var(--transition-fast);
+      cursor: pointer;
+    }
+
+    .info-card:hover {
+      transform: translateY(-2px);
+    }
+
+    .info-card .card-title {
+      font-size: 1.05rem;
+      color: #191919;
+    }
+    
+    .info-card .card-value {
+      font-size: 1.35rem;
+      color: #191919;
+    }
+    
+    .info-card .card-goal {
+      font-size: 0.82rem;
+      color: var(--variable-collection-gray-pekat);
+    }
+    
+    .info-card .progress {
+      height: 8px;
+      border-radius: 6px;
+      background-color: #daf2e5;
+    }
+    
+    .info-card .progress-bar {
+      background-color: var(--variable-collection-ijo-utama);
+      transition: width 0.6s ease;
+    }
+    
+    .info-card .info-value {
+      font-size: 1.15rem;
+      color: var(--variable-collection-gray3);
+    }
+
+    /* Calorie Journal */
+    .journal-header {
+      color: #26667f;
+      font-size: 1.15rem;
+    }
+    
+    .btn-light-green {
+      background-color: var(--variable-collection-secondary);
+      width: 40px;
+      height: 40px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      border-radius: 12px;
+      transition: all var(--transition-fast);
+      cursor: pointer;
+    }
+    
+    .btn-light-green:hover {
+      background-color: #c7eed9;
+      transform: scale(1.05);
+    }
+
+    /* Horizontal Scroll Meal Cards */
+    .full-bleed-scroll-wrapper {
+      margin-left: -1rem;
+      margin-right: -1rem;
+      margin-top: 4px;
+      padding-bottom: 6px;
+    }
+
+    .horizontal-scroll-container {
+      display: flex;
+      overflow-x: auto;
+      gap: 16px;
+      padding-left: 1rem;
+      padding-right: 1rem;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      scroll-snap-type: x mandatory;
+    }
+    
+    .horizontal-scroll-container::-webkit-scrollbar {
+      display: none;
+    }
+
+    .meal-card-item {
+      position: relative;
+      flex-shrink: 0;
+      width: 320px;
+      max-width: 82vw;
+      border-radius: 16px;
+      overflow: hidden;
+      cursor: pointer;
+      scroll-snap-align: center;
+      transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
+    }
+
+    .meal-card-item:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    }
+
+    .meal-card-item img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .meal-card-overlay {
+      position: absolute;
+      bottom: 12px;
+      right: 14px;
+      background: rgba(103, 192, 144, 0.95);
+      color: #ffffff;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-family: var(--font-extrabold);
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      backdrop-filter: blur(4px);
+      transition: background var(--transition-fast);
+    }
+
+    .meal-card-item:hover .meal-card-overlay {
+      background: var(--color-primary-dark);
+    }
+
+    /* Bottom Navigasi */
+    .bottom-nav {
+      max-width: 440px;
+      margin: 0 auto;
+      left: 0;
+      right: 0;
+      box-shadow: 0 -3px 16px rgba(0, 0, 0, 0.06);
+      background-color: #ffffff;
+      height: 72px;
+      z-index: 1000;
+    }
+
+    .bottom-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--variable-collection-gray-pekat);
+      flex-grow: 1;
+      height: 100%;
+      text-decoration: none;
+      transition: color var(--transition-fast);
+    }
+
+    .bottom-nav-item:hover {
+      color: var(--variable-collection-ijo-utama);
+    }
+
+    .bottom-nav-item img {
+      width: 26px;
+      height: 26px;
+      transition: transform var(--transition-fast);
+    }
+
+    .bottom-nav-item:hover img {
+      transform: scale(1.1);
+    }
+
+    .bottom-nav-item.active {
+      color: var(--variable-collection-ijo-utama);
+    }
+
+    .bottom-nav-item.active .icon-wrapper {
+      background-color: #67c0901a;
+      border-radius: 20px;
+      border: 1px solid var(--variable-collection-ijo-utama);
+      padding: 6px 18px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .bottom-nav-item.active .nav-text {
+      font-family: var(--font-extrabold);
+      font-weight: 800;
+      font-size: 16px;
+    }
+
+    /* Meal Modal / Quick Log */
+    .modal-content {
+      border-radius: 20px;
+      border: none;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .modal-header {
+      border-bottom: 1px solid #f0f0f0;
+      padding: 1.25rem 1.5rem;
+    }
+
+    .modal-title {
+      font-family: var(--font-extrabold);
+      font-size: 1.25rem;
+    }
+
+    /* Toast notification */
+    .toast-container {
+      position: fixed;
+      bottom: 84px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1080;
+      width: calc(100% - 32px);
+      max-width: 408px;
+      pointer-events: none;
+    }
+
+    .toast {
+      background: #191919;
+      color: #ffffff;
+      border-radius: 12px;
+      font-family: var(--font-semibold);
+      font-size: 14px;
+      padding: 12px 18px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    }
+  </style>
+</head>
+<body>
+
+  <main class="page-container animate-fade-in">
+
+    <!-- Header with dynamic greeting and username -->
+    <header class="home-header text-center">
+      <div class="greeting-subtitle" id="greeting-time">Good morning,</div>
+      <h1 class="greeting-title font-extrabold mb-0" id="user-greeting-name">John Doe</h1>
+    </header>
+
+    <div class="px-3">
+
+      <!-- Progress Card (Consumed & Remaining) -->
+      <section class="card progress-card" aria-labelledby="progress-heading">
+        <div class="card-body p-3">
+          <div class="row align-items-center">
+            <div class="col-7">
+              <h2 class="consumed-title font-extrabold" id="progress-heading">Consumed</h2>
+              <p class="consumed-value font-extrabold mb-1" id="consumed-calories-display">
+                0.0<span class="cal-text"> Cal</span>
+              </p>
+              <p class="remaining-text font-bold mb-0">
+                <span>Remaining </span>
+                <strong id="remaining-calories-display">1780.0</strong><span class="cal-text"> Cal</span>
+              </p>
+            </div>
+            <div class="col-5 d-flex justify-content-end">
+              <!-- Animated Circular Gauge -->
+              <div class="progress-circle-wrap" title="Daily Calorie Progress">
+                <svg viewBox="0 0 120 120">
+                  <circle class="progress-circle-bg" cx="60" cy="60" r="52" />
+                  <circle class="progress-circle-bar" id="calorie-progress-ring" cx="60" cy="60" r="52" />
+                </svg>
+                <div class="progress-circle-content">
+                  <span class="progress-circle-value font-extrabold" id="progress-percent">0%</span>
+                  <span class="progress-text font-bold">Progress</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Steps & Exercise Section -->
+      <section class="row mt-3 g-2">
+        <div class="col-6">
+          <article class="card info-card h-100" id="card-steps" tabindex="0" role="button" aria-label="Steps tracker. Click to simulate adding steps.">
+            <div class="card-body p-3 d-flex flex-column justify-content-between">
+              <div>
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <h3 class="card-title font-extrabold mb-0">Steps</h3>
+                  <img src="assets/sepatu.svg" alt="Steps icon" style="width: 22px; height: 20px;">
+                </div>
+                <p class="card-value font-extrabold mb-1" id="steps-value">3,420</p>
+                <p class="card-goal font-semibold mb-2">Goal: 6,000 steps</p>
+              </div>
+              <div class="progress" role="progressbar" aria-valuenow="57" aria-valuemin="0" aria-valuemax="100" aria-label="Steps progress">
+                <div class="progress-bar" id="steps-progress-bar" style="width: 57%"></div>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <div class="col-6">
+          <article class="card info-card h-100" id="card-exercise" tabindex="0" role="button" aria-label="Exercise summary.">
+            <div class="card-body p-3">
+              <h3 class="card-title font-extrabold mb-2">Exercise</h3>
+              <div class="d-flex align-items-center mb-2">
+                <img src="assets/api.svg" alt="Calories icon" style="width: 26px; height: 26px;" class="me-2">
+                <p class="info-value font-extrabold mb-0" id="exercise-calories">240 cal</p>
+              </div>
+              <div class="d-flex align-items-center">
+                <img src="assets/jam.svg" alt="Duration icon" style="width: 24px; height: 24px;" class="me-2">
+                <p class="info-value font-extrabold mb-0" id="exercise-duration">0:35 hr</p>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- Calorie Journal Title & Actions -->
+      <section class="d-flex justify-content-between align-items-center mt-4 mb-2">
+        <h2 class="journal-header font-extrabold mb-0">Calorie Journal • Today</h2>
+        <div class="d-flex gap-2">
+          <button class="btn-light-green" id="btn-quick-reset" title="Reset Today's Log" aria-label="Reset today's calories" type="button">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#26667f" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          </button>
+          <a href="signup/test.html" class="btn-light-green" title="View Recipes" aria-label="View recipes" role="button">
+            <img src="assets/jam2.svg" alt="Recipe icon" style="width: 18px; height: 18px;">
+          </a>
+        </div>
+      </section>
+
+      <!-- Horizontal Meal Cards Carousel -->
+      <div class="full-bleed-scroll-wrapper">
+        <div class="horizontal-scroll-container" id="meals-container" role="region" aria-label="Today's Meal Suggestions">
+          
+          <!-- Breakfast -->
+          <div class="meal-card-item" data-meal="Breakfast" data-calories="420" data-desc="Berry Yogurt Bowl with Honey & Chia" tabindex="0" role="button" aria-label="Log Breakfast: Berry Yogurt Bowl, 420 calories">
+            <img src="assets/breakfast.svg" alt="Breakfast Menu">
+            <span class="meal-card-overlay">+ Log Meal</span>
+          </div>
+
+          <!-- Lunch -->
+          <div class="meal-card-item" data-meal="Lunch" data-calories="580" data-desc="Grilled Herb Chicken with Steamed Veggies" tabindex="0" role="button" aria-label="Log Lunch: Grilled Chicken, 580 calories">
+            <img src="assets/lunch.svg" alt="Lunch Menu">
+            <span class="meal-card-overlay">+ Log Meal</span>
+          </div>
+
+          <!-- Dinner -->
+          <div class="meal-card-item" data-meal="Dinner" data-calories="520" data-desc="Baked Salmon with Warm Quinoa & Asparagus" tabindex="0" role="button" aria-label="Log Dinner: Baked Salmon, 520 calories">
+            <img src="assets/dinner.svg" alt="Dinner Menu">
+            <span class="meal-card-overlay">+ Log Meal</span>
+          </div>
+
+          <!-- Snacks -->
+          <div class="meal-card-item" data-meal="Snack" data-calories="190" data-desc="Mixed Roasted Almonds and Green Apple" tabindex="0" role="button" aria-label="Log Snack: Almonds and Apple, 190 calories">
+            <img src="assets/snacks.svg" alt="Snack Menu">
+            <span class="meal-card-overlay">+ Log Meal</span>
+          </div>
+
+          <!-- Drinks -->
+          <div class="meal-card-item" data-meal="Drink" data-calories="95" data-desc="Infused Lemon Mint Water & Cold Brew" tabindex="0" role="button" aria-label="Log Drink: Lemon Mint Water, 95 calories">
+            <img src="assets/drinks.svg" alt="Drink Menu">
+            <span class="meal-card-overlay">+ Log Drink</span>
+          </div>
+
+        </div>
+      </div>
+
+    </div> 
+  </main> 
+
+  <!-- Fixed Bottom Navigation with Connected Real Prototype Routes -->
+  <nav class="fixed-bottom d-flex justify-content-around align-items-center bottom-nav" aria-label="Main navigation">
+    <!-- Home (Active) -->
+    <a href="home.html" class="bottom-nav-item active" aria-current="page">
+      <div class="icon-wrapper">
+        <img src="assets/home.svg" alt="" width="26" height="26">
+        <span class="nav-text">Home</span>
+      </div>
+    </a>
+
+    <!-- Cook / Recipes: linked to prototype recipe page -->
+    <a href="signup/test.html" class="bottom-nav-item" aria-label="Recipes & Cooking">
+      <img src="assets/cook.svg" alt="Cooking" width="26" height="26">
+    </a>
+
+    <!-- Community: linked to community health articles prototype -->
+    <a href="signup/testt.html" class="bottom-nav-item" aria-label="Community & Articles">
+      <img src="assets/comm.svg" alt="Community" width="26" height="26">
+    </a>
+
+    <!-- Progress / Rank: trigger quick goal summary modal -->
+    <a href="javascript:void(0)" id="nav-progress-link" class="bottom-nav-item" aria-label="Goal & Progress">
+      <img src="assets/progress.svg" alt="Progress" width="26" height="26">
+    </a>
+
+    <!-- Profile -->
+    <a href="profile/profile1.html" class="bottom-nav-item" aria-label="My Profile">
+      <img src="assets/profile.svg" alt="Profile" width="26" height="26">
+    </a>
+  </nav>
+
+  <!-- Log Meal Confirmation Modal -->
+  <div class="modal fade" id="mealModal" tabindex="-1" aria-labelledby="mealModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 380px; margin: 0 auto;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title font-extrabold" id="mealModalLabel">Log Meal</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body text-center py-4">
+          <div style="width: 60px; height: 60px; border-radius: 50%; background: #daf2e5; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+            <img src="assets/Group 290.svg" alt="Meal Sprout" width="32" height="32" />
+          </div>
+          <h4 class="font-extrabold mb-1" id="modal-meal-name">Breakfast</h4>
+          <p class="text-muted font-semibold mb-3" id="modal-meal-desc" style="font-size: 14px;">Berry Yogurt Bowl</p>
+          
+          <div class="p-3 mb-3 rounded-3" style="background: #f8faf9;">
+            <span class="font-extrabold" style="font-size: 28px; color: var(--variable-collection-ijo-utama);" id="modal-meal-cal">420</span>
+            <span class="font-bold text-muted"> kcal</span>
+          </div>
+
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-secondary w-50 py-2 rounded-3 font-semibold" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary w-50 py-2 rounded-3 font-extrabold" id="btn-confirm-log" style="background-color: var(--variable-collection-ijo-utama); border: none;">Log Now</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress Summary Modal -->
+  <div class="modal fade" id="progressModal" tabindex="-1" aria-labelledby="progressModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 380px; margin: 0 auto;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title font-extrabold" id="progressModalLabel">Daily Progress</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body py-3">
+          <div class="d-flex align-items-center justify-content-between p-2 mb-2 rounded-3" style="background: #f8faf9;">
+            <span class="font-semibold">Current Goal:</span>
+            <strong class="font-extrabold" id="modal-user-goal">Healthy Lifestyle</strong>
+          </div>
+          <div class="d-flex align-items-center justify-content-between p-2 mb-2 rounded-3" style="background: #f8faf9;">
+            <span class="font-semibold">Daily Calorie Target:</span>
+            <strong class="font-extrabold" id="modal-user-target">1,780 kcal</strong>
+          </div>
+          <div class="d-flex align-items-center justify-content-between p-2 mb-2 rounded-3" style="background: #f8faf9;">
+            <span class="font-semibold">Diet Preference:</span>
+            <strong class="font-extrabold" id="modal-user-diet">Balanced</strong>
+          </div>
+          <div class="d-flex align-items-center justify-content-between p-2 rounded-3" style="background: #f8faf9;">
+            <span class="font-semibold">Cooking Skill:</span>
+            <strong class="font-extrabold" id="modal-user-skill">Intermediate</strong>
+          </div>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <a href="person/person1.html" class="btn btn-outline-success w-100 rounded-3 font-extrabold" style="border-color: var(--variable-collection-ijo-utama); color: var(--variable-collection-ijo-utama);">Update Preferences</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast-container">
+    <div id="actionToast" class="toast align-items-center border-0 d-none" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body" id="toastMessage">Meal logged successfully!</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="storage.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const user = BetterLifeState.get();
+      const targetCalories = user.targetCalories || 1780;
+      
+      // Dynamic Greeting by Time of Day
+      const hour = new Date().getHours();
+      const timeGreetingElem = document.getElementById('greeting-time');
+      const nameGreetingElem = document.getElementById('user-greeting-name');
+      
+      let greetingText = 'Good morning,';
+      if (hour >= 12 && hour < 17) greetingText = 'Good afternoon,';
+      else if (hour >= 17) greetingText = 'Good evening,';
+
+      if (timeGreetingElem) timeGreetingElem.textContent = greetingText;
+      if (nameGreetingElem) {
+        nameGreetingElem.textContent = user.name || 'John Doe';
+      }
+
+      // Consumed Calories State (stored per day)
+      let consumedCalories = parseFloat(localStorage.getItem('better_life_consumed_today') || '0');
+      let currentSteps = parseInt(localStorage.getItem('better_life_steps_today') || '3420', 10);
+      const stepGoal = 6000;
+
+      // DOM Elements
+      const consumedDisplay = document.getElementById('consumed-calories-display');
+      const remainingDisplay = document.getElementById('remaining-calories-display');
+      const progressPercent = document.getElementById('progress-percent');
+      const progressRing = document.getElementById('calorie-progress-ring');
+      const stepsValue = document.getElementById('steps-value');
+      const stepsProgressBar = document.getElementById('steps-progress-bar');
+
+      // Circumference of SVG circle (r = 52)
+      const ringCircumference = 2 * Math.PI * 52; // ~326.72
+
+      function updateDashboard(animate = true) {
+        const remaining = Math.max(0, targetCalories - consumedCalories);
+        const percent = Math.min(100, Math.round((consumedCalories / targetCalories) * 100));
+
+        // Animate or set text
+        if (consumedDisplay) {
+          consumedDisplay.innerHTML = `${consumedCalories.toFixed(1)}<span class="cal-text"> Cal</span>`;
+        }
+        if (remainingDisplay) {
+          remainingDisplay.textContent = remaining.toFixed(1);
+        }
+        if (progressPercent) {
+          progressPercent.textContent = `${percent}%`;
+        }
+
+        // SVG Ring stroke-dashoffset
+        if (progressRing) {
+          const offset = ringCircumference - (percent / 100) * ringCircumference;
+          progressRing.style.strokeDashoffset = offset;
+        }
+
+        // Steps
+        if (stepsValue) {
+          stepsValue.textContent = currentSteps.toLocaleString();
+        }
+        if (stepsProgressBar) {
+          const stepsPercent = Math.min(100, Math.round((currentSteps / stepGoal) * 100));
+          stepsProgressBar.style.width = `${stepsPercent}%`;
+          stepsProgressBar.setAttribute('aria-valuenow', stepsPercent);
+        }
+
+        // Persist
+        localStorage.setItem('better_life_consumed_today', consumedCalories.toString());
+        localStorage.setItem('better_life_steps_today', currentSteps.toString());
+      }
+
+      // Initial render
+      updateDashboard(false);
+
+      // Toast feedback helper
+      function showToast(msg) {
+        const toast = document.getElementById('actionToast');
+        const toastMsg = document.getElementById('toastMessage');
+        if (!toast || !toastMsg) return;
+        toastMsg.textContent = msg;
+        toast.classList.remove('d-none');
+        toast.style.opacity = '1';
+        setTimeout(() => {
+          toast.style.opacity = '0';
+          setTimeout(() => toast.classList.add('d-none'), 300);
+        }, 2200);
+      }
+
+      // Interactive Steps simulation
+      const stepsCard = document.getElementById('card-steps');
+      if (stepsCard) {
+        stepsCard.addEventListener('click', () => {
+          currentSteps = Math.min(stepGoal + 2000, currentSteps + 450);
+          updateDashboard();
+          showToast(`Walk logged! +450 steps (Total: ${currentSteps.toLocaleString()})`);
+        });
+      }
+
+      // Quick Reset
+      const resetBtn = document.getElementById('btn-quick-reset');
+      if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+          consumedCalories = 0;
+          currentSteps = 0;
+          updateDashboard();
+          showToast("Today's journal reset to 0 Cal");
+        });
+      }
+
+      // Meal Log Modal
+      let pendingMealCal = 0;
+      const mealModalElem = document.getElementById('mealModal');
+      const mealModal = mealModalElem ? new bootstrap.Modal(mealModalElem) : null;
+      const modalMealName = document.getElementById('modal-meal-name');
+      const modalMealDesc = document.getElementById('modal-meal-desc');
+      const modalMealCal = document.getElementById('modal-meal-cal');
+      const btnConfirmLog = document.getElementById('btn-confirm-log');
+
+      document.querySelectorAll('.meal-card-item').forEach(card => {
+        card.addEventListener('click', () => {
+          const meal = card.getAttribute('data-meal');
+          const calories = parseFloat(card.getAttribute('data-calories'));
+          const desc = card.getAttribute('data-desc');
+
+          pendingMealCal = calories;
+          if (modalMealName) modalMealName.textContent = meal;
+          if (modalMealDesc) modalMealDesc.textContent = desc;
+          if (modalMealCal) modalMealCal.textContent = calories;
+
+          if (mealModal) mealModal.show();
+        });
+
+        // Accessible Enter key support
+        card.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            card.click();
+          }
+        });
+      });
+
+      if (btnConfirmLog) {
+        btnConfirmLog.addEventListener('click', () => {
+          consumedCalories += pendingMealCal;
+          updateDashboard();
+          if (mealModal) mealModal.hide();
+          showToast(`Logged +${pendingMealCal} kcal to today's journal!`);
+        });
+      }
+
+      // Progress Modal
+      const navProgressLink = document.getElementById('nav-progress-link');
+      const progressModalElem = document.getElementById('progressModal');
+      const progressModal = progressModalElem ? new bootstrap.Modal(progressModalElem) : null;
+
+      if (navProgressLink && progressModal) {
+        navProgressLink.addEventListener('click', () => {
+          const u = BetterLifeState.get();
+          document.getElementById('modal-user-goal').textContent = u.goal || 'Healthy Lifestyle';
+          document.getElementById('modal-user-target').textContent = `${(u.targetCalories || 1780).toLocaleString()} kcal`;
+          document.getElementById('modal-user-diet').textContent = u.diet ? `${u.diet} Diet` : 'Balanced';
+          document.getElementById('modal-user-skill').textContent = u.cookingSkill || 'Intermediate';
+          progressModal.show();
+        });
+      }
+    });
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+</body>
+</html>

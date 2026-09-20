@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="../better-life.css" />
+
+  <title>Personalization - Step 8 | Better Life</title>
+
+  <style>
+    .personalization-container {
+      width: 100%;
+      max-width: 440px; 
+      margin: 0 auto;
+      background-color: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .header-section {
+      padding: 1.5rem 1.5rem 0 1.5rem;
+    }
+    
+    .main-content {
+      flex-grow: 1;
+      padding: 0 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      justify-content: center;
+    }
+    
+    .footer-section {
+      padding: 1.5rem 1.5rem 2rem 1.5rem;
+    }
+    
+    .header-title {
+      font-family: var(--font-extrabold);
+      font-weight: 800;
+      color: #000000;
+      font-size: 19px;
+    }
+    
+    .step-counter {
+      font-family: var(--font-extrabold);
+      font-weight: 800;
+      font-size: 15px;
+      color: var(--variable-collection-gray2);
+    }
+    
+    .step-counter .step-num {
+       color: var(--variable-collection-ijo-utama);
+    }
+    
+    .subtitle {
+      font-family: var(--font-extrabold);
+      font-weight: 800;
+      color: #000000;
+      font-size: 22px; 
+      line-height: 1.35;
+    }
+    
+    .progress-bar {
+      background-color: var(--variable-collection-ijo-utama);
+      transition: width 0.4s ease;
+    }
+    
+    .progress {
+      height: 6px;
+      border-radius: 3px;
+      background-color: #f0f3f2;
+    }
+    
+    .description-text {
+      font-family: var(--font-semibold);
+      font-weight: 600;
+      font-size: 15px;
+      color: var(--variable-collection-gray-pekat);
+      line-height: 1.5;
+    }
+
+    .plan-card {
+      background: linear-gradient(135deg, rgba(103, 192, 144, 0.12) 0%, rgba(103, 192, 144, 0.04) 100%);
+      border: 1.5px solid rgba(103, 192, 144, 0.35);
+      border-radius: 16px;
+      padding: 1rem 1.25rem;
+      width: 100%;
+      margin: 1.25rem 0;
+      text-align: left;
+    }
+
+    .plan-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--variable-collection-ijo-utama);
+      color: #ffffff;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-family: var(--font-extrabold);
+    }
+
+    .plan-metric {
+      font-family: var(--font-extrabold);
+      font-size: 24px;
+      color: #1a1a1a;
+      line-height: 1.2;
+    }
+
+    .plan-sub {
+      font-family: var(--font-semibold);
+      font-size: 13px;
+      color: var(--variable-collection-gray-pekat);
+    }
+
+    .celebration-icon {
+      width: 72px;
+      height: 72px;
+      background: rgba(103, 192, 144, 0.15);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.25rem;
+      animation: scaleIn 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    @keyframes scaleIn {
+      0% { transform: scale(0.6); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    
+    .btn-footer {
+      height: 48px;
+      border-radius: 12px;
+      font-family: var(--font-extrabold);
+      font-weight: 800;
+      font-size: 16px;
+      border: none;
+      width: 100%;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition-fast);
+      cursor: pointer;
+    }
+    
+    .btn-primary-action {
+      background-color: var(--variable-collection-ijo-utama);
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(103, 192, 144, 0.35);
+    }
+
+    .btn-primary-action:hover {
+      background-color: var(--color-primary-dark);
+      transform: translateY(-1px);
+    }
+    
+    .btn-secondary-action {
+      background-color: #f1f3f2;
+      color: var(--variable-collection-gray-pekat);
+      margin-top: 0.75rem; 
+    }
+
+    .btn-secondary-action:hover {
+      background-color: #e5e9e7;
+      color: #333333;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="personalization-container animate-fade-in">
+    
+    <header class="header-section">
+      <div class="d-flex align-items-center mb-3">
+        <a href="person7.html" class="me-3 p-1 rounded-circle hover-scale" aria-label="Back to step 7">
+          <img src="../assets/back2.svg" alt="Back" width="18" height="36">
+        </a>
+        <h1 class="header-title flex-grow-1 mb-0">Personalization</h1>
+        <div class="step-counter">
+          <span class="step-num">Step 8</span> of 8
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      
+      <div class="progress mb-4 w-100" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">
+        <div class="progress-bar" style="width: 100%"></div>
+      </div>
+      
+      <div class="my-auto py-2">
+        <div class="celebration-icon">
+          <img src="../assets/Group 290.svg" alt="Better Life Sprout" width="40" height="40" />
+        </div>
+
+        <h2 class="subtitle mb-2">You're All Set!</h2>
+        <p class="description-text mb-3">
+          We’ve prepared a personalized daily nutrition target tailored to your lifestyle and goals.
+        </p>
+
+        <!-- Summary card calculated from user state -->
+        <div class="plan-card">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="plan-badge">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              Plan Ready
+            </span>
+            <span class="plan-sub" id="summary-goal">Healthy Lifestyle</span>
+          </div>
+          <div class="d-flex justify-content-between align-items-baseline">
+            <div>
+              <div class="plan-metric" id="summary-calories">1,780 <span style="font-size: 15px; font-weight: 600; color: #666;">kcal / day</span></div>
+              <div class="plan-sub" id="summary-diet">Balanced Diet</div>
+            </div>
+          </div>
+        </div>
+
+        <p class="description-text" style="font-size: 14px;">
+          Turn on notifications to receive timely meal reminders and helpful healthy living tips.
+        </p>
+      </div>
+
+    </main>
+
+    <footer class="footer-section">
+      <button id="btn-notifications-on" class="btn-footer btn-primary-action" type="button">
+        Turn on notifications
+      </button>
+      
+      <button id="btn-notifications-off" class="btn-footer btn-secondary-action" type="button">
+        Maybe later
+      </button>
+    </footer>
+
+  </div>
+
+  <script src="../storage.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Calculate target calories based on stored user parameters
+      const user = BetterLifeState.calculateCalories();
+      
+      // Update plan card UI
+      const calElem = document.getElementById('summary-calories');
+      const goalElem = document.getElementById('summary-goal');
+      const dietElem = document.getElementById('summary-diet');
+
+      if (calElem && user.targetCalories) {
+        calElem.innerHTML = `${user.targetCalories.toLocaleString()} <span style="font-size: 15px; font-weight: 600; color: #666;">kcal / day</span>`;
+      }
+      if (goalElem && user.goal) {
+        goalElem.textContent = user.goal;
+      }
+      if (dietElem && user.diet) {
+        goalElem.textContent = user.goal || 'Custom Plan';
+        dietElem.textContent = `${user.diet} Diet`;
+      }
+
+      function finishOnboarding(turnOnNotifications) {
+        BetterLifeState.update({
+          notifications: turnOnNotifications,
+          onboardingCompleted: true
+        });
+        window.location.href = '../home.html';
+      }
+
+      document.getElementById('btn-notifications-on')?.addEventListener('click', () => {
+        finishOnboarding(true);
+      });
+
+      document.getElementById('btn-notifications-off')?.addEventListener('click', () => {
+        finishOnboarding(false);
+      });
+    });
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+</body>
+</html>

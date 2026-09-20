@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8" />
+    <style>
+      @import url("https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css");
+      * {
+        -webkit-font-smoothing: antialiased;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0px;
+        height: 100%;
+      }
+      /* a blue color as a generic focus style */
+      button:focus-visible {
+        outline: 2px solid #4a90e2 !important;
+        outline: -webkit-focus-ring-color auto 5px !important;
+      }
+      a {
+        text-decoration: none;
+      }
+
+      :root {
+        --variable-collection-ijo-utama: rgba(103, 192, 144, 1);
+        --variable-collection-gray: rgba(224, 224, 224, 1);
+        --variable-collection-gray-pekat: rgba(136, 136, 136, 1);
+        --variable-collection-gray2: rgba(207, 207, 207, 1);
+        --variable-collection-ijo-muda: rgba(221, 244, 231, 1);
+        --variable-collection-gray3: rgba(136, 136, 136, 1);
+        --variable-collection-secondary: rgba(218, 242, 229, 1);
+        --variable-collection-black: rgba(25, 25, 25, 1);
+      }
+
+      .articles {
+        background-color: #ffffff;
+        width: 100%;
+        min-width: 440px;
+        height: 956px;
+        position: relative;
+      }
+
+      .articles .overlap-group {
+        position: absolute;
+        width: 385px;
+        height: 297px;
+        top: 143px;
+        left: 28px;
+        border-radius: 10px;
+      }
+
+      .articles .group {
+        position: absolute;
+        width: 385px;
+        height: 297px;
+        top: 0;
+        left: 0;
+        border-radius: 10px;
+        border: 1px solid;
+        border-color: var(--variable-collection-gray-pekat);
+      }
+
+      .articles .group-wrapper {
+        position: absolute;
+        width: 121px;
+        height: 18px;
+        top: 271px;
+        left: 232px;
+        display: flex;
+      }
+
+      .articles .div-wrapper {
+        width: 123px;
+        display: flex;
+      }
+
+      .articles .text-wrapper {
+        width: 121px;
+        height: 18px;
+        font-family: "Akatab-Bold", Helvetica;
+        font-weight: 700;
+        color: #b0acac;
+        font-size: 13px;
+        letter-spacing: 0.39px;
+        line-height: normal;
+      }
+
+      .articles .div {
+        position: absolute;
+        width: 385px;
+        height: 297px;
+        top: 464px;
+        left: 27px;
+        border-radius: 10px;
+        border: 1px solid;
+        border-color: var(--variable-collection-gray-pekat);
+      }
+
+      .articles .p {
+        position: absolute;
+        top: 701px;
+        left: 40px;
+        width: 352px;
+        font-family: "Akatab-Bold", Helvetica;
+        font-weight: 700;
+        color: #000000;
+        font-size: 16px;
+        letter-spacing: 0.48px;
+        line-height: normal;
+      }
+
+      .articles .text-wrapper-2 {
+        top: 380px;
+        width: 352px;
+        color: #000000;
+        font-size: 16px;
+        letter-spacing: 0.48px;
+        position: absolute;
+        left: 40px;
+        font-family: "Akatab-Bold", Helvetica;
+        font-weight: 700;
+        line-height: normal;
+      }
+
+      .articles .text-wrapper-3 {
+        top: 417px;
+        color: #b0acac;
+        font-size: 11px;
+        letter-spacing: 0.33px;
+        position: absolute;
+        left: 40px;
+        font-family: "Akatab-Bold", Helvetica;
+        font-weight: 700;
+        line-height: normal;
+      }
+
+      .articles .text-wrapper-4 {
+        top: 738px;
+        color: #b0acac;
+        font-size: 11px;
+        letter-spacing: 0.33px;
+        position: absolute;
+        left: 40px;
+        font-family: "Akatab-Bold", Helvetica;
+        font-weight: 700;
+        line-height: normal;
+      }
+
+      .articles .text-wrapper-5 {
+        position: absolute;
+        top: 735px;
+        left: 259px;
+        font-family: "Akatab-Bold", Helvetica;
+        font-weight: 700;
+        color: #b0acac;
+        font-size: 13px;
+        letter-spacing: 0.39px;
+        line-height: normal;
+      }
+
+      .articles .group-2 {
+        position: absolute;
+        width: 5.68%;
+        height: 2.93%;
+        top: 94.14%;
+        left: 71.14%;
+      }
+
+      .articles .vector {
+        position: absolute;
+        width: 32.00%;
+        height: 100%;
+        top: 0;
+        left: 68.00%;
+      }
+
+      .articles .img {
+        position: absolute;
+        width: 32.00%;
+        height: 71.43%;
+        top: 28.57%;
+        left: 34.00%;
+      }
+
+      .articles .vector-2 {
+        position: absolute;
+        width: 32.00%;
+        height: 53.57%;
+        top: 46.43%;
+        left: 0;
+      }
+
+      .articles .rectangle {
+        position: absolute;
+        width: 20.00%;
+        height: 89.29%;
+        top: 4.14%;
+        left: 74.00%;
+        background-color: var(--variable-collection-ijo-utama);
+      }
+
+      .articles .rectangle-2 {
+        position: absolute;
+        width: 20.00%;
+        height: 60.71%;
+        top: 32.89%;
+        left: 40.00%;
+        background-color: var(--variable-collection-ijo-utama);
+      }
+
+      .articles .rectangle-3 {
+        position: absolute;
+        width: 20.00%;
+        height: 46.43%;
+        top: 50.00%;
+        left: 8.00%;
+        background-color: var(--variable-collection-ijo-utama);
+      }
+
+      .articles .vector-3 {
+        position: absolute;
+        width: 6.14%;
+        height: 2.82%;
+        top: 94.14%;
+        left: 86.59%;
+      }
+
+      .articles .vector-4 {
+        position: absolute;
+        width: 5.61%;
+        height: 2.82%;
+        top: 94.46%;
+        left: 6.36%;
+      }
+
+      .articles .group-3 {
+        position: absolute;
+        top: 891px;
+        left: 167px;
+        width: 113px;
+        height: 49px;
+      }
+
+      .articles .rectangle-4 {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 111px;
+        height: 49px;
+        background-color: #67c0900d;
+        border-radius: 20px;
+        border: 1px solid;
+        border-color: var(--variable-collection-ijo-utama);
+      }
+
+      .articles .fluent-people {
+        position: absolute;
+        top: 7px;
+        left: 8px;
+        width: 36px;
+        height: 36px;
+        aspect-ratio: 1;
+      }
+
+      .articles .vector-5 {
+        position: absolute;
+        width: 85.72%;
+        height: 78.58%;
+        top: 10.71%;
+        left: 7.14%;
+      }
+
+      .articles .text-wrapper-6 {
+        position: absolute;
+        top: 11px;
+        left: 46px;
+        font-family: "Akatab-ExtraBold", Helvetica;
+        font-weight: 800;
+        color: var(--variable-collection-ijo-utama);
+        font-size: 20px;
+        letter-spacing: 0;
+        line-height: normal;
+      }
+
+      .articles .vector-6 {
+        position: absolute;
+        width: 8.18%;
+        height: 3.06%;
+        top: 94.04%;
+        left: 21.59%;
+      }
+
+      .articles .text-wrapper-7 {
+        position: absolute;
+        top: 51px;
+        left: 173px;
+        font-family: "Akatab-ExtraBold", Helvetica;
+        font-weight: 800;
+        color: #000000;
+        font-size: 28px;
+        text-align: center;
+        letter-spacing: 0.84px;
+        line-height: normal;
+      }
+
+      .articles .weui-back-filled-wrapper {
+        position: absolute;
+        top: 44px;
+        left: 27px;
+        width: 44px;
+        height: 44px;
+        display: flex;
+        background-color: #ffffff;
+        border-radius: 22px;
+      }
+
+      .articles .weui-back-filled {
+        margin-top: 5px;
+        width: 18px;
+        height: 36px;
+        margin-left: 13px;
+        position: relative;
+        aspect-ratio: 0.5;
+      }
+
+      .articles .vector-7 {
+        position: absolute;
+        width: 79.04%;
+        height: 70.71%;
+        top: 14.65%;
+        left: 7.74%;
+      }
+
+      .articles .mask-group {
+        position: absolute;
+        top: 474px;
+        left: 40px;
+        width: 359px;
+        height: 219px;
+      }
+
+      .articles .mask-group-2 {
+        position: absolute;
+        top: 153px;
+        left: 40px;
+        width: 359px;
+        height: 219px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="articles">
+      <div class="overlap-group">
+        <div class="group"></div>
+        <div class="group-wrapper">
+          <div class="div-wrapper">
+            <a
+              href="https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://keslan.kemkes.go.id/view_artikel/1778/diet-menurunkan-berat-badan&ved=2ahUKEwjyksb2ofSQAxWh2jgGHVd3BLYQFnoECBcQAQ&usg=AOvVaw2ty1P5_oZuX-HeZbra_8FG"
+              target="_blank"
+              rel="noopener noreferrer"
+              ><div class="text-wrapper">Lihat selengkapnya</div></a
+            >
+          </div>
+        </div>
+      </div>
+      <div class="div"></div>
+      <p class="p">Cara Diet Sehat untuk Menjaga Kesehatan</p>
+      <p class="text-wrapper-2">10 Tips Diet Menurunkan Berat Badan</p>
+      <div class="text-wrapper-3">22 Agustus 2024</div>
+      <div class="text-wrapper-4">29 Juni 2025</div>
+      <a
+        href="https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://www.ekahospital.com/better-healths/cara-diet-sehat-untuk-menjaga-kesehatan&ved=2ahUKEwil75LKpPSQAxXXxDgGHeKyE5MQFnoECDcQAQ&usg=AOvVaw0J08IMdy9OuOQE50oVvi_M"
+        target="_blank"
+        rel="noopener noreferrer"
+        ><div class="text-wrapper-5">Lihat selengkapnya</div></a
+      >
+      <div class="group-2"> 
+        <div class="rectangle"></div>
+        <div class="rectangle-2"></div>
+        <div class="rectangle-3"></div>
+      </div>
+      <img class="vector-3" src="../assets/progress.svg" />
+      <img class="vector-4" src="../assets/home.svg" style="cursor: pointer;" onclick="window.location.href='../home.html'" title="Return Home" />
+      <div class="group-3">
+        <div class="rectangle-4"></div>
+        <div class="fluent-people"><img class="vector-5" src="../assets/comm.svg" /></div>
+        <div class="text-wrapper-6">Social</div>
+      </div>
+      <img class="vector-6" src="../assets/cook.svg" />
+      <div class="text-wrapper-7">Articles</div>
+      <div class="weui-back-filled-wrapper" style="cursor: pointer;" onclick="window.location.href='../home.html'" title="Back to Home">
+        <div class="weui-back-filled"><img class="vector-7" src="../assets/back2.svg" alt="Back" /></div>
+      </div>
+      <img class="mask-group" src="../assets/lunch.svg" style="object-fit: cover;" />
+      <img class="mask-group-2" src="../assets/breakfast.svg" style="object-fit: cover;" />
+    </div>
+  </body>
+</html>
