@@ -4,22 +4,14 @@ import { SplashScreen, Stack } from "expo-router";
 import { useFonts } from "expo-font";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { configureReanimatedLogger, ReanimatedLogLevel } from "react-native-reanimated";
 import { queryClient } from "@/lib/queryClient";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useJournalStore } from "@/stores/useJournalStore";
 import { useOnboardingStore } from "@/stores/useOnboardingStore";
 import "../styles/global.css";
 
-// Configure Reanimated Logger to disable strict render warning in React 19
-configureReanimatedLogger({
-  level: ReanimatedLogLevel.warn,
-  strict: false,
-});
-
 // Prevent auto-hiding the splash screen until assets are loaded
 SplashScreen.preventAutoHideAsync();
-
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({

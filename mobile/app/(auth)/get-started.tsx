@@ -92,70 +92,74 @@ export default function GetStartedScreen() {
   };
 
   return (
-    <ScreenWrapper maxWidth="mobile" className="flex-1 bg-white">
+    <ScreenWrapper maxWidth="wide" className="flex-1 bg-white">
       {/* Decorative Ellipse in Top Right */}
       <View
         pointerEvents="none"
-        className="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-secondary-soft items-center justify-center"
+        className="absolute -top-16 -right-16 w-56 h-56 md:w-80 md:h-80 rounded-full bg-secondary-soft items-center justify-center"
         style={{ zIndex: 0 }}
       >
-        <View className="w-36 h-36 rounded-full bg-primary/20" />
+        <View className="w-36 h-36 md:w-56 md:h-56 rounded-full bg-primary/20" />
       </View>
 
       <ScrollView
-        contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}
-        className="px-6 py-6"
+        contentContainerStyle={{ flexGrow: 1 }}
+        className="px-6 py-6 md:px-12 lg:px-20"
         showsVerticalScrollIndicator={false}
       >
-        <View className="w-full my-auto py-2 items-center">
-          {/* Branding and Illustration */}
-          <Animated.View style={headerAnimatedStyle} className="items-center">
-            <Image
-              source={BrandImages.logoPng}
-              style={{ width: 110, height: 110 }}
-              resizeMode="contain"
-              accessibilityLabel="Better Life logo"
-            />
-            <AppText weight="black" className="text-3xl text-primary text-center mt-2">
-              Welcome!
-            </AppText>
-            <AppText weight="semibold" className="text-sm text-neutral-muted text-center mt-1">
-              Eat better, feel healthier, live better
-            </AppText>
-          </Animated.View>
+        <View className="w-full flex-col md:flex-row md:items-center md:justify-between md:gap-x-12 lg:gap-x-20 my-auto py-2">
+          
+          {/* Left Column: Branding and Illustration */}
+          <View className="w-full md:flex-1 items-center md:items-start z-10">
+            <Animated.View style={headerAnimatedStyle} className="items-center md:items-start">
+              <Image
+                source={BrandImages.logoPng}
+                style={{ width: 130, height: 130 }}
+                resizeMode="contain"
+                accessibilityLabel="Better Life logo"
+              />
+              <AppText weight="bold" className="text-3xl md:text-5xl lg:text-6xl text-primary text-center md:text-left mt-2">
+                Welcome!
+              </AppText>
+              <AppText weight="semibold" className="text-base md:text-xl text-neutral-muted text-center md:text-left mt-1.5 md:mt-3">
+                Eat better, feel healthier, live better
+              </AppText>
+            </Animated.View>
 
-          <Animated.View style={illustrationAnimatedStyle} className="items-center my-6">
-            <Image
-              source={BrandImages.onboardingPng}
-              style={{
-                width: 240,
-                height: 180,
-              }}
-              resizeMode="contain"
-              accessibilityLabel="Better Life celebration illustration"
-            />
-          </Animated.View>
+            <Animated.View style={illustrationAnimatedStyle} className="items-center md:items-start my-6 md:my-10">
+              <Image
+                source={BrandImages.onboardingPng}
+                style={{
+                  width: 260,
+                  height: 195,
+                  ...(Platform.OS === 'web' ? { maxWidth: '100%', height: 'auto', aspectRatio: '4/3', maxHeight: 340 } : {})
+                }}
+                resizeMode="contain"
+                accessibilityLabel="Better Life health celebration illustration"
+              />
+            </Animated.View>
+          </View>
 
-          {/* Action Card */}
-          <Animated.View style={cardAnimatedStyle} className="w-full z-10">
+          {/* Right Column: Action Panel Drawer / Card */}
+          <Animated.View style={cardAnimatedStyle} className="w-full md:w-[380px] lg:w-[440px] z-10">
             <View
-              style={Shadows.card}
-              className="bg-secondary-soft rounded-3xl p-6 border border-secondary shadow-sm"
+              style={Platform.OS === "web" ? Shadows.elevated : Shadows.card}
+              className="bg-secondary md:bg-white rounded-3xl p-6 md:p-8 lg:p-10 border border-neutral-border-light shadow-sm md:shadow-xl"
             >
-              <AppText weight="bold" className="text-2xl text-neutral-dark text-center mb-1">
+              <AppText weight="bold" className="text-2xl md:text-3xl text-neutral-dark text-center md:text-left mb-1.5 md:mb-2">
                 Get Started
               </AppText>
-              <AppText weight="medium" className="text-xs text-neutral-muted text-center mb-5">
+              <AppText weight="medium" className="text-sm md:text-base text-neutral-muted text-center md:text-left mb-6 md:mb-8">
                 Join thousands tracking their nutrition effortlessly
               </AppText>
 
-              <View className="gap-y-3">
+              <View className="gap-y-3.5">
                 <Button
                   title="Create Account"
                   variant="primary"
                   onPress={handleCreateAccount}
                   accessibilityLabel="Navigate to create account"
-                  className="shadow-xs"
+                  className="shadow-sm"
                 />
 
                 <Button
@@ -167,11 +171,11 @@ export default function GetStartedScreen() {
               </View>
             </View>
           </Animated.View>
+
         </View>
       </ScrollView>
     </ScreenWrapper>
   );
-
 }
 
 

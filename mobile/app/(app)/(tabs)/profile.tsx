@@ -216,9 +216,8 @@ export default function ProfileScreen() {
   };
 
   return (
-    <ScreenWrapper maxWidth="mobile" className="flex-1 bg-white">
+    <ScreenWrapper maxWidth="wide" className="flex-1 bg-white">
       {/* Top Header Bar */}
-
       <View className="px-6 pt-5 pb-3 flex-row justify-between items-center bg-white border-b border-neutral-border-light">
         <AppText weight="black" className="text-2xl text-neutral-dark">
           Profile

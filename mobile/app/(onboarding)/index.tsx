@@ -5,6 +5,8 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  Modal,
+  Pressable,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
@@ -18,6 +20,21 @@ import {
 } from "@/components/ui";
 import { useOnboardingStore } from "@/stores/useOnboardingStore";
 import { IconRenderer } from "@/constants/Assets";
+
+const MONTHS_LIST = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
 
 export default function OnboardingScreen() {
   const router = useRouter();
@@ -45,11 +62,22 @@ export default function OnboardingScreen() {
   const [birthDay, setBirthDay] = useState(personalization.birthDate.day.toString());
   const [birthMonth, setBirthMonth] = useState(personalization.birthDate.month);
   const [birthYear, setBirthYear] = useState(personalization.birthDate.year.toString());
+  const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [cookingSkill, setCookingSkill] = useState<"Low" | "Middle" | "High">(
     personalization.cookingSkill
   );
   const [dietType, setDietType] = useState(personalization.dietType);
   const [allergies, setAllergies] = useState<string[]>(personalization.allergies);
+
+  const handleMonthChange = (val: string) => {
+    const trimmed = val.trim();
+    const num = parseInt(trimmed, 10);
+    if (!isNaN(num) && num >= 1 && num <= 12) {
+      setBirthMonth(MONTHS_LIST[num - 1]);
+    } else {
+      setBirthMonth(val);
+    }
+  };
 
   // Validation per step
   const isStepValid = () => {
@@ -69,7 +97,16 @@ export default function OnboardingScreen() {
       case 5: {
         const d = parseInt(birthDay, 10);
         const y = parseInt(birthYear, 10);
-        return !isNaN(d) && d >= 1 && d <= 31 && !isNaN(y) && y >= 1920 && y <= 2025 && !!birthMonth;
+        const currentYear = new Date().getFullYear();
+        return (
+          !isNaN(d) &&
+          d >= 1 &&
+          d <= 31 &&
+          !isNaN(y) &&
+          y >= 1920 &&
+          y <= currentYear &&
+          !!birthMonth.trim()
+        );
       }
       case 6:
         return !!cookingSkill;
@@ -129,9 +166,8 @@ export default function OnboardingScreen() {
   };
 
   return (
-    <ScreenWrapper maxWidth="mobile" className="flex-1 bg-white">
+    <ScreenWrapper maxWidth="narrow" className="flex-1 bg-white">
       {/* Header with Step Indicator */}
-
       <Header
         onBack={handleBack}
         step={{ current: Math.min(currentStep, 8), total: 8 }}
@@ -287,31 +323,43 @@ export default function OnboardingScreen() {
                 Your age affects metabolic expenditure and nutrient absorption.
               </AppText>
 
-              <View className="flex-row gap-x-2">
-                <View className="flex-1">
+              <View className="flex-row gap-x-2 w-full">
+                <View className="flex-1 min-w-0">
                   <Input
                     label="DAY"
                     placeholder="15"
                     value={birthDay}
-                    onChangeText={setBirthDay}
+                    onChangeText={(val) => setBirthDay(val.replace(/[^0-9]/g, "").slice(0, 2))}
                     keyboardType="numeric"
                     maxLength={2}
                   />
                 </View>
-                <View className="flex-[1.5]">
+                <View className="flex-[1.5] min-w-0">
                   <Input
                     label="MONTH"
                     placeholder="June"
                     value={birthMonth}
-                    onChangeText={setBirthMonth}
+                    onChangeText={handleMonthChange}
+                    rightAccessory={
+                      <TouchableOpacity
+                        onPress={() => setShowMonthPicker(true)}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        className="p-1 items-center justify-center"
+                        accessibilityLabel="Select month"
+                      >
+                        <AppText weight="bold" className="text-xs text-primary">
+                          ▼
+                        </AppText>
+                      </TouchableOpacity>
+                    }
                   />
                 </View>
-                <View className="flex-1">
+                <View className="flex-1 min-w-0">
                   <Input
                     label="YEAR"
                     placeholder="2000"
                     value={birthYear}
-                    onChangeText={setBirthYear}
+                    onChangeText={(val) => setBirthYear(val.replace(/[^0-9]/g, "").slice(0, 4))}
                     keyboardType="numeric"
                     maxLength={4}
                   />
@@ -463,6 +511,71 @@ export default function OnboardingScreen() {
         </View>
       </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Month Selector Modal */}
+      <Modal
+        visible={showMonthPicker}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowMonthPicker(false)}
+      >
+        <Pressable
+          className="flex-1 bg-black/50 justify-center items-center p-4"
+          onPress={() => setShowMonthPicker(false)}
+        >
+          <Pressable
+            className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-xl"
+            onPress={(e) => e.stopPropagation()}
+          >
+            <View className="flex-row items-center justify-between mb-4">
+              <AppText weight="black" className="text-lg text-neutral-dark">
+                Select Month
+              </AppText>
+              <TouchableOpacity
+                onPress={() => setShowMonthPicker(false)}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                className="p-1"
+                accessibilityLabel="Close"
+              >
+                <AppText weight="bold" className="text-neutral-muted text-base">
+                  ✕
+                </AppText>
+              </TouchableOpacity>
+            </View>
+
+            <View className="flex-row flex-wrap gap-2 justify-between">
+              {MONTHS_LIST.map((m) => {
+                const isSelected =
+                  birthMonth.trim().toLowerCase() === m.toLowerCase();
+                return (
+                  <TouchableOpacity
+                    key={m}
+                    onPress={() => {
+                      setBirthMonth(m);
+                      setShowMonthPicker(false);
+                    }}
+                    className={`w-[30%] py-3 px-2 rounded-xl items-center justify-center border ${
+                      isSelected
+                        ? "bg-primary border-primary"
+                        : "bg-neutral-surface border-neutral-border"
+                    }`}
+                    activeOpacity={0.7}
+                  >
+                    <AppText
+                      weight={isSelected ? "black" : "semibold"}
+                      className={`text-sm ${
+                        isSelected ? "text-white" : "text-neutral-dark"
+                      }`}
+                    >
+                      {m.slice(0, 3)}
+                    </AppText>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </ScreenWrapper>
   );
 }

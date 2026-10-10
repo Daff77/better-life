@@ -1,9 +1,16 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
+import Animated, {
+  useSharedValue,
+  useAnimatedProps,
+  withTiming,
+} from "react-native-reanimated";
 import { AppText } from "./AppText";
 import { Colors } from "@/constants/DesignTokens";
+import { AnimationTimings } from "@/constants/AnimationTokens";
 
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 export interface ProgressRingProps {
   progress: number; // 0 to 100
@@ -27,7 +34,21 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const clampedProgress = Math.min(100, Math.max(0, progress));
-  const strokeDashoffset = circumference - (clampedProgress / 100) * circumference;
+
+  const animatedProgress = useSharedValue(0);
+
+  useEffect(() => {
+    animatedProgress.value = withTiming(clampedProgress, {
+      duration: AnimationTimings.pageFast,
+    });
+  }, [clampedProgress]);
+
+  const animatedProps = useAnimatedProps(() => {
+    const strokeDashoffset = circumference - (animatedProgress.value / 100) * circumference;
+    return {
+      strokeDashoffset,
+    };
+  });
 
   return (
     <View style={{ width: size, height: size }} className="items-center justify-center">
@@ -41,20 +62,19 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
           strokeWidth={strokeWidth}
           fill="none"
         />
-        {/* Active Progress Arc */}
-        <Circle
+        {/* Active Animated Progress Arc */}
+        <AnimatedCircle
           cx={size / 2}
           cy={size / 2}
           r={radius}
           stroke={color}
           strokeWidth={strokeWidth}
           strokeDasharray={`${circumference} ${circumference}`}
-          strokeDashoffset={strokeDashoffset}
+          animatedProps={animatedProps}
           strokeLinecap="round"
           fill="none"
         />
       </Svg>
-
 
       {/* Center Value & Label */}
       <View pointerEvents="none" className="absolute items-center justify-center">

@@ -50,28 +50,24 @@ async function getStorageItem(key: string): Promise<string | null> {
 
 async function setStorageItem(key: string, value: string): Promise<void> {
   try {
-    memoryStore[key] = value;
-
     const { isWeb, hasSecureStore } = getPlatformInfo();
     const SecureStore = hasSecureStore ? getSecureStore() : null;
 
     if (!isWeb && SecureStore) {
-      // SecureStore on Android KeyStore has a hard 2048-byte limit.
-      // Payloads larger than 2KB must not be written to SecureStore to prevent KeyStore warnings.
-      if (value.length < 2040) {
-        await SecureStore.setItemAsync(key, value);
-      }
+      await SecureStore.setItemAsync(key, value);
+      memoryStore[key] = value;
       return;
     }
 
     if (typeof window !== "undefined" && window.localStorage) {
       window.localStorage.setItem(key, value);
     }
+    memoryStore[key] = value;
   } catch (err) {
-    // Memory store fallback already preserved
+    console.warn(`[journalStorage] Failed to set item for key "${key}":`, err);
+    memoryStore[key] = value;
   }
 }
-
 
 async function deleteStorageItem(key: string): Promise<void> {
   try {

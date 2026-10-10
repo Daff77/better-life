@@ -17,14 +17,6 @@ export interface JournalAggregates {
   progressRatio: number;
   targetCalories: number;
   entryCount: number;
-  totalProtein: number;
-  totalCarbs: number;
-  totalFat: number;
-  targetProtein: number;
-  targetCarbs: number;
-  targetFat: number;
-  waterGlasses: number;
-  waterGoalGlasses: number;
 }
 
 export interface AddJournalEntryInput {
@@ -33,9 +25,6 @@ export interface AddJournalEntryInput {
   category: JournalCategory;
   calories?: number;
   baseCalories?: number;
-  proteinGrams?: number;
-  carbsGrams?: number;
-  fatGrams?: number;
   quantity?: number;
 }
 
@@ -44,9 +33,6 @@ export interface UpdateJournalEntryInput {
   category?: JournalCategory;
   calories?: number;
   baseCalories?: number;
-  proteinGrams?: number;
-  carbsGrams?: number;
-  fatGrams?: number;
   quantity?: number;
 }
 
@@ -67,8 +53,6 @@ interface JournalState {
   clearDay: (date?: string) => Promise<void>;
   setTargetCalories: (target: number, date?: string) => Promise<void>;
   syncTargetFromProfile: (date?: string) => Promise<void>;
-  addWater: (glasses?: number, date?: string) => Promise<number>;
-  removeWater: (glasses?: number, date?: string) => Promise<number>;
 
   // Synchronous State Queries & Pure Derivations
   getJournal: (date?: string) => DailyJournal;
@@ -82,21 +66,9 @@ export function computeJournalAggregates(
 ): JournalAggregates {
   const target = journal?.targetCalories ?? fallbackTarget ?? 1950;
   const entries = journal?.entries ?? [];
-  const totalConsumed = entries.reduce((sum, entry) => sum + (entry.calories || 0), 0);
+  const totalConsumed = entries.reduce((sum, entry) => sum + entry.calories, 0);
   const remainingCalories = Math.max(0, target - totalConsumed);
   const progressRatio = target > 0 ? Math.min(1.0, totalConsumed / target) : 0;
-
-  const totalProtein = entries.reduce((sum, entry) => sum + (entry.proteinGrams || 0), 0);
-  const totalCarbs = entries.reduce((sum, entry) => sum + (entry.carbsGrams || 0), 0);
-  const totalFat = entries.reduce((sum, entry) => sum + (entry.fatGrams || 0), 0);
-
-  // Default target macro distribution: 25% Protein, 50% Carbs, 25% Fat
-  const targetProtein = Math.round((target * 0.25) / 4);
-  const targetCarbs = Math.round((target * 0.50) / 4);
-  const targetFat = Math.round((target * 0.25) / 9);
-
-  const waterGlasses = journal?.waterGlasses ?? 0;
-  const waterGoalGlasses = journal?.waterGoalGlasses ?? 8;
 
   return {
     totalConsumed,
@@ -104,17 +76,8 @@ export function computeJournalAggregates(
     progressRatio,
     targetCalories: target,
     entryCount: entries.length,
-    totalProtein,
-    totalCarbs,
-    totalFat,
-    targetProtein,
-    targetCarbs,
-    targetFat,
-    waterGlasses,
-    waterGoalGlasses,
   };
 }
-
 
 const FALLBACK_EMPTY_ENTRIES: JournalEntry[] = [];
 
@@ -242,13 +205,9 @@ export const useJournalStore = create<JournalState>((set, get) => ({
       category: entryInput.category,
       calories: Math.max(0, totalCalories || 0),
       baseCalories: Math.max(0, baseCalories || 0),
-      proteinGrams: Math.max(0, Math.round((entryInput.proteinGrams || 0) * quantity)),
-      carbsGrams: Math.max(0, Math.round((entryInput.carbsGrams || 0) * quantity)),
-      fatGrams: Math.max(0, Math.round((entryInput.fatGrams || 0) * quantity)),
       quantity,
       loggedAt: new Date().toISOString(),
     });
-
 
     const updatedDay: DailyJournal = {
       ...dayJournal,
@@ -374,49 +333,6 @@ export const useJournalStore = create<JournalState>((set, get) => ({
     const profileTarget = resolveDefaultTarget();
     await get().setTargetCalories(profileTarget, date);
   },
-
-  addWater: async (glasses = 1, date?: string) => {
-    const targetDate = date || get().activeDate;
-    const journals = { ...get().journals };
-    const dayJournal = journals[targetDate] || {
-      date: targetDate,
-      targetCalories: resolveDefaultTarget(),
-      waterGlasses: 0,
-      waterGoalGlasses: 8,
-      entries: [],
-    };
-    const newCount = Math.min(20, (dayJournal.waterGlasses || 0) + glasses);
-    const updatedDay: DailyJournal = {
-      ...dayJournal,
-      waterGlasses: newCount,
-    };
-    journals[targetDate] = updatedDay;
-    set({ journals });
-    await journalStorage.saveDailyJournal(updatedDay);
-    return newCount;
-  },
-
-  removeWater: async (glasses = 1, date?: string) => {
-    const targetDate = date || get().activeDate;
-    const journals = { ...get().journals };
-    const dayJournal = journals[targetDate] || {
-      date: targetDate,
-      targetCalories: resolveDefaultTarget(),
-      waterGlasses: 0,
-      waterGoalGlasses: 8,
-      entries: [],
-    };
-    const newCount = Math.max(0, (dayJournal.waterGlasses || 0) - glasses);
-    const updatedDay: DailyJournal = {
-      ...dayJournal,
-      waterGlasses: newCount,
-    };
-    journals[targetDate] = updatedDay;
-    set({ journals });
-    await journalStorage.saveDailyJournal(updatedDay);
-    return newCount;
-  },
-
 
   // Pure derived calculations
   getJournal: (date?: string): DailyJournal => {

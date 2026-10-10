@@ -2,3 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Reset HTML inputs in React Native Web: eliminate browser focus outlines & force min-width 0 */
+input, textarea, select {
+  outline: none !important;
+  outline-style: none !important;
+  box-shadow: none !important;
+  -webkit-tap-highlight-color: transparent;
+  min-width: 0 !important;
+}
+
+input:focus, textarea:focus, select:focus,
+input:focus-visible, textarea:focus-visible, select:focus-visible {
+  outline: none !important;
+  outline-style: none !important;
+  box-shadow: none !important;
+}
+
+

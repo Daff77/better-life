@@ -70,9 +70,6 @@ export const JournalEntrySchema = z.object({
   category: JournalCategorySchema,
   calories: z.number().nonnegative(),
   baseCalories: z.number().nonnegative().optional(),
-  proteinGrams: z.number().nonnegative().default(0).optional(),
-  carbsGrams: z.number().nonnegative().default(0).optional(),
-  fatGrams: z.number().nonnegative().default(0).optional(),
   quantity: z.number().positive().default(1),
   loggedAt: z.string(),
 });
@@ -81,12 +78,9 @@ export type JournalEntry = z.infer<typeof JournalEntrySchema>;
 export const DailyJournalSchema = z.object({
   date: z.string(),
   targetCalories: z.number().nonnegative(),
-  waterGlasses: z.number().nonnegative().default(0).optional(),
-  waterGoalGlasses: z.number().positive().default(8).optional(),
   entries: z.array(JournalEntrySchema),
 });
 export type DailyJournal = z.infer<typeof DailyJournalSchema>;
-
 
 export const LoggedMealSchema = z.object({
   id: z.string(),

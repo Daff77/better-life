@@ -30,9 +30,8 @@ export default function PersonalizedPlanScreen() {
   };
 
   return (
-    <ScreenWrapper maxWidth="mobile" className="flex-1 bg-white">
+    <ScreenWrapper maxWidth="default" className="flex-1 bg-white">
       <ScrollView
-
         className="flex-1 px-6 pt-6 pb-8"
         contentContainerStyle={{ flexGrow: 1 }}
         showsVerticalScrollIndicator={false}

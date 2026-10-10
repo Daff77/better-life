@@ -100,9 +100,8 @@ export default function SignupScreen() {
   };
 
   return (
-    <ScreenWrapper maxWidth="mobile" className="flex-1 bg-white">
+    <ScreenWrapper maxWidth="narrow" className="flex-1 bg-white">
       <Header
-
         onBack={() => router.back()}
         title=""
       />
