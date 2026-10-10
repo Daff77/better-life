@@ -17,3 +17,4 @@ export * from './MealCard';
 export * from './RecipeCard';
 export * from './NutritionCard';
 export * from './MealLogModal';
+export * from './GoogleSignInModal';

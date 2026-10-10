@@ -8,8 +8,9 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
-import { AppText, Button, Input, Header } from "@/components/ui";
+import { AppText, Button, Input, Header, Divider, GoogleSignInModal } from "@/components/ui";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { IconRenderer } from "@/constants/Assets";
 
 export default function SignupScreen() {
   const router = useRouter();
@@ -28,6 +29,7 @@ export default function SignupScreen() {
   const [confirmError, setConfirmError] = useState("");
   const [generalError, setGeneralError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showGoogleModal, setShowGoogleModal] = useState(false);
 
   const validateForm = () => {
     let isValid = true;
@@ -210,8 +212,24 @@ export default function SignupScreen() {
                 loading={isLoading}
                 onPress={handleSignup}
                 accessibilityLabel="Submit account registration"
-                className="mb-4"
+                className="mb-2"
               />
+
+              {/* Social Divider */}
+              <Divider label="OR" className="my-2" />
+
+              {/* Google Sign In Button */}
+              <TouchableOpacity
+                onPress={() => setShowGoogleModal(true)}
+                className="w-full flex-row items-center justify-center py-3.5 px-4 rounded-xl border border-neutral-border bg-white active:bg-neutral-surface shadow-sm mb-4 gap-x-3"
+                accessibilityRole="button"
+                accessibilityLabel="Register with Google"
+              >
+                <IconRenderer name="Google" size={20} />
+                <AppText weight="bold" className="text-base text-neutral-dark">
+                  Register with Google
+                </AppText>
+              </TouchableOpacity>
 
               <View className="flex-row justify-center items-center">
                 <AppText weight="semibold" className="text-sm text-neutral-muted">
@@ -231,6 +249,12 @@ export default function SignupScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Google Sign In Modal */}
+      <GoogleSignInModal
+        visible={showGoogleModal}
+        onClose={() => setShowGoogleModal(false)}
+      />
     </ScreenWrapper>
   );
 }

@@ -1,5 +1,9 @@
 import { Router, Request, Response } from "express";
-import { RegisterInputSchema, LoginInputSchema } from "../schemas/validation.js";
+import {
+  RegisterInputSchema,
+  LoginInputSchema,
+  GoogleAuthInputSchema,
+} from "../schemas/validation.js";
 import { inMemoryStore } from "../services/store.js";
 
 export const authRouter = Router();
@@ -74,6 +78,43 @@ authRouter.post("/login", (req: Request, res: Response) => {
       name: matchedUser.name,
       email: matchedUser.email,
       phone: matchedUser.phone,
+    },
+    token: `token_${matchedUser.id}`,
+  });
+});
+
+authRouter.post("/google", (req: Request, res: Response) => {
+  const parseResult = GoogleAuthInputSchema.safeParse(req.body);
+  if (!parseResult.success) {
+    return res.status(400).json({ error: parseResult.error.flatten() });
+  }
+
+  const { email, name, photoUrl } = parseResult.data;
+
+  let matchedUser = Array.from(inMemoryStore.users.values()).find(
+    (u) => u.email.toLowerCase() === email.toLowerCase()
+  );
+
+  if (!matchedUser) {
+    matchedUser = {
+      id: `google-${Date.now()}`,
+      name: name || email.split("@")[0] || "Google User",
+      email: email.toLowerCase(),
+      phone: "",
+      passwordHash: "oauth_google",
+      createdAt: new Date(),
+    };
+    inMemoryStore.users.set(matchedUser.id, matchedUser);
+  }
+
+  return res.json({
+    message: "Google login successful",
+    user: {
+      id: matchedUser.id,
+      name: matchedUser.name,
+      email: matchedUser.email,
+      phone: matchedUser.phone,
+      photoUrl: photoUrl || undefined,
     },
     token: `token_${matchedUser.id}`,
   });

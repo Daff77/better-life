@@ -12,6 +12,13 @@ export const LoginInputSchema = z.object({
   password: z.string().min(6, "Password must have at least 6 characters"),
 });
 
+export const GoogleAuthInputSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  name: z.string().optional(),
+  photoUrl: z.string().optional(),
+  idToken: z.string().optional(),
+});
+
 export const UpdateProfileInputSchema = z.object({
   name: z.string().min(2).optional(),
   phone: z.string().min(8).optional(),

@@ -9,9 +9,10 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
-import { AppText, Button, Input, Header } from "@/components/ui";
+import { AppText, Button, Input, Header, Divider, GoogleSignInModal } from "@/components/ui";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { DEFAULT_DEMO_ACCOUNT } from "@/lib/sessionStorage";
+import { IconRenderer } from "@/constants/Assets";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -24,6 +25,7 @@ export default function LoginScreen() {
   const [passwordError, setPasswordError] = useState("");
   const [generalError, setGeneralError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showGoogleModal, setShowGoogleModal] = useState(false);
 
   // Validation
   const validateForm = () => {
@@ -177,8 +179,24 @@ export default function LoginScreen() {
               loading={isLoading}
               onPress={handleLogin}
               accessibilityLabel="Submit login"
-              className="mb-3"
+              className="mb-2"
             />
+
+            {/* Social Divider */}
+            <Divider label="OR" className="my-2" />
+
+            {/* Google Sign In Button */}
+            <TouchableOpacity
+              onPress={() => setShowGoogleModal(true)}
+              className="w-full flex-row items-center justify-center py-3.5 px-4 rounded-xl border border-neutral-border bg-white active:bg-neutral-surface shadow-sm mb-4 gap-x-3"
+              accessibilityRole="button"
+              accessibilityLabel="Login with Google"
+            >
+              <IconRenderer name="Google" size={20} />
+              <AppText weight="bold" className="text-base text-neutral-dark">
+                Login with Google
+              </AppText>
+            </TouchableOpacity>
 
             {/* Development-Only Demo Autofill Helper */}
             {__DEV__ && (
@@ -190,7 +208,7 @@ export default function LoginScreen() {
                   setPasswordError("");
                   setGeneralError("");
                 }}
-                className="self-center py-2 px-4 mb-6 bg-secondary-soft rounded-xl border border-secondary items-center justify-center min-h-[44px]"
+                className="self-center py-2 px-4 mb-4 bg-secondary-soft rounded-xl border border-secondary items-center justify-center min-h-[44px]"
                 accessibilityRole="button"
                 accessibilityLabel="Fill demo account"
               >
@@ -217,8 +235,13 @@ export default function LoginScreen() {
             </View>
           </View>
         </ScrollView>
-
       </KeyboardAvoidingView>
+
+      {/* Google Sign In Modal */}
+      <GoogleSignInModal
+        visible={showGoogleModal}
+        onClose={() => setShowGoogleModal(false)}
+      />
     </ScreenWrapper>
   );
 }
