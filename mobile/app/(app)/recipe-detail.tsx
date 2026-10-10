@@ -78,6 +78,25 @@ export default function RecipeDetailScreen() {
               <IconRenderer name={recipe.svgIcon} size={180} />
             </View>
 
+            {/* Estimated Ingredient Cost Banner */}
+            {recipe.estimatedCostIdr !== undefined && (
+              <View className="mb-4 bg-emerald-50/70 p-3.5 rounded-2xl border border-emerald-200/70 flex-row items-center justify-between">
+                <View>
+                  <AppText weight="extrabold" className="text-xs text-emerald-900">
+                    Est. Ingredient Cost
+                  </AppText>
+                  <AppText weight="medium" className="text-[10px] text-emerald-700/80">
+                    Average local market price (IDR)
+                  </AppText>
+                </View>
+                <View className="bg-white px-3 py-1 rounded-xl border border-emerald-200/60 shadow-xs">
+                  <AppText weight="black" className="text-sm text-emerald-800">
+                    Rp {recipe.estimatedCostIdr.toLocaleString("id-ID")}
+                  </AppText>
+                </View>
+              </View>
+            )}
+
             {/* Nutritional Breakdown Card */}
             <NutritionCard
               proteinGrams={recipe.nutrition.proteinGrams}

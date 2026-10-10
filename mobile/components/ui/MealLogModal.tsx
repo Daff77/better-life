@@ -97,6 +97,10 @@ export const MealLogModal: React.FC<MealLogModalProps> = ({
         calories: totalCalories,
         baseCalories,
         quantity,
+        proteinGrams: meal.nutrition?.proteinGrams ?? 0,
+        carbsGrams: meal.nutrition?.carbsGrams ?? 0,
+        fatGrams: meal.nutrition?.fatGrams ?? 0,
+        fiberGrams: meal.nutrition?.fiberGrams ?? 0,
       });
 
       setConfirmation({

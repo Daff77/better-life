@@ -7,6 +7,7 @@ export interface FoodItem {
   difficulty: "Easy" | "Medium" | "Hard";
   description: string;
   svgIcon: "Breakfast" | "Lunch" | "Dinner" | "Snacks" | "Drinks";
+  estimatedCostIdr?: number;
   nutrition: {
     proteinGrams: number;
     carbsGrams: number;
@@ -34,6 +35,7 @@ export const MOCK_RECIPES: FoodItem[] = [
     difficulty: "Easy",
     description: "Layered organic Greek yogurt, antioxidant berries, chia seeds, and raw blossom honey.",
     svgIcon: "Breakfast",
+    estimatedCostIdr: 28000,
     nutrition: {
       proteinGrams: 22,
       carbsGrams: 38,
@@ -83,6 +85,7 @@ export const MOCK_RECIPES: FoodItem[] = [
     difficulty: "Medium",
     description: "Fresh Atlantic salmon fillet paired with steamed fluffy quinoa and roasted asparagus.",
     svgIcon: "Dinner",
+    estimatedCostIdr: 55000,
     nutrition: {
       proteinGrams: 42,
       carbsGrams: 32,
@@ -130,6 +133,7 @@ export const MOCK_RECIPES: FoodItem[] = [
     difficulty: "Medium",
     description: "Tender grilled chicken breast, crisp cucumbers, cherry tomatoes, and warm brown rice.",
     svgIcon: "Lunch",
+    estimatedCostIdr: 24000,
     nutrition: {
       proteinGrams: 48,
       carbsGrams: 45,
@@ -163,6 +167,36 @@ export const MOCK_RECIPES: FoodItem[] = [
     ],
   },
   {
+    id: "tempeh-tofu-bowl",
+    title: "Turmeric Tempeh & Tofu Bowl",
+    category: "Lunch",
+    calories: 460,
+    prepTimeMinutes: 15,
+    difficulty: "Easy",
+    description: "High-protein Indonesian tempeh and yellow tofu pan-sautéed with aromatic turmeric, garlic, and fresh green beans.",
+    svgIcon: "Lunch",
+    estimatedCostIdr: 14000,
+    nutrition: {
+      proteinGrams: 32,
+      carbsGrams: 52,
+      fatGrams: 14,
+      fiberGrams: 9,
+    },
+    ingredients: [
+      { name: "Fresh Soybean Tempeh", amount: "120 g" },
+      { name: "Yellow Organic Tofu", amount: "100 g" },
+      { name: "Steamed White or Red Rice", amount: "1 cup" },
+      { name: "Green Beans (Buncis)", amount: "50 g" },
+      { name: "Turmeric & Shallot Marinade", amount: "1 tbsp" },
+    ],
+    instructions: [
+      { step: 1, text: "Dice tempeh and tofu into bite-sized 2cm cubes." },
+      { step: 2, text: "Sauté with minced garlic, shallots, and fresh turmeric in a teaspoon of coconut oil until golden.", timerMinutes: 6 },
+      { step: 3, text: "Toss in sliced green beans and cook for 3 minutes." },
+      { step: 4, text: "Serve over warm rice for an affordable complete plant protein meal." },
+    ],
+  },
+  {
     id: "almond-apple",
     title: "Roasted Almonds & Green Apple",
     category: "Snack",
@@ -171,6 +205,7 @@ export const MOCK_RECIPES: FoodItem[] = [
     difficulty: "Easy",
     description: "Crunchy oven-roasted whole almonds paired with crisp green Granny Smith apple slices.",
     svgIcon: "Snacks",
+    estimatedCostIdr: 15000,
     nutrition: {
       proteinGrams: 6,
       carbsGrams: 22,
@@ -198,6 +233,33 @@ export const MOCK_RECIPES: FoodItem[] = [
     ],
   },
   {
+    id: "boiled-eggs-edamame",
+    title: "Omega-3 Eggs & Steamed Edamame",
+    category: "Snack",
+    calories: 210,
+    prepTimeMinutes: 8,
+    difficulty: "Easy",
+    description: "Quick protein booster featuring two soft-boiled farm eggs and lightly salted steamed edamame pods.",
+    svgIcon: "Snacks",
+    estimatedCostIdr: 10000,
+    nutrition: {
+      proteinGrams: 18,
+      carbsGrams: 12,
+      fatGrams: 11,
+      fiberGrams: 5,
+    },
+    ingredients: [
+      { name: "Omega-3 Farm Eggs", amount: "2 large" },
+      { name: "Green Edamame Pods", amount: "80 g" },
+      { name: "Sea Salt & Black Pepper", amount: "to taste" },
+    ],
+    instructions: [
+      { step: 1, text: "Boil eggs for 6.5 minutes for jammy soft yolks, then plunge into cold water.", timerMinutes: 7 },
+      { step: 2, text: "Steam edamame pods for 5 minutes with a pinch of sea salt.", timerMinutes: 5 },
+      { step: 3, text: "Peel eggs, slice in half, and enjoy fresh." },
+    ],
+  },
+  {
     id: "lemon-mint-infusion",
     title: "Infused Lemon Mint Sparkler",
     category: "Drink",
@@ -206,6 +268,7 @@ export const MOCK_RECIPES: FoodItem[] = [
     difficulty: "Easy",
     description: "Electrolyte-rich sparkling water infused with fresh lemon wedges, cucumber, and bruised mint.",
     svgIcon: "Drinks",
+    estimatedCostIdr: 8000,
     nutrition: {
       proteinGrams: 1,
       carbsGrams: 10,

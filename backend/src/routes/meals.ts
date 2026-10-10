@@ -1,31 +1,59 @@
 import { Router, Request, Response } from "express";
 import { LogMealInputSchema } from "../schemas/validation.js";
 import { inMemoryStore } from "../services/store.js";
+import { authMiddleware } from "../middleware/auth.js";
 
 export const mealsRouter = Router();
 
-mealsRouter.get("/logged", (req: Request, res: Response) => {
-  const userId = (req.query.userId as string) || "user-1";
+// Apply authentication middleware to all meal operations
+mealsRouter.use(authMiddleware);
+
+// 1. GET /api/meals (and legacy /logged) — Retrieve authenticated user's logged meals
+function getMealsHandler(req: Request, res: Response) {
+  const userId = req.user!.userId;
   const meals = inMemoryStore.loggedMeals.get(userId) || [];
   return res.json(meals);
-});
+}
 
-mealsRouter.post("/log", (req: Request, res: Response) => {
+mealsRouter.get("/", getMealsHandler);
+mealsRouter.get("/logged", getMealsHandler);
+
+// 2. POST /api/meals (and legacy /log) — Log a new meal for authenticated user
+function logMealHandler(req: Request, res: Response) {
   const parseResult = LogMealInputSchema.safeParse(req.body);
   if (!parseResult.success) {
-    return res.status(400).json({ error: parseResult.error.flatten() });
+    return res.status(400).json({
+      error: "Validation Error",
+      details: parseResult.error.flatten(),
+    });
   }
 
-  const userId = (req.query.userId as string) || "user-1";
+  const userId = req.user!.userId;
   const now = new Date();
   const timeStr = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+  const {
+    type,
+    name,
+    calories,
+    proteinGrams,
+    carbsGrams,
+    fatGrams,
+    fiberGrams,
+    quantity,
+  } = parseResult.data;
 
   const newMeal = {
     id: `meal-${Date.now()}`,
     userId,
-    type: parseResult.data.type,
-    name: parseResult.data.name,
-    calories: parseResult.data.calories,
+    type,
+    name,
+    calories,
+    proteinGrams,
+    carbsGrams,
+    fatGrams,
+    fiberGrams,
+    quantity,
     time: timeStr,
     loggedAt: now,
   };
@@ -34,10 +62,38 @@ mealsRouter.post("/log", (req: Request, res: Response) => {
   inMemoryStore.loggedMeals.set(userId, [newMeal, ...current]);
 
   return res.status(201).json(newMeal);
+}
+
+mealsRouter.post("/", logMealHandler);
+mealsRouter.post("/log", logMealHandler);
+
+// 3. DELETE /api/meals/:id — Delete a specific meal entry with strict ownership check
+mealsRouter.delete("/:id", (req: Request, res: Response) => {
+  const userId = req.user!.userId;
+  const mealId = req.params.id;
+
+  const current = inMemoryStore.loggedMeals.get(userId) || [];
+  const mealIndex = current.findIndex((m) => m.id === mealId);
+
+  if (mealIndex === -1) {
+    return res.status(404).json({
+      error: "Not Found",
+      message: "Meal entry could not be found or does not belong to you.",
+    });
+  }
+
+  const [removed] = current.splice(mealIndex, 1);
+  inMemoryStore.loggedMeals.set(userId, current);
+
+  return res.json({
+    message: "Meal deleted successfully",
+    deletedMeal: removed,
+  });
 });
 
+// 4. POST /api/meals/reset — Clear today's logged meals for authenticated user
 mealsRouter.post("/reset", (req: Request, res: Response) => {
-  const userId = (req.query.userId as string) || "user-1";
+  const userId = req.user!.userId;
   inMemoryStore.loggedMeals.set(userId, []);
   return res.json({ message: "Meals cleared successfully" });
 });

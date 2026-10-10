@@ -211,6 +211,19 @@ export default function HomeScreen() {
               </View>
             </View>
 
+            {/* Macronutrient Breakdown Card */}
+            <NutritionCard
+              proteinGrams={aggregates.totalProteinGrams}
+              carbsGrams={aggregates.totalCarbsGrams}
+              fatGrams={aggregates.totalFatGrams}
+              fiberGrams={aggregates.totalFiberGrams}
+              totalCalories={aggregates.totalConsumed}
+              targetProteinGrams={aggregates.targetProteinGrams}
+              targetCarbsGrams={aggregates.targetCarbsGrams}
+              targetFatGrams={aggregates.targetFatGrams}
+              className="mb-5"
+            />
+
             {/* 3. Activity Section: Steps & Exercise Cards */}
             <View className="flex-row gap-3 mb-5">
               {/* Steps Card */}

@@ -44,6 +44,11 @@ export const LogMealInputSchema = z.object({
   type: z.enum(["Breakfast", "Lunch", "Dinner", "Snack", "Drink"]),
   name: z.string().min(1, "Meal name cannot be empty"),
   calories: z.number().nonnegative(),
+  proteinGrams: z.number().nonnegative().optional().default(0),
+  carbsGrams: z.number().nonnegative().optional().default(0),
+  fatGrams: z.number().nonnegative().optional().default(0),
+  fiberGrams: z.number().nonnegative().optional().default(0),
+  quantity: z.number().positive().optional().default(1),
 });
 
 export const AddStepsInputSchema = z.object({

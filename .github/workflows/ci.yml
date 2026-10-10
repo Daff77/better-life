@@ -1,0 +1,67 @@
+name: CI / Production Readiness Checks
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  backend-checks:
+    name: Backend Lint, Typecheck & Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install Backend Dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: TypeScript Type Check & Build
+        working-directory: backend
+        run: npm run build
+
+      - name: Run Backend Integration Tests
+        working-directory: backend
+        env:
+          NODE_ENV: test
+          PORT: 4001
+          JWT_SECRET: ci_test_jwt_secret_token_12345
+        run: npm test
+
+  mobile-checks:
+    name: Mobile Typecheck, Domain Tests & Web Export Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "npm"
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Install Mobile Dependencies
+        working-directory: mobile
+        run: npm ci
+
+      - name: Run Nutrition Domain Unit Tests
+        working-directory: mobile
+        run: npm test
+
+      - name: Export Mobile Web Bundle (Expo Export)
+        working-directory: mobile
+        env:
+          EXPO_PUBLIC_GOOGLE_CLIENT_ID: ci_dummy_client_id.apps.googleusercontent.com
+          EXPO_PUBLIC_API_URL: http://localhost:4000
+        run: npm run build

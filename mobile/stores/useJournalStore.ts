@@ -17,6 +17,13 @@ export interface JournalAggregates {
   progressRatio: number;
   targetCalories: number;
   entryCount: number;
+  totalProteinGrams: number;
+  totalCarbsGrams: number;
+  totalFatGrams: number;
+  totalFiberGrams: number;
+  targetProteinGrams: number;
+  targetCarbsGrams: number;
+  targetFatGrams: number;
 }
 
 export interface AddJournalEntryInput {
@@ -26,6 +33,10 @@ export interface AddJournalEntryInput {
   calories?: number;
   baseCalories?: number;
   quantity?: number;
+  proteinGrams?: number;
+  carbsGrams?: number;
+  fatGrams?: number;
+  fiberGrams?: number;
 }
 
 export interface UpdateJournalEntryInput {
@@ -34,6 +45,10 @@ export interface UpdateJournalEntryInput {
   calories?: number;
   baseCalories?: number;
   quantity?: number;
+  proteinGrams?: number;
+  carbsGrams?: number;
+  fatGrams?: number;
+  fiberGrams?: number;
 }
 
 interface JournalState {
@@ -66,9 +81,27 @@ export function computeJournalAggregates(
 ): JournalAggregates {
   const target = journal?.targetCalories ?? fallbackTarget ?? 1950;
   const entries = journal?.entries ?? [];
-  const totalConsumed = entries.reduce((sum, entry) => sum + entry.calories, 0);
+  const totalConsumed = entries.reduce((sum, entry) => sum + (entry.calories || 0), 0);
   const remainingCalories = Math.max(0, target - totalConsumed);
   const progressRatio = target > 0 ? Math.min(1.0, totalConsumed / target) : 0;
+
+  const totalProteinGrams = Math.round(entries.reduce((sum, entry) => sum + (entry.proteinGrams || 0), 0) * 10) / 10;
+  const totalCarbsGrams = Math.round(entries.reduce((sum, entry) => sum + (entry.carbsGrams || 0), 0) * 10) / 10;
+  const totalFatGrams = Math.round(entries.reduce((sum, entry) => sum + (entry.fatGrams || 0), 0) * 10) / 10;
+  const totalFiberGrams = Math.round(entries.reduce((sum, entry) => sum + (entry.fiberGrams || 0), 0) * 10) / 10;
+
+  let targetProteinGrams = Math.round((target * 0.25) / 4);
+  let targetCarbsGrams = Math.round((target * 0.50) / 4);
+  let targetFatGrams = Math.round((target * 0.25) / 9);
+
+  try {
+    const profile = useOnboardingStore.getState().personalization;
+    if (profile?.targetProteinGrams) targetProteinGrams = profile.targetProteinGrams;
+    if (profile?.targetCarbGrams) targetCarbsGrams = profile.targetCarbGrams;
+    if (profile?.targetFatGrams) targetFatGrams = profile.targetFatGrams;
+  } catch {
+    // fallback defaults
+  }
 
   return {
     totalConsumed,
@@ -76,6 +109,13 @@ export function computeJournalAggregates(
     progressRatio,
     targetCalories: target,
     entryCount: entries.length,
+    totalProteinGrams,
+    totalCarbsGrams,
+    totalFatGrams,
+    totalFiberGrams,
+    targetProteinGrams,
+    targetCarbsGrams,
+    targetFatGrams,
   };
 }
 
@@ -198,6 +238,11 @@ export const useJournalStore = create<JournalState>((set, get) => ({
       baseCalories = 0;
     }
 
+    const proteinGrams = Math.round((entryInput.proteinGrams ?? 0) * quantity * 10) / 10;
+    const carbsGrams = Math.round((entryInput.carbsGrams ?? 0) * quantity * 10) / 10;
+    const fatGrams = Math.round((entryInput.fatGrams ?? 0) * quantity * 10) / 10;
+    const fiberGrams = Math.round((entryInput.fiberGrams ?? 0) * quantity * 10) / 10;
+
     const newEntry: JournalEntry = JournalEntrySchema.parse({
       id: `entry-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
       mealId: entryInput.mealId,
@@ -206,6 +251,10 @@ export const useJournalStore = create<JournalState>((set, get) => ({
       calories: Math.max(0, totalCalories || 0),
       baseCalories: Math.max(0, baseCalories || 0),
       quantity,
+      proteinGrams,
+      carbsGrams,
+      fatGrams,
+      fiberGrams,
       loggedAt: new Date().toISOString(),
     });
 
@@ -277,6 +326,10 @@ export const useJournalStore = create<JournalState>((set, get) => ({
       quantity: newQuantity,
       baseCalories: newBaseCalories,
       calories: Math.max(0, newTotalCalories),
+      proteinGrams: updates.proteinGrams !== undefined ? updates.proteinGrams : currentEntry.proteinGrams,
+      carbsGrams: updates.carbsGrams !== undefined ? updates.carbsGrams : currentEntry.carbsGrams,
+      fatGrams: updates.fatGrams !== undefined ? updates.fatGrams : currentEntry.fatGrams,
+      fiberGrams: updates.fiberGrams !== undefined ? updates.fiberGrams : currentEntry.fiberGrams,
     };
 
     const newEntries = [...dayJournal.entries];

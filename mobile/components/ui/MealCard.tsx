@@ -22,6 +22,7 @@ export interface MealCardProps {
   calories: number;
   description: string;
   prepTimeMinutes?: number;
+  estimatedCostIdr?: number;
   imageSource?: ImageSourcePropType;
   svgElement?: React.ReactNode;
   onLogMeal?: () => void;
@@ -36,6 +37,7 @@ export const MealCard: React.FC<MealCardProps> = ({
   calories,
   description,
   prepTimeMinutes,
+  estimatedCostIdr,
   imageSource,
   svgElement,
   onLogMeal,
@@ -133,6 +135,20 @@ export const MealCard: React.FC<MealCardProps> = ({
                 </AppText>
               </View>
             </View>
+
+            {/* Estimated Local Ingredient Cost (Product Differentiator) */}
+            {estimatedCostIdr !== undefined && (
+              <View className="flex-row items-center mb-1.5">
+                <View className="bg-emerald-50/90 px-2 py-0.5 rounded-md border border-emerald-200/70">
+                  <AppText weight="bold" className="text-[11px] text-emerald-800">
+                    Rp {estimatedCostIdr.toLocaleString("id-ID")}{" "}
+                    <AppText weight="medium" className="text-[10px] text-emerald-600">
+                      (est.)
+                    </AppText>
+                  </AppText>
+                </View>
+              </View>
+            )}
 
             {/* Description */}
             <AppText

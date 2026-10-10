@@ -71,6 +71,10 @@ export const JournalEntrySchema = z.object({
   calories: z.number().nonnegative(),
   baseCalories: z.number().nonnegative().optional(),
   quantity: z.number().positive().default(1),
+  proteinGrams: z.number().nonnegative().default(0),
+  carbsGrams: z.number().nonnegative().default(0),
+  fatGrams: z.number().nonnegative().default(0),
+  fiberGrams: z.number().nonnegative().default(0),
   loggedAt: z.string(),
 });
 export type JournalEntry = z.infer<typeof JournalEntrySchema>;
@@ -87,6 +91,11 @@ export const LoggedMealSchema = z.object({
   type: MealCategorySchema,
   name: z.string().min(1, "Meal name cannot be empty"),
   calories: z.number().nonnegative(),
+  proteinGrams: z.number().nonnegative().default(0),
+  carbsGrams: z.number().nonnegative().default(0),
+  fatGrams: z.number().nonnegative().default(0),
+  fiberGrams: z.number().nonnegative().default(0),
+  quantity: z.number().positive().default(1),
   time: z.string(),
 });
 
