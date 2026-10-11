@@ -1,5 +1,9 @@
 import { Platform } from "react-native";
 import * as WebBrowser from "expo-web-browser";
+import * as AuthSession from "expo-auth-session";
+
+// Required for web and native auth session redirects to complete cleanly
+WebBrowser.maybeCompleteAuthSession();
 
 export interface GoogleUser {
   name: string;
@@ -12,9 +16,20 @@ const STORAGE_KEY_CLIENT_ID = "betterlife_custom_google_client_id";
 
 export const googleAuthService = {
   getClientId(): string {
+    // 1. Check platform-specific environment variables first
+    if (Platform.OS === "android") {
+      const androidId = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID || "";
+      if (androidId.trim()) return androidId.trim();
+    } else if (Platform.OS === "ios") {
+      const iosId = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || "";
+      if (iosId.trim()) return iosId.trim();
+    }
+
+    // 2. Fallback to standard web client ID
     const envId = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || "";
     if (envId.trim()) return envId.trim();
 
+    // 3. Fallback to manually saved custom client ID
     if (typeof window !== "undefined" && window.localStorage) {
       const stored = window.localStorage.getItem(STORAGE_KEY_CLIENT_ID);
       if (stored && stored.trim()) return stored.trim();
@@ -39,7 +54,11 @@ export const googleAuthService = {
       }
       return "http://localhost:8081/google-auth-callback";
     }
-    return "betterlife://google-auth-callback";
+
+    return AuthSession.makeRedirectUri({
+      scheme: "betterlife",
+      path: "google-auth-callback",
+    });
   },
 
   buildAuthUrl(clientId: string): string {
