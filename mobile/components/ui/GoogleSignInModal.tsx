@@ -42,14 +42,7 @@ export const GoogleSignInModal: React.FC<GoogleSignInModalProps> = ({
       setClientIdInput(currentId);
       setErrorMessage(null);
       setIsLoading(false);
-
-      if (currentId) {
-        setViewMode("connecting");
-        // Automatically attempt real Google OAuth when opened with configured ID
-        launchRealGoogleLogin();
-      } else {
-        setViewMode("setup");
-      }
+      setViewMode("connecting");
     }
   }, [visible]);
 
@@ -99,7 +92,15 @@ export const GoogleSignInModal: React.FC<GoogleSignInModalProps> = ({
     googleAuthService.setClientId(trimmed);
     setHasConfiguredId(true);
     setViewMode("connecting");
-    await launchRealGoogleLogin();
+  };
+
+  const handleRestoreDefault = () => {
+    googleAuthService.resetClientId();
+    const defaultId = googleAuthService.getClientId();
+    setClientIdInput(defaultId);
+    setHasConfiguredId(true);
+    setErrorMessage(null);
+    setViewMode("connecting");
   };
 
   const handleQuickDemoLogin = async (email: string, name: string) => {
@@ -163,36 +164,53 @@ export const GoogleSignInModal: React.FC<GoogleSignInModalProps> = ({
             </View>
           )}
 
-          {/* Mode 1: Connecting / Active Flow with Client ID */}
+          {/* Mode 1: Options & Manual trigger */}
           {viewMode === "connecting" && (
-            <View className="py-4 items-center">
+            <View className="py-2 items-center w-full">
               {isLoading ? (
-                <>
-                  <ActivityIndicator size="large" color="#4285F4" className="mb-4" />
+                <View className="items-center py-4">
+                  <ActivityIndicator size="large" color="#4285F4" className="mb-3" />
                   <AppText weight="bold" className="text-sm text-neutral-dark text-center mb-1">
-                    Membuka Jendela Login Google...
+                    Menghubungkan ke Google...
                   </AppText>
-                  <AppText weight="medium" className="text-xs text-neutral-muted text-center max-w-xs mb-4">
-                    Silakan pilih akun Google Anda di jendela pop-up yang terbuka.
+                  <AppText weight="medium" className="text-xs text-neutral-muted text-center max-w-xs">
+                    Silakan selesaikan login di jendela yang terbuka.
                   </AppText>
-                </>
+                </View>
               ) : (
-                <>
+                <View className="w-full gap-y-3">
                   <Button
-                    title="Buka Login Google Sekarang"
+                    title="Masuk dengan Akun Google (Resmi)"
                     variant="primary"
                     onPress={launchRealGoogleLogin}
-                    className="w-full mb-3"
+                    className="w-full"
                   />
+
+                  <Button
+                    title="⚡ Masuk Cepat Akun Google (Demo / Uji Coba)"
+                    variant="social"
+                    onPress={() => handleQuickDemoLogin("daffa.google@gmail.com", "Daffa (Google)")}
+                    className="w-full"
+                  />
+
                   <TouchableOpacity
-                    onPress={() => setViewMode("setup")}
-                    className="py-2"
+                    onPress={handleModalClose}
+                    className="py-2.5 items-center justify-center rounded-xl bg-neutral-surface border border-neutral-border mt-1"
                   >
-                    <AppText weight="semibold" className="text-xs text-primary">
-                      ⚙ Ubah / Konfigurasi Google Client ID
+                    <AppText weight="bold" className="text-xs text-neutral-dark">
+                      Batal / Kembali ke Form Login
                     </AppText>
                   </TouchableOpacity>
-                </>
+
+                  <TouchableOpacity
+                    onPress={() => setViewMode("setup")}
+                    className="py-1 self-center mt-1"
+                  >
+                    <AppText weight="semibold" className="text-[11px] text-neutral-muted">
+                      ⚙ Pengaturan Google Client ID
+                    </AppText>
+                  </TouchableOpacity>
+                </View>
               )}
             </View>
           )}
@@ -202,26 +220,26 @@ export const GoogleSignInModal: React.FC<GoogleSignInModalProps> = ({
             <View className="mb-2">
               <View className="bg-neutral-surface border border-neutral-border rounded-2xl p-3.5 mb-4">
                 <AppText weight="bold" className="text-xs text-neutral-dark mb-1">
-                  📌 Diperlukan Google OAuth Client ID:
+                  📌 Diperlukan Google OAuth Web Client ID:
                 </AppText>
                 <AppText weight="medium" className="text-[11px] text-neutral-muted leading-4">
-                  Untuk menghubungkan ke server Google resmi (OAuth 2.0), masukkan Web Client ID dari Google Cloud Console:
+                  Google mewajibkan Client ID bertipe <AppText weight="bold" className="text-neutral-dark">Web Application</AppText>. Client ID bertipe Android/Desktop ditolak Google dengan error <AppText weight="bold" className="text-status-error">invalid_request</AppText>.
                 </AppText>
                 <View className="mt-2 bg-white rounded-lg p-2 border border-neutral-border-light">
                   <AppText weight="semibold" className="text-[10px] text-neutral-dark">
                     1. Buka <AppText weight="bold" className="text-primary" onPress={() => Linking.openURL("https://console.cloud.google.com/apis/credentials")}>console.cloud.google.com/apis/credentials</AppText>
                   </AppText>
                   <AppText weight="medium" className="text-[10px] text-neutral-muted mt-0.5">
-                    2. Buat OAuth Client ID (Web Application)
+                    2. Buat OAuth Client ID (Pilih: <AppText weight="bold" className="text-neutral-dark">Web application</AppText>)
                   </AppText>
                   <AppText weight="medium" className="text-[10px] text-neutral-muted mt-0.5">
-                    3. Tambahkan Redirect URI: <AppText weight="bold" className="text-neutral-dark">{googleAuthService.getRedirectUri()}</AppText>
+                    3. Tambahkan Authorized Redirect URI: <AppText weight="bold" className="text-neutral-dark">{googleAuthService.getRedirectUri()}</AppText>
                   </AppText>
                 </View>
               </View>
 
               <Input
-                label="GOOGLE CLIENT ID"
+                label="GOOGLE CLIENT ID (WEB APPLICATION)"
                 placeholder="xxxxxx-xxxxxxxx.apps.googleusercontent.com"
                 value={clientIdInput}
                 onChangeText={(val) => {
@@ -234,12 +252,21 @@ export const GoogleSignInModal: React.FC<GoogleSignInModalProps> = ({
               />
 
               <Button
-                title="Simpan & Buka Login Google"
+                title="Simpan Client ID"
                 variant="primary"
                 loading={isLoading}
                 onPress={handleSaveAndConnect}
-                className="w-full mb-3"
+                className="w-full mb-2"
               />
+
+              <TouchableOpacity
+                onPress={handleRestoreDefault}
+                className="py-2.5 items-center justify-center rounded-xl bg-secondary-soft border border-secondary mb-3"
+              >
+                <AppText weight="bold" className="text-xs text-primary">
+                  ↺ Pulihkan ke Web Client ID Bawaan (Aktif)
+                </AppText>
+              </TouchableOpacity>
 
               <View className="flex-row items-center justify-between pt-1">
                 <TouchableOpacity

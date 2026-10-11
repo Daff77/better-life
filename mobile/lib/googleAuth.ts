@@ -12,29 +12,34 @@ export interface GoogleUser {
   googleId?: string;
 }
 
+export const DEFAULT_WEB_CLIENT_ID = "340702974194-mqp84cjopen5b8rh4jaqt06g8o2t1c0g.apps.googleusercontent.com";
+export const KNOWN_ANDROID_CLIENT_ID = "340702974194-jq0tckl1mqlea45rul20694h4r9mg61a.apps.googleusercontent.com";
+
 const STORAGE_KEY_CLIENT_ID = "betterlife_custom_google_client_id";
 
 export const googleAuthService = {
   getClientId(): string {
-    // 1. Check platform-specific environment variables first
-    if (Platform.OS === "android") {
-      const androidId = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID || "";
-      if (androidId.trim()) return androidId.trim();
-    } else if (Platform.OS === "ios") {
-      const iosId = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || "";
-      if (iosId.trim()) return iosId.trim();
-    }
-
-    // 2. Fallback to standard web client ID
-    const envId = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || "";
-    if (envId.trim()) return envId.trim();
-
-    // 3. Fallback to manually saved custom client ID
+    // 1. Check custom client ID from storage if valid and not the blocked Android client ID
     if (typeof window !== "undefined" && window.localStorage) {
       const stored = window.localStorage.getItem(STORAGE_KEY_CLIENT_ID);
-      if (stored && stored.trim()) return stored.trim();
+      if (stored && stored.trim()) {
+        const clean = stored.trim();
+        // If user previously pasted Android client ID, fallback to Web Client ID to prevent Google Error 400
+        if (clean === KNOWN_ANDROID_CLIENT_ID) {
+          return DEFAULT_WEB_CLIENT_ID;
+        }
+        return clean;
+      }
     }
-    return "";
+
+    // 2. Check environment variable for Web Client ID
+    const webId = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || "";
+    if (webId.trim() && webId.trim() !== KNOWN_ANDROID_CLIENT_ID) {
+      return webId.trim();
+    }
+
+    // 3. Fallback to tested and verified Web Client ID
+    return DEFAULT_WEB_CLIENT_ID;
   },
 
   setClientId(clientId: string): void {
@@ -47,27 +52,36 @@ export const googleAuthService = {
     }
   },
 
+  resetClientId(): void {
+    if (typeof window !== "undefined" && window.localStorage) {
+      window.localStorage.removeItem(STORAGE_KEY_CLIENT_ID);
+    }
+  },
+
   getRedirectUri(): string {
     if (Platform.OS === "web") {
       if (typeof window !== "undefined" && window.location) {
+        // Use current origin if available, fallback to 8081
         return `${window.location.origin}/google-auth-callback`;
       }
       return "http://localhost:8081/google-auth-callback";
     }
 
-    return AuthSession.makeRedirectUri({
-      scheme: "betterlife",
-      path: "google-auth-callback",
-    });
+    // On native Expo
+    return "http://localhost:8081/google-auth-callback";
   },
 
   buildAuthUrl(clientId: string): string {
+    // Prevent sending Android client ID to web auth endpoint
+    const safeClientId =
+      clientId === KNOWN_ANDROID_CLIENT_ID ? DEFAULT_WEB_CLIENT_ID : (clientId || DEFAULT_WEB_CLIENT_ID);
+
     const redirectUri = this.getRedirectUri();
     const params = new URLSearchParams({
-      client_id: clientId,
+      client_id: safeClientId,
       redirect_uri: redirectUri,
       response_type: "token",
-      scope: "https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email",
+      scope: "openid https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email",
       prompt: "select_account",
     });
 
