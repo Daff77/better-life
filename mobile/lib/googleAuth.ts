@@ -55,6 +55,11 @@ export const googleAuthService = {
       return "http://localhost:8081/google-auth-callback";
     }
 
+    // Android in Expo Go
+    if (Platform.OS === "android") {
+      return "host.exp.exponent:/oauth2redirect/google";
+    }
+
     return AuthSession.makeRedirectUri({
       scheme: "betterlife",
       path: "google-auth-callback",
@@ -205,14 +210,21 @@ export const googleAuthService = {
         };
       }
 
+      if (result.type === "cancel") {
+        return {
+          success: false,
+          error: "Autentikasi Google dibatalkan.",
+        };
+      }
+
       return {
         success: false,
-        error: "Google Sign-In cancelled.",
+        error: `Autentikasi Google tidak selesai (Status: ${result.type}).`,
       };
     } catch (err: any) {
       return {
         success: false,
-        error: err.message || "Failed to launch Google auth session.",
+        error: err.message || "Gagal membuka sesi autentikasi Google.",
       };
     }
   },
