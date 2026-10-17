@@ -11,25 +11,25 @@ module.exports = {
     extend: {
       colors: {
         primary: {
-          DEFAULT: "#67c090",
-          dark: "#5aa07c",
-          light: "#ddf4e7",
-          subtle: "rgba(103, 192, 144, 0.12)",
+          DEFAULT: "#1b7a53",
+          dark: "#145c3e",
+          light: "#eaf5ef",
+          subtle: "rgba(27, 122, 83, 0.08)",
         },
         secondary: {
-          DEFAULT: "#daf2e5",
-          soft: "#edf9f2",
+          DEFAULT: "#e2efe7",
+          soft: "#f2f8f4",
         },
         accent: {
-          teal: "#26667f",
-          "teal-dark": "#1e4f62",
+          teal: "#1e6074",
+          "teal-dark": "#164757",
         },
         neutral: {
-          dark: "#191919",
-          muted: "#888888",
-          border: "#cfcfcf",
-          "border-light": "#e0e0e0",
-          bg: "#f4f7f6",
+          dark: "#111827",
+          muted: "#64748b",
+          border: "#cbd5e1",
+          "border-light": "#e2e8f0",
+          bg: "#f8faf8",
         },
       },
       fontFamily: {

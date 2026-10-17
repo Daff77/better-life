@@ -31,11 +31,11 @@ export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
   return (
     <SafeAreaView
       className={`flex-1 bg-neutral-bg ${className || ""}`}
-      style={style}
+      style={[{ flex: 1, width: "100%" }, style]}
       {...props}
     >
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-      <View className={`flex-1 w-full ${getMaxWidthClass()} self-center`}>
+      <StatusBar barStyle="dark-content" backgroundColor="#f8faf8" />
+      <View className={`flex-1 w-full ${getMaxWidthClass()} self-center px-4 sm:px-6 lg:px-8`}>
         {children}
       </View>
     </SafeAreaView>

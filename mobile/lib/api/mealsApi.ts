@@ -7,6 +7,11 @@ let mockMealsDatabase: LoggedMeal[] = [
     type: "Breakfast",
     name: "Berry Yogurt Bowl with Honey & Chia",
     calories: 420,
+    proteinGrams: 22,
+    carbsGrams: 48,
+    fatGrams: 8,
+    fiberGrams: 6,
+    quantity: 1,
     time: "08:30 AM",
   },
 ];

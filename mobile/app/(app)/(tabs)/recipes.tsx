@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, ScrollView, TouchableOpacity } from "react-native";
+import { View, ScrollView, TouchableOpacity, Platform } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
 import { AppText, RecipeCard, Badge } from "@/components/ui";
@@ -19,19 +19,22 @@ export default function RecipesScreen() {
       : recipes.filter((r) => r.category === selectedCategory);
 
   return (
-    <ScreenWrapper maxWidth="wide" className="flex-1 bg-neutral-surface">
+    <ScreenWrapper maxWidth="wide" className="flex-1 bg-[#f8faf8]">
       {/* Header */}
-      <View className="px-6 pt-5 pb-4 bg-white border-b border-neutral-border-light">
-        <AppText weight="black" className="text-2xl text-neutral-dark">
-          Healthy Recipes
-        </AppText>
-        <AppText weight="medium" className="text-xs text-neutral-muted mt-0.5">
-          Curated dishes tailored to your caloric goals
-        </AppText>
+      <View className="px-6 pt-5 pb-4 bg-white border-b border-[#e5ece7]">
+        <View className="max-w-[1240px] mx-auto w-full">
+          <AppText weight="black" className="text-2xl text-neutral-dark">
+            Healthy Recipes
+          </AppText>
+          <AppText weight="medium" className="text-xs text-neutral-muted mt-0.5">
+            Curated dishes tailored to your caloric goals
+          </AppText>
+        </View>
       </View>
 
       <ScrollView
-        className="flex-1 px-5 pt-4 pb-12"
+        className="flex-1 px-5 pt-4"
+        contentContainerStyle={{ paddingBottom: Platform.OS === "web" ? 48 : 96 }}
         showsVerticalScrollIndicator={false}
       >
         {/* Category Horizontal Filter Chips */}

@@ -4,6 +4,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Pressable,
+  Platform,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
@@ -68,9 +69,9 @@ export default function MealsScreen() {
     <ScreenWrapper maxWidth="wide" className="flex-1 bg-[#f7faf8]">
       {/* Polished Header with Hierarchy & Live Journal Aggregates */}
       <View
-        className="px-5 pt-4 pb-3.5 bg-white border-b border-neutral-border-light flex-row items-center justify-between shadow-2xs"
+        className="px-5 pt-4 pb-3.5 bg-white border-b border-[#e5ece7] flex-row items-center justify-between shadow-2xs"
       >
-        <View className="flex-1 mr-3 max-w-[1120px] mx-auto flex-row items-center justify-between w-full">
+        <View className="flex-1 mr-3 max-w-[1240px] mx-auto flex-row items-center justify-between w-full">
           <View>
             <AppText weight="black" className="text-2xl text-neutral-dark tracking-tight">
               Daily Meals
@@ -85,12 +86,12 @@ export default function MealsScreen() {
 
           {/* Live Journal Tracker Status Chip */}
           <View
-            className="h-9 px-3.5 rounded-full bg-secondary-soft border border-secondary flex-row items-center justify-center"
+            className="h-9 px-3.5 rounded-full bg-emerald-50 border border-emerald-200/80 flex-row items-center justify-center"
             accessibilityRole="summary"
             accessibilityLabel={`Today's log: ${aggregates.entryCount} meals, ${aggregates.totalConsumed} calories consumed`}
           >
-            <View className="w-2 h-2 rounded-full bg-primary mr-1.5" />
-            <AppText weight="extrabold" className="text-xs text-primary">
+            <View className="w-2 h-2 rounded-full bg-emerald-600 mr-1.5" />
+            <AppText weight="extrabold" className="text-xs text-emerald-800">
               {aggregates.entryCount} Logged • {aggregates.totalConsumed} kcal
             </AppText>
           </View>
@@ -99,12 +100,12 @@ export default function MealsScreen() {
 
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ paddingBottom: 40 }}
+        contentContainerStyle={{ paddingBottom: Platform.OS === "web" ? 48 : 96 }}
         showsVerticalScrollIndicator={false}
       >
         {/* Category Filter Pills */}
         <View
-          className="pt-4 pb-2 max-w-[1120px] mx-auto w-full"
+          className="pt-4 pb-2 max-w-[1240px] mx-auto w-full"
         >
           <ScrollView
             horizontal
@@ -179,7 +180,7 @@ export default function MealsScreen() {
         </View>
 
         {/* Meal Cards Display (Responsive Grid: 1 col on mobile, 2 col on tablet, 3 col on desktop) */}
-        <View className="px-4 pt-2 max-w-[1120px] mx-auto w-full">
+        <View className="px-4 pt-2 max-w-[1240px] mx-auto w-full">
           {filteredMeals.length === 0 ? (
             <View className="bg-white rounded-2xl p-10 items-center justify-center border border-neutral-border-light my-4 w-full">
               <View className="w-14 h-14 rounded-2xl bg-secondary-soft items-center justify-center mb-3 border border-secondary">

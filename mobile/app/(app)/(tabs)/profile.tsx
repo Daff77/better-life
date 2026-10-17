@@ -10,6 +10,7 @@ import {
   TextInput,
   ActivityIndicator,
   StyleSheet,
+  Platform,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
@@ -252,7 +253,8 @@ export default function ProfileScreen() {
       </View>
 
       <ScrollView
-        className="flex-1 px-5 pt-4 pb-12"
+        className="flex-1 px-5 pt-4"
+        contentContainerStyle={{ paddingBottom: Platform.OS === "web" ? 48 : 96 }}
         showsVerticalScrollIndicator={false}
       >
         <View className="flex-col lg:flex-row lg:gap-8">

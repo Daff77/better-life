@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   Alert,
   Platform,
+  Image,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
@@ -21,24 +22,58 @@ import {
 } from "@/components/ui";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useOnboardingStore } from "@/stores/useOnboardingStore";
-import { useJournalStore, getTodayDateKey, computeJournalAggregates } from "@/stores/useJournalStore";
+import {
+  useJournalStore,
+  getTodayDateKey,
+  computeJournalAggregates,
+} from "@/stores/useJournalStore";
 import { useActivityStats, useAddStepsMutation } from "@/hooks/useActivityQuery";
 import { IconRenderer } from "@/constants/Assets";
 import { MOCK_RECIPES, FoodItem } from "@/data/mockRecipes";
 
-const getCategoryStyle = (category: string) => {
-  switch (category) {
-    case "Breakfast":
-      return { bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-200", iconBg: "bg-amber-100" };
-    case "Lunch":
-      return { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200", iconBg: "bg-emerald-100" };
-    case "Dinner":
-      return { bg: "bg-indigo-50", text: "text-indigo-700", border: "border-indigo-200", iconBg: "bg-indigo-100" };
-    case "Snack":
-    default:
-      return { bg: "bg-pink-50", text: "text-pink-700", border: "border-pink-200", iconBg: "bg-pink-100" };
-  }
-};
+// Standard meal slot definitions for grouping journal entries
+const MEAL_SLOTS = [
+  {
+    id: "Breakfast",
+    label: "Breakfast",
+    iconName: "Breakfast" as const,
+    timeRange: "Morning",
+    dotColor: "#f59e0b",
+    bgColor: "bg-amber-50/50",
+    borderColor: "border-amber-200/60",
+    textColor: "text-amber-800",
+  },
+  {
+    id: "Lunch",
+    label: "Lunch",
+    iconName: "Lunch" as const,
+    timeRange: "Midday",
+    dotColor: "#10b981",
+    bgColor: "bg-emerald-50/50",
+    borderColor: "border-emerald-200/60",
+    textColor: "text-emerald-800",
+  },
+  {
+    id: "Dinner",
+    label: "Dinner",
+    iconName: "Dinner" as const,
+    timeRange: "Evening",
+    dotColor: "#6366f1",
+    bgColor: "bg-indigo-50/50",
+    borderColor: "border-indigo-200/60",
+    textColor: "text-indigo-800",
+  },
+  {
+    id: "Snack",
+    label: "Snacks & Drinks",
+    iconName: "Snacks" as const,
+    timeRange: "Anytime",
+    dotColor: "#ec4899",
+    bgColor: "bg-pink-50/50",
+    borderColor: "border-pink-200/60",
+    textColor: "text-pink-800",
+  },
+] as const;
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -53,8 +88,12 @@ export default function HomeScreen() {
     [todayJournal, personalization.targetCalories]
   );
 
-  // Activity stats (pedometer / steps tracking)
-  const { data: activity = { steps: 3420, stepGoal: 6000, exerciseCalories: 240, exerciseDurationMinutes: 35 } } = useActivityStats();
+  // Activity stats query & mutation
+  const {
+    data: activity,
+    isLoading: isActivityLoading,
+    isError: isActivityError,
+  } = useActivityStats();
   const addStepsMutation = useAddStepsMutation();
 
   // Logging modal state for quick suggestion logs
@@ -70,7 +109,7 @@ export default function HomeScreen() {
     }
   }, [personalization.targetCalories, todayDate, todayJournal?.targetCalories]);
 
-  // Derived progress percentage (0 - 100) capped at 100%
+  // Derived progress percentage (0 - 100)
   const progressPercent = Math.min(
     100,
     Math.round(aggregates.progressRatio * 100)
@@ -78,12 +117,41 @@ export default function HomeScreen() {
 
   // Dynamic greeting based on current local hour
   const currentHour = new Date().getHours();
-  const greetingSubtitle =
+  const greetingTime =
     currentHour < 12
-      ? "Good morning,"
+      ? "Good morning"
       : currentHour < 18
-      ? "Good afternoon,"
-      : "Good evening,";
+      ? "Good afternoon"
+      : "Good evening";
+
+  // Formatted date string (e.g. "Saturday, Oct 17")
+  const formattedToday = useMemo(() => {
+    const d = new Date();
+    return d.toLocaleDateString("en-US", {
+      weekday: "long",
+      month: "short",
+      day: "numeric",
+    });
+  }, []);
+
+  // Group today's journal entries by slot
+  const groupedJournal = useMemo(() => {
+    const entries = todayJournal?.entries || [];
+    return MEAL_SLOTS.map((slot) => {
+      const slotEntries = entries.filter((e) => {
+        if (slot.id === "Snack") {
+          return e.category === "Snack" || (e as any).category === "Drink";
+        }
+        return e.category === slot.id;
+      });
+      const totalSlotCalories = slotEntries.reduce((sum, item) => sum + item.calories, 0);
+      return {
+        ...slot,
+        entries: slotEntries,
+        totalCalories: totalSlotCalories,
+      };
+    });
+  }, [todayJournal?.entries]);
 
   const handleOpenLogModal = (meal: FoodItem) => {
     setSelectedMealForLog(meal);
@@ -108,110 +176,173 @@ export default function HomeScreen() {
   };
 
   return (
-    <ScreenWrapper maxWidth="wide" className="flex-1 bg-white">
+    <ScreenWrapper maxWidth="wide" className="flex-1 bg-[#f8faf8]">
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 32 }}
+        contentContainerStyle={{
+          paddingTop: 20,
+          paddingBottom: Platform.OS === "web" ? 48 : 96,
+        }}
       >
-        {/* 1. Curved Green Header with Greeting (home-header) */}
-        <View className="bg-primary pt-6 pb-12 px-6 rounded-b-[28px] shadow-sm">
-          <View className="flex-row items-center justify-between max-w-[1120px] mx-auto w-full">
-            <View>
-              <AppText weight="semibold" className="text-sm text-white/90">
-                {greetingSubtitle}
-              </AppText>
-              <AppText weight="extrabold" className="text-2xl text-white mt-0.5">
-                {user?.name || "Friend"}
+        {/* 1. REFINED COMPACT HEADER (No massive green block) */}
+        <View className="mb-6 pb-4 border-b border-[#e5ece7] flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <View>
+            <View className="flex-row items-center gap-2 mb-1">
+              <View className="w-2 h-2 rounded-full bg-emerald-600" />
+              <AppText weight="bold" className="text-xs text-emerald-800 uppercase tracking-wider">
+                {formattedToday}
               </AppText>
             </View>
+            <AppText weight="black" className="text-2xl sm:text-3xl text-neutral-dark tracking-tight">
+              {greetingTime}, {user?.name?.split(" ")[0] || "Friend"}
+            </AppText>
+            <AppText weight="medium" className="text-xs sm:text-sm text-neutral-muted mt-0.5">
+              {aggregates.remainingCalories > 0
+                ? `${aggregates.remainingCalories} kcal remaining to reach your daily goal.`
+                : "You have reached your daily calorie target for today."}
+            </AppText>
+          </View>
+
+          {/* Quick Header Actions / Profile Control */}
+          <View className="flex-row items-center gap-2.5 self-start sm:self-center">
+            {/* Target Budget Chip */}
+            <View className="bg-emerald-50 px-3.5 py-1.5 rounded-full border border-emerald-200/80 flex-row items-center">
+              <AppText weight="bold" className="text-xs text-emerald-800">
+                🎯 Target: {aggregates.targetCalories} kcal
+              </AppText>
+            </View>
+
+            {/* Profile Avatar Control */}
             <TouchableOpacity
               onPress={() => router.push("/(app)/(tabs)/profile")}
-              className="w-11 h-11 rounded-full bg-white/20 border border-white/40 items-center justify-center transition-all duration-150 hover:bg-white/30"
+              className={`w-10 h-10 rounded-full bg-white border border-[#e5ece7] items-center justify-center shadow-2xs hover:border-emerald-600/40 transition-all ${
+                Platform.OS === "web" ? "cursor-pointer" : ""
+              }`}
               accessibilityRole="button"
-              accessibilityLabel="View profile"
+              accessibilityLabel="View profile settings"
             >
-              <IconRenderer name="Profile" size={22} color="#ffffff" />
+              <IconRenderer name="Profile" size={20} color="#15803d" />
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Responsive Container for Cards: Stacked on Mobile, 2-Column on Tablet/Desktop */}
-        <View className="px-5 -mt-8 flex-col lg:flex-row gap-6 max-w-[1120px] mx-auto w-full">
-          {/* Left Column: Calorie Progress, Activity, and Meal Suggestions */}
-          <View className="flex-1">
-            {/* 2. Main Calorie Progress Card (Synchronized with useJournalStore) */}
-            <View>
-              <View className="p-6 rounded-3xl bg-emerald-50/50 border border-emerald-100/90 mb-5 shadow-sm">
-                <View className="flex-row items-center justify-between">
-                  {/* Left Metrics */}
-                  <View className="flex-1 pr-3">
-                    <View className="bg-emerald-100/70 px-2.5 py-0.5 rounded-full self-start mb-2 border border-emerald-200/60">
-                      <AppText weight="bold" className="text-[10px] text-emerald-800 uppercase tracking-wider">
-                        Today's Budget • {aggregates.targetCalories} kcal
-                      </AppText>
-                    </View>
+        {/* 2. MAIN BALANCED RESPONSIVE GRID */}
+        <View className="flex-col lg:flex-row gap-6">
+          {/* LEFT COLUMN: Nutrition Summary, Macros, Activity & Recommendations */}
+          <View className="flex-1 flex-col gap-6">
+            {/* DAILY CALORIE NUTRITION SUMMARY CARD */}
+            <View className="bg-white rounded-2xl border border-[#e5ece7] p-5 sm:p-6 shadow-2xs">
+              <View className="flex-row items-center justify-between pb-3.5 mb-4 border-b border-[#f0f4f1]">
+                <View>
+                  <AppText weight="black" className="text-base sm:text-lg text-neutral-dark tracking-tight">
+                    Daily Calorie Budget
+                  </AppText>
+                  <AppText weight="medium" className="text-xs text-neutral-muted mt-0.5">
+                    Real-time intake tracked against your personalized plan
+                  </AppText>
+                </View>
 
-                    <AppText weight="extrabold" className="text-xs text-neutral-muted uppercase tracking-wider mb-0.5">
-                      Consumed
+                {/* Progress Status Badge */}
+                <View
+                  className={`px-3 py-1 rounded-full border ${
+                    aggregates.remainingCalories > 0
+                      ? "bg-emerald-50 border-emerald-200/80"
+                      : "bg-amber-50 border-amber-200/80"
+                  }`}
+                >
+                  <AppText
+                    weight="bold"
+                    className={`text-xs ${
+                      aggregates.remainingCalories > 0 ? "text-emerald-800" : "text-amber-800"
+                    }`}
+                  >
+                    {aggregates.remainingCalories > 0
+                      ? `${aggregates.remainingCalories} kcal left`
+                      : "Target Reached"}
+                  </AppText>
+                </View>
+              </View>
+
+              {/* Calorie Stats Breakdown & Ring Visualizer */}
+              <View className="flex-col sm:flex-row sm:items-center justify-between gap-6">
+                {/* Left Stats Triad */}
+                <View className="flex-1">
+                  <View className="mb-4">
+                    <AppText weight="bold" className="text-xs text-neutral-muted uppercase tracking-wider mb-1">
+                      Consumed Today
                     </AppText>
-                    <View className="flex-row items-baseline mb-3">
+                    <View className="flex-row items-baseline">
                       <AnimatedNumber
                         value={aggregates.totalConsumed}
                         decimals={0}
                         weight="black"
-                        className="text-4xl text-neutral-dark leading-none"
+                        className="text-4xl sm:text-5xl text-neutral-dark tracking-tight leading-none"
                       />
                       <AppText weight="bold" className="text-sm text-neutral-muted ml-1.5">
                         kcal
                       </AppText>
                     </View>
+                  </View>
 
-                    <View className="pt-2.5 border-t border-emerald-200/50 flex-row items-baseline justify-between">
-                      <View>
-                        <AppText weight="medium" className="text-xs text-neutral-muted">
-                          Remaining
+                  {/* 3 Metric Balance Pills */}
+                  <View className="flex-row items-center gap-2 pt-3 border-t border-[#f0f4f1]">
+                    <View className="flex-1 bg-[#f8faf8] p-2.5 rounded-xl border border-[#e5ece7]">
+                      <AppText weight="semibold" className="text-[11px] text-neutral-muted">
+                        Target
+                      </AppText>
+                      <AppText weight="black" className="text-sm text-neutral-dark mt-0.5">
+                        {aggregates.targetCalories}{" "}
+                        <AppText weight="medium" className="text-[10px] text-neutral-muted">
+                          kcal
                         </AppText>
-                        <View className="flex-row items-baseline mt-0.5">
-                          <AnimatedNumber
-                            value={aggregates.remainingCalories}
-                            decimals={0}
-                            weight="black"
-                            className="text-primary text-xl"
-                          />
-                          <AppText weight="bold" className="text-xs text-primary/80 ml-1">
-                            kcal
-                          </AppText>
-                        </View>
-                      </View>
+                      </AppText>
+                    </View>
 
-                      <View className="items-end">
-                        <AppText weight="medium" className="text-xs text-neutral-muted">
-                          Pace
+                    <View className="flex-1 bg-emerald-50/50 p-2.5 rounded-xl border border-emerald-200/60">
+                      <AppText weight="semibold" className="text-[11px] text-emerald-800">
+                        Remaining
+                      </AppText>
+                      <AppText weight="black" className="text-sm text-emerald-800 mt-0.5">
+                        {Math.max(0, aggregates.remainingCalories)}{" "}
+                        <AppText weight="medium" className="text-[10px] text-emerald-600">
+                          kcal
                         </AppText>
-                        <AppText weight="bold" className="text-xs text-neutral-dark mt-0.5">
-                          {progressPercent}% logged
+                      </AppText>
+                    </View>
+
+                    <View className="flex-1 bg-[#f8faf8] p-2.5 rounded-xl border border-[#e5ece7]">
+                      <AppText weight="semibold" className="text-[11px] text-neutral-muted">
+                        Logged
+                      </AppText>
+                      <AppText weight="black" className="text-sm text-neutral-dark mt-0.5">
+                        {aggregates.entryCount}{" "}
+                        <AppText weight="medium" className="text-[10px] text-neutral-muted">
+                          meals
                         </AppText>
-                      </View>
+                      </AppText>
                     </View>
                   </View>
+                </View>
 
-                  {/* Right Animated Circular Gauge */}
-                  <View className="items-center justify-center pl-2">
-                    <ProgressRing
-                      progress={progressPercent}
-                      size={128}
-                      strokeWidth={12}
-                      color="#22c55e"
-                      backgroundColor="#dcfce7"
-                      label="Progress"
-                    />
-                  </View>
+                {/* Right Progress Ring */}
+                <View className="items-center justify-center self-center sm:self-auto px-2">
+                  <ProgressRing
+                    progress={progressPercent}
+                    size={118}
+                    strokeWidth={11}
+                    color="#059669"
+                    backgroundColor="#d1fae5"
+                    label="Daily Budget"
+                  />
+                  <AppText weight="semibold" className="text-[11px] text-neutral-muted mt-2">
+                    {progressPercent}% of target
+                  </AppText>
                 </View>
               </View>
             </View>
 
-            {/* Macronutrient Breakdown Card */}
+            {/* MACRONUTRIENT BALANCE (Protein, Carbs, Fats) */}
             <NutritionCard
               proteinGrams={aggregates.totalProteinGrams}
               carbsGrams={aggregates.totalCarbsGrams}
@@ -221,105 +352,161 @@ export default function HomeScreen() {
               targetProteinGrams={aggregates.targetProteinGrams}
               targetCarbsGrams={aggregates.targetCarbsGrams}
               targetFatGrams={aggregates.targetFatGrams}
-              className="mb-5"
             />
 
-            {/* 3. Activity Section: Steps & Exercise Cards */}
-            <View className="flex-row gap-3 mb-5">
-              {/* Steps Card */}
-              <TouchableOpacity
-                activeOpacity={0.85}
-                onPress={() => addStepsMutation.mutate(500)}
-                className={`flex-1 bg-teal-50/40 p-4 rounded-2xl border border-teal-100/70 shadow-sm justify-between transition-all duration-200 hover:shadow-md ${
-                  Platform.OS === "web" ? "cursor-pointer" : ""
-                }`}
-                accessibilityRole="button"
-                accessibilityLabel="Add 500 steps"
-              >
+            {/* ACTIVITY OVERVIEW (Truth in data, handles unavailable state gracefully) */}
+            <View>
+              <View className="flex-row items-center justify-between mb-3">
                 <View>
-                  <View className="flex-row items-center justify-between mb-1.5">
-                    <AppText weight="extrabold" className="text-sm text-neutral-dark">
-                      Steps
-                    </AppText>
-                    <IconRenderer name="Shoe" size={18} />
-                  </View>
-                  <AnimatedNumber
-                    value={activity.steps}
-                    weight="black"
-                    className="text-2xl text-neutral-dark mb-0.5"
-                  />
-                  <AppText weight="medium" className="text-xs text-neutral-muted mb-2.5">
-                    Goal: {activity.stepGoal.toLocaleString()}
+                  <AppText weight="black" className="text-base text-neutral-dark">
+                    Physical Activity
                   </AppText>
-                </View>
-
-                <ProgressBar
-                  progress={activity.steps / activity.stepGoal}
-                  color="#0d9488"
-                  backgroundColor="#ccfbf1"
-                  height={6}
-                />
-              </TouchableOpacity>
-
-              {/* Exercise Summary Card */}
-              <View className="flex-1 bg-amber-50/40 p-4 rounded-2xl border border-amber-100/70 shadow-sm justify-between">
-                <View>
-                  <View className="flex-row items-center justify-between mb-1.5">
-                    <AppText weight="extrabold" className="text-sm text-neutral-dark">
-                      Activity
-                    </AppText>
-                    <IconRenderer name="Fire" size={18} />
-                  </View>
-                  <View className="flex-row items-baseline mb-0.5">
-                    <AnimatedNumber
-                      value={activity.exerciseCalories}
-                      weight="black"
-                      className="text-2xl text-neutral-dark mr-1"
-                    />
-                    <AppText weight="bold" className="text-xs text-neutral-muted">
-                      burn kcal
-                    </AppText>
-                  </View>
-                </View>
-
-                <View className="flex-row items-center pt-2 border-t border-amber-200/50">
-                  <IconRenderer name="Clock" size={14} className="mr-1.5" />
-                  <AppText weight="bold" className="text-xs text-neutral-dark">
-                    0:{activity.exerciseDurationMinutes} hr active
+                  <AppText weight="medium" className="text-xs text-neutral-muted">
+                    Movement, steps, and active calories
                   </AppText>
                 </View>
               </View>
+
+              {isActivityError ? (
+                /* Unconnected / Unavailable Activity State */
+                <View className="bg-white rounded-2xl border border-dashed border-[#e5ece7] p-6 items-center justify-center">
+                  <View className="w-10 h-10 rounded-xl bg-neutral-100 items-center justify-center mb-2">
+                    <IconRenderer name="Shoe" size={20} color="#6b7280" />
+                  </View>
+                  <AppText weight="bold" className="text-sm text-neutral-dark mb-0.5">
+                    Activity Tracker Disconnected
+                  </AppText>
+                  <AppText weight="medium" className="text-xs text-neutral-muted text-center max-w-xs">
+                    Connect your fitness device or Apple Health / Google Fit to sync live daily step counts.
+                  </AppText>
+                </View>
+              ) : (
+                /* Balanced 2-Card Activity Grid */
+                <View className="flex-col sm:flex-row gap-3">
+                  {/* Steps Card */}
+                  <View className="flex-1 bg-white p-4 rounded-2xl border border-[#e5ece7] shadow-2xs justify-between">
+                    <View>
+                      <View className="flex-row items-center justify-between mb-2">
+                        <View className="flex-row items-center gap-1.5">
+                          <IconRenderer name="Shoe" size={16} />
+                          <AppText weight="bold" className="text-xs text-neutral-dark">
+                            Daily Steps
+                          </AppText>
+                        </View>
+                        <View className="bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200/60">
+                          <AppText weight="bold" className="text-[10px] text-teal-800">
+                            Pedometer
+                          </AppText>
+                        </View>
+                      </View>
+
+                      <View className="flex-row items-baseline mb-1">
+                        <AnimatedNumber
+                          value={activity?.steps ?? 0}
+                          weight="black"
+                          className="text-2xl text-neutral-dark"
+                        />
+                        <AppText weight="semibold" className="text-xs text-neutral-muted ml-1">
+                          / {(activity?.stepGoal ?? 6000).toLocaleString()}
+                        </AppText>
+                      </View>
+
+                      <ProgressBar
+                        progress={
+                          activity ? Math.min(1.0, activity.steps / activity.stepGoal) : 0
+                        }
+                        color="#0d9488"
+                        backgroundColor="#ccfbf1"
+                        height={5}
+                      />
+                    </View>
+
+                    {/* Interactive Step Increment Action */}
+                    <TouchableOpacity
+                      onPress={() => addStepsMutation.mutate(500)}
+                      disabled={addStepsMutation.isPending}
+                      className={`mt-3 py-1.5 px-3 rounded-xl bg-[#f2f8f5] border border-emerald-200/70 items-center justify-center flex-row hover:bg-emerald-50 active:scale-95 transition-all ${
+                        Platform.OS === "web" ? "cursor-pointer" : ""
+                      }`}
+                      accessibilityRole="button"
+                      accessibilityLabel="Add 500 walking steps"
+                    >
+                      <AppText weight="extrabold" className="text-xs text-emerald-800">
+                        +500 Steps
+                      </AppText>
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* Active Calories & Duration Card */}
+                  <View className="flex-1 bg-white p-4 rounded-2xl border border-[#e5ece7] shadow-2xs justify-between">
+                    <View>
+                      <View className="flex-row items-center justify-between mb-2">
+                        <View className="flex-row items-center gap-1.5">
+                          <IconRenderer name="Fire" size={16} />
+                          <AppText weight="bold" className="text-xs text-neutral-dark">
+                            Active Energy
+                          </AppText>
+                        </View>
+                        <View className="bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/60">
+                          <AppText weight="bold" className="text-[10px] text-amber-800">
+                            Workout
+                          </AppText>
+                        </View>
+                      </View>
+
+                      <View className="flex-row items-baseline mb-1">
+                        <AnimatedNumber
+                          value={activity?.exerciseCalories ?? 0}
+                          weight="black"
+                          className="text-2xl text-neutral-dark mr-1"
+                        />
+                        <AppText weight="bold" className="text-xs text-neutral-muted">
+                          kcal burned
+                        </AppText>
+                      </View>
+                    </View>
+
+                    <View className="flex-row items-center pt-2.5 border-t border-[#f0f4f1]">
+                      <IconRenderer name="Clock" size={14} className="mr-1.5" />
+                      <AppText weight="bold" className="text-xs text-neutral-dark">
+                        {activity?.exerciseDurationMinutes ?? 0} mins active duration
+                      </AppText>
+                    </View>
+                  </View>
+                </View>
+              )}
             </View>
 
-            {/* 4. Meal Suggestions Bar */}
+            {/* MEAL SUGGESTIONS CAROUSEL */}
             <View>
-              <View className="flex-row items-center justify-between mt-1 mb-3">
+              <View className="flex-row items-center justify-between mb-3">
                 <View>
-                  <AppText weight="extrabold" className="text-lg text-neutral-dark">
-                    Meal Suggestions
+                  <AppText weight="black" className="text-base text-neutral-dark">
+                    Curated Meal Suggestions
                   </AppText>
                   <AppText weight="medium" className="text-xs text-neutral-muted">
-                    Quick picks tailored to your remaining calories
+                    Healthy dishes tailored to your remaining calorie budget
                   </AppText>
                 </View>
 
                 <TouchableOpacity
                   onPress={() => router.push("/(app)/(tabs)/meals")}
-                  className="py-1 px-2.5 rounded-full bg-secondary-soft hover:bg-secondary transition-colors"
+                  className={`py-1 px-3 rounded-full bg-emerald-50 border border-emerald-200/60 hover:bg-emerald-100/60 transition-colors ${
+                    Platform.OS === "web" ? "cursor-pointer" : ""
+                  }`}
                   accessibilityRole="link"
-                  accessibilityLabel="View all daily meals"
+                  accessibilityLabel="View full culinary meal catalog"
                 >
-                  <AppText weight="bold" className="text-xs text-primary">
+                  <AppText weight="bold" className="text-xs text-emerald-800">
                     View Catalog ›
                   </AppText>
                 </TouchableOpacity>
               </View>
 
-              {/* Horizontal Scroll Meal Suggestions Carousel */}
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
-                className="mb-5 -mx-2 px-2"
+                className="-mx-1 px-1"
               >
                 {MOCK_RECIPES.slice(0, 4).map((meal) => (
                   <View key={meal.id} className="mr-3.5 w-[260px]">
@@ -329,8 +516,8 @@ export default function HomeScreen() {
                       calories={meal.calories}
                       description={meal.description}
                       prepTimeMinutes={meal.prepTimeMinutes}
+                      estimatedCostIdr={meal.estimatedCostIdr}
                       imageUrl={meal.imageUrl}
-                      svgElement={<IconRenderer name={meal.svgIcon} size={88} />}
                       onLogMeal={() => handleOpenLogModal(meal)}
                       onPress={() =>
                         router.push({
@@ -345,111 +532,186 @@ export default function HomeScreen() {
             </View>
           </View>
 
-          {/* Right Column: Calorie Journal • Today's Logged Meals Feed */}
+          {/* RIGHT COLUMN: TODAY'S JOURNAL (Grouped by Meal Slot) */}
           <View className="w-full lg:w-[420px]">
-            <View>
-              <View className="flex-row items-center justify-between mb-3">
+            <View className="bg-white rounded-2xl border border-[#e5ece7] p-5 shadow-2xs">
+              {/* Journal Header */}
+              <View className="flex-row items-center justify-between pb-3.5 mb-3 border-b border-[#f0f4f1]">
                 <View>
-                  <View className="flex-row items-baseline">
-                    <AppText weight="extrabold" className="text-lg text-neutral-dark mr-1.5">
+                  <View className="flex-row items-baseline gap-1.5">
+                    <AppText weight="black" className="text-base text-neutral-dark">
                       Today's Journal
                     </AppText>
                     <AppText weight="bold" className="text-xs text-neutral-muted">
-                      ({todayJournal.entries.length} logged)
+                      ({aggregates.entryCount} logged)
                     </AppText>
                   </View>
-                  <AppText weight="medium" className="text-xs text-neutral-muted">
-                    Daily breakdown by meal slot
+                  <AppText weight="medium" className="text-xs text-neutral-muted mt-0.5">
+                    Grouped by daily meal slots
                   </AppText>
                 </View>
 
-                {todayJournal.entries.length > 0 && (
+                {aggregates.entryCount > 0 && (
                   <TouchableOpacity
                     onPress={handleResetDay}
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                    className="flex-row items-center py-1 px-2.5 rounded-full bg-status-error/10 border border-status-error/20 hover:bg-status-error/20 transition-colors"
+                    className={`py-1 px-2.5 rounded-full bg-status-error/10 border border-status-error/20 hover:bg-status-error/20 transition-colors ${
+                      Platform.OS === "web" ? "cursor-pointer" : ""
+                    }`}
                     accessibilityRole="button"
-                    accessibilityLabel="Reset today's journal entries"
+                    accessibilityLabel="Reset today's logged meals"
                   >
-                    <AppText weight="bold" className="text-xs text-status-error">
+                    <AppText weight="bold" className="text-[11px] text-status-error">
                       Clear Day
                     </AppText>
                   </TouchableOpacity>
                 )}
               </View>
 
-              {/* Empty State vs Unified Logged Entries Container */}
-              {todayJournal.entries.length === 0 ? (
-                <View className="py-10 px-6 items-center justify-center bg-neutral-surface border border-dashed border-neutral-border rounded-3xl">
-                  <View className="w-14 h-14 rounded-2xl bg-secondary-soft items-center justify-center mb-3 border border-secondary">
-                    <IconRenderer name="Cook" size={28} />
+              {/* Journal Empty State (When 0 total meals logged today) */}
+              {aggregates.entryCount === 0 ? (
+                <View className="py-10 px-5 items-center justify-center bg-[#f8faf8] border border-dashed border-[#e5ece7] rounded-xl my-2">
+                  <View className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200/80 items-center justify-center mb-3">
+                    <IconRenderer name="Cook" size={24} />
                   </View>
-                  <AppText weight="black" className="text-base text-neutral-dark mb-1 text-center">
+                  <AppText weight="black" className="text-sm text-neutral-dark mb-1 text-center">
                     No meals logged yet today
                   </AppText>
-                  <AppText weight="medium" className="text-xs text-neutral-muted text-center max-w-[240px] mb-4 leading-relaxed">
-                    Ready for your first meal? Log breakfast, lunch, dinner or snacks to start tracking.
+                  <AppText weight="medium" className="text-xs text-neutral-muted text-center max-w-[220px] mb-4 leading-relaxed">
+                    Ready to track your first meal? Log breakfast, lunch, or dinner to start your nutrition day.
                   </AppText>
                   <Button
                     title="+ Log First Meal"
                     variant="primary"
                     size="sm"
                     onPress={() => router.push("/(app)/(tabs)/meals")}
-                    accessibilityLabel="Navigate to Meals to log food"
+                    accessibilityLabel="Navigate to meals catalog to log food"
                   />
                 </View>
               ) : (
-                <View className="bg-white rounded-2xl border border-neutral-border-light shadow-sm overflow-hidden divide-y divide-neutral-border-light/60">
-                  {todayJournal.entries.map((item) => {
-                    const catStyle = getCategoryStyle(item.category);
+                /* Journal Grouped by Meal Slot */
+                <View className="divide-y divide-[#f0f4f1]">
+                  {groupedJournal.map((slot) => {
+                    const hasEntries = slot.entries.length > 0;
                     return (
-                      <View
-                        key={item.id}
-                        className={`p-3.5 flex-row items-center justify-between transition-colors duration-150 hover:bg-neutral-surface/60 ${
-                          Platform.OS === "web" ? "cursor-default" : ""
-                        }`}
-                      >
-                        <View className="flex-row items-center gap-x-3 flex-1 mr-2">
-                          <View className={`w-10 h-10 rounded-xl ${catStyle.iconBg} items-center justify-center border border-black/5`}>
-                            <IconRenderer
-                              name={
-                                item.category === "Breakfast"
-                                  ? "Breakfast"
-                                  : item.category === "Lunch"
-                                  ? "Lunch"
-                                  : item.category === "Dinner"
-                                  ? "Dinner"
-                                  : "Snacks"
-                              }
-                              size={20}
+                      <View key={slot.id} className="py-3">
+                        {/* Slot Header Row */}
+                        <View className="flex-row items-center justify-between mb-2">
+                          <View className="flex-row items-center gap-2">
+                            <View
+                              style={{ backgroundColor: slot.dotColor }}
+                              className="w-2 h-2 rounded-full"
                             />
-                          </View>
-                          <View className="flex-1">
-                            <AppText weight="extrabold" numberOfLines={1} className="text-sm text-neutral-dark">
-                              {item.title}
+                            <AppText weight="black" className="text-xs text-neutral-dark">
+                              {slot.label}
                             </AppText>
-                            <View className="flex-row items-center gap-1.5 mt-0.5">
-                              <View className={`px-2 py-0.5 rounded-md ${catStyle.bg} border ${catStyle.border}`}>
-                                <AppText weight="bold" className={`text-[10px] ${catStyle.text}`}>
-                                  {item.category}
-                                </AppText>
-                              </View>
-                              {item.quantity > 1 && (
-                                <AppText weight="medium" className="text-[11px] text-neutral-muted">
-                                  • {item.quantity} portions
-                                </AppText>
-                              )}
-                            </View>
+                            <AppText weight="medium" className="text-[11px] text-neutral-muted">
+                              ({slot.timeRange})
+                            </AppText>
+                          </View>
+
+                          <View className="flex-row items-center gap-2">
+                            <AppText
+                              weight="extrabold"
+                              className={`text-xs ${hasEntries ? "text-primary" : "text-neutral-400"}`}
+                            >
+                              {slot.totalCalories} kcal
+                            </AppText>
+                            <TouchableOpacity
+                              onPress={() => router.push("/(app)/(tabs)/meals")}
+                              className={`w-5 h-5 rounded-md bg-[#f2f6f3] items-center justify-center hover:bg-emerald-100 transition-colors ${
+                                Platform.OS === "web" ? "cursor-pointer" : ""
+                              }`}
+                              accessibilityRole="button"
+                              accessibilityLabel={`Add meal to ${slot.label}`}
+                            >
+                              <AppText weight="bold" className="text-xs text-emerald-800 leading-none">
+                                +
+                              </AppText>
+                            </TouchableOpacity>
                           </View>
                         </View>
-                        <View className="items-end">
-                          <AppText weight="black" className="text-sm text-primary">
-                            +{item.calories}{" "}
-                            <AppText weight="bold" className="text-xs text-neutral-muted">
-                              kcal
+
+                        {/* Slot Entries List or Quiet Placeholder */}
+                        {hasEntries ? (
+                          <View className="gap-2 mt-1">
+                            {slot.entries.map((item) => {
+                              // Find recipe image if available
+                              const matchedRecipe = MOCK_RECIPES.find(
+                                (r) =>
+                                  r.id === item.mealId ||
+                                  r.title.toLowerCase() === item.title.toLowerCase()
+                              );
+                              const photoUrl = (item as any).imageUrl || matchedRecipe?.imageUrl;
+
+                              return (
+                                <View
+                                  key={item.id}
+                                  className="p-2.5 rounded-xl bg-[#f8faf8] border border-[#e5ece7] flex-row items-center justify-between"
+                                >
+                                  <View className="flex-row items-center gap-2.5 flex-1 mr-2">
+                                    {/* Thumbnail Image or Icon */}
+                                    <View className="w-10 h-10 rounded-lg bg-emerald-50 border border-emerald-200/50 overflow-hidden items-center justify-center">
+                                      {photoUrl ? (
+                                        <Image
+                                          source={{ uri: photoUrl }}
+                                          style={{ width: "100%", height: "100%" }}
+                                          resizeMode="cover"
+                                        />
+                                      ) : (
+                                        <IconRenderer name={slot.iconName} size={18} />
+                                      )}
+                                    </View>
+
+                                    {/* Item Details */}
+                                    <View className="flex-1">
+                                      <AppText
+                                        weight="extrabold"
+                                        numberOfLines={1}
+                                        className="text-xs text-neutral-dark"
+                                      >
+                                        {item.title}
+                                      </AppText>
+                                      <View className="flex-row items-center gap-1.5 mt-0.5">
+                                        {item.quantity > 1 && (
+                                          <AppText weight="semibold" className="text-[10px] text-neutral-muted">
+                                            {item.quantity} portions •
+                                          </AppText>
+                                        )}
+                                        <AppText weight="medium" className="text-[10px] text-neutral-muted">
+                                          P: {item.proteinGrams}g • C: {item.carbsGrams}g • F: {item.fatGrams}g
+                                        </AppText>
+                                      </View>
+                                    </View>
+                                  </View>
+
+                                  {/* Calorie Amount */}
+                                  <AppText weight="black" className="text-xs text-primary">
+                                    +{item.calories}{" "}
+                                    <AppText weight="medium" className="text-[10px] text-neutral-muted">
+                                      kcal
+                                    </AppText>
+                                  </AppText>
+                                </View>
+                              );
+                            })}
+                          </View>
+                        ) : (
+                          /* Subtle Empty Slot Line */
+                          <TouchableOpacity
+                            onPress={() => router.push("/(app)/(tabs)/meals")}
+                            className={`py-2 px-3 rounded-lg border border-dashed border-[#e2e8e4] bg-[#fafcfa] flex-row items-center justify-between ${
+                              Platform.OS === "web" ? "cursor-pointer hover:bg-emerald-50/40" : ""
+                            }`}
+                          >
+                            <AppText weight="medium" className="text-[11px] text-neutral-muted">
+                              No {slot.label.toLowerCase()} logged yet
                             </AppText>
-                          </AppText>
-                        </View>
+                            <AppText weight="bold" className="text-[11px] text-emerald-800">
+                              + Plan meal
+                            </AppText>
+                          </TouchableOpacity>
+                        )}
                       </View>
                     );
                   })}
