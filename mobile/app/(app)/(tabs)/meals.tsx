@@ -219,6 +219,7 @@ export default function MealsScreen() {
                     description={meal.description}
                     prepTimeMinutes={meal.prepTimeMinutes}
                     estimatedCostIdr={meal.estimatedCostIdr}
+                    imageUrl={meal.imageUrl}
                     svgElement={<IconRenderer name={meal.svgIcon} size={88} />}
                     onLogMeal={() => handleOpenLogModal(meal)}
                     onPress={() => handleOpenDetail(meal.id)}

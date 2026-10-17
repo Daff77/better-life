@@ -7,6 +7,7 @@ export interface FoodItem {
   difficulty: "Easy" | "Medium" | "Hard";
   description: string;
   svgIcon: "Breakfast" | "Lunch" | "Dinner" | "Snacks" | "Drinks";
+  imageUrl?: string;
   estimatedCostIdr?: number;
   nutrition: {
     proteinGrams: number;
@@ -35,6 +36,7 @@ export const MOCK_RECIPES: FoodItem[] = [
     difficulty: "Easy",
     description: "Layered organic Greek yogurt, antioxidant berries, chia seeds, and raw blossom honey.",
     svgIcon: "Breakfast",
+    imageUrl: "https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=800&q=80",
     estimatedCostIdr: 28000,
     nutrition: {
       proteinGrams: 22,
@@ -77,51 +79,63 @@ export const MOCK_RECIPES: FoodItem[] = [
     ],
   },
   {
-    id: "grilled-salmon",
-    title: "Pan-Seared Atlantic Salmon",
-    category: "Dinner",
-    calories: 520,
-    prepTimeMinutes: 20,
-    difficulty: "Medium",
-    description: "Fresh Atlantic salmon fillet paired with steamed fluffy quinoa and roasted asparagus.",
-    svgIcon: "Dinner",
-    estimatedCostIdr: 55000,
+    id: "avocado-toast",
+    title: "Avocado Sourdough & Poached Egg",
+    category: "Breakfast",
+    calories: 385,
+    prepTimeMinutes: 12,
+    difficulty: "Easy",
+    description: "Toasted artisan sourdough with smashed Hass avocado, farm poached egg, chili flakes, and microgreens.",
+    svgIcon: "Breakfast",
+    imageUrl: "https://images.unsplash.com/photo-1603046891726-36bfd957e0bf?auto=format&fit=crop&w=800&q=80",
+    estimatedCostIdr: 25000,
     nutrition: {
-      proteinGrams: 42,
-      carbsGrams: 32,
-      fatGrams: 24,
-      fiberGrams: 6,
+      proteinGrams: 16,
+      carbsGrams: 34,
+      fatGrams: 21,
+      fiberGrams: 9,
     },
     ingredients: [
-      { name: "Wild Atlantic Salmon Fillet", amount: "180 g" },
-      { name: "Cooked Organic Quinoa", amount: "1 cup" },
-      { name: "Fresh Asparagus Spears", amount: "8 spears" },
-      { name: "Extra Virgin Olive Oil", amount: "1 tbsp" },
-      { name: "Lemon & Sea Salt", amount: "to taste" },
+      { name: "Artisan Sourdough Bread", amount: "2 slices" },
+      { name: "Ripe Hass Avocado", amount: "1 medium" },
+      { name: "Free-range Farm Egg", amount: "1 large" },
+      { name: "Lime Juice & Red Pepper Flakes", amount: "to taste" },
+      { name: "Fresh Microgreens / Coriander", amount: "1 tbsp" },
     ],
     instructions: [
-      {
-        step: 1,
-        text: "Pat salmon dry with paper towels. Season both sides with sea salt, black pepper, and lemon zest.",
-      },
-      {
-        step: 2,
-        text: "Heat olive oil in a non-stick skillet over medium-high heat until shimmering.",
-      },
-      {
-        step: 3,
-        text: "Sear salmon skin-side down for 4 minutes until golden and crispy.",
-        timerMinutes: 4,
-      },
-      {
-        step: 4,
-        text: "Flip carefully and cook for an additional 3-4 minutes until medium-rare to medium.",
-        timerMinutes: 3,
-      },
-      {
-        step: 5,
-        text: "Plate alongside warm quinoa and sautéed asparagus. Drizzle with fresh lemon juice.",
-      },
+      { step: 1, text: "Toast sourdough slices until golden brown and crispy." },
+      { step: 2, text: "Mash avocado in a bowl with lime juice, sea salt, and crushed black pepper." },
+      { step: 3, text: "Poach the egg in gently simmering water with a splash of vinegar for 3 minutes.", timerMinutes: 3 },
+      { step: 4, text: "Spread creamy avocado over toast, crown with poached egg, and sprinkle chili flakes." },
+    ],
+  },
+  {
+    id: "smoothie-bowl",
+    title: "Acai Berry & Chia Smoothie Bowl",
+    category: "Breakfast",
+    calories: 290,
+    prepTimeMinutes: 8,
+    difficulty: "Easy",
+    description: "Thick antioxidant acai blend topped with sliced fresh banana, blueberries, chia seeds, and coconut flakes.",
+    svgIcon: "Breakfast",
+    imageUrl: "https://images.unsplash.com/photo-1536304929831-ee1ca9d44906?auto=format&fit=crop&w=800&q=80",
+    estimatedCostIdr: 32000,
+    nutrition: {
+      proteinGrams: 9,
+      carbsGrams: 48,
+      fatGrams: 8,
+      fiberGrams: 11,
+    },
+    ingredients: [
+      { name: "Frozen Acai Puree or Berries", amount: "150 g" },
+      { name: "Ripe Cavendish Banana", amount: "1 medium" },
+      { name: "Unsweetened Almond Milk", amount: "100 ml" },
+      { name: "Raw Chia Seeds & Toasted Coconut", amount: "1 tbsp each" },
+    ],
+    instructions: [
+      { step: 1, text: "Blend frozen acai, half banana, and almond milk on high until smooth and thick." },
+      { step: 2, text: "Pour into a chilled serving bowl." },
+      { step: 3, text: "Arrange remaining sliced banana, fresh blueberries, chia seeds, and coconut flakes on top." },
     ],
   },
   {
@@ -133,6 +147,7 @@ export const MOCK_RECIPES: FoodItem[] = [
     difficulty: "Medium",
     description: "Tender grilled chicken breast, crisp cucumbers, cherry tomatoes, and warm brown rice.",
     svgIcon: "Lunch",
+    imageUrl: "https://images.unsplash.com/photo-1602881916963-5daf2d97c06e?auto=format&fit=crop&w=800&q=80",
     estimatedCostIdr: 24000,
     nutrition: {
       proteinGrams: 48,
@@ -175,6 +190,7 @@ export const MOCK_RECIPES: FoodItem[] = [
     difficulty: "Easy",
     description: "High-protein Indonesian tempeh and yellow tofu pan-sautéed with aromatic turmeric, garlic, and fresh green beans.",
     svgIcon: "Lunch",
+    imageUrl: "https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=800&q=80",
     estimatedCostIdr: 14000,
     nutrition: {
       proteinGrams: 32,
@@ -197,6 +213,86 @@ export const MOCK_RECIPES: FoodItem[] = [
     ],
   },
   {
+    id: "grilled-salmon",
+    title: "Pan-Seared Atlantic Salmon",
+    category: "Dinner",
+    calories: 520,
+    prepTimeMinutes: 20,
+    difficulty: "Medium",
+    description: "Fresh Atlantic salmon fillet paired with steamed fluffy quinoa and roasted asparagus.",
+    svgIcon: "Dinner",
+    imageUrl: "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=800&q=80",
+    estimatedCostIdr: 55000,
+    nutrition: {
+      proteinGrams: 42,
+      carbsGrams: 32,
+      fatGrams: 24,
+      fiberGrams: 6,
+    },
+    ingredients: [
+      { name: "Wild Atlantic Salmon Fillet", amount: "180 g" },
+      { name: "Cooked Organic Quinoa", amount: "1 cup" },
+      { name: "Fresh Asparagus Spears", amount: "8 spears" },
+      { name: "Extra Virgin Olive Oil", amount: "1 tbsp" },
+      { name: "Lemon & Sea Salt", amount: "to taste" },
+    ],
+    instructions: [
+      {
+        step: 1,
+        text: "Pat salmon dry with paper towels. Season both sides with sea salt, black pepper, and lemon zest.",
+      },
+      {
+        step: 2,
+        text: "Heat olive oil in a non-stick skillet over medium-high heat until shimmering.",
+      },
+      {
+        step: 3,
+        text: "Sear salmon skin-side down for 4 minutes until golden and crispy.",
+        timerMinutes: 4,
+      },
+      {
+        step: 4,
+        text: "Flip carefully and cook for an additional 3-4 minutes until medium-rare to medium.",
+        timerMinutes: 3,
+      },
+      {
+        step: 5,
+        text: "Plate alongside warm quinoa and sautéed asparagus. Drizzle with fresh lemon juice.",
+      },
+    ],
+  },
+  {
+    id: "beef-bowl",
+    title: "Garlic Herb Beef & Quinoa Bowl",
+    category: "Dinner",
+    calories: 610,
+    prepTimeMinutes: 22,
+    difficulty: "Medium",
+    description: "Lean sirloin beef strips seared with roasted garlic and herbs, accompanied by steamed broccoli and fluffy quinoa.",
+    svgIcon: "Dinner",
+    imageUrl: "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80",
+    estimatedCostIdr: 45000,
+    nutrition: {
+      proteinGrams: 46,
+      carbsGrams: 42,
+      fatGrams: 22,
+      fiberGrams: 8,
+    },
+    ingredients: [
+      { name: "Lean Sirloin Beef Strips", amount: "180 g" },
+      { name: "Steamed Quinoa or Jasmine Rice", amount: "1 cup" },
+      { name: "Fresh Broccoli Florets", amount: "100 g" },
+      { name: "Garlic & Rosemary Infused Oil", amount: "1 tbsp" },
+      { name: "Low-sodium Tamari Sauce", amount: "1 tbsp" },
+    ],
+    instructions: [
+      { step: 1, text: "Steam broccoli florets until bright green and tender-crisp (approx 4 minutes).", timerMinutes: 4 },
+      { step: 2, text: "Sear beef strips on high heat with garlic oil for 3-4 minutes until caramelised.", timerMinutes: 4 },
+      { step: 3, text: "Deglaze pan with tamari and toss briefly." },
+      { step: 4, text: "Assemble in a bowl with quinoa, broccoli, and drizzle with pan juices." },
+    ],
+  },
+  {
     id: "almond-apple",
     title: "Roasted Almonds & Green Apple",
     category: "Snack",
@@ -205,6 +301,7 @@ export const MOCK_RECIPES: FoodItem[] = [
     difficulty: "Easy",
     description: "Crunchy oven-roasted whole almonds paired with crisp green Granny Smith apple slices.",
     svgIcon: "Snacks",
+    imageUrl: "https://images.unsplash.com/photo-1508736793122-f516e3ba5569?auto=format&fit=crop&w=800&q=80",
     estimatedCostIdr: 15000,
     nutrition: {
       proteinGrams: 6,
@@ -241,6 +338,7 @@ export const MOCK_RECIPES: FoodItem[] = [
     difficulty: "Easy",
     description: "Quick protein booster featuring two soft-boiled farm eggs and lightly salted steamed edamame pods.",
     svgIcon: "Snacks",
+    imageUrl: "https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=800&q=80",
     estimatedCostIdr: 10000,
     nutrition: {
       proteinGrams: 18,
@@ -268,6 +366,7 @@ export const MOCK_RECIPES: FoodItem[] = [
     difficulty: "Easy",
     description: "Electrolyte-rich sparkling water infused with fresh lemon wedges, cucumber, and bruised mint.",
     svgIcon: "Drinks",
+    imageUrl: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=800&q=80",
     estimatedCostIdr: 8000,
     nutrition: {
       proteinGrams: 1,

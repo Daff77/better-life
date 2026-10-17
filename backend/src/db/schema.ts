@@ -39,6 +39,8 @@ export const recipes = pgTable("recipes", {
   difficulty: text("difficulty").notNull(), // "Easy" | "Medium" | "Hard"
   description: text("description").notNull(),
   svgIcon: text("svg_icon").notNull(),
+  imageUrl: text("image_url"),
+  estimatedCostIdr: integer("estimated_cost_idr"),
   nutrition: jsonb("nutrition").notNull(), // { proteinGrams, carbsGrams, fatGrams, fiberGrams }
   ingredients: jsonb("ingredients").notNull(), // [{ name, amount }]
   instructions: jsonb("instructions").notNull(), // [{ step, text, timerMinutes? }]

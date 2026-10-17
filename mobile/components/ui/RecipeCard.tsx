@@ -23,6 +23,7 @@ export interface RecipeCardProps extends Omit<TouchableOpacityProps, "children">
   prepTimeMinutes: number;
   difficulty?: "Easy" | "Medium" | "Hard";
   svgName?: AppIconName;
+  imageUrl?: string;
   imageSource?: ImageSourcePropType;
   onPress?: () => void;
   className?: string;
@@ -35,6 +36,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
   prepTimeMinutes,
   difficulty = "Easy",
   svgName,
+  imageUrl,
   imageSource,
   onPress,
   className,
@@ -56,6 +58,8 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
     if (!onPress) return;
     cardScale.value = withSpring(1, AnimationEasings.pressSpringConfig);
   };
+
+  const effectiveImageSource = imageSource || (imageUrl ? { uri: imageUrl } : null);
 
   return (
     <Pressable
@@ -83,16 +87,16 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
       >
         <View className="flex-row items-center flex-1 mr-3">
           {/* Visual Thumbnail */}
-          <View className="w-16 h-16 rounded-2xl bg-secondary items-center justify-center mr-3.5 overflow-hidden">
+          <View className="w-16 h-16 rounded-2xl bg-secondary items-center justify-center mr-3.5 overflow-hidden border border-neutral-border-light/60">
             <View className="w-full h-full items-center justify-center">
-              {svgName ? (
-                <IconRenderer name={svgName} size={42} />
-              ) : imageSource ? (
+              {effectiveImageSource ? (
                 <Image
-                  source={imageSource}
+                  source={effectiveImageSource}
                   style={{ width: "100%", height: "100%" }}
                   resizeMode="cover"
                 />
+              ) : svgName ? (
+                <IconRenderer name={svgName} size={42} />
               ) : (
                 <AppText weight="bold" className="text-2xl">
                   🥗

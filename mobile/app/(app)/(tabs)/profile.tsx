@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import {
   View,
+  Image,
   ScrollView,
   TouchableOpacity,
   Alert,
@@ -466,13 +467,22 @@ export default function ProfileScreen() {
                       onPress={() => router.push(`/(app)/recipe-detail?id=${recipe.id}`)}
                       className="bg-white p-3.5 rounded-xl border border-neutral-border-light/80 mb-3 flex-row items-center justify-between shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5"
                     >
-                      <View className="flex-1 pr-3">
-                        <AppText weight="black" className="text-base text-neutral-dark">
-                          {recipe.title}
-                        </AppText>
-                        <AppText weight="semibold" className="text-xs text-neutral-muted mt-0.5">
-                          {recipe.calories} kcal • {recipe.prepTimeMinutes} min prep
-                        </AppText>
+                      <View className="flex-row items-center flex-1 pr-3">
+                        {recipe.imageUrl ? (
+                          <Image
+                            source={{ uri: recipe.imageUrl }}
+                            style={{ width: 44, height: 44, borderRadius: 10, marginRight: 12 }}
+                            resizeMode="cover"
+                          />
+                        ) : null}
+                        <View className="flex-1">
+                          <AppText weight="black" className="text-base text-neutral-dark">
+                            {recipe.title}
+                          </AppText>
+                          <AppText weight="semibold" className="text-xs text-neutral-muted mt-0.5">
+                            {recipe.calories} kcal • {recipe.prepTimeMinutes} min prep
+                          </AppText>
+                        </View>
                       </View>
                       <Badge label={recipe.category} variant="primary" size="sm" />
                     </TouchableOpacity>

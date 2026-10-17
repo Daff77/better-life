@@ -118,7 +118,9 @@ export const FoodItemSchema = z.object({
   prepTimeMinutes: z.number().nonnegative(),
   difficulty: z.enum(["Easy", "Medium", "Hard"]),
   description: z.string(),
-  svgIcon: z.enum(["Breakfast", "Lunch", "Dinner", "Snacks", "Drinks"]),
+  svgIcon: z.enum(["Breakfast", "Lunch", "Dinner", "Snacks", "Drinks"]).optional().default("Breakfast"),
+  imageUrl: z.string().optional(),
+  estimatedCostIdr: z.number().optional(),
   nutrition: z.object({
     proteinGrams: z.number().nonnegative(),
     carbsGrams: z.number().nonnegative(),

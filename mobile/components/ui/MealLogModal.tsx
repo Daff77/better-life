@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import {
   View,
+  Image,
   Modal,
   Pressable,
   TouchableOpacity,
@@ -198,8 +199,16 @@ export const MealLogModal: React.FC<MealLogModalProps> = ({
 
               {/* Meal Summary Row */}
               <View className="flex-row items-center py-4 border-b border-neutral-border-light">
-                <View className="w-14 h-14 rounded-2xl bg-secondary-soft items-center justify-center mr-3.5 border border-secondary">
-                  <IconRenderer name={meal.svgIcon} size={40} />
+                <View className="w-14 h-14 rounded-2xl bg-secondary-soft items-center justify-center mr-3.5 border border-secondary overflow-hidden">
+                  {meal.imageUrl ? (
+                    <Image
+                      source={{ uri: meal.imageUrl }}
+                      style={{ width: "100%", height: "100%" }}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <IconRenderer name={meal.svgIcon} size={40} />
+                  )}
                 </View>
 
                 <View className="flex-1 mr-2">

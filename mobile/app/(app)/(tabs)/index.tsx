@@ -329,6 +329,7 @@ export default function HomeScreen() {
                       calories={meal.calories}
                       description={meal.description}
                       prepTimeMinutes={meal.prepTimeMinutes}
+                      imageUrl={meal.imageUrl}
                       svgElement={<IconRenderer name={meal.svgIcon} size={88} />}
                       onLogMeal={() => handleOpenLogModal(meal)}
                       onPress={() =>

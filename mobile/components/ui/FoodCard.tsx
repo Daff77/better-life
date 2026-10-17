@@ -8,6 +8,7 @@ export interface FoodCardProps {
   calories: number;
   prepTimeMinutes?: number;
   category?: string;
+  imageUrl?: string;
   imageSource?: ImageSourcePropType;
   onPress?: () => void;
 }
@@ -17,9 +18,12 @@ export const FoodCard: React.FC<FoodCardProps> = ({
   calories,
   prepTimeMinutes,
   category,
+  imageUrl,
   imageSource,
   onPress,
 }) => {
+  const effectiveImage = imageSource || (imageUrl ? { uri: imageUrl } : null);
+
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -27,9 +31,9 @@ export const FoodCard: React.FC<FoodCardProps> = ({
       className="bg-white rounded-2xl border border-neutral-border-light/80 p-4 mb-3.5 shadow-sm flex-row items-center justify-between"
     >
       <View className="flex-row items-center flex-1 mr-3">
-        {imageSource ? (
+        {effectiveImage ? (
           <Image
-            source={imageSource}
+            source={effectiveImage}
             style={{ width: 56, height: 56, borderRadius: 12 }}
             resizeMode="cover"
             className="mr-3"

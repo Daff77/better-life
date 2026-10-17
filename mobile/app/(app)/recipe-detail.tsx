@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
+import { View, Image, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
 import { AppText, Button, Header, NutritionCard, MealLogModal } from "@/components/ui";
@@ -74,8 +74,19 @@ export default function RecipeDetailScreen() {
           {/* Left Column: Hero Art + Nutrition + Primary Action */}
           <View className="w-full lg:w-5/12">
             {/* Hero Artwork Box */}
-            <View className="w-full h-56 lg:h-72 bg-secondary-soft rounded-3xl items-center justify-center my-3 overflow-hidden border border-secondary shadow-sm">
-              <IconRenderer name={recipe.svgIcon} size={180} />
+            <View className="w-full h-64 lg:h-80 bg-secondary-soft rounded-3xl items-center justify-center my-3 overflow-hidden border border-secondary shadow-sm relative">
+              {recipe.imageUrl ? (
+                <>
+                  <Image
+                    source={{ uri: recipe.imageUrl }}
+                    style={{ width: "100%", height: "100%" }}
+                    resizeMode="cover"
+                  />
+                  <View className="absolute inset-x-0 bottom-0 h-16 bg-black/25" />
+                </>
+              ) : (
+                <IconRenderer name={recipe.svgIcon} size={180} />
+              )}
             </View>
 
             {/* Estimated Ingredient Cost Banner */}

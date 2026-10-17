@@ -23,6 +23,7 @@ export interface MealCardProps {
   description: string;
   prepTimeMinutes?: number;
   estimatedCostIdr?: number;
+  imageUrl?: string;
   imageSource?: ImageSourcePropType;
   svgElement?: React.ReactNode;
   onLogMeal?: () => void;
@@ -38,6 +39,7 @@ export const MealCard: React.FC<MealCardProps> = ({
   description,
   prepTimeMinutes,
   estimatedCostIdr,
+  imageUrl,
   imageSource,
   svgElement,
   onLogMeal,
@@ -62,6 +64,8 @@ export const MealCard: React.FC<MealCardProps> = ({
     cardScale.value = withSpring(1, AnimationEasings.pressSpringConfig);
   };
 
+  const effectiveImageSource = imageSource || (imageUrl ? { uri: imageUrl } : null);
+
   return (
     <View
       className={`w-full bg-white rounded-2xl overflow-hidden border border-neutral-border-light shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 ${
@@ -78,25 +82,31 @@ export const MealCard: React.FC<MealCardProps> = ({
         accessibilityLabel={`${displayTitle}, ${calories} calories`}
       >
         <Animated.View style={cardAnimatedStyle} pointerEvents="none">
-          {/* Top Food Illustration Header */}
-          <View className="h-[114px] w-full bg-[#edf9f2] items-center justify-center relative overflow-hidden">
-            <View className="w-full h-full items-center justify-center py-2">
-              {svgElement ? (
-                <View className="w-full h-full items-center justify-center">
-                  {svgElement}
-                </View>
-              ) : imageSource ? (
+          {/* Top Food Image / Illustration Header */}
+          <View className="h-[148px] w-full bg-[#edf9f2] items-center justify-center relative overflow-hidden">
+            {effectiveImageSource ? (
+              <>
                 <Image
-                  source={imageSource}
+                  source={effectiveImageSource}
                   style={{ width: "100%", height: "100%" }}
-                  resizeMode="contain"
+                  resizeMode="cover"
                 />
-              ) : (
-                <AppText weight="bold" className="text-4xl text-primary opacity-60">
-                  🥗
-                </AppText>
-              )}
-            </View>
+                {/* Subtle top vignette for badge contrast */}
+                <View className="absolute inset-x-0 top-0 h-12 bg-black/20" />
+              </>
+            ) : (
+              <View className="w-full h-full items-center justify-center py-2">
+                {svgElement ? (
+                  <View className="w-full h-full items-center justify-center">
+                    {svgElement}
+                  </View>
+                ) : (
+                  <AppText weight="bold" className="text-4xl text-primary opacity-60">
+                    🥗
+                  </AppText>
+                )}
+              </View>
+            )}
 
             {/* Category Pill Tag */}
             <View className="absolute top-2.5 left-3">
@@ -105,7 +115,7 @@ export const MealCard: React.FC<MealCardProps> = ({
 
             {/* Prep Time Tag */}
             {Boolean(prepTimeMinutes) && (
-              <View className="absolute top-2.5 right-3 bg-white/95 px-2.5 py-0.5 rounded-full border border-neutral-border-light flex-row items-center">
+              <View className="absolute top-2.5 right-3 bg-white/95 px-2.5 py-0.5 rounded-full border border-neutral-border-light flex-row items-center shadow-xs">
                 <AppText weight="semibold" className="text-[11px] text-neutral-muted">
                   ⏱ {prepTimeMinutes}m
                 </AppText>

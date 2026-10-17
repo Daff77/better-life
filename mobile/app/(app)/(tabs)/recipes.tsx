@@ -71,6 +71,7 @@ export default function RecipesScreen() {
                 calories={recipe.calories}
                 prepTimeMinutes={recipe.prepTimeMinutes}
                 difficulty={recipe.difficulty}
+                imageUrl={recipe.imageUrl}
                 svgName={recipe.svgIcon}
                 onPress={() => router.push(`/(app)/recipe-detail?id=${recipe.id}`)}
               />
