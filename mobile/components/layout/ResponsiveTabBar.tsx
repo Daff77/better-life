@@ -191,7 +191,7 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({
             <TouchableOpacity
               key={route.key}
               onPress={() => handleTabPress(route.key, route.name, isFocused)}
-              className="items-center justify-center py-1 px-3 flex-1 active:opacity-75"
+              className="items-center justify-center py-1 px-3 flex-1 min-h-[44px] active:opacity-75"
               accessibilityRole="tab"
               accessibilityState={{ selected: isFocused }}
               accessibilityLabel={`Navigate to ${displayLabel}`}

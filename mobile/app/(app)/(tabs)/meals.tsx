@@ -84,14 +84,18 @@ export default function MealsScreen() {
             </AppText>
           </View>
 
-          {/* Live Journal Tracker Status Chip */}
+          {/* Live Journal Tracker Status Chip with Tabular Numbers */}
           <View
             className="h-9 px-3.5 rounded-full bg-emerald-50 border border-emerald-200/80 flex-row items-center justify-center"
             accessibilityRole="summary"
             accessibilityLabel={`Today's log: ${aggregates.entryCount} meals, ${aggregates.totalConsumed} calories consumed`}
           >
             <View className="w-2 h-2 rounded-full bg-emerald-600 mr-1.5" />
-            <AppText weight="extrabold" className="text-xs text-emerald-800">
+            <AppText
+              weight="extrabold"
+              className="text-xs text-emerald-800"
+              style={{ fontVariant: ["tabular-nums"] }}
+            >
               {aggregates.entryCount} Logged • {aggregates.totalConsumed} kcal
             </AppText>
           </View>
@@ -103,10 +107,8 @@ export default function MealsScreen() {
         contentContainerStyle={{ paddingBottom: Platform.OS === "web" ? 48 : 96 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Category Filter Pills */}
-        <View
-          className="pt-4 pb-2 max-w-[1240px] mx-auto w-full"
-        >
+        {/* Category Filter Pills (44px Minimum Touch Targets) */}
+        <View className="pt-4 pb-2 max-w-[1240px] mx-auto w-full">
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -119,10 +121,10 @@ export default function MealsScreen() {
                 <View key={slot}>
                   <Pressable
                     onPress={() => setSelectedSlot(slot)}
-                    className={`min-h-[38px] px-4 py-2 rounded-full mr-2 flex-row items-center justify-center transition-all duration-150 active:scale-95 ${
+                    className={`min-h-[44px] px-5 py-2.5 rounded-full mr-2.5 flex-row items-center justify-center transition-all duration-150 active:scale-[0.96] ${
                       isSelected
                         ? "bg-primary shadow-xs"
-                        : "bg-white border border-neutral-border-light hover:bg-neutral-surface cursor-pointer hover:border-neutral-border"
+                        : "bg-white border border-[#e5ece7] hover:bg-[#f2f8f4] cursor-pointer"
                     }`}
                     accessibilityRole="button"
                     accessibilityState={{ selected: isSelected }}
@@ -130,7 +132,7 @@ export default function MealsScreen() {
                   >
                     <AppText
                       weight={isSelected ? "black" : "semibold"}
-                      className={`text-[13px] transition-colors duration-150 ${
+                      className={`text-[13px] ${
                         isSelected ? "text-white" : "text-neutral-dark"
                       }`}
                     >
@@ -155,10 +157,10 @@ export default function MealsScreen() {
                 <View key={budget}>
                   <Pressable
                     onPress={() => setSelectedBudget(budget)}
-                    className={`min-h-[30px] px-3 py-1 rounded-full mr-2 flex-row items-center justify-center active:scale-95 ${
+                    className={`min-h-[36px] px-3.5 py-1.5 rounded-full mr-2 flex-row items-center justify-center active:scale-[0.96] ${
                       isSelected
                         ? "bg-emerald-700 shadow-xs"
-                        : "bg-emerald-50/80 border border-emerald-200/60"
+                        : "bg-emerald-50/80 border border-emerald-200/60 hover:bg-emerald-100/50"
                     }`}
                     accessibilityRole="button"
                     accessibilityState={{ selected: isSelected }}

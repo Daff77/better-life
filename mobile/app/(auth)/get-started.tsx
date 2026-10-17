@@ -96,10 +96,10 @@ export default function GetStartedScreen() {
       {/* Decorative Ellipse in Top Right */}
       <View
         pointerEvents="none"
-        className="absolute -top-16 -right-16 w-56 h-56 md:w-80 md:h-80 rounded-full bg-secondary-soft items-center justify-center"
+        className="absolute -top-16 -right-16 w-56 h-56 md:w-80 md:h-80 rounded-full bg-[#f2f8f4] items-center justify-center"
         style={{ zIndex: 0 }}
       >
-        <View className="w-36 h-36 md:w-56 md:h-56 rounded-full bg-primary/20" />
+        <View className="w-36 h-36 md:w-56 md:h-56 rounded-full bg-primary/10" />
       </View>
 
       <ScrollView
@@ -143,8 +143,8 @@ export default function GetStartedScreen() {
           {/* Right Column: Action Panel Drawer / Card */}
           <Animated.View style={cardAnimatedStyle} className="w-full md:w-[380px] lg:w-[440px] z-10">
             <View
-              style={Platform.OS === "web" ? Shadows.elevated : Shadows.card}
-              className="bg-secondary md:bg-white rounded-3xl p-6 md:p-8 lg:p-10 border border-neutral-border-light shadow-sm md:shadow-xl"
+              style={Platform.OS === "web" ? Shadows.card : Shadows.card}
+              className="bg-white rounded-3xl p-6 md:p-8 lg:p-10 border border-[#e5ece7] shadow-sm md:shadow-md"
             >
               <AppText weight="bold" className="text-2xl md:text-3xl text-neutral-dark text-center md:text-left mb-1.5 md:mb-2">
                 Get Started

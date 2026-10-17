@@ -198,8 +198,8 @@ export const MealLogModal: React.FC<MealLogModalProps> = ({
               )}
 
               {/* Meal Summary Row */}
-              <View className="flex-row items-center py-4 border-b border-neutral-border-light">
-                <View className="w-14 h-14 rounded-2xl bg-secondary-soft items-center justify-center mr-3.5 border border-secondary overflow-hidden">
+              <View className="flex-row items-center py-4 border-b border-[#e5ece7]">
+                <View className="w-14 h-14 rounded-2xl bg-[#f2f8f4] items-center justify-center mr-3.5 border border-black/[0.08] overflow-hidden">
                   {meal.imageUrl ? (
                     <Image
                       source={{ uri: meal.imageUrl }}
@@ -215,14 +215,22 @@ export const MealLogModal: React.FC<MealLogModalProps> = ({
                   <AppText weight="extrabold" numberOfLines={1} className="text-base text-neutral-dark">
                     {meal.title}
                   </AppText>
-                  <AppText weight="medium" className="text-xs text-neutral-muted mt-0.5">
+                  <AppText
+                    weight="medium"
+                    className="text-xs text-neutral-muted mt-0.5"
+                    style={{ fontVariant: ["tabular-nums"] }}
+                  >
                     {baseCalories} kcal per serving
                   </AppText>
                 </View>
 
                 <View className="items-end">
-                  <View className="flex-row items-baseline bg-secondary-soft px-2.5 py-1 rounded-lg border border-secondary">
-                    <AppText weight="black" className="text-lg text-primary">
+                  <View className="flex-row items-baseline bg-[#eaf5ef] px-2.5 py-1 rounded-lg border border-[#cbe5d6]">
+                    <AppText
+                      weight="black"
+                      className="text-lg text-primary"
+                      style={{ fontVariant: ["tabular-nums"] }}
+                    >
                       {totalCalories}
                     </AppText>
                     <AppText weight="bold" className="text-xs text-neutral-muted ml-0.5">
@@ -233,7 +241,7 @@ export const MealLogModal: React.FC<MealLogModalProps> = ({
               </View>
 
               {/* Servings Stepper */}
-              <View className="py-4 border-b border-neutral-border-light">
+              <View className="py-4 border-b border-[#e5ece7]">
                 <View className="flex-row justify-between items-center">
                   <View>
                     <AppText weight="extrabold" className="text-xs text-neutral-dark uppercase tracking-wide">
@@ -244,12 +252,12 @@ export const MealLogModal: React.FC<MealLogModalProps> = ({
                     </AppText>
                   </View>
 
-                  <View className="flex-row items-center bg-neutral-surface rounded-2xl p-1 border border-neutral-border">
+                  <View className="flex-row items-center bg-[#f2f8f4] rounded-2xl p-1 border border-[#e5ece7]">
                     <TouchableOpacity
                       onPress={handleDecrement}
                       disabled={quantity <= 1 || isSubmitting}
-                      className={`w-9 h-9 rounded-xl items-center justify-center transition-all duration-150 ${
-                        quantity <= 1 ? "opacity-30 bg-transparent" : "bg-white border border-neutral-border shadow-xs hover:scale-105 active:scale-95"
+                      className={`w-10 h-10 rounded-xl items-center justify-center transition-all duration-150 ${
+                        quantity <= 1 ? "opacity-30 bg-transparent" : "bg-white border border-[#e5ece7] shadow-2xs active:scale-[0.96]"
                       }`}
                       accessibilityRole="button"
                       accessibilityLabel="Decrease servings"
@@ -260,7 +268,11 @@ export const MealLogModal: React.FC<MealLogModalProps> = ({
                     </TouchableOpacity>
 
                     <View className="w-12 items-center justify-center">
-                      <AppText weight="black" className="text-base text-neutral-dark">
+                      <AppText
+                        weight="black"
+                        className="text-base text-neutral-dark"
+                        style={{ fontVariant: ["tabular-nums"] }}
+                      >
                         {quantity}
                       </AppText>
                       <AppText weight="medium" className="text-[9px] text-neutral-muted -mt-0.5">
@@ -271,8 +283,8 @@ export const MealLogModal: React.FC<MealLogModalProps> = ({
                     <TouchableOpacity
                       onPress={handleIncrement}
                       disabled={quantity >= 10 || isSubmitting}
-                      className={`w-9 h-9 rounded-xl items-center justify-center transition-all duration-150 ${
-                        quantity >= 10 ? "opacity-30 bg-transparent" : "bg-white border border-neutral-border shadow-xs hover:scale-105 active:scale-95"
+                      className={`w-10 h-10 rounded-xl items-center justify-center transition-all duration-150 ${
+                        quantity >= 10 ? "opacity-30 bg-transparent" : "bg-white border border-[#e5ece7] shadow-2xs active:scale-[0.96]"
                       }`}
                       accessibilityRole="button"
                       accessibilityLabel="Increase servings"

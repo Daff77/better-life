@@ -118,7 +118,7 @@ export default function SignupScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View className="w-full my-auto md:bg-white md:p-8 md:rounded-3xl md:border md:border-neutral-border-light md:shadow-md">
+          <View className="w-full my-auto md:bg-white md:p-8 md:rounded-3xl md:border md:border-[#e5ece7] md:shadow-md">
             {/* Header Typography */}
             <View className="mb-6">
               <AppText weight="bold" className="text-3xl text-neutral-dark mb-1">
@@ -221,7 +221,7 @@ export default function SignupScreen() {
               {/* Google Sign In Button */}
               <TouchableOpacity
                 onPress={() => setShowGoogleModal(true)}
-                className="w-full flex-row items-center justify-center py-3.5 px-4 rounded-xl border border-neutral-border bg-white active:bg-neutral-surface shadow-sm mb-4 gap-x-3"
+                className="w-full min-h-[48px] flex-row items-center justify-center py-3 px-4 rounded-full border border-[#e5ece7] bg-white active:bg-[#f2f8f4] shadow-2xs mb-4 gap-x-3 active:scale-[0.96]"
                 accessibilityRole="button"
                 accessibilityLabel="Register with Google"
               >

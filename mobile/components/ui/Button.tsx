@@ -72,9 +72,9 @@ export const Button: React.FC<ButtonProps> = ({
       case "primary":
         return "bg-primary";
       case "secondary":
-        return "bg-secondary";
+        return "bg-secondary-soft border border-secondary";
       case "outline":
-        return "bg-transparent border border-primary";
+        return "bg-transparent border border-primary/70";
       case "ghost":
         return "bg-transparent";
       case "social":
@@ -85,9 +85,9 @@ export const Button: React.FC<ButtonProps> = ({
   const getTextColor = () => {
     switch (variant) {
       case "primary":
-        return "text-neutral-dark";
+        return "text-white";
       case "secondary":
-        return "text-accent-teal";
+        return "text-emerald-900";
       case "outline":
         return "text-primary";
       case "ghost":
@@ -100,11 +100,11 @@ export const Button: React.FC<ButtonProps> = ({
   const getSizeStyle = () => {
     switch (size) {
       case "sm":
-        return "h-[44px] px-3 rounded-lg";
+        return "min-h-[44px] px-4 rounded-full";
       case "md":
-        return "h-[52px] px-4 rounded-xl";
+        return "min-h-[48px] px-5 rounded-full";
       case "lg":
-        return "h-[60px] px-6 rounded-2xl";
+        return "min-h-[54px] px-7 rounded-full";
     }
   };
 

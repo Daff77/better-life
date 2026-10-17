@@ -73,8 +73,8 @@ export default function RecipeDetailScreen() {
         <View className="flex-col lg:flex-row lg:gap-8 mt-2">
           {/* Left Column: Hero Art + Nutrition + Primary Action */}
           <View className="w-full lg:w-5/12">
-            {/* Hero Artwork Box */}
-            <View className="w-full h-64 lg:h-80 bg-secondary-soft rounded-3xl items-center justify-center my-3 overflow-hidden border border-secondary shadow-sm relative">
+            {/* Hero Artwork Box with 1px Image Outline and Concentric Radii */}
+            <View className="w-full h-64 lg:h-80 bg-[#f2f8f4] rounded-3xl items-center justify-center my-3 overflow-hidden border border-black/[0.08] shadow-sm relative">
               {recipe.imageUrl ? (
                 <>
                   <Image
@@ -89,7 +89,7 @@ export default function RecipeDetailScreen() {
               )}
             </View>
 
-            {/* Estimated Ingredient Cost Banner */}
+            {/* Estimated Ingredient Cost Banner with Tabular Numbers */}
             {recipe.estimatedCostIdr !== undefined && (
               <View className="mb-4 bg-emerald-50/70 p-3.5 rounded-2xl border border-emerald-200/70 flex-row items-center justify-between">
                 <View>
@@ -101,7 +101,11 @@ export default function RecipeDetailScreen() {
                   </AppText>
                 </View>
                 <View className="bg-white px-3 py-1 rounded-xl border border-emerald-200/60 shadow-xs">
-                  <AppText weight="black" className="text-sm text-emerald-800">
+                  <AppText
+                    weight="black"
+                    className="text-sm text-emerald-800"
+                    style={{ fontVariant: ["tabular-nums"] }}
+                  >
                     Rp {recipe.estimatedCostIdr.toLocaleString("id-ID")}
                   </AppText>
                 </View>
@@ -132,11 +136,11 @@ export default function RecipeDetailScreen() {
           {/* Right Column: Cooking Tabs, Steps, Ingredients */}
           <View className="w-full lg:w-7/12">
             {/* Two-Tab Navigation: Instructions vs Ingredients */}
-            <View className="flex-row bg-neutral-surface rounded-2xl p-1 mb-6 border border-neutral-border-light">
+            <View className="flex-row bg-[#f2f8f4] rounded-2xl p-1 mb-6 border border-[#e5ece7]">
               <TouchableOpacity
                 onPress={() => setActiveTab("instructions")}
                 className={`flex-1 py-2.5 items-center justify-center rounded-xl transition-all ${
-                  activeTab === "instructions" ? "bg-white shadow-sm border border-neutral-border-light/60" : ""
+                  activeTab === "instructions" ? "bg-white shadow-xs border border-[#e5ece7]" : ""
                 }`}
                 accessibilityRole="tab"
                 accessibilityState={{ selected: activeTab === "instructions" }}
@@ -154,7 +158,7 @@ export default function RecipeDetailScreen() {
               <TouchableOpacity
                 onPress={() => setActiveTab("ingredients")}
                 className={`flex-1 py-2.5 items-center justify-center rounded-xl transition-all ${
-                  activeTab === "ingredients" ? "bg-white shadow-sm border border-neutral-border-light/60" : ""
+                  activeTab === "ingredients" ? "bg-white shadow-xs border border-[#e5ece7]" : ""
                 }`}
                 accessibilityRole="tab"
                 accessibilityState={{ selected: activeTab === "ingredients" }}

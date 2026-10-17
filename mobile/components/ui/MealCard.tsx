@@ -68,7 +68,7 @@ export const MealCard: React.FC<MealCardProps> = ({
 
   return (
     <View
-      className={`w-full bg-white rounded-2xl overflow-hidden border border-neutral-border-light shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 ${
+      className={`w-full bg-white rounded-2xl overflow-hidden border border-[#e5ece7] shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 ${
         className || ""
       }`}
     >
@@ -82,8 +82,8 @@ export const MealCard: React.FC<MealCardProps> = ({
         accessibilityLabel={`${displayTitle}, ${calories} calories`}
       >
         <Animated.View style={cardAnimatedStyle} pointerEvents="none">
-          {/* Top Food Image / Illustration Header */}
-          <View className="h-[148px] w-full bg-[#edf9f2] items-center justify-center relative overflow-hidden">
+          {/* Top Food Image Header with 1px Crisp Outline */}
+          <View className="h-[156px] w-full bg-[#f2f8f4] items-center justify-center relative overflow-hidden border-b border-black/[0.06]">
             {effectiveImageSource ? (
               <>
                 <Image
@@ -109,14 +109,14 @@ export const MealCard: React.FC<MealCardProps> = ({
             )}
 
             {/* Category Pill Tag */}
-            <View className="absolute top-2.5 left-3">
+            <View className="absolute top-3 left-3">
               <Badge label={mealType} variant="accent" size="sm" />
             </View>
 
             {/* Prep Time Tag */}
             {Boolean(prepTimeMinutes) && (
-              <View className="absolute top-2.5 right-3 bg-white/95 px-2.5 py-0.5 rounded-full border border-neutral-border-light flex-row items-center shadow-xs">
-                <AppText weight="semibold" className="text-[11px] text-neutral-muted">
+              <View className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm px-2.5 py-0.5 rounded-full border border-black/[0.06] flex-row items-center shadow-xs">
+                <AppText weight="semibold" className="text-[11px] text-neutral-muted" style={{ fontVariant: ["tabular-nums"] }}>
                   ⏱ {prepTimeMinutes}m
                 </AppText>
               </View>
@@ -124,33 +124,41 @@ export const MealCard: React.FC<MealCardProps> = ({
           </View>
 
           {/* Card Text Info */}
-          <View className="p-3.5 pt-3 pb-1">
+          <View className="p-4 pt-3.5 pb-1">
             {/* Title and Calorie Row */}
-            <View className="flex-row items-center justify-between mb-1">
+            <View className="flex-row items-center justify-between mb-1.5">
               <AppText
                 weight="extrabold"
                 numberOfLines={1}
-                className="text-[17px] text-neutral-dark flex-1 mr-2"
+                className="text-[16px] text-neutral-dark flex-1 mr-2"
               >
                 {displayTitle}
               </AppText>
 
-              {/* Calorie Pill Highlight */}
-              <View className="flex-row items-baseline bg-secondary-soft px-2 py-0.5 rounded-lg border border-secondary">
-                <AppText weight="black" className="text-base text-primary">
+              {/* Calorie Pill Highlight with Tabular Numbers */}
+              <View className="flex-row items-baseline bg-[#eaf5ef] px-2.5 py-0.5 rounded-lg border border-[#cbe5d6]">
+                <AppText
+                  weight="black"
+                  className="text-base text-primary"
+                  style={{ fontVariant: ["tabular-nums"] }}
+                >
                   {calories}
                 </AppText>
-                <AppText weight="bold" className="text-[11px] text-neutral-muted ml-0.5">
+                <AppText weight="bold" className="text-[10px] text-neutral-muted ml-0.5">
                   kcal
                 </AppText>
               </View>
             </View>
 
-            {/* Estimated Local Ingredient Cost (Product Differentiator) */}
+            {/* Estimated Local Ingredient Cost (Tabular Numbers) */}
             {estimatedCostIdr !== undefined && (
-              <View className="flex-row items-center mb-1.5">
+              <View className="flex-row items-center mb-2">
                 <View className="bg-emerald-50/90 px-2 py-0.5 rounded-md border border-emerald-200/70">
-                  <AppText weight="bold" className="text-[11px] text-emerald-800">
+                  <AppText
+                    weight="bold"
+                    className="text-[11px] text-emerald-800"
+                    style={{ fontVariant: ["tabular-nums"] }}
+                  >
                     Rp {estimatedCostIdr.toLocaleString("id-ID")}{" "}
                     <AppText weight="medium" className="text-[10px] text-emerald-600">
                       (est.)
@@ -172,14 +180,14 @@ export const MealCard: React.FC<MealCardProps> = ({
         </Animated.View>
       </Pressable>
 
-      {/* Sibling Bottom Action Region: CTA Log to Journal Button */}
-      <View className="px-3.5 pb-3.5 pt-2">
+      {/* Sibling Bottom Action Region: Nested CTA Log to Journal Button */}
+      <View className="px-4 pb-4 pt-2">
         <Pressable
           onPress={onLogMeal}
           disabled={isLogging}
-          className={`w-full h-[40px] rounded-xl flex-row items-center justify-center active:opacity-85 ${
+          className={`w-full min-h-[42px] rounded-full flex-row items-center justify-center active:scale-[0.96] transition-all duration-150 ${
             isLogging ? "bg-primary/70" : "bg-primary active:bg-primary-dark"
-          } ${Platform.OS === "web" ? "cursor-pointer hover:bg-primary-dark transition-colors" : ""}`}
+          } ${Platform.OS === "web" ? "cursor-pointer hover:bg-primary-dark shadow-xs" : ""}`}
           accessibilityRole="button"
           accessibilityLabel={`Log ${displayTitle} to journal`}
         >
@@ -187,12 +195,11 @@ export const MealCard: React.FC<MealCardProps> = ({
             <ActivityIndicator size="small" color="#ffffff" />
           ) : (
             <View className="flex-row items-center justify-center">
-              <AppText
-                weight="bold"
-                className="text-white text-base leading-none mr-1.5"
-              >
-                +
-              </AppText>
+              <View className="w-5 h-5 rounded-full bg-white/20 items-center justify-center mr-2">
+                <AppText weight="black" className="text-white text-xs leading-none">
+                  +
+                </AppText>
+              </View>
               <AppText
                 weight="extrabold"
                 className="text-white text-xs tracking-wide"

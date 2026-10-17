@@ -4,37 +4,37 @@
  */
 
 export const Colors = {
-  // Brand Palette
+  // Brand Palette - Refined Wellness Sage & Emerald SaaS
   primary: {
-    DEFAULT: "#67c090",
-    dark: "#5aa07c",
-    light: "#ddf4e7",
-    subtle: "rgba(103, 192, 144, 0.12)",
-    glow: "rgba(103, 192, 144, 0.28)",
+    DEFAULT: "#1b7a53",
+    dark: "#145c3e",
+    light: "#eaf5ef",
+    subtle: "rgba(27, 122, 83, 0.08)",
+    glow: "rgba(27, 122, 83, 0.20)",
   },
   secondary: {
-    DEFAULT: "#daf2e5",
-    soft: "#edf9f2",
-    muted: "rgba(218, 242, 229, 0.4)",
+    DEFAULT: "#e2efe7",
+    soft: "#f2f8f4",
+    muted: "rgba(226, 239, 231, 0.5)",
   },
   accent: {
-    teal: "#26667f",
-    tealDark: "#1e4f62",
-    tealLight: "rgba(38, 102, 127, 0.12)",
+    teal: "#1e6074",
+    tealDark: "#164757",
+    tealLight: "rgba(30, 96, 116, 0.12)",
   },
   status: {
-    success: "#67c090",
-    error: "#e05353",
-    warning: "#f5a623",
-    info: "#26667f",
+    success: "#1b7a53",
+    error: "#dc2626",
+    warning: "#d97706",
+    info: "#1e6074",
   },
   neutral: {
     dark: "#111827",
     darkSubtle: "#374151",
-    muted: "#64748b",
+    muted: "#4b5563",
     gray2: "#cbd5e1",
     border: "#cbd5e1",
-    borderLight: "#e2e8f0",
+    borderLight: "#e5ece7",
     bgPage: "#f8faf8",
     bgCard: "#ffffff",
     white: "#ffffff",
@@ -42,31 +42,31 @@ export const Colors = {
   // Semantic category colors for meals and journal entries
   categories: {
     breakfast: {
-      text: "#b45309",
+      text: "#92400e",
       bg: "#fef3c7",
       border: "#fde68a",
       dot: "#f59e0b",
     },
     lunch: {
-      text: "#047857",
+      text: "#065f46",
       bg: "#d1fae5",
       border: "#a7f3d0",
       dot: "#10b981",
     },
     dinner: {
-      text: "#4338ca",
+      text: "#3730a3",
       bg: "#e0e7ff",
       border: "#c7d2fe",
       dot: "#6366f1",
     },
     snack: {
-      text: "#be185d",
+      text: "#9d174d",
       bg: "#fce7f3",
       border: "#fbcfe8",
       dot: "#ec4899",
     },
     drink: {
-      text: "#0e7490",
+      text: "#155e75",
       bg: "#cffafe",
       border: "#a5f3fc",
       dot: "#06b6d4",
@@ -150,11 +150,11 @@ export const Shadows = {
     elevation: 6,
   },
   button: {
-    shadowColor: "#67c090",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 10,
-    elevation: 4,
+    shadowColor: "#1b7a53",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.18,
+    shadowRadius: 6,
+    elevation: 2,
   },
 } as const;
 

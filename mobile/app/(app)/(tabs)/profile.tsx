@@ -260,39 +260,45 @@ export default function ProfileScreen() {
         <View className="flex-col lg:flex-row lg:gap-8">
           {/* Left Column: Identity Banner & Personal Information */}
           <View className="w-full lg:w-5/12">
-            {/* 1. Emerald Identity Banner (profile-header) */}
-            <View>
-              <View className="bg-primary p-4 rounded-3xl shadow-sm mb-4">
-                <View className="flex-row items-center mb-3">
-                  <View className="w-16 h-16 rounded-full bg-white items-center justify-center mr-3.5 border-2 border-white/80 relative shadow-sm">
-                    <Avatar name={user?.name || "User"} size={58} showBadge />
+            {/* 1. Double-Bezel Editorial Identity Banner */}
+            <View className="mb-4">
+              <View className="bg-[#f2f8f4] p-1.5 rounded-[26px] border border-[#e5ece7] shadow-xs">
+                <View className="bg-white p-5 rounded-[20px] border border-black/[0.04]">
+                  <View className="flex-row items-center mb-3.5">
+                    <View className="w-16 h-16 rounded-full bg-white items-center justify-center mr-3.5 border-2 border-emerald-500/20 relative shadow-xs">
+                      <Avatar name={user?.name || "User"} size={58} showBadge />
+                    </View>
+                    <View className="flex-1">
+                      <AppText weight="black" className="text-xl text-neutral-dark tracking-tight">
+                        {user?.name || "User"}
+                      </AppText>
+                      <AppText weight="medium" className="text-xs text-neutral-muted mt-0.5">
+                        {user?.email || "user@betterlife.local"}
+                      </AppText>
+                    </View>
                   </View>
-                  <View className="flex-1">
-                    <AppText weight="black" className="text-2xl text-white">
-                      {user?.name || "User"}
-                    </AppText>
-                    <AppText weight="medium" className="text-xs text-white/90">
-                      {user?.email || "user@betterlife.local"}
-                    </AppText>
-                  </View>
-                </View>
 
-                {/* Metric Chips Strip (metric-chip) */}
-                <View className="flex-row flex-wrap gap-2 pt-1 border-t border-white/25">
-                  <View className="bg-white/20 px-3 py-1 rounded-full flex-row items-center">
-                    <AppText weight="bold" className="text-xs text-white">
-                      ⏱ {personalization.targetCalories || 1950} kcal/day
-                    </AppText>
-                  </View>
-                  <View className="bg-white/20 px-3 py-1 rounded-full flex-row items-center">
-                    <AppText weight="bold" className="text-xs text-white">
-                      🎯 {personalization.goal}
-                    </AppText>
-                  </View>
-                  <View className="bg-white/20 px-3 py-1 rounded-full flex-row items-center">
-                    <AppText weight="bold" className="text-xs text-white">
-                      🥗 {personalization.dietType}
-                    </AppText>
+                  {/* Metric Chips Strip with Tabular Numbers */}
+                  <View className="flex-row flex-wrap gap-2 pt-2.5 border-t border-[#f2f8f4]">
+                    <View className="bg-[#f2f8f4] border border-[#cbe5d6] px-3 py-1 rounded-full flex-row items-center">
+                      <AppText
+                        weight="bold"
+                        className="text-xs text-emerald-800"
+                        style={{ fontVariant: ["tabular-nums"] }}
+                      >
+                        ⏱ {personalization.targetCalories || 1950} kcal/day
+                      </AppText>
+                    </View>
+                    <View className="bg-[#f2f8f4] border border-[#cbe5d6] px-3 py-1 rounded-full flex-row items-center">
+                      <AppText weight="bold" className="text-xs text-emerald-800">
+                        🎯 {personalization.goal}
+                      </AppText>
+                    </View>
+                    <View className="bg-[#f2f8f4] border border-[#cbe5d6] px-3 py-1 rounded-full flex-row items-center">
+                      <AppText weight="bold" className="text-xs text-emerald-800">
+                        🥗 {personalization.dietType}
+                      </AppText>
+                    </View>
                   </View>
                 </View>
               </View>
@@ -300,8 +306,8 @@ export default function ProfileScreen() {
 
             {/* 2. Personal Information & Nutrition Plan Card */}
             <View>
-              <View className="bg-white p-4 rounded-2xl border border-neutral-border-light/80 mb-4 shadow-sm">
-                <View className="flex-row justify-between items-center mb-3 pb-2 border-b border-neutral-border-light">
+              <View className="bg-white p-4 rounded-2xl border border-[#e5ece7] mb-4 shadow-sm">
+                <View className="flex-row justify-between items-center mb-3 pb-2 border-b border-[#e5ece7]">
                   <View>
                     <AppText weight="black" className="text-base text-neutral-dark">
                       Personal Information
@@ -312,7 +318,7 @@ export default function ProfileScreen() {
                   </View>
                   <TouchableOpacity
                     onPress={handleOpenEdit}
-                    className="px-3 py-1 bg-secondary-soft rounded-full border border-secondary transition-all hover:bg-secondary"
+                    className="px-3.5 py-1.5 bg-[#f2f8f4] rounded-full border border-[#cbe5d6] transition-all hover:bg-secondary active:scale-[0.96]"
                     accessibilityRole="button"
                     accessibilityLabel="Edit personal information"
                   >
@@ -322,13 +328,17 @@ export default function ProfileScreen() {
                   </TouchableOpacity>
                 </View>
 
-                {/* Metrics Grid */}
+                {/* Metrics Grid with Tabular Numbers */}
                 <View className="flex-row flex-wrap gap-y-3">
                   <View className="w-1/2 pr-2">
                     <AppText weight="bold" className="text-[11px] text-neutral-muted uppercase">
                       Current Weight
                     </AppText>
-                    <AppText weight="black" className="text-base text-neutral-dark">
+                    <AppText
+                      weight="black"
+                      className="text-base text-neutral-dark"
+                      style={{ fontVariant: ["tabular-nums"] }}
+                    >
                       {personalization.weight} kg
                     </AppText>
                   </View>
@@ -337,7 +347,11 @@ export default function ProfileScreen() {
                     <AppText weight="bold" className="text-[11px] text-neutral-muted uppercase">
                       Height
                     </AppText>
-                    <AppText weight="black" className="text-base text-neutral-dark">
+                    <AppText
+                      weight="black"
+                      className="text-base text-neutral-dark"
+                      style={{ fontVariant: ["tabular-nums"] }}
+                    >
                       {personalization.height} cm
                     </AppText>
                   </View>
@@ -346,7 +360,11 @@ export default function ProfileScreen() {
                     <AppText weight="bold" className="text-[11px] text-neutral-muted uppercase">
                       Age / Gender
                     </AppText>
-                    <AppText weight="black" className="text-base text-neutral-dark">
+                    <AppText
+                      weight="black"
+                      className="text-base text-neutral-dark"
+                      style={{ fontVariant: ["tabular-nums"] }}
+                    >
                       {userAge} yrs • {personalization.gender}
                     </AppText>
                   </View>
@@ -361,18 +379,26 @@ export default function ProfileScreen() {
                   </View>
                 </View>
 
-                {/* Plan pay-off summary strip */}
-                <View className="mt-3 pt-3 border-t border-neutral-border-light flex-row justify-between items-center bg-neutral-surface/60 p-2.5 rounded-xl">
+                {/* Plan pay-off summary strip with Tabular Numbers */}
+                <View className="mt-3 pt-3 border-t border-[#e5ece7] flex-row justify-between items-center bg-[#f2f8f4] p-3 rounded-xl border border-[#cbe5d6]/50">
                   <View>
                     <AppText weight="bold" className="text-xs text-neutral-dark">
                       Active Calorie Target:
                     </AppText>
-                    <AppText weight="medium" className="text-[11px] text-neutral-muted">
+                    <AppText
+                      weight="medium"
+                      className="text-[11px] text-neutral-muted"
+                      style={{ fontVariant: ["tabular-nums"] }}
+                    >
                       BMR: {personalization.bmr || "—"} kcal • TDEE: {personalization.tdee || "—"} kcal
                     </AppText>
                   </View>
-                  <View className="bg-primary/10 px-2.5 py-1 rounded-lg">
-                    <AppText weight="black" className="text-sm text-primary">
+                  <View className="bg-white border border-[#cbe5d6] px-3 py-1 rounded-lg shadow-2xs">
+                    <AppText
+                      weight="black"
+                      className="text-sm text-primary"
+                      style={{ fontVariant: ["tabular-nums"] }}
+                    >
                       {personalization.targetCalories} kcal
                     </AppText>
                   </View>
@@ -473,7 +499,14 @@ export default function ProfileScreen() {
                         {recipe.imageUrl ? (
                           <Image
                             source={{ uri: recipe.imageUrl }}
-                            style={{ width: 44, height: 44, borderRadius: 10, marginRight: 12 }}
+                            style={{
+                              width: 46,
+                              height: 46,
+                              borderRadius: 12,
+                              marginRight: 12,
+                              borderWidth: 1,
+                              borderColor: "rgba(0,0,0,0.08)",
+                            }}
                             resizeMode="cover"
                           />
                         ) : null}
@@ -481,7 +514,11 @@ export default function ProfileScreen() {
                           <AppText weight="black" className="text-base text-neutral-dark">
                             {recipe.title}
                           </AppText>
-                          <AppText weight="semibold" className="text-xs text-neutral-muted mt-0.5">
+                          <AppText
+                            weight="semibold"
+                            className="text-xs text-neutral-muted mt-0.5"
+                            style={{ fontVariant: ["tabular-nums"] }}
+                          >
                             {recipe.calories} kcal • {recipe.prepTimeMinutes} min prep
                           </AppText>
                         </View>

@@ -57,57 +57,71 @@ export default function PersonalizedPlanScreen() {
         <View className="md:flex-row md:gap-8 items-start">
           {/* Left Column on Desktop: Target Calories & Dietary Profile */}
           <View className="w-full md:flex-1">
-            {/* Hero Target Calories Card */}
+            {/* Hero Target Calories Card (Double-Bezel Architecture) */}
             <View className="mb-5">
-              <View className="bg-secondary-soft p-6 rounded-3xl border border-secondary shadow-sm">
-                <View className="flex-row justify-between items-center mb-3">
-                  <AppText weight="extrabold" className="text-xs uppercase tracking-wider text-accent-teal">
-                    Daily Calorie Target
-                  </AppText>
-                  <Badge label="Optimal" variant="primary" size="sm" />
-                </View>
+              <View className="bg-[#f2f8f4] p-1.5 rounded-[28px] border border-[#e5ece7] shadow-xs">
+                <View className="bg-white p-6 rounded-[22px] border border-black/[0.04]">
+                  <View className="flex-row justify-between items-center mb-3">
+                    <AppText weight="extrabold" className="text-xs uppercase tracking-wider text-accent-teal">
+                      Daily Calorie Target
+                    </AppText>
+                    <Badge label="Optimal" variant="primary" size="sm" />
+                  </View>
 
-                <View className="items-center my-3">
-                  <View className="flex-row items-baseline">
-                    <AppText weight="black" className="text-5xl text-primary">
-                      {personalization.targetCalories}
-                    </AppText>
-                    <AppText weight="bold" className="text-xl text-neutral-muted ml-1.5">
-                      kcal / day
+                  <View className="items-center my-3">
+                    <View className="flex-row items-baseline">
+                      <AppText
+                        weight="black"
+                        className="text-5xl text-primary"
+                        style={{ fontVariant: ["tabular-nums"] }}
+                      >
+                        {personalization.targetCalories}
+                      </AppText>
+                      <AppText weight="bold" className="text-xl text-neutral-muted ml-1.5">
+                        kcal / day
+                      </AppText>
+                    </View>
+                    <AppText weight="medium" className="text-xs text-neutral-muted mt-2 text-center">
+                      Derived via Mifflin-St Jeor metabolic expenditure formula
                     </AppText>
                   </View>
-                  <AppText weight="medium" className="text-xs text-neutral-muted mt-2 text-center">
-                    Derived via Mifflin-St Jeor metabolic expenditure formula
-                  </AppText>
-                </View>
 
-                {/* Metabolic Factors Strip */}
-                <View className="flex-row justify-between pt-4 mt-2 border-t border-secondary">
-                  <View className="items-center flex-1">
-                    <AppText weight="medium" className="text-xs text-neutral-muted">
-                      Basal (BMR)
-                    </AppText>
-                    <AppText weight="bold" className="text-sm text-neutral-dark mt-0.5">
-                      {personalization.bmr || "—"} kcal
-                    </AppText>
-                  </View>
-                  <View className="w-px h-8 bg-secondary" />
-                  <View className="items-center flex-1">
-                    <AppText weight="medium" className="text-xs text-neutral-muted">
-                      Total (TDEE)
-                    </AppText>
-                    <AppText weight="bold" className="text-sm text-neutral-dark mt-0.5">
-                      {personalization.tdee || "—"} kcal
-                    </AppText>
-                  </View>
-                  <View className="w-px h-8 bg-secondary" />
-                  <View className="items-center flex-1">
-                    <AppText weight="medium" className="text-xs text-neutral-muted">
-                      Target Goal
-                    </AppText>
-                    <AppText weight="bold" className="text-sm text-primary mt-0.5">
-                      {personalization.goal}
-                    </AppText>
+                  {/* Metabolic Factors Strip */}
+                  <View className="flex-row justify-between pt-4 mt-2 border-t border-[#f2f8f4]">
+                    <View className="items-center flex-1">
+                      <AppText weight="medium" className="text-xs text-neutral-muted">
+                        Basal (BMR)
+                      </AppText>
+                      <AppText
+                        weight="bold"
+                        className="text-sm text-neutral-dark mt-0.5"
+                        style={{ fontVariant: ["tabular-nums"] }}
+                      >
+                        {personalization.bmr || "—"} kcal
+                      </AppText>
+                    </View>
+                    <View className="w-px h-8 bg-[#e5ece7]" />
+                    <View className="items-center flex-1">
+                      <AppText weight="medium" className="text-xs text-neutral-muted">
+                        Total (TDEE)
+                      </AppText>
+                      <AppText
+                        weight="bold"
+                        className="text-sm text-neutral-dark mt-0.5"
+                        style={{ fontVariant: ["tabular-nums"] }}
+                      >
+                        {personalization.tdee || "—"} kcal
+                      </AppText>
+                    </View>
+                    <View className="w-px h-8 bg-[#e5ece7]" />
+                    <View className="items-center flex-1">
+                      <AppText weight="medium" className="text-xs text-neutral-muted">
+                        Target Goal
+                      </AppText>
+                      <AppText weight="bold" className="text-sm text-primary mt-0.5">
+                        {personalization.goal}
+                      </AppText>
+                    </View>
                   </View>
                 </View>
               </View>

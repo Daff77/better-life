@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, ScrollView, TouchableOpacity, Platform } from "react-native";
+import { View, ScrollView, TouchableOpacity, Platform, Pressable } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
 import { AppText, RecipeCard, Badge } from "@/components/ui";
@@ -37,32 +37,44 @@ export default function RecipesScreen() {
         contentContainerStyle={{ paddingBottom: Platform.OS === "web" ? 48 : 96 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Category Horizontal Filter Chips */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          className="mb-4 -mx-5 px-5"
-        >
-          {CATEGORIES.map((cat) => {
-            const isSelected = selectedCategory === cat;
-            return (
-              <TouchableOpacity
-                key={cat}
-                onPress={() => setSelectedCategory(cat)}
-                className="mr-2 transition-transform hover:scale-105"
-                activeOpacity={0.8}
-              >
-                <Badge
-                  label={cat}
-                  variant={isSelected ? "primary" : "secondary"}
-                />
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
+        {/* Category Horizontal Filter Chips (44px Minimum Touch Targets) */}
+        <View className="max-w-[1240px] mx-auto w-full mb-4">
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            className="-mx-5 px-5"
+          >
+            {CATEGORIES.map((cat) => {
+              const isSelected = selectedCategory === cat;
+              return (
+                <Pressable
+                  key={cat}
+                  onPress={() => setSelectedCategory(cat)}
+                  className={`min-h-[44px] px-5 py-2.5 rounded-full mr-2.5 flex-row items-center justify-center transition-all duration-150 active:scale-[0.96] ${
+                    isSelected
+                      ? "bg-primary shadow-xs"
+                      : "bg-white border border-[#e5ece7] hover:bg-[#f2f8f4] cursor-pointer"
+                  }`}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: isSelected }}
+                  accessibilityLabel={`Filter by ${cat}`}
+                >
+                  <AppText
+                    weight={isSelected ? "black" : "semibold"}
+                    className={`text-[13px] ${
+                      isSelected ? "text-white" : "text-neutral-dark"
+                    }`}
+                  >
+                    {cat}
+                  </AppText>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        </View>
 
         {/* Recipe Cards Grid */}
-        <View className="flex-row flex-wrap -mx-2 mt-1">
+        <View className="max-w-[1240px] mx-auto w-full flex-row flex-wrap -mx-2 mt-1">
           {filteredRecipes.map((recipe) => (
             <View
               key={recipe.id}
