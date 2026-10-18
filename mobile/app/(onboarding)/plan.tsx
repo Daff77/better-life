@@ -1,5 +1,5 @@
 import React from "react";
-import { View, ScrollView } from "react-native";
+import { View, ScrollView, useWindowDimensions } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
 import { AppText, Button, Card, Badge } from "@/components/ui";
@@ -7,6 +7,8 @@ import { useOnboardingStore } from "@/stores/useOnboardingStore";
 
 export default function PersonalizedPlanScreen() {
   const router = useRouter();
+  const { width } = useWindowDimensions();
+  const isCompact = width < 370;
   const personalization = useOnboardingStore((state) => state.personalization);
   const completeOnboarding = useOnboardingStore((state) => state.completeOnboarding);
 
@@ -177,49 +179,123 @@ export default function PersonalizedPlanScreen() {
                 Recommended Daily Macronutrients
               </AppText>
 
-              <View className="flex-row gap-x-3">
-                {/* Protein Card */}
-                <View className="flex-1 bg-neutral-surface p-4 rounded-2xl border border-neutral-border items-center">
-                  <View className="w-2.5 h-2.5 rounded-full bg-emerald-500 mb-1.5" />
-                  <AppText weight="bold" className="text-xs text-neutral-muted">
-                    Protein (25%)
-                  </AppText>
-                  <AppText weight="black" className="text-xl text-neutral-dark mt-1">
-                    {personalization.targetProteinGrams || 120}g
-                  </AppText>
-                  <AppText weight="medium" className="text-[10px] text-neutral-muted mt-0.5">
-                    Muscle recovery
-                  </AppText>
-                </View>
+              {isCompact ? (
+                <View className="flex-row flex-wrap gap-2">
+                  {/* Protein Card */}
+                  <View className="w-[48%] bg-neutral-surface p-3 rounded-2xl border border-neutral-border items-center">
+                    <View className="w-2.5 h-2.5 rounded-full bg-emerald-500 mb-1" />
+                    <AppText weight="bold" className="text-xs text-neutral-muted">
+                      Protein (25%)
+                    </AppText>
+                    <AppText
+                      weight="black"
+                      className="text-xl text-neutral-dark mt-0.5"
+                      style={{ fontVariant: ["tabular-nums"] }}
+                    >
+                      {personalization.targetProteinGrams || 120}g
+                    </AppText>
+                    <AppText weight="medium" className="text-[10px] text-neutral-muted mt-0.5">
+                      Muscle recovery
+                    </AppText>
+                  </View>
 
-                {/* Carbohydrates Card */}
-                <View className="flex-1 bg-neutral-surface p-4 rounded-2xl border border-neutral-border items-center">
-                  <View className="w-2.5 h-2.5 rounded-full bg-amber-500 mb-1.5" />
-                  <AppText weight="bold" className="text-xs text-neutral-muted">
-                    Carbs (50%)
-                  </AppText>
-                  <AppText weight="black" className="text-xl text-neutral-dark mt-1">
-                    {personalization.targetCarbGrams || 240}g
-                  </AppText>
-                  <AppText weight="medium" className="text-[10px] text-neutral-muted mt-0.5">
-                    Primary energy
-                  </AppText>
-                </View>
+                  {/* Carbohydrates Card */}
+                  <View className="w-[48%] bg-neutral-surface p-3 rounded-2xl border border-neutral-border items-center">
+                    <View className="w-2.5 h-2.5 rounded-full bg-amber-500 mb-1" />
+                    <AppText weight="bold" className="text-xs text-neutral-muted">
+                      Carbs (50%)
+                    </AppText>
+                    <AppText
+                      weight="black"
+                      className="text-xl text-neutral-dark mt-0.5"
+                      style={{ fontVariant: ["tabular-nums"] }}
+                    >
+                      {personalization.targetCarbGrams || 240}g
+                    </AppText>
+                    <AppText weight="medium" className="text-[10px] text-neutral-muted mt-0.5">
+                      Primary energy
+                    </AppText>
+                  </View>
 
-                {/* Healthy Fats Card */}
-                <View className="flex-1 bg-neutral-surface p-4 rounded-2xl border border-neutral-border items-center">
-                  <View className="w-2.5 h-2.5 rounded-full bg-blue-500 mb-1.5" />
-                  <AppText weight="bold" className="text-xs text-neutral-muted">
-                    Fats (25%)
-                  </AppText>
-                  <AppText weight="black" className="text-xl text-neutral-dark mt-1">
-                    {personalization.targetFatGrams || 54}g
-                  </AppText>
-                  <AppText weight="medium" className="text-[10px] text-neutral-muted mt-0.5">
-                    Hormonal balance
-                  </AppText>
+                  {/* Healthy Fats Card (Spans full width) */}
+                  <View className="w-full bg-neutral-surface p-3 rounded-2xl border border-neutral-border flex-row items-center justify-between px-4">
+                    <View className="flex-row items-center gap-2.5">
+                      <View className="w-2.5 h-2.5 rounded-full bg-blue-500" />
+                      <View>
+                        <AppText weight="bold" className="text-xs text-neutral-muted">
+                          Healthy Fats (25%)
+                        </AppText>
+                        <AppText weight="medium" className="text-[10px] text-neutral-muted">
+                          Hormonal balance
+                        </AppText>
+                      </View>
+                    </View>
+                    <AppText
+                      weight="black"
+                      className="text-xl text-neutral-dark"
+                      style={{ fontVariant: ["tabular-nums"] }}
+                    >
+                      {personalization.targetFatGrams || 54}g
+                    </AppText>
+                  </View>
                 </View>
-              </View>
+              ) : (
+                <View className="flex-row gap-2 sm:gap-3">
+                  {/* Protein Card */}
+                  <View className="flex-1 bg-neutral-surface p-3 sm:p-4 rounded-2xl border border-neutral-border items-center">
+                    <View className="w-2.5 h-2.5 rounded-full bg-emerald-500 mb-1.5" />
+                    <AppText weight="bold" className="text-xs text-neutral-muted">
+                      Protein (25%)
+                    </AppText>
+                    <AppText
+                      weight="black"
+                      className="text-lg sm:text-xl text-neutral-dark mt-1"
+                      style={{ fontVariant: ["tabular-nums"] }}
+                    >
+                      {personalization.targetProteinGrams || 120}g
+                    </AppText>
+                    <AppText weight="medium" className="text-[10px] text-neutral-muted mt-0.5">
+                      Muscle recovery
+                    </AppText>
+                  </View>
+
+                  {/* Carbohydrates Card */}
+                  <View className="flex-1 bg-neutral-surface p-3 sm:p-4 rounded-2xl border border-neutral-border items-center">
+                    <View className="w-2.5 h-2.5 rounded-full bg-amber-500 mb-1.5" />
+                    <AppText weight="bold" className="text-xs text-neutral-muted">
+                      Carbs (50%)
+                    </AppText>
+                    <AppText
+                      weight="black"
+                      className="text-lg sm:text-xl text-neutral-dark mt-1"
+                      style={{ fontVariant: ["tabular-nums"] }}
+                    >
+                      {personalization.targetCarbGrams || 240}g
+                    </AppText>
+                    <AppText weight="medium" className="text-[10px] text-neutral-muted mt-0.5">
+                      Primary energy
+                    </AppText>
+                  </View>
+
+                  {/* Healthy Fats Card */}
+                  <View className="flex-1 bg-neutral-surface p-3 sm:p-4 rounded-2xl border border-neutral-border items-center">
+                    <View className="w-2.5 h-2.5 rounded-full bg-blue-500 mb-1.5" />
+                    <AppText weight="bold" className="text-xs text-neutral-muted">
+                      Fats (25%)
+                    </AppText>
+                    <AppText
+                      weight="black"
+                      className="text-lg sm:text-xl text-neutral-dark mt-1"
+                      style={{ fontVariant: ["tabular-nums"] }}
+                    >
+                      {personalization.targetFatGrams || 54}g
+                    </AppText>
+                    <AppText weight="medium" className="text-[10px] text-neutral-muted mt-0.5">
+                      Hormonal balance
+                    </AppText>
+                  </View>
+                </View>
+              )}
             </View>
 
             {/* Bottom CTA Action */}

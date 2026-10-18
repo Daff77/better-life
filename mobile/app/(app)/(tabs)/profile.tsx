@@ -229,7 +229,7 @@ export default function ProfileScreen() {
           {/* Edit Profile & Goal Button */}
           <TouchableOpacity
             onPress={handleOpenEdit}
-            className="w-10 h-10 rounded-full bg-secondary items-center justify-center transition-transform hover:scale-105"
+            className="w-11 h-11 rounded-full bg-secondary items-center justify-center transition-transform hover:scale-105 active:scale-95"
             accessibilityRole="button"
             accessibilityLabel="Edit personalization preferences"
           >
@@ -241,7 +241,7 @@ export default function ProfileScreen() {
           {/* Settings Cog Icon */}
           <TouchableOpacity
             onPress={() => setSettingsVisible(true)}
-            className="w-10 h-10 rounded-full bg-secondary items-center justify-center transition-transform hover:scale-105"
+            className="w-11 h-11 rounded-full bg-secondary items-center justify-center transition-transform hover:scale-105 active:scale-95"
             accessibilityRole="button"
             accessibilityLabel="Account settings"
           >
@@ -254,7 +254,7 @@ export default function ProfileScreen() {
 
       <ScrollView
         className="flex-1 px-5 pt-4"
-        contentContainerStyle={{ paddingBottom: Platform.OS === "web" ? 48 : 96 }}
+        contentContainerStyle={{ paddingBottom: Platform.OS === "web" ? 64 : 112 }}
         showsVerticalScrollIndicator={false}
       >
         <View className="flex-col lg:flex-row lg:gap-8">
@@ -540,39 +540,43 @@ export default function ProfileScreen() {
         animationType="fade"
         onRequestClose={() => setEditModalVisible(false)}
       >
-        <View className="flex-1 justify-end sm:justify-center items-center p-0 sm:p-6">
-          <Pressable
-            style={StyleSheet.absoluteFill}
-            className="bg-black/50"
-            onPress={() => !isSaving && setEditModalVisible(false)}
-            accessibilityRole="button"
-            accessibilityLabel="Dismiss modal backdrop"
-          />
-          <View className="w-full max-w-lg bg-white rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl max-h-[90%] z-10">
-            {/* Header */}
-            <View className="flex-row justify-between items-center pb-3 border-b border-neutral-border-light mb-4">
-              <View>
-                <AppText weight="black" className="text-xl text-neutral-dark">
-                  Edit Personal Info & Goal
-                </AppText>
-                <AppText weight="medium" className="text-xs text-neutral-muted">
-                  Updates your personalized calorie & nutrition targets
-                </AppText>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          style={{ flex: 1 }}
+        >
+          <View className="flex-1 justify-end sm:justify-center items-center p-0 sm:p-6">
+            <Pressable
+              style={StyleSheet.absoluteFill}
+              className="bg-black/50"
+              onPress={() => !isSaving && setEditModalVisible(false)}
+              accessibilityRole="button"
+              accessibilityLabel="Dismiss modal backdrop"
+            />
+            <View className="w-full max-w-lg bg-white rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl max-h-[90%] z-10">
+              {/* Header */}
+              <View className="flex-row justify-between items-center pb-3 border-b border-neutral-border-light mb-4">
+                <View className="flex-1 pr-2">
+                  <AppText weight="black" className="text-xl text-neutral-dark">
+                    Edit Personal Info & Goal
+                  </AppText>
+                  <AppText weight="medium" className="text-xs text-neutral-muted">
+                    Updates your personalized calorie & nutrition targets
+                  </AppText>
+                </View>
+                <TouchableOpacity
+                  onPress={() => !isSaving && setEditModalVisible(false)}
+                  disabled={isSaving}
+                  className="w-11 h-11 rounded-full bg-neutral-surface items-center justify-center border border-neutral-border"
+                  accessibilityRole="button"
+                  accessibilityLabel="Close edit modal"
+                >
+                  <AppText weight="bold" className="text-base text-neutral-muted">
+                    ✕
+                  </AppText>
+                </TouchableOpacity>
               </View>
-              <TouchableOpacity
-                onPress={() => !isSaving && setEditModalVisible(false)}
-                disabled={isSaving}
-                className="w-8 h-8 rounded-full bg-neutral-surface items-center justify-center border border-neutral-border"
-                accessibilityRole="button"
-                accessibilityLabel="Close edit modal"
-              >
-                <AppText weight="bold" className="text-sm text-neutral-muted">
-                  ✕
-                </AppText>
-              </TouchableOpacity>
-            </View>
 
-            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+              <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
               {/* Error Message */}
               {formError && (
                 <View className="p-3 mb-4 bg-status-error/10 border border-status-error/20 rounded-xl">
@@ -658,7 +662,7 @@ export default function ProfileScreen() {
               </View>
 
               {/* Numeric Inputs Row: Weight, Height, Age */}
-              <View className="flex-row gap-3 mb-4">
+              <View className="flex-row gap-2 sm:gap-3 mb-4">
                 {/* Weight Input */}
                 <View className="flex-1">
                   <AppText weight="extrabold" className="text-xs text-neutral-dark uppercase tracking-wider mb-1">
@@ -763,6 +767,7 @@ export default function ProfileScreen() {
             </ScrollView>
           </View>
         </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* 5. Settings & Account Modal (settingsModal in profile1.html) */}

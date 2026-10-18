@@ -185,7 +185,7 @@ export const MealCard: React.FC<MealCardProps> = ({
         <Pressable
           onPress={onLogMeal}
           disabled={isLogging}
-          className={`w-full min-h-[42px] rounded-full flex-row items-center justify-center active:scale-[0.96] transition-all duration-150 ${
+          className={`w-full min-h-[46px] rounded-full flex-row items-center justify-center active:scale-[0.96] transition-all duration-150 ${
             isLogging ? "bg-primary/70" : "bg-primary active:bg-primary-dark"
           } ${Platform.OS === "web" ? "cursor-pointer hover:bg-primary-dark shadow-xs" : ""}`}
           accessibilityRole="button"

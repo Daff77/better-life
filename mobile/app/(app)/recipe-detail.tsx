@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { View, Image, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
+import { View, Image, ScrollView, TouchableOpacity, ActivityIndicator, Platform } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
 import { AppText, Button, Header, NutritionCard, MealLogModal } from "@/components/ui";
 import { MOCK_RECIPES } from "@/data/mockRecipes";
@@ -9,6 +10,7 @@ import { useRecipe } from "@/hooks/useRecipesQuery";
 
 export default function RecipeDetailScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: queriedRecipe, isLoading } = useRecipe(id || "");
 
@@ -67,7 +69,8 @@ export default function RecipeDetailScreen() {
       />
 
       <ScrollView
-        className="flex-1 px-6 pt-2 pb-10"
+        className="flex-1 px-6 pt-2"
+        contentContainerStyle={{ paddingBottom: Platform.OS === "web" ? 96 : 116 }}
         showsVerticalScrollIndicator={false}
       >
         <View className="flex-col lg:flex-row lg:gap-8 mt-2">
@@ -232,18 +235,51 @@ export default function RecipeDetailScreen() {
               </View>
             )}
 
-            {/* Structured Log to Journal Button (Mobile placement) */}
-            <View className="lg:hidden mt-2 mb-8">
+            {/* Secondary inline button at end of instructions for convenience */}
+            <View className="lg:hidden mt-2 mb-6">
               <Button
                 title={`+ Log to Journal (${recipe.calories} kcal)`}
                 variant="primary"
                 onPress={() => setIsLogModalVisible(true)}
                 accessibilityLabel={`Open log sheet for ${recipe.title}`}
+                className="min-h-[46px]"
               />
             </View>
           </View>
         </View>
       </ScrollView>
+
+      {/* Sticky Bottom Floating Log Dock for Mobile */}
+      <View
+        className="lg:hidden bg-white/95 border-t border-neutral-border-light px-5 pt-3 shadow-lg"
+        style={{
+          paddingBottom: Math.max(insets.bottom, 12),
+        }}
+      >
+        <View className="flex-row items-center justify-between gap-3 max-w-md mx-auto w-full">
+          <View className="flex-1">
+            <AppText
+              weight="black"
+              className="text-lg text-neutral-dark"
+              style={{ fontVariant: ["tabular-nums"] }}
+            >
+              {recipe.calories} kcal
+            </AppText>
+            <AppText weight="semibold" className="text-xs text-neutral-muted">
+              {recipe.prepTimeMinutes} min prep • {recipe.difficulty}
+            </AppText>
+          </View>
+          <View className="w-44">
+            <Button
+              title="+ Log to Journal"
+              variant="primary"
+              onPress={() => setIsLogModalVisible(true)}
+              accessibilityLabel={`Open log sheet for ${recipe.title}`}
+              className="min-h-[46px] shadow-sm"
+            />
+          </View>
+        </View>
+      </View>
 
       {/* Shared MealLogModal for structured quantity and meal-type logging */}
       <MealLogModal
