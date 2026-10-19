@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "paths": {
+      "@/*": ["./mobile/*"]
+    }
+  },
+  "include": [
+    "mobile/**/*.ts",
+    "mobile/**/*.tsx",
+    "mobile/nativewind-env.d.ts",
+    "backend/src/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "mobile/node_modules",
+    "backend/node_modules",
+    "mobile/lib/__tests__/**/*",
+    "backend/src/__tests__/**/*"
+  ]
+}
