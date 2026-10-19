@@ -77,7 +77,7 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
       </Svg>
 
       {/* Center Value & Label */}
-      <View pointerEvents="none" className="absolute items-center justify-center">
+      <View style={{ pointerEvents: "none" }} className="absolute items-center justify-center">
         {showPercent && (
           <AppText weight="black" className="text-2xl text-neutral-dark">
             {Math.round(clampedProgress)}%

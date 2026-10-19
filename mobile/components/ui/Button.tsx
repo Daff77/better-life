@@ -144,10 +144,10 @@ export const Button: React.FC<ButtonProps> = ({
             flexDirection: "row",
             alignItems: "center",
             justifyContent: "center",
+            pointerEvents: "none",
           },
           animatedStyle,
         ]}
-        pointerEvents="none"
       >
         {loading ? (
           <ActivityIndicator

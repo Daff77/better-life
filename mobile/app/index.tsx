@@ -101,8 +101,8 @@ export default function SplashScreen() {
           width: "100%",
           height: "100%",
           opacity: bgOpacity,
+          pointerEvents: "none",
         }}
-        pointerEvents="none"
       >
         <IconRenderer
           name="Group290"

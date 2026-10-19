@@ -74,10 +74,10 @@ export const OptionCard: React.FC<OptionCardProps> = ({
             flexDirection: "row",
             alignItems: "center",
             justifyContent: "space-between",
+            pointerEvents: "none",
           },
           animatedStyle,
         ]}
-        pointerEvents="none"
       >
         <View className="flex-row items-center flex-1 mr-2">
           {/* Selection Indicator */}
