@@ -238,10 +238,10 @@ export const useJournalStore = create<JournalState>((set, get) => ({
       baseCalories = 0;
     }
 
-    const proteinGrams = Math.round((entryInput.proteinGrams ?? 0) * quantity * 10) / 10;
-    const carbsGrams = Math.round((entryInput.carbsGrams ?? 0) * quantity * 10) / 10;
-    const fatGrams = Math.round((entryInput.fatGrams ?? 0) * quantity * 10) / 10;
-    const fiberGrams = Math.round((entryInput.fiberGrams ?? 0) * quantity * 10) / 10;
+    const proteinGrams = Math.round((entryInput.proteinGrams ?? 0) * 10) / 10;
+    const carbsGrams = Math.round((entryInput.carbsGrams ?? 0) * 10) / 10;
+    const fatGrams = Math.round((entryInput.fatGrams ?? 0) * 10) / 10;
+    const fiberGrams = Math.round((entryInput.fiberGrams ?? 0) * 10) / 10;
 
     const newEntry: JournalEntry = JournalEntrySchema.parse({
       id: `entry-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,

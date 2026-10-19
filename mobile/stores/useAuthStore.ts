@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { AuthUser, AuthUserSchema } from "@/lib/schemas";
 import { sessionStorage, StoredAccount } from "@/lib/sessionStorage";
+import { API_BASE_URL } from "@/lib/api/config";
 
 interface AuthState {
   user: AuthUser | null;
@@ -146,7 +147,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     // Optional sync with backend API if active
     try {
-      await fetch("http://localhost:4000/api/auth/google", {
+      await fetch(`${API_BASE_URL}/auth/google`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
