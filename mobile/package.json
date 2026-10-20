@@ -32,6 +32,7 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
+    "@types/node": "^26.6.5",
     "@types/react": "~19.2.2",
     "babel-preset-expo": "^57.0.11",
     "eslint": "^10.10.0",
@@ -46,6 +47,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "build": "expo export -p web",
+    "lint": "eslint .",
     "test": "tsx --test \"lib/**/*.test.ts\""
   },
   "private": true

@@ -5,7 +5,7 @@ import {
   calculateNutrientsForServing,
   calculateNutrientsPer100g,
   calculateDailyTotals,
-} from "../nutritionDomain.js";
+} from "../nutritionDomain";
 
 describe("Nutrition Domain Calculations & Unit Tests", () => {
   describe("Mifflin-St Jeor Engine & Macro Partitioning", () => {

@@ -15,6 +15,7 @@ import Animated, {
 import { AppText } from "./AppText";
 import { Badge } from "./Badge";
 import { AnimationEasings } from "@/constants/AnimationTokens";
+import { IconRenderer } from "@/constants/Assets";
 
 export interface MealCardProps {
   title?: string;
@@ -101,9 +102,9 @@ export const MealCard: React.FC<MealCardProps> = ({
                     {svgElement}
                   </View>
                 ) : (
-                  <AppText weight="bold" className="text-4xl text-primary opacity-60">
-                    🥗
-                  </AppText>
+                  <View className="w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-200/60 items-center justify-center">
+                    <IconRenderer name="Cook" size={26} color="#1b7a53" />
+                  </View>
                 )}
               </View>
             )}
@@ -113,11 +114,12 @@ export const MealCard: React.FC<MealCardProps> = ({
               <Badge label={mealType} variant="accent" size="sm" />
             </View>
 
-            {/* Prep Time Tag */}
+            {/* Prep Time Tag with Clean Vector Clock */}
             {Boolean(prepTimeMinutes) && (
-              <View className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm px-2.5 py-0.5 rounded-full border border-black/[0.06] flex-row items-center shadow-xs">
+              <View className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm px-2.5 py-0.5 rounded-full border border-black/[0.06] flex-row items-center gap-1 shadow-xs">
+                <IconRenderer name="Clock" size={11} color="#64748b" />
                 <AppText weight="semibold" className="text-[11px] text-neutral-muted" style={{ fontVariant: ["tabular-nums"] }}>
-                  ⏱ {prepTimeMinutes}m
+                  {prepTimeMinutes}m
                 </AppText>
               </View>
             )}
@@ -185,7 +187,7 @@ export const MealCard: React.FC<MealCardProps> = ({
         <Pressable
           onPress={onLogMeal}
           disabled={isLogging}
-          className={`w-full min-h-[46px] rounded-full flex-row items-center justify-center active:scale-[0.96] transition-all duration-150 ${
+          className={`w-full min-h-[46px] rounded-xl flex-row items-center justify-center active:scale-[0.96] transition-all duration-150 ${
             isLogging ? "bg-primary/70" : "bg-primary active:bg-primary-dark"
           } ${Platform.OS === "web" ? "cursor-pointer hover:bg-primary-dark shadow-xs" : ""}`}
           accessibilityRole="button"

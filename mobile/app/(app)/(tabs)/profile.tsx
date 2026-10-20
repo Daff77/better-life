@@ -287,17 +287,17 @@ export default function ProfileScreen() {
                         className="text-xs text-emerald-800"
                         style={{ fontVariant: ["tabular-nums"] }}
                       >
-                        ⏱ {personalization.targetCalories || 1950} kcal/day
+                        {personalization.targetCalories || 1950} kcal/day
                       </AppText>
                     </View>
                     <View className="bg-[#f2f8f4] border border-[#cbe5d6] px-3 py-1 rounded-full flex-row items-center">
                       <AppText weight="bold" className="text-xs text-emerald-800">
-                        🎯 {personalization.goal}
+                        {personalization.goal}
                       </AppText>
                     </View>
                     <View className="bg-[#f2f8f4] border border-[#cbe5d6] px-3 py-1 rounded-full flex-row items-center">
                       <AppText weight="bold" className="text-xs text-emerald-800">
-                        🥗 {personalization.dietType}
+                        {personalization.dietType}
                       </AppText>
                     </View>
                   </View>
@@ -391,7 +391,7 @@ export default function ProfileScreen() {
                       className="text-[11px] text-neutral-muted"
                       style={{ fontVariant: ["tabular-nums"] }}
                     >
-                      BMR: {personalization.bmr || "—"} kcal • TDEE: {personalization.tdee || "—"} kcal
+                      BMR: {personalization.bmr || "-"} kcal • TDEE: {personalization.tdee || "-"} kcal
                     </AppText>
                   </View>
                   <View className="bg-white border border-[#cbe5d6] px-3 py-1 rounded-lg shadow-2xs">

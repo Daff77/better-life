@@ -34,13 +34,33 @@ import LactoseAllergySvg from "../assets/images/lactose.svg";
 import NutsAllergySvg from "../assets/images/nuts.svg";
 import SeafoodAllergySvg from "../assets/images/seafood.svg";
 
-// Fitness, Activity & Time
+// Activity & Utility
 import ShoeActivitySvg from "../assets/images/sepatu.svg";
 import FireCaloriesSvg from "../assets/images/api.svg";
 import ClockSvg from "../assets/images/jam.svg";
 import ClockAltSvg from "../assets/images/jam2.svg";
 import CommunitySvg from "../assets/images/comm.svg";
 import Group290Svg from "../assets/images/Group 290.svg";
+
+// Vector search icon for accessible input fields (no emoji)
+import Svg, { Path, Circle } from "react-native-svg";
+
+const SearchIconSvg = (props: SvgProps) => (
+  <Svg
+    width={20}
+    height={20}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke={props.color || "#6b7280"}
+    strokeWidth={2.2}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <Circle cx={11} cy={11} r={7.5} />
+    <Path d="m21 21-4.35-4.35" />
+  </Svg>
+);
 
 export const BrandImages = {
   logoPng: require("../assets/images/Better Life.png"),
@@ -89,6 +109,7 @@ export const AppIcons = {
   ClockAlt: ClockAltSvg,
   Community: CommunitySvg,
   Group290: Group290Svg,
+  Search: SearchIconSvg,
 };
 
 export type AppIconName = keyof typeof AppIcons;

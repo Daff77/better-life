@@ -110,8 +110,12 @@ export const NutritionCard: React.FC<NutritionCardProps> = ({
 
         {fiberGrams !== undefined && fiberGrams > 0 && (
           <View className="bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200/60 flex-shrink-0">
-            <AppText weight="bold" className="text-[11px] text-emerald-800">
-              🌿 {fiberGrams}g Fiber
+            <AppText
+              weight="bold"
+              className="text-[11px] text-emerald-800"
+              style={{ fontVariant: ["tabular-nums"] }}
+            >
+              Fiber: {fiberGrams}g
             </AppText>
           </View>
         )}

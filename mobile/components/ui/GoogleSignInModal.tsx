@@ -220,7 +220,7 @@ export const GoogleSignInModal: React.FC<GoogleSignInModalProps> = ({
             <View className="mb-2">
               <View className="bg-neutral-surface border border-neutral-border rounded-2xl p-3.5 mb-4">
                 <AppText weight="bold" className="text-xs text-neutral-dark mb-1">
-                  📌 Diperlukan Google OAuth Web Client ID:
+                  Petunjuk Google OAuth Web Client ID:
                 </AppText>
                 <AppText weight="medium" className="text-[11px] text-neutral-muted leading-4">
                   Google mewajibkan Client ID bertipe <AppText weight="bold" className="text-neutral-dark">Web Application</AppText>. Client ID bertipe Android/Desktop ditolak Google dengan error <AppText weight="bold" className="text-status-error">invalid_request</AppText>.

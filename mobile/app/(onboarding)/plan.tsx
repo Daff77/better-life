@@ -99,7 +99,7 @@ export default function PersonalizedPlanScreen() {
                         className="text-sm text-neutral-dark mt-0.5"
                         style={{ fontVariant: ["tabular-nums"] }}
                       >
-                        {personalization.bmr || "—"} kcal
+                        {personalization.bmr || "-"} kcal
                       </AppText>
                     </View>
                     <View className="w-px h-8 bg-[#e5ece7]" />
@@ -112,7 +112,7 @@ export default function PersonalizedPlanScreen() {
                         className="text-sm text-neutral-dark mt-0.5"
                         style={{ fontVariant: ["tabular-nums"] }}
                       >
-                        {personalization.tdee || "—"} kcal
+                        {personalization.tdee || "-"} kcal
                       </AppText>
                     </View>
                     <View className="w-px h-8 bg-[#e5ece7]" />

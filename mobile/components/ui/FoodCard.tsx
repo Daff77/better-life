@@ -1,7 +1,8 @@
 import React from "react";
-import { View, Image, TouchableOpacity, ImageSourcePropType } from "react-native";
+import { View, Image, Pressable, ImageSourcePropType, Platform } from "react-native";
 import { AppText } from "./AppText";
 import { Badge } from "./Badge";
+import { IconRenderer } from "@/constants/Assets";
 
 export interface FoodCardProps {
   title: string;
@@ -25,10 +26,13 @@ export const FoodCard: React.FC<FoodCardProps> = ({
   const effectiveImage = imageSource || (imageUrl ? { uri: imageUrl } : null);
 
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={onPress}
-      activeOpacity={0.8}
-      className="bg-white rounded-2xl border border-neutral-border-light/80 p-4 mb-3.5 shadow-sm flex-row items-center justify-between"
+      className={`bg-white rounded-2xl border border-neutral-border-light/80 p-4 mb-3.5 shadow-sm flex-row items-center justify-between active:scale-[0.98] transition-all duration-150 ${
+        Platform.OS === "web" ? "cursor-pointer hover:border-emerald-500/40" : ""
+      }`}
+      accessibilityRole="button"
+      accessibilityLabel={`${title}, ${calories} calories`}
     >
       <View className="flex-row items-center flex-1 mr-3">
         {effectiveImage ? (
@@ -36,13 +40,11 @@ export const FoodCard: React.FC<FoodCardProps> = ({
             source={effectiveImage}
             style={{ width: 56, height: 56, borderRadius: 12 }}
             resizeMode="cover"
-            className="mr-3"
+            className="mr-3 border border-black/[0.04]"
           />
         ) : (
           <View className="w-14 h-14 rounded-xl bg-secondary-soft items-center justify-center mr-3 border border-secondary">
-            <AppText weight="bold" className="text-2xl">
-              🥑
-            </AppText>
+            <IconRenderer name="Cook" size={24} color="#1b7a53" />
           </View>
         )}
         <View className="flex-1">
@@ -50,13 +52,21 @@ export const FoodCard: React.FC<FoodCardProps> = ({
             {title}
           </AppText>
           <View className="flex-row items-center gap-x-2 mt-1">
-            <AppText weight="bold" className="text-xs text-primary">
+            <AppText
+              weight="bold"
+              className="text-xs text-primary"
+              style={{ fontVariant: ["tabular-nums"] }}
+            >
               {calories} kcal
             </AppText>
             {Boolean(prepTimeMinutes) && (
               <>
                 <AppText weight="medium" className="text-xs text-neutral-muted">•</AppText>
-                <AppText weight="medium" className="text-xs text-neutral-muted">
+                <AppText
+                  weight="medium"
+                  className="text-xs text-neutral-muted"
+                  style={{ fontVariant: ["tabular-nums"] }}
+                >
                   {prepTimeMinutes} min
                 </AppText>
               </>
@@ -66,6 +76,6 @@ export const FoodCard: React.FC<FoodCardProps> = ({
       </View>
 
       {category ? <Badge label={category} variant="secondary" size="sm" /> : null}
-    </TouchableOpacity>
+    </Pressable>
   );
 };

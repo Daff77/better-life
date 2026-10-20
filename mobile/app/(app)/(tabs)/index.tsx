@@ -405,7 +405,7 @@ export default function HomeScreen() {
     <View className="bg-white rounded-2xl border border-[#e5ece7] p-3.5 shadow-2xs">
       <View className="flex-row items-center justify-between mb-2.5">
         <View className="flex-row items-center gap-1.5">
-          <AppText className="text-sm">⚡</AppText>
+          <IconRenderer name="Fire" size={14} color="#1b7a53" />
           <AppText weight="extrabold" className="text-xs text-neutral-dark uppercase tracking-wider">
             Quick Food Log
           </AppText>
@@ -417,7 +417,7 @@ export default function HomeScreen() {
           accessibilityLabel="Browse complete meals catalog"
         >
           <AppText weight="bold" className="text-xs text-primary">
-            Browse All ›
+            Browse Catalog
           </AppText>
         </TouchableOpacity>
       </View>
@@ -443,7 +443,7 @@ export default function HomeScreen() {
           accessibilityRole="button"
           accessibilityLabel="Explore recipes"
         >
-          <AppText className="text-xs">📖</AppText>
+          <IconRenderer name="Cook" size={14} color="#065f46" />
           <AppText weight="bold" className="text-emerald-900 text-xs">
             Recipes
           </AppText>
@@ -698,7 +698,7 @@ export default function HomeScreen() {
           accessibilityLabel="View full culinary meal catalog"
         >
           <AppText weight="bold" className="text-xs text-emerald-800">
-            View All ›
+            Explore All
           </AppText>
         </TouchableOpacity>
       </View>
@@ -764,8 +764,12 @@ export default function HomeScreen() {
           {/* Quick Header Actions: Target Budget Chip & Profile Avatar */}
           <View className="flex-row items-center gap-2 flex-shrink-0">
             <View className="bg-emerald-50 px-2.5 py-1.5 rounded-full border border-emerald-200/80 hidden xs:flex flex-row items-center">
-              <AppText weight="bold" className="text-xs text-emerald-800">
-                🎯 {aggregates.targetCalories} kcal
+              <AppText
+                weight="bold"
+                className="text-xs text-emerald-800"
+                style={{ fontVariant: ["tabular-nums"] }}
+              >
+                Target: {aggregates.targetCalories} kcal
               </AppText>
             </View>
 

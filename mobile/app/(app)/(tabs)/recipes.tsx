@@ -11,6 +11,7 @@ import { useRouter } from "expo-router";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
 import { AppText, RecipeCard } from "@/components/ui";
 import { useRecipes } from "@/hooks/useRecipesQuery";
+import { IconRenderer } from "@/constants/Assets";
 
 const CATEGORIES = ["All", "Breakfast", "Lunch", "Dinner", "Snack", "Drink"] as const;
 
@@ -47,7 +48,9 @@ export default function RecipesScreen() {
 
           {/* Recipe Search Input */}
           <View className="flex-row items-center bg-[#f2f8f4] border border-[#e5ece7] rounded-xl px-3 py-1.5 min-h-[44px] mt-3">
-            <AppText className="text-sm mr-2 text-neutral-400">🔍</AppText>
+            <View className="mr-2">
+              <IconRenderer name="Search" size={16} color="#9ca3af" />
+            </View>
             <TextInput
               value={searchQuery}
               onChangeText={setSearchQuery}

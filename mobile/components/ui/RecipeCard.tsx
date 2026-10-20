@@ -89,9 +89,9 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
           ) : svgName ? (
             <IconRenderer name={svgName} size={64} />
           ) : (
-            <AppText weight="bold" className="text-4xl">
-              🥗
-            </AppText>
+            <View className="w-14 h-14 rounded-xl bg-emerald-50 border border-emerald-200/60 items-center justify-center">
+              <IconRenderer name="Cook" size={28} color="#1b7a53" />
+            </View>
           )}
 
           {/* Category Pill Tag */}
@@ -99,14 +99,15 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
             <Badge label={category} variant="accent" size="sm" />
           </View>
 
-          {/* Prep Time Pill Tag */}
-          <View className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm px-2.5 py-0.5 rounded-full border border-black/[0.06] flex-row items-center shadow-xs">
+          {/* Prep Time Pill Tag with Vector Clock */}
+          <View className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm px-2.5 py-0.5 rounded-full border border-black/[0.06] flex-row items-center gap-1 shadow-xs">
+            <IconRenderer name="Clock" size={11} color="#64748b" />
             <AppText
               weight="semibold"
               className="text-[11px] text-neutral-muted"
               style={{ fontVariant: ["tabular-nums"] }}
             >
-              ⏱ {prepTimeMinutes}m
+              {prepTimeMinutes}m
             </AppText>
           </View>
         </View>
@@ -117,17 +118,10 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
             <AppText
               weight="extrabold"
               numberOfLines={1}
-              className="text-[16px] text-neutral-dark flex-1 mr-2"
+              className="text-[16px] text-neutral-dark flex-1"
             >
               {title}
             </AppText>
-
-            {/* Circular Explore Icon Indicator (Button-in-Button) */}
-            <View className="w-6 h-6 rounded-full bg-[#f2f8f4] items-center justify-center border border-[#e5ece7]">
-              <AppText weight="bold" className="text-xs text-primary leading-none">
-                ↗
-              </AppText>
-            </View>
           </View>
 
           {/* Nutrition & Difficulty Metadata Row */}

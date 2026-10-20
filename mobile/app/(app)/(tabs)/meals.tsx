@@ -111,7 +111,9 @@ export default function MealsScreen() {
         {/* Real-Time Food Search Bar */}
         <View className="max-w-[1240px] mx-auto w-full mt-3">
           <View className="flex-row items-center bg-[#f2f8f4] border border-[#e5ece7] rounded-xl px-3 py-1.5 min-h-[44px]">
-            <AppText className="text-sm mr-2 text-neutral-400">🔍</AppText>
+            <View className="mr-2">
+              <IconRenderer name="Search" size={16} color="#9ca3af" />
+            </View>
             <TextInput
               value={searchQuery}
               onChangeText={setSearchQuery}

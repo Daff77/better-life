@@ -1,6 +1,7 @@
 import React from "react";
 import {
   View,
+  Image,
   TouchableOpacity,
   useWindowDimensions,
   Platform,
@@ -8,6 +9,7 @@ import {
 import { AppText } from "@/components/ui/AppText";
 import { AnimatedTabIcon } from "@/components/ui/AnimatedTabIcon";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { BrandImages } from "@/constants/Assets";
 
 export interface ResponsiveTabBarProps {
   state: {
@@ -72,8 +74,13 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({
             accessibilityRole="link"
             accessibilityLabel="Better Life Home"
           >
-            <View className="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-200/80 items-center justify-center">
-              <AppText className="text-lg">🌿</AppText>
+            <View className="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-200/80 items-center justify-center overflow-hidden">
+              <Image
+                source={BrandImages.logoSmallPng}
+                style={{ width: 28, height: 28 }}
+                resizeMode="contain"
+                accessibilityLabel="Better Life logo"
+              />
             </View>
             <View>
               <AppText weight="black" className="text-base text-neutral-dark tracking-tight leading-none">
