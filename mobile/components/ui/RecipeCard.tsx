@@ -125,8 +125,8 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
           </View>
 
           {/* Nutrition & Difficulty Metadata Row */}
-          <View className="flex-row items-center justify-between pt-1 border-t border-[#f2f8f4]">
-            <View className="flex-row items-baseline bg-[#eaf5ef] px-2.5 py-0.5 rounded-lg border border-[#cbe5d6]">
+          <View className="flex-row items-center justify-between pt-2 border-t border-[#f2f8f4]">
+            <View className="flex-row items-baseline">
               <AppText
                 weight="black"
                 className="text-sm text-primary"
@@ -134,16 +134,14 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
               >
                 {calories}
               </AppText>
-              <AppText weight="bold" className="text-[10px] text-neutral-muted ml-0.5">
+              <AppText weight="semibold" className="text-xs text-neutral-muted ml-0.5">
                 kcal
               </AppText>
             </View>
 
-            <View className="px-2 py-0.5 bg-neutral-surface rounded-md border border-[#e5ece7]">
-              <AppText weight="semibold" className="text-[11px] text-neutral-muted">
-                {difficulty}
-              </AppText>
-            </View>
+            <AppText weight="semibold" className="text-xs text-neutral-muted">
+              {difficulty}
+            </AppText>
           </View>
         </View>
       </Animated.View>

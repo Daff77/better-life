@@ -137,8 +137,8 @@ export const MealCard: React.FC<MealCardProps> = ({
                 {displayTitle}
               </AppText>
 
-              {/* Calorie Pill Highlight with Tabular Numbers */}
-              <View className="flex-row items-baseline bg-[#eaf5ef] px-2.5 py-0.5 rounded-lg border border-[#cbe5d6]">
+              {/* Calorie Display with Tabular Numbers */}
+              <View className="flex-row items-baseline">
                 <AppText
                   weight="black"
                   className="text-base text-primary"
@@ -146,7 +146,7 @@ export const MealCard: React.FC<MealCardProps> = ({
                 >
                   {calories}
                 </AppText>
-                <AppText weight="bold" className="text-[10px] text-neutral-muted ml-0.5">
+                <AppText weight="semibold" className="text-xs text-neutral-muted ml-0.5">
                   kcal
                 </AppText>
               </View>
@@ -154,19 +154,17 @@ export const MealCard: React.FC<MealCardProps> = ({
 
             {/* Estimated Local Ingredient Cost (Tabular Numbers) */}
             {estimatedCostIdr !== undefined && (
-              <View className="flex-row items-center mb-2">
-                <View className="bg-emerald-50/90 px-2 py-0.5 rounded-md border border-emerald-200/70">
-                  <AppText
-                    weight="bold"
-                    className="text-[11px] text-emerald-800"
-                    style={{ fontVariant: ["tabular-nums"] }}
-                  >
-                    Rp {estimatedCostIdr.toLocaleString("id-ID")}{" "}
-                    <AppText weight="medium" className="text-[10px] text-emerald-600">
-                      (est.)
-                    </AppText>
+              <View className="flex-row items-center mb-1.5">
+                <AppText
+                  weight="semibold"
+                  className="text-xs text-emerald-800"
+                  style={{ fontVariant: ["tabular-nums"] }}
+                >
+                  Rp {estimatedCostIdr.toLocaleString("id-ID")}{" "}
+                  <AppText weight="regular" className="text-[11px] text-neutral-muted">
+                    (est.)
                   </AppText>
-                </View>
+                </AppText>
               </View>
             )}
 

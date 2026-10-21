@@ -284,27 +284,23 @@ export default function ProfileScreen() {
                     </View>
                   </View>
 
-                  {/* Metric Chips Strip with Tabular Numbers */}
-                  <View className="flex-row flex-wrap gap-2 pt-2.5 border-t border-[#f2f8f4]">
-                    <View className="bg-[#f2f8f4] border border-[#cbe5d6] px-3 py-1 rounded-full flex-row items-center">
-                      <AppText
-                        weight="bold"
-                        className="text-xs text-emerald-800"
-                        style={{ fontVariant: ["tabular-nums"] }}
-                      >
-                        {personalization.targetCalories || 1950} kcal/day
-                      </AppText>
-                    </View>
-                    <View className="bg-[#f2f8f4] border border-[#cbe5d6] px-3 py-1 rounded-full flex-row items-center">
-                      <AppText weight="bold" className="text-xs text-emerald-800">
-                        {personalization.goal}
-                      </AppText>
-                    </View>
-                    <View className="bg-[#f2f8f4] border border-[#cbe5d6] px-3 py-1 rounded-full flex-row items-center">
-                      <AppText weight="bold" className="text-xs text-emerald-800">
-                        {personalization.dietType}
-                      </AppText>
-                    </View>
+                  {/* Metric Metadata with Tabular Numbers */}
+                  <View className="flex-row flex-wrap items-center gap-x-2 pt-2.5 border-t border-[#f2f8f4]">
+                    <AppText
+                      weight="bold"
+                      className="text-xs text-emerald-800"
+                      style={{ fontVariant: ["tabular-nums"] }}
+                    >
+                      {personalization.targetCalories || 1950} kcal/day
+                    </AppText>
+                    <AppText weight="medium" className="text-xs text-neutral-muted">•</AppText>
+                    <AppText weight="semibold" className="text-xs text-neutral-dark">
+                      {personalization.goal}
+                    </AppText>
+                    <AppText weight="medium" className="text-xs text-neutral-muted">•</AppText>
+                    <AppText weight="semibold" className="text-xs text-neutral-dark">
+                      {personalization.dietType}
+                    </AppText>
                   </View>
                 </View>
               </View>
@@ -386,7 +382,7 @@ export default function ProfileScreen() {
                 </View>
 
                 {/* Plan pay-off summary strip with Tabular Numbers */}
-                <View className="mt-3 pt-3 border-t border-[#e5ece7] flex-row justify-between items-center bg-[#f2f8f4] p-3 rounded-xl border border-[#cbe5d6]/50">
+                <View className="mt-3 pt-3 border-t border-[#e5ece7] flex-row justify-between items-center bg-[#f8faf8] p-3 rounded-xl border border-[#e5ece7]">
                   <View>
                     <AppText weight="bold" className="text-xs text-neutral-dark">
                       Active Calorie Target:
@@ -399,13 +395,16 @@ export default function ProfileScreen() {
                       BMR: {personalization.bmr || "-"} kcal • TDEE: {personalization.tdee || "-"} kcal
                     </AppText>
                   </View>
-                  <View className="bg-white border border-[#cbe5d6] px-3 py-1 rounded-lg shadow-2xs">
+                  <View className="items-end">
                     <AppText
                       weight="black"
-                      className="text-sm text-primary"
+                      className="text-base text-primary"
                       style={{ fontVariant: ["tabular-nums"] }}
                     >
-                      {personalization.targetCalories} kcal
+                      {personalization.targetCalories}{" "}
+                      <AppText weight="semibold" className="text-xs text-neutral-muted">
+                        kcal
+                      </AppText>
                     </AppText>
                   </View>
                 </View>

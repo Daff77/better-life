@@ -239,15 +239,15 @@ export const MealLogModal: React.FC<MealLogModalProps> = ({
                   </View>
 
                   <View className="items-end flex-shrink-0">
-                    <View className="flex-row items-baseline bg-[#eaf5ef] px-2.5 py-1 rounded-xl border border-[#cbe5d6]">
+                    <View className="flex-row items-baseline">
                       <AppText
                         weight="black"
-                        className="text-lg text-primary"
+                        className="text-2xl text-primary"
                         style={{ fontVariant: ["tabular-nums"] }}
                       >
                         {totalCalories}
                       </AppText>
-                      <AppText weight="bold" className="text-xs text-neutral-muted ml-0.5">
+                      <AppText weight="semibold" className="text-xs text-neutral-muted ml-1">
                         kcal
                       </AppText>
                     </View>
