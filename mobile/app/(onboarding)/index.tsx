@@ -19,7 +19,13 @@ import {
   Input,
 } from "@/components/ui";
 import { useOnboardingStore } from "@/stores/useOnboardingStore";
-import { IconRenderer } from "@/constants/Assets";
+import {
+  IconRenderer,
+  FemaleIconSvg,
+  MaleIconSvg,
+  ChevronDownIconSvg,
+  CloseIconSvg,
+} from "@/constants/Assets";
 
 const MONTHS_LIST = [
   "January",
@@ -298,14 +304,22 @@ export default function OnboardingScreen() {
                 <OptionCard
                   title="Female"
                   subtitle="Biological female metabolic baseline adjustment"
-                  leftElement={<AppText weight="bold" className="text-2xl text-primary">♀</AppText>}
+                  leftElement={
+                    <View className="w-10 h-10 rounded-full bg-primary/10 items-center justify-center">
+                      <FemaleIconSvg size={22} color="#047857" strokeWidth={2.4} />
+                    </View>
+                  }
                   selected={gender === "Female"}
                   onPress={() => setGender("Female")}
                 />
                 <OptionCard
                   title="Male"
                   subtitle="Biological male metabolic baseline adjustment"
-                  leftElement={<AppText weight="bold" className="text-2xl text-primary">♂</AppText>}
+                  leftElement={
+                    <View className="w-10 h-10 rounded-full bg-primary/10 items-center justify-center">
+                      <MaleIconSvg size={22} color="#047857" strokeWidth={2.4} />
+                    </View>
+                  }
                   selected={gender === "Male"}
                   onPress={() => setGender("Male")}
                 />
@@ -347,9 +361,7 @@ export default function OnboardingScreen() {
                         className="p-1 items-center justify-center"
                         accessibilityLabel="Select month"
                       >
-                        <AppText weight="bold" className="text-xs text-primary">
-                          ▼
-                        </AppText>
+                        <ChevronDownIconSvg size={14} color="#047857" />
                       </TouchableOpacity>
                     }
                   />
@@ -537,9 +549,7 @@ export default function OnboardingScreen() {
                 className="p-1"
                 accessibilityLabel="Close"
               >
-                <AppText weight="bold" className="text-neutral-muted text-base">
-                  ✕
-                </AppText>
+                <CloseIconSvg size={18} color="#6b7280" />
               </TouchableOpacity>
             </View>
 

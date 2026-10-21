@@ -12,7 +12,7 @@ import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
 import { AppText, MealCard, MealLogModal } from "@/components/ui";
 import { useRecipes } from "@/hooks/useRecipesQuery";
 import { useJournalStore, getTodayDateKey, computeJournalAggregates } from "@/stores/useJournalStore";
-import { IconRenderer } from "@/constants/Assets";
+import { IconRenderer, CloseIconSvg, TagIconSvg, LightbulbIconSvg } from "@/constants/Assets";
 import { FoodItem } from "@/data/mockRecipes";
 
 const SLOTS = ["All", "Breakfast", "Lunch", "Dinner", "Snack", "Drink"] as const;
@@ -138,9 +138,7 @@ export default function MealsScreen() {
                 accessibilityRole="button"
                 accessibilityLabel="Clear search text"
               >
-                <AppText weight="bold" className="text-xs text-neutral-600">
-                  ✕
-                </AppText>
+                <CloseIconSvg size={12} color="#4b5563" />
               </TouchableOpacity>
             )}
           </View>
@@ -210,13 +208,18 @@ export default function MealsScreen() {
                   accessibilityState={{ selected: isSelected }}
                   accessibilityLabel={`Filter budget: ${budget}`}
                 >
+                  <TagIconSvg
+                    size={11}
+                    color={isSelected ? "#ffffff" : "#065f46"}
+                    style={{ marginRight: 4 }}
+                  />
                   <AppText
                     weight={isSelected ? "bold" : "medium"}
                     className={`text-[11px] ${
                       isSelected ? "text-white" : "text-emerald-800"
                     }`}
                   >
-                    🏷 {budget}
+                    {budget}
                   </AppText>
                 </Pressable>
               );
@@ -282,7 +285,9 @@ export default function MealsScreen() {
         {/* Budget-Aware Transparency Note */}
         <View className="px-4 sm:px-5 pt-3 pb-6 max-w-[1120px] mx-auto w-full">
           <View className="bg-emerald-50/70 rounded-2xl p-4 border border-emerald-100 flex-row items-start">
-            <AppText className="text-base mr-3">💡</AppText>
+            <View className="w-7 h-7 rounded-lg bg-emerald-100/90 items-center justify-center mr-3 mt-0.5">
+              <LightbulbIconSvg size={16} color="#047857" />
+            </View>
             <View className="flex-1">
               <AppText weight="bold" className="text-xs text-emerald-900 mb-0.5">
                 Budget-Aware Healthy Living

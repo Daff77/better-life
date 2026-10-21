@@ -2,6 +2,7 @@ import React from "react";
 import { View, TouchableOpacity } from "react-native";
 import { AppText } from "./AppText";
 import { IconButton } from "./IconButton";
+import { ChevronLeftIconSvg } from "@/constants/Assets";
 
 export interface HeaderProps {
   title?: string;
@@ -33,7 +34,7 @@ export const Header: React.FC<HeaderProps> = ({
               size={44}
               onPress={onBack}
               accessibilityLabel="Go back"
-              icon={<AppText weight="bold" className="text-xl text-neutral-dark">‹</AppText>}
+              icon={<ChevronLeftIconSvg size={22} color="#1f2937" />}
             />
           ) : null}
         </View>

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { View, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import { AppText } from "@/components/ui";
+import { CloseIconSvg } from "@/constants/Assets";
 import { useAuthStore } from "@/stores/useAuthStore";
 
 export default function GoogleAuthCallback() {
@@ -101,7 +102,7 @@ export default function GoogleAuthCallback() {
     <View className="flex-1 bg-white items-center justify-center p-6">
       <View className="w-16 h-16 rounded-full bg-primary/10 items-center justify-center mb-4">
         {errorMessage ? (
-          <AppText weight="black" className="text-2xl text-status-error">✕</AppText>
+          <CloseIconSvg size={28} color="#ef4444" strokeWidth={2.6} />
         ) : (
           <ActivityIndicator size="large" color="#4285F4" />
         )}

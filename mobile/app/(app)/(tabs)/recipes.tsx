@@ -11,7 +11,7 @@ import { useRouter } from "expo-router";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
 import { AppText, RecipeCard } from "@/components/ui";
 import { useRecipes } from "@/hooks/useRecipesQuery";
-import { IconRenderer } from "@/constants/Assets";
+import { IconRenderer, CloseIconSvg } from "@/constants/Assets";
 
 const CATEGORIES = ["All", "Breakfast", "Lunch", "Dinner", "Snack", "Drink"] as const;
 
@@ -75,9 +75,7 @@ export default function RecipesScreen() {
                 accessibilityRole="button"
                 accessibilityLabel="Clear recipe search text"
               >
-                <AppText weight="bold" className="text-xs text-neutral-600">
-                  ✕
-                </AppText>
+                <CloseIconSvg size={12} color="#4b5563" />
               </TouchableOpacity>
             )}
           </View>
@@ -131,9 +129,7 @@ export default function RecipesScreen() {
           {filteredRecipes.length === 0 ? (
             <View className="w-full py-10 px-6 items-center justify-center bg-white rounded-2xl border border-neutral-border-light my-4">
               <View className="w-14 h-14 rounded-2xl bg-secondary-soft items-center justify-center mb-3 border border-secondary shadow-2xs">
-                <AppText weight="bold" className="text-2xl">
-                  🍲
-                </AppText>
+                <IconRenderer name="Cook" size={28} />
               </View>
               <AppText weight="black" className="text-base text-neutral-dark mb-1 text-center">
                 No matching recipes found

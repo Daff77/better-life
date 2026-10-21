@@ -11,7 +11,7 @@ import { useRouter } from "expo-router";
 import { AppText } from "./AppText";
 import { Input } from "./Input";
 import { Button } from "./Button";
-import { IconRenderer } from "@/constants/Assets";
+import { IconRenderer, SettingsIconSvg, RefreshIconSvg, ZapIconSvg } from "@/constants/Assets";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { googleAuthService } from "@/lib/googleAuth";
 
@@ -187,7 +187,7 @@ export const GoogleSignInModal: React.FC<GoogleSignInModalProps> = ({
                   />
 
                   <Button
-                    title="⚡ Masuk Cepat Akun Google (Demo / Uji Coba)"
+                    title="Masuk Cepat Akun Google (Demo / Uji Coba)"
                     variant="social"
                     onPress={() => handleQuickDemoLogin("daffa.google@gmail.com", "Daffa (Google)")}
                     className="w-full"
@@ -204,10 +204,11 @@ export const GoogleSignInModal: React.FC<GoogleSignInModalProps> = ({
 
                   <TouchableOpacity
                     onPress={() => setViewMode("setup")}
-                    className="py-1 self-center mt-1"
+                    className="py-1 self-center mt-1 flex-row items-center gap-x-1.5"
                   >
+                    <SettingsIconSvg size={14} color="#6b7280" />
                     <AppText weight="semibold" className="text-[11px] text-neutral-muted">
-                      ⚙ Pengaturan Google Client ID
+                      Pengaturan Google Client ID
                     </AppText>
                   </TouchableOpacity>
                 </View>
@@ -261,20 +262,22 @@ export const GoogleSignInModal: React.FC<GoogleSignInModalProps> = ({
 
               <TouchableOpacity
                 onPress={handleRestoreDefault}
-                className="py-2.5 items-center justify-center rounded-xl bg-secondary-soft border border-secondary mb-3"
+                className="py-2.5 items-center justify-center rounded-xl bg-secondary-soft border border-secondary mb-3 flex-row items-center gap-x-1.5"
               >
+                <RefreshIconSvg size={15} color="#047857" />
                 <AppText weight="bold" className="text-xs text-primary">
-                  ↺ Pulihkan ke Web Client ID Bawaan (Aktif)
+                  Pulihkan ke Web Client ID Bawaan (Aktif)
                 </AppText>
               </TouchableOpacity>
 
               <View className="flex-row items-center justify-between pt-1">
                 <TouchableOpacity
                   onPress={() => setViewMode("quickTest")}
-                  className="py-1"
+                  className="py-1 flex-row items-center gap-x-1"
                 >
+                  <ZapIconSvg size={13} color="#6b7280" />
                   <AppText weight="semibold" className="text-xs text-neutral-muted">
-                    ⚡ Mode Uji Coba Cepat
+                    Mode Uji Coba Cepat
                   </AppText>
                 </TouchableOpacity>
 

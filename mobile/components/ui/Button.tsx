@@ -20,6 +20,7 @@ import {
   AnimationEasings,
   AnimationScales,
 } from "@/constants/AnimationTokens";
+import { CheckIconSvg } from "@/constants/Assets";
 
 export interface ButtonProps extends Omit<PressableProps, "children"> {
   title: string;
@@ -156,9 +157,11 @@ export const Button: React.FC<ButtonProps> = ({
           />
         ) : success ? (
           <View className="flex-row items-center justify-center gap-x-1.5">
-            <AppText weight="bold" className={`text-base ${getTextColor()}`}>
-              ✓
-            </AppText>
+            <CheckIconSvg
+              size={18}
+              stroke={variant === "primary" ? Colors.neutral.white : Colors.primary.DEFAULT}
+              strokeWidth={2.6}
+            />
             <AppText weight={getTextWeight()} className={`text-[16px] ${getTextColor()}`}>
               {title || "Saved"}
             </AppText>

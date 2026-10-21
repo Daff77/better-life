@@ -30,7 +30,7 @@ import {
   computeJournalAggregates,
 } from "@/stores/useJournalStore";
 import { useActivityStats, useAddStepsMutation } from "@/hooks/useActivityQuery";
-import { IconRenderer } from "@/constants/Assets";
+import { IconRenderer, CloseIconSvg } from "@/constants/Assets";
 import { MOCK_RECIPES, FoodItem } from "@/data/mockRecipes";
 
 // Standard meal slot definitions for grouping journal entries
@@ -367,9 +367,7 @@ export default function HomeScreen() {
                               accessibilityRole="button"
                               accessibilityLabel={`Remove ${item.title}`}
                             >
-                              <AppText weight="bold" className="text-xs text-status-error">
-                                ✕
-                              </AppText>
+                              <CloseIconSvg size={12} color="#ef4444" strokeWidth={2.4} />
                             </TouchableOpacity>
                           </View>
                         </View>

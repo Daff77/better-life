@@ -22,7 +22,16 @@ import { useJournalStore } from "@/stores/useJournalStore";
 import { journalStorage } from "@/lib/journalStorage";
 import { sessionStorage } from "@/lib/sessionStorage";
 import { useResetMealsMutation } from "@/hooks/useMealsQuery";
-import { IconRenderer } from "@/constants/Assets";
+import {
+  IconRenderer,
+  EditIconSvg,
+  SettingsIconSvg,
+  CloseIconSvg,
+  CheckIconSvg,
+  LogoutIconSvg,
+  TrashIconSvg,
+  ChevronRightIconSvg,
+} from "@/constants/Assets";
 import { MOCK_RECIPES } from "@/data/mockRecipes";
 
 const GOALS = ["Eat balanced", "Lose weight", "Gain muscle"] as const;
@@ -234,9 +243,7 @@ export default function ProfileScreen() {
             accessibilityRole="button"
             accessibilityLabel="Edit personalization preferences"
           >
-            <AppText weight="bold" className="text-base text-accent-teal">
-              ✎
-            </AppText>
+            <EditIconSvg size={18} color="#0d9488" />
           </TouchableOpacity>
 
           {/* Settings Cog Icon */}
@@ -246,9 +253,7 @@ export default function ProfileScreen() {
             accessibilityRole="button"
             accessibilityLabel="Account settings"
           >
-            <AppText weight="bold" className="text-base text-accent-teal">
-              ⚙
-            </AppText>
+            <SettingsIconSvg size={18} color="#0d9488" />
           </TouchableOpacity>
         </View>
       </View>
@@ -571,9 +576,7 @@ export default function ProfileScreen() {
                   accessibilityRole="button"
                   accessibilityLabel="Close edit modal"
                 >
-                  <AppText weight="bold" className="text-base text-neutral-muted">
-                    ✕
-                  </AppText>
+                  <CloseIconSvg size={18} color="#6b7280" />
                 </TouchableOpacity>
               </View>
 
@@ -590,10 +593,11 @@ export default function ProfileScreen() {
               {/* Success Feedback Banner */}
               {saveSuccess && (
                 <View
-                  className="p-3 mb-4 bg-[#daf2e5] border border-primary/30 rounded-xl items-center"
+                  className="p-3 mb-4 bg-[#daf2e5] border border-primary/30 rounded-xl items-center flex-row justify-center gap-x-2"
                 >
+                  <CheckIconSvg size={16} color="#047857" strokeWidth={2.6} />
                   <AppText weight="bold" className="text-xs text-primary">
-                    ✓ Profile and active calorie targets updated!
+                    Profile and active calorie targets updated!
                   </AppText>
                 </View>
               )}
@@ -797,9 +801,7 @@ export default function ProfileScreen() {
                 accessibilityRole="button"
                 accessibilityLabel="Close settings modal"
               >
-                <AppText weight="bold" className="text-sm text-neutral-muted">
-                  ✕
-                </AppText>
+                <CloseIconSvg size={18} color="#6b7280" />
               </TouchableOpacity>
             </View>
 
@@ -820,7 +822,7 @@ export default function ProfileScreen() {
                   <AppText weight="bold" className="text-sm text-neutral-dark">
                     Edit Personal Info & Goal
                   </AppText>
-                  <AppText weight="bold" className="text-neutral-muted">›</AppText>
+                  <ChevronRightIconSvg size={18} color="#9ca3af" />
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -835,7 +837,7 @@ export default function ProfileScreen() {
                   <AppText weight="bold" className="text-sm text-neutral-dark">
                     Re-run Full Onboarding
                   </AppText>
-                  <AppText weight="bold" className="text-neutral-muted">›</AppText>
+                  <ChevronRightIconSvg size={18} color="#9ca3af" />
                 </TouchableOpacity>
               </View>
 
@@ -856,7 +858,7 @@ export default function ProfileScreen() {
                   <AppText weight="bold" className="text-sm text-neutral-dark">
                     Log Out
                   </AppText>
-                  <AppText weight="bold" className="text-neutral-muted">🚪</AppText>
+                  <LogoutIconSvg size={18} color="#6b7280" />
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -868,7 +870,7 @@ export default function ProfileScreen() {
                   <AppText weight="bold" className="text-sm text-status-error">
                     Reset All App Data
                   </AppText>
-                  <AppText weight="bold" className="text-status-error">🗑</AppText>
+                  <TrashIconSvg size={18} color="#ef4444" />
                 </TouchableOpacity>
               </View>
             </View>

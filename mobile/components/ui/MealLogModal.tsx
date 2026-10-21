@@ -14,7 +14,7 @@ import {
 import { AppText } from "./AppText";
 import { Button } from "./Button";
 import { Badge } from "./Badge";
-import { IconRenderer } from "@/constants/Assets";
+import { IconRenderer, CloseIconSvg, CheckIconSvg, MinusIconSvg, PlusIconSvg } from "@/constants/Assets";
 import { FoodItem } from "@/data/mockRecipes";
 import { JournalCategory, JournalEntry } from "@/lib/schemas";
 import { useJournalStore } from "@/stores/useJournalStore";
@@ -176,9 +176,7 @@ export const MealLogModal: React.FC<MealLogModalProps> = ({
               accessibilityRole="button"
               accessibilityLabel="Close meal log modal"
             >
-              <AppText weight="bold" className="text-base text-neutral-muted">
-                ✕
-              </AppText>
+              <CloseIconSvg size={16} color="#6b7280" />
             </TouchableOpacity>
           </View>
 
@@ -193,9 +191,7 @@ export const MealLogModal: React.FC<MealLogModalProps> = ({
                 className="my-5 p-5 rounded-2xl bg-[#daf2e5] border border-primary/30 items-center justify-center"
               >
                 <View className="w-12 h-12 rounded-full bg-primary items-center justify-center mb-2 shadow-xs">
-                  <AppText weight="black" className="text-white text-xl">
-                    ✓
-                  </AppText>
+                  <CheckIconSvg size={22} color="#ffffff" strokeWidth={2.8} />
                 </View>
                 <AppText weight="black" className="text-base text-primary">
                   Added to {confirmation.mealType}
@@ -323,9 +319,7 @@ export const MealLogModal: React.FC<MealLogModalProps> = ({
                         accessibilityRole="button"
                         accessibilityLabel="Decrease servings"
                       >
-                        <AppText weight="black" className="text-lg text-neutral-dark">
-                          −
-                        </AppText>
+                        <MinusIconSvg size={16} color={quantity <= 0.5 ? "#9ca3af" : "#1f2937"} strokeWidth={2.4} />
                       </TouchableOpacity>
 
                       <View className="w-14 items-center justify-center">
@@ -350,9 +344,7 @@ export const MealLogModal: React.FC<MealLogModalProps> = ({
                         accessibilityRole="button"
                         accessibilityLabel="Increase servings"
                       >
-                        <AppText weight="black" className="text-lg text-neutral-dark">
-                          +
-                        </AppText>
+                        <PlusIconSvg size={16} color={quantity >= 10 ? "#9ca3af" : "#1f2937"} strokeWidth={2.4} />
                       </TouchableOpacity>
                     </View>
                   </View>
