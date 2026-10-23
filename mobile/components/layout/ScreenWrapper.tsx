@@ -14,6 +14,7 @@ export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
   noPadding = false,
   children,
   style,
+  edges = ["top", "left", "right"],
   ...props
 }) => {
   const getMaxWidthClass = () => {
@@ -32,11 +33,16 @@ export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
 
   return (
     <SafeAreaView
-      className={`flex-1 bg-neutral-bg ${className || ""}`}
+      className={`flex-1 ${className || "bg-neutral-bg"}`}
       style={[{ flex: 1, width: "100%" }, style]}
+      edges={edges}
       {...props}
     >
-      <StatusBar barStyle="dark-content" backgroundColor="#f8faf8" />
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor="transparent"
+        translucent={Platform.OS === "android"}
+      />
       <View
         className={`flex-1 w-full ${getMaxWidthClass()} self-center ${
           noPadding ? "px-0" : "px-4 sm:px-6 lg:px-8"

@@ -75,9 +75,9 @@ export default function MealsScreen() {
   };
 
   return (
-    <ScreenWrapper maxWidth="wide" className="flex-1 bg-[#f7faf8]">
-      {/* Responsive Header with Live Journal Aggregates */}
-      <View className="px-4 sm:px-6 pt-3.5 pb-3 bg-white border-b border-[#e5ece7] shadow-2xs">
+    <ScreenWrapper maxWidth="full" noPadding className="flex-1 bg-white">
+      {/* Responsive Header: Edge-to-edge with seamless top integration */}
+      <View className="w-full bg-white border-b border-[#e5ece7] px-4 sm:px-6 pt-1 pb-3 shadow-2xs">
         <View className="max-w-[1240px] mx-auto w-full flex-col sm:flex-row sm:items-center justify-between gap-2.5">
           <View className="flex-1">
             <AppText weight="black" className="text-xl sm:text-2xl text-neutral-dark tracking-tight">
@@ -146,7 +146,7 @@ export default function MealsScreen() {
       </View>
 
       <ScrollView
-        className="flex-1"
+        className="flex-1 bg-[#f7faf8]"
         contentContainerStyle={{ paddingBottom: Platform.OS === "web" ? 56 : 112 }}
         showsVerticalScrollIndicator={false}
       >

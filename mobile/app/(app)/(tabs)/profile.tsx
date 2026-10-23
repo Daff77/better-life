@@ -228,9 +228,9 @@ export default function ProfileScreen() {
   };
 
   return (
-    <ScreenWrapper maxWidth="wide" className="flex-1 bg-white">
-      {/* Top Header Bar */}
-      <View className="px-6 pt-5 pb-3 flex-row justify-between items-center bg-white border-b border-neutral-border-light">
+    <ScreenWrapper maxWidth="full" noPadding className="flex-1 bg-white">
+      {/* Top Header Bar: Edge-to-edge with seamless top integration */}
+      <View className="w-full px-6 pt-1 pb-3 flex-row justify-between items-center bg-white border-b border-neutral-border-light">
         <AppText weight="black" className="text-2xl text-neutral-dark">
           Profile
         </AppText>

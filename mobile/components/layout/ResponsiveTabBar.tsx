@@ -198,27 +198,21 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({
             <TouchableOpacity
               key={route.key}
               onPress={() => handleTabPress(route.key, route.name, isFocused)}
-              className="items-center justify-center py-1 flex-1 min-h-[48px] active:scale-[0.96]"
+              className="items-center justify-center py-1.5 flex-1 min-h-[48px] active:opacity-75"
               accessibilityRole="tab"
               accessibilityState={{ selected: isFocused }}
               accessibilityLabel={`Navigate to ${displayLabel}`}
             >
-              <View
-                className={`items-center justify-center px-3.5 py-1 rounded-full ${
-                  isFocused ? "bg-emerald-50 border border-emerald-200/60" : "bg-transparent"
-                }`}
-              >
-                <AnimatedTabIcon
-                  name={displayLabel}
-                  focused={isFocused}
-                  size={20}
-                  color={isFocused ? "#1b7a53" : "#64748b"}
-                />
-              </View>
+              <AnimatedTabIcon
+                name={displayLabel}
+                focused={isFocused}
+                size={22}
+                color={isFocused ? "#1b7a53" : "#94a3b8"}
+              />
               <AppText
-                weight={isFocused ? "black" : "semibold"}
+                weight={isFocused ? "bold" : "medium"}
                 className={`text-[11px] mt-1 tracking-tight ${
-                  isFocused ? "text-emerald-900" : "text-neutral-500"
+                  isFocused ? "text-emerald-800" : "text-neutral-400"
                 }`}
               >
                 {displayLabel}

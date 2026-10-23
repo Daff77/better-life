@@ -1,17 +1,14 @@
 import React, { useEffect } from "react";
-import { View, ColorValue } from "react-native";
+import { ColorValue } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
-  withTiming,
 } from "react-native-reanimated";
 import {
   AnimationEasings,
-  AnimationTimings,
   AnimationScales,
-  AnimationDistances,
 } from "@/constants/AnimationTokens";
 
 export type TabIconType = "Home" | "Meals" | "Recipes" | "Profile";
@@ -19,7 +16,7 @@ export type TabIconType = "Home" | "Meals" | "Recipes" | "Profile";
 interface AnimatedTabIconProps {
   name: TabIconType | string;
   focused: boolean;
-  color: string | ColorValue;
+  color?: string | ColorValue;
   size?: number;
 }
 
@@ -30,30 +27,19 @@ export const AnimatedTabIcon: React.FC<AnimatedTabIconProps> = ({
   size = 22,
 }) => {
   const scale = useSharedValue(focused ? AnimationScales.activeTab : 1);
-  const translateY = useSharedValue(focused ? AnimationDistances.tabActiveY : 0);
-  const indicatorWidth = useSharedValue(focused ? 14 : 0);
-  const indicatorOpacity = useSharedValue(focused ? 1 : 0);
 
   useEffect(() => {
-    scale.value = withSpring(focused ? AnimationScales.activeTab : 1, AnimationEasings.tabSpringConfig);
-    translateY.value = withSpring(focused ? AnimationDistances.tabActiveY : 0, AnimationEasings.tabSpringConfig);
-    indicatorWidth.value = withSpring(focused ? 14 : 0, AnimationEasings.tabSpringConfig);
-    indicatorOpacity.value = withTiming(focused ? 1 : 0, { duration: AnimationTimings.microSlow });
+    scale.value = withSpring(
+      focused ? AnimationScales.activeTab : 1,
+      AnimationEasings.tabSpringConfig
+    );
   }, [focused]);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { scale: scale.value },
-      { translateY: translateY.value },
-    ],
+    transform: [{ scale: scale.value }],
   }));
 
-  const animatedIndicatorStyle = useAnimatedStyle(() => ({
-    width: indicatorWidth.value,
-    opacity: indicatorOpacity.value,
-  }));
-
-  const iconColor = typeof color === "string" ? color : focused ? "#22c55e" : "#64748b";
+  const iconColor = typeof color === "string" ? color : focused ? "#1b7a53" : "#94a3b8";
 
   const renderIconSvg = () => {
     switch (name) {
@@ -103,22 +89,9 @@ export const AnimatedTabIcon: React.FC<AnimatedTabIconProps> = ({
   };
 
   return (
-    <View className="items-center justify-center">
-      <Animated.View style={animatedStyle}>
-        {renderIconSvg()}
-      </Animated.View>
-      <Animated.View
-        style={[
-          {
-            height: 2.5,
-            borderRadius: 9999,
-            backgroundColor: "#22c55e",
-            marginTop: 4,
-          },
-          animatedIndicatorStyle,
-        ]}
-      />
-    </View>
+    <Animated.View style={animatedStyle} className="items-center justify-center">
+      {renderIconSvg()}
+    </Animated.View>
   );
 };
 

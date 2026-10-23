@@ -35,9 +35,9 @@ export default function RecipesScreen() {
   }, [recipes, selectedCategory, searchQuery]);
 
   return (
-    <ScreenWrapper maxWidth="wide" className="flex-1 bg-[#f8faf8]">
-      {/* Header */}
-      <View className="px-4 sm:px-6 pt-4 pb-3.5 bg-white border-b border-[#e5ece7] shadow-2xs">
+    <ScreenWrapper maxWidth="full" noPadding className="flex-1 bg-white">
+      {/* Header: Edge-to-edge with seamless top integration */}
+      <View className="w-full bg-white border-b border-[#e5ece7] px-4 sm:px-6 pt-1 pb-3 shadow-2xs">
         <View className="max-w-[1240px] mx-auto w-full">
           <AppText weight="black" className="text-xl sm:text-2xl text-neutral-dark tracking-tight">
             Curated Healthy Recipes
@@ -83,7 +83,7 @@ export default function RecipesScreen() {
       </View>
 
       <ScrollView
-        className="flex-1"
+        className="flex-1 bg-[#f8faf8]"
         contentContainerStyle={{ paddingBottom: Platform.OS === "web" ? 56 : 112 }}
         showsVerticalScrollIndicator={false}
       >
