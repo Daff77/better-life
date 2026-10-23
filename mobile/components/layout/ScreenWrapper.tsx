@@ -1,5 +1,5 @@
 import React from "react";
-import { View, ViewProps, StatusBar } from "react-native";
+import { View, ViewProps, StatusBar, Platform } from "react-native";
 import { SafeAreaView, SafeAreaViewProps } from "react-native-safe-area-context";
 
 interface ScreenWrapperProps extends SafeAreaViewProps {
