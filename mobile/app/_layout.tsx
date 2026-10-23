@@ -1,5 +1,6 @@
 import "react-native-gesture-handler";
 import React, { useEffect } from "react";
+import { LogBox } from "react-native";
 import { SplashScreen, Stack } from "expo-router";
 import { useFonts } from "expo-font";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -9,6 +10,16 @@ import { useAuthStore } from "@/stores/useAuthStore";
 import { useJournalStore } from "@/stores/useJournalStore";
 import { useOnboardingStore } from "@/stores/useOnboardingStore";
 import "../styles/global.css";
+
+// Ignore benign dev-mode warnings in Expo Go (e.g. web-only CSS properties, reanimated worklets notices)
+LogBox.ignoreLogs([
+  "css-to-react-native",
+  "hover:",
+  "backdrop-blur",
+  "[Reanimated]",
+  "Route deprecated",
+  "Cloning a style with",
+]);
 
 // Prevent auto-hiding the splash screen until assets are loaded
 SplashScreen.preventAutoHideAsync().catch(() => {});

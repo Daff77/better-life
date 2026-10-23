@@ -170,7 +170,7 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({
   // 2. MOBILE BOTTOM NAVIGATION
   return (
     <View
-      className="w-full bg-white/95 backdrop-blur-md border-t border-[#e2eae4] shadow-sm z-50"
+      className="w-full bg-white border-t border-[#e2eae4] shadow-sm z-50"
       style={{
         paddingBottom: Math.max(insets.bottom, 10),
         paddingTop: 8,
@@ -198,13 +198,13 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({
             <TouchableOpacity
               key={route.key}
               onPress={() => handleTabPress(route.key, route.name, isFocused)}
-              className="items-center justify-center py-1 flex-1 min-h-[48px] active:scale-[0.96] transition-all"
+              className="items-center justify-center py-1 flex-1 min-h-[48px] active:scale-[0.96]"
               accessibilityRole="tab"
               accessibilityState={{ selected: isFocused }}
               accessibilityLabel={`Navigate to ${displayLabel}`}
             >
               <View
-                className={`items-center justify-center px-3.5 py-1 rounded-full transition-colors ${
+                className={`items-center justify-center px-3.5 py-1 rounded-full ${
                   isFocused ? "bg-emerald-50 border border-emerald-200/60" : "bg-transparent"
                 }`}
               >
