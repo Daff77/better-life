@@ -68,13 +68,13 @@ export const OptionCard: React.FC<OptionCardProps> = ({
       {...props}
     >
       <Animated.View
+        pointerEvents="none"
         style={[
           {
             flex: 1,
             flexDirection: "row",
             alignItems: "center",
             justifyContent: "space-between",
-            pointerEvents: "none",
           },
           animatedStyle,
         ]}

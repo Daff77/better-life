@@ -95,8 +95,9 @@ export default function GetStartedScreen() {
     <ScreenWrapper maxWidth="wide" className="flex-1 bg-white">
       {/* Decorative Ellipse in Top Right */}
       <View
+        pointerEvents="none"
         className="absolute -top-16 -right-16 w-56 h-56 md:w-80 md:h-80 rounded-full bg-[#f2f8f4] items-center justify-center"
-        style={{ zIndex: 0, pointerEvents: "none" }}
+        style={{ zIndex: 0 }}
       >
         <View className="w-36 h-36 md:w-56 md:h-56 rounded-full bg-primary/10" />
       </View>

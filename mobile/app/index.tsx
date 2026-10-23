@@ -96,12 +96,12 @@ export default function SplashScreen() {
     >
       {/* Background Decorative Pattern */}
       <Animated.View
+        pointerEvents="none"
         style={{
           position: "absolute",
           width: "100%",
           height: "100%",
           opacity: bgOpacity,
-          pointerEvents: "none",
         }}
       >
         <IconRenderer

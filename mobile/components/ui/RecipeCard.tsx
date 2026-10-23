@@ -74,7 +74,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
       accessibilityLabel={`${title}, ${calories} calories, ${prepTimeMinutes} minutes preparation`}
       {...props}
     >
-      <Animated.View style={[cardAnimatedStyle, { pointerEvents: "none" }]}>
+      <Animated.View pointerEvents="none" style={cardAnimatedStyle}>
         {/* Visual Header Artwork with 1px Image Outline */}
         <View className="h-[156px] w-full bg-[#f2f8f4] items-center justify-center relative overflow-hidden border-b border-black/[0.06]">
           {effectiveImageSource ? (

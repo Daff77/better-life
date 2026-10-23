@@ -75,8 +75,9 @@ export const IconButton: React.FC<IconButtonProps> = ({
       {...props}
     >
       <Animated.View
+        pointerEvents="none"
         style={[
-          { alignItems: "center", justifyContent: "center", pointerEvents: "none" },
+          { alignItems: "center", justifyContent: "center" },
           animatedStyle,
         ]}
       >

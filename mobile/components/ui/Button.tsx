@@ -140,12 +140,12 @@ export const Button: React.FC<ButtonProps> = ({
       {...props}
     >
       <Animated.View
+        pointerEvents="none"
         style={[
           {
             flexDirection: "row",
             alignItems: "center",
             justifyContent: "center",
-            pointerEvents: "none",
           },
           animatedStyle,
         ]}

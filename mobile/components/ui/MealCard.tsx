@@ -82,7 +82,7 @@ export const MealCard: React.FC<MealCardProps> = ({
         accessibilityRole="button"
         accessibilityLabel={`${displayTitle}, ${calories} calories`}
       >
-        <Animated.View style={[cardAnimatedStyle, { pointerEvents: "none" }]}>
+        <Animated.View pointerEvents="none" style={cardAnimatedStyle}>
           {/* Top Food Image Header with 1px Crisp Outline */}
           <View className="h-[156px] w-full bg-[#f2f8f4] items-center justify-center relative overflow-hidden border-b border-black/[0.06]">
             {effectiveImageSource ? (
