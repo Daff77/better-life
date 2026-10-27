@@ -187,7 +187,7 @@ export const GoogleSignInModal: React.FC<GoogleSignInModalProps> = ({
                   />
 
                   <Button
-                    title="Masuk Cepat Akun Google (Demo / Uji Coba)"
+                    title="Masuk Cepat Akun Google"
                     variant="social"
                     onPress={() => handleQuickDemoLogin("daffa.google@gmail.com", "Daffa (Google)")}
                     className="w-full"

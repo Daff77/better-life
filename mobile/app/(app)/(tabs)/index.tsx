@@ -7,6 +7,7 @@ import {
   Alert,
   Platform,
   Image,
+  TextInput,
   useWindowDimensions,
 } from "react-native";
 import { useRouter } from "expo-router";
@@ -30,7 +31,20 @@ import {
   computeJournalAggregates,
 } from "@/stores/useJournalStore";
 import { useActivityStats, useAddStepsMutation } from "@/hooks/useActivityQuery";
-import { IconRenderer, CloseIconSvg } from "@/constants/Assets";
+import {
+  IconRenderer,
+  CloseIconSvg,
+  CalendarIconSvg,
+  LeafIconSvg,
+  BowlIconSvg,
+  ChefHatIconSvg,
+  ZapIconSvg,
+  UtensilsIconSvg,
+  BookOpenIconSvg,
+  BellIconSvg,
+  SearchIconSvg,
+  ChevronRightIconSvg,
+} from "@/constants/Assets";
 import { MOCK_RECIPES, FoodItem } from "@/data/mockRecipes";
 
 // Standard meal slot definitions for grouping journal entries
@@ -121,6 +135,30 @@ export default function HomeScreen() {
     Math.round(aggregates.progressRatio * 100)
   );
 
+  // Derived user initials for avatar
+  const userInitials = useMemo(() => {
+    if (!user?.name) return "DA";
+    const parts = user.name.trim().split(" ");
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return user.name.slice(0, 2).toUpperCase();
+  }, [user?.name]);
+
+  // Search input state
+  const [searchQuery, setSearchQuery] = useState<string>("");
+
+  const handleSearchSubmit = () => {
+    if (searchQuery.trim()) {
+      router.push({
+        pathname: "/(app)/(tabs)/meals",
+        params: { search: searchQuery.trim() },
+      });
+    } else {
+      router.push("/(app)/(tabs)/meals");
+    }
+  };
+
   // Dynamic greeting based on current local hour
   const currentHour = new Date().getHours();
   const greetingTime =
@@ -130,13 +168,14 @@ export default function HomeScreen() {
       ? "Good afternoon"
       : "Good evening";
 
-  // Formatted date string (e.g. "Saturday, Oct 17")
+  // Formatted date string (e.g. "Tue, Oct 27, 2026")
   const formattedToday = useMemo(() => {
     const d = new Date();
     return d.toLocaleDateString("en-US", {
       weekday: "short",
       month: "short",
       day: "numeric",
+      year: "numeric",
     });
   }, []);
 
@@ -198,61 +237,111 @@ export default function HomeScreen() {
     );
   };
 
-  /* Render Today's Journal Section Component (Used in mobile flow and desktop right column) */
-  const renderTodaysJournalSection = () => (
-    <View className="bg-white rounded-2xl border border-[#e5ece7] p-4 sm:p-5 shadow-2xs">
-      {/* Journal Header */}
-      <View className="flex-row items-center justify-between pb-3 mb-3 border-b border-[#f0f4f1]">
-        <View className="flex-1 mr-2">
-          <View className="flex-row items-baseline gap-1.5 flex-wrap">
-            <AppText weight="black" className="text-base text-neutral-dark">
-              Today's Meals
-            </AppText>
-            <AppText weight="bold" className="text-xs text-neutral-muted">
-              ({aggregates.entryCount} {aggregates.entryCount === 1 ? "meal" : "meals"} logged)
+  /* Render Quick Actions Card (Matching screenshot) */
+  const renderQuickFoodLoggingBar = () => (
+    <View className="bg-white rounded-3xl border border-[#e5ece7] p-5 shadow-2xs">
+      <View className="flex-row items-center gap-2 mb-3.5">
+        <ZapIconSvg size={16} color="#f59e0b" fill="#f59e0b" />
+        <AppText weight="black" className="text-sm sm:text-base text-neutral-dark">
+          Quick Actions
+        </AppText>
+      </View>
+
+      <View className="flex-col gap-2.5">
+        {/* Log Food Button (Solid Dark Forest Green) */}
+        <TouchableOpacity
+          onPress={() => router.push("/(app)/(tabs)/meals")}
+          className={`w-full min-h-[48px] rounded-2xl bg-[#166534] active:bg-[#14532d] px-4 py-3.5 flex-row items-center justify-between shadow-xs transition-all ${
+            Platform.OS === "web" ? "cursor-pointer hover:bg-[#14532d]" : ""
+          }`}
+          accessibilityRole="button"
+          accessibilityLabel="Log Food"
+        >
+          <View className="flex-row items-center gap-2.5">
+            <UtensilsIconSvg size={17} color="#ffffff" />
+            <AppText weight="extrabold" className="text-white text-sm">
+              Log Food
             </AppText>
           </View>
-          <AppText weight="medium" className="text-xs text-neutral-muted mt-0.5">
-            Real-time chronological meal diary
+          <ChevronRightIconSvg size={15} color="#ffffff" />
+        </TouchableOpacity>
+
+        {/* Browse Recipes Button (White with subtle border) */}
+        <TouchableOpacity
+          onPress={() => router.push("/(app)/(tabs)/recipes")}
+          className={`w-full min-h-[48px] rounded-2xl bg-white active:bg-neutral-50 border border-[#e5ece7] px-4 py-3.5 flex-row items-center justify-between transition-all ${
+            Platform.OS === "web" ? "cursor-pointer hover:border-emerald-300 hover:bg-emerald-50/20" : ""
+          }`}
+          accessibilityRole="button"
+          accessibilityLabel="Browse Recipes"
+        >
+          <View className="flex-row items-center gap-2.5">
+            <BookOpenIconSvg size={17} color="#166534" />
+            <AppText weight="extrabold" className="text-neutral-dark text-sm">
+              Browse Recipes
+            </AppText>
+          </View>
+          <ChevronRightIconSvg size={15} color="#166534" />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  /* Render Today's Journal Section Component */
+  const renderTodaysJournalSection = () => (
+    <View className="bg-white rounded-3xl border border-[#e5ece7] p-5 shadow-2xs">
+      {/* Journal Header */}
+      <View className="flex-row items-center justify-between pb-1">
+        <View className="flex-row items-center gap-2.5">
+          <View className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-200/80 items-center justify-center">
+            <BowlIconSvg size={18} color="#166534" />
+          </View>
+          <AppText weight="black" className="text-base text-neutral-dark">
+            Today's Meals
           </AppText>
         </View>
 
-        {aggregates.entryCount > 0 && (
-          <TouchableOpacity
-            onPress={handleResetDay}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            className={`py-1.5 px-3 rounded-full bg-status-error/10 border border-status-error/20 active:bg-status-error/20 transition-colors ${
-              Platform.OS === "web" ? "cursor-pointer" : ""
-            }`}
-            accessibilityRole="button"
-            accessibilityLabel="Reset today's logged meals"
-          >
-            <AppText weight="bold" className="text-[11px] text-status-error">
-              Clear Day
-            </AppText>
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity
+          onPress={() => router.push("/(app)/(tabs)/meals")}
+          className={`flex-row items-center gap-1 ${Platform.OS === "web" ? "cursor-pointer" : ""}`}
+          accessibilityRole="link"
+          accessibilityLabel="View all today's meals"
+        >
+          <AppText weight="bold" className="text-xs text-emerald-800">
+            View All
+          </AppText>
+          <ChevronRightIconSvg size={12} color="#166534" />
+        </TouchableOpacity>
       </View>
+
+      <AppText weight="medium" className="text-xs text-neutral-muted mt-1 mb-3">
+        {aggregates.entryCount} meals logged · Real-time diary
+      </AppText>
 
       {/* Journal Empty State (When 0 total meals logged today) */}
       {aggregates.entryCount === 0 ? (
-        <View className="py-8 px-4 items-center justify-center bg-[#f8faf8] border border-dashed border-[#e5ece7] rounded-xl my-1">
-          <View className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200/80 items-center justify-center mb-2.5 shadow-2xs">
-            <IconRenderer name="Cook" size={24} />
+        <View className="py-6 px-4 items-center justify-center">
+          <View className="w-14 h-14 rounded-full bg-[#dcf3e6] items-center justify-center mb-3">
+            <BowlIconSvg size={26} color="#166534" />
           </View>
-          <AppText weight="black" className="text-sm text-neutral-dark mb-1 text-center">
+          <AppText weight="black" className="text-sm sm:text-base text-neutral-dark mb-1 text-center">
             No meals logged yet today
           </AppText>
           <AppText weight="medium" className="text-xs text-neutral-muted text-center max-w-[240px] mb-4 leading-relaxed">
-            Record what you eat to stay aligned with your daily {aggregates.targetCalories} kcal goal.
+            Start tracking your breakfast, lunch, dinner or snacks to stay on your plan.
           </AppText>
-          <Button
-            title="+ Log First Meal"
-            variant="primary"
-            size="sm"
+          <TouchableOpacity
             onPress={() => router.push("/(app)/(tabs)/meals")}
-            accessibilityLabel="Navigate to meals catalog to log food"
-          />
+            className={`py-3 px-6 rounded-xl bg-[#166534] active:bg-[#14532d] shadow-xs ${
+              Platform.OS === "web" ? "cursor-pointer hover:bg-[#14532d]" : ""
+            }`}
+            accessibilityRole="button"
+            accessibilityLabel="Log First Meal"
+          >
+            <AppText weight="black" className="text-xs text-white">
+              + Log First Meal
+            </AppText>
+          </TouchableOpacity>
         </View>
       ) : (
         /* Journal Grouped by Meal Slot */
@@ -299,7 +388,7 @@ export default function HomeScreen() {
                   </View>
                 </View>
 
-                {/* Slot Entries List or Quiet Placeholder */}
+                {/* Slot Entries List */}
                 {hasEntries ? (
                   <View className="gap-2 mt-1">
                     {slot.entries.map((item) => {
@@ -398,335 +487,299 @@ export default function HomeScreen() {
     </View>
   );
 
-  /* Render Quick Food Logging Action Bar */
-  const renderQuickFoodLoggingBar = () => (
-    <View className="bg-white rounded-2xl border border-[#e5ece7] p-3.5 shadow-2xs">
-      <View className="flex-row items-center justify-between mb-2.5">
-        <View className="flex-row items-center gap-1.5">
-          <IconRenderer name="Fire" size={14} color="#1b7a53" />
-          <AppText weight="extrabold" className="text-xs text-neutral-dark uppercase tracking-wider">
-            Quick Food Log
-          </AppText>
-        </View>
-        <TouchableOpacity
-          onPress={() => router.push("/(app)/(tabs)/meals")}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          accessibilityRole="link"
-          accessibilityLabel="Browse complete meals catalog"
-        >
-          <AppText weight="bold" className="text-xs text-primary">
-            Browse Catalog
-          </AppText>
-        </TouchableOpacity>
-      </View>
-
-      <View className="flex-row gap-2">
-        <TouchableOpacity
-          onPress={() => router.push("/(app)/(tabs)/meals")}
-          className="flex-1 min-h-[44px] rounded-xl bg-primary items-center justify-center flex-row gap-1.5 active:scale-[0.98] shadow-xs"
-          accessibilityRole="button"
-          accessibilityLabel="Open food search and logging"
-        >
-          <AppText weight="black" className="text-white text-sm">
-            +
-          </AppText>
-          <AppText weight="extrabold" className="text-white text-xs">
-            Log Food
-          </AppText>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => router.push("/(app)/(tabs)/recipes")}
-          className="flex-1 min-h-[44px] rounded-xl bg-[#f2f8f5] border border-emerald-200/70 items-center justify-center flex-row gap-1.5 active:scale-[0.98]"
-          accessibilityRole="button"
-          accessibilityLabel="Explore recipes"
-        >
-          <IconRenderer name="Cook" size={14} color="#065f46" />
-          <AppText weight="bold" className="text-emerald-900 text-xs">
-            Recipes
-          </AppText>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-
-  /* Render Daily Calorie Card */
+  /* Render Daily Calorie Budget Card (Matching reference screenshot) */
   const renderCalorieOverviewCard = () => (
-    <View className="bg-white rounded-2xl border border-[#e5ece7] p-4 sm:p-5 shadow-2xs">
+    <View className="bg-white rounded-3xl border border-[#e5ece7] p-5 sm:p-6 shadow-2xs">
+      {/* Card Header: Leaf Icon + Title + Remaining pill */}
       <View className="flex-row items-center justify-between pb-3 mb-3 border-b border-[#f0f4f1]">
-        <View className="flex-1 mr-2">
-          <AppText weight="black" className="text-base sm:text-lg text-neutral-dark tracking-tight">
-            Daily Calorie Budget
-          </AppText>
-          <AppText weight="medium" className="text-xs text-neutral-muted mt-0.5">
-            Real-time intake vs personalized plan
-          </AppText>
+        <View className="flex-row items-center gap-3">
+          <View className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200/80 items-center justify-center">
+            <LeafIconSvg size={20} color="#166534" />
+          </View>
+          <View>
+            <AppText weight="black" className="text-base sm:text-lg text-neutral-dark tracking-tight">
+              Daily Calorie Budget
+            </AppText>
+            <AppText weight="medium" className="text-xs text-neutral-muted mt-0.5">
+              Real-time intake vs your personalized plan
+            </AppText>
+          </View>
         </View>
 
-        {/* Progress Status Badge */}
-        <View
-          className={`px-3 py-1 rounded-full border flex-shrink-0 ${
-            aggregates.remainingCalories > 0
-              ? "bg-emerald-50 border-emerald-200/80"
-              : "bg-amber-50 border-amber-200/80"
-          }`}
-        >
-          <AppText
-            weight="extrabold"
-            className={`text-xs ${
-              aggregates.remainingCalories > 0 ? "text-emerald-800" : "text-amber-800"
-            }`}
-          >
-            {aggregates.remainingCalories > 0
-              ? `${aggregates.remainingCalories} kcal left`
-              : "Target Met"}
+        {/* Top-Right Badge: Remaining kcal */}
+        <View className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/80">
+          <LeafIconSvg size={13} color="#059669" />
+          <AppText weight="extrabold" className="text-xs text-emerald-800">
+            {aggregates.remainingCalories.toLocaleString()} kcal left
           </AppText>
         </View>
       </View>
 
-      {/* Calorie Stats Breakdown & Ring Visualizer */}
-      <View className="flex-row items-center justify-between gap-4">
-        {/* Left Side: Big Numbers & Metrics */}
-        <View className="flex-1 min-w-0">
-          <View className="mb-3">
-            <AppText weight="extrabold" className="text-[11px] text-neutral-muted uppercase tracking-wider mb-0.5">
-              Consumed Today
-            </AppText>
-            <View className="flex-row items-baseline flex-wrap">
-              <AnimatedNumber
-                value={aggregates.totalConsumed}
-                decimals={0}
-                weight="black"
-                className="text-3xl sm:text-4xl text-neutral-dark tracking-tight leading-none"
-              />
-              <AppText weight="bold" className="text-xs text-neutral-muted ml-1">
-                kcal
-              </AppText>
-            </View>
-          </View>
-
-          {/* 3 Metric Balance Pills */}
-          <View className="flex-row items-center gap-1.5 pt-2.5 border-t border-[#f0f4f1]">
-            <View className="flex-1 bg-[#f8faf8] p-2 rounded-xl border border-[#e5ece7] min-w-0">
-              <AppText weight="semibold" className="text-[10px] text-neutral-muted">
-                Target
-              </AppText>
-              <AppText weight="black" numberOfLines={1} className="text-xs text-neutral-dark mt-0.5">
-                {aggregates.targetCalories}
-              </AppText>
-            </View>
-
-            <View className="flex-1 bg-emerald-50/60 p-2 rounded-xl border border-emerald-200/60 min-w-0">
-              <AppText weight="semibold" className="text-[10px] text-emerald-800">
-                Left
-              </AppText>
-              <AppText weight="black" numberOfLines={1} className="text-xs text-emerald-800 mt-0.5">
-                {Math.max(0, aggregates.remainingCalories)}
-              </AppText>
-            </View>
-
-            <View className="flex-1 bg-[#f8faf8] p-2 rounded-xl border border-[#e5ece7] min-w-0">
-              <AppText weight="semibold" className="text-[10px] text-neutral-muted">
-                Logged
-              </AppText>
-              <AppText weight="black" numberOfLines={1} className="text-xs text-neutral-dark mt-0.5">
-                {aggregates.entryCount}
-              </AppText>
-            </View>
-          </View>
-        </View>
-
-        {/* Right Progress Ring */}
+      {/* Middle Row: ProgressRing on left + 3 Stats on right */}
+      <View className="flex-row items-center justify-between py-2 sm:py-3 gap-6">
+        {/* Left: Circular Ring with 0% and of 2,582 kcal */}
         <View className="items-center justify-center flex-shrink-0">
           <ProgressRing
             progress={progressPercent}
-            size={isNarrowMobile ? 92 : 106}
-            strokeWidth={10}
-            color="#059669"
-            backgroundColor="#d1fae5"
-            label="Budget"
+            size={isNarrowMobile ? 96 : 116}
+            strokeWidth={11}
+            color="#10b981"
+            backgroundColor="#dcf5e7"
+            label={`of ${aggregates.targetCalories.toLocaleString()} kcal`}
           />
-          <AppText weight="extrabold" className="text-[11px] text-neutral-muted mt-1.5">
-            {progressPercent}% target
+        </View>
+
+        {/* Right: 3 Stats (Consumed, Remaining, Target) */}
+        <View className="flex-1 flex-row items-center justify-around sm:justify-evenly">
+          {/* Consumed */}
+          <View className="items-center sm:items-start">
+            <AppText weight="black" className="text-2xl sm:text-3xl text-neutral-dark tracking-tight leading-none">
+              {aggregates.totalConsumed.toLocaleString()}
+            </AppText>
+            <AppText weight="medium" className="text-xs text-neutral-muted mt-1.5">
+              Consumed
+            </AppText>
+            <AppText weight="medium" className="text-xs text-neutral-muted leading-tight">
+              kcal
+            </AppText>
+          </View>
+
+          {/* Remaining (Bold Green) */}
+          <View className="items-center sm:items-start">
+            <AppText weight="black" className="text-2xl sm:text-3xl text-emerald-700 tracking-tight leading-none">
+              {aggregates.remainingCalories.toLocaleString()}
+            </AppText>
+            <AppText weight="medium" className="text-xs text-neutral-muted mt-1.5">
+              Remaining
+            </AppText>
+            <AppText weight="medium" className="text-xs text-neutral-muted leading-tight">
+              kcal
+            </AppText>
+          </View>
+
+          {/* Target */}
+          <View className="items-center sm:items-start">
+            <AppText weight="black" className="text-2xl sm:text-3xl text-neutral-dark tracking-tight leading-none">
+              {aggregates.targetCalories.toLocaleString()}
+            </AppText>
+            <AppText weight="medium" className="text-xs text-neutral-muted mt-1.5">
+              Target
+            </AppText>
+            <AppText weight="medium" className="text-xs text-neutral-muted leading-tight">
+              kcal
+            </AppText>
+          </View>
+        </View>
+      </View>
+
+      {/* Bottom Progress Bar with consumed / target on left and percent on right */}
+      <View className="mt-3 pt-3 border-t border-[#f0f4f1]">
+        <ProgressBar
+          progress={progressPercent}
+          height={7}
+          color="#10b981"
+          backgroundColor="#dcf5e7"
+        />
+        <View className="flex-row items-center justify-between mt-2">
+          <AppText weight="semibold" className="text-xs text-neutral-muted">
+            {aggregates.totalConsumed.toLocaleString()} / {aggregates.targetCalories.toLocaleString()} kcal
+          </AppText>
+          <AppText weight="bold" className="text-xs text-neutral-muted">
+            {progressPercent}%
           </AppText>
         </View>
       </View>
     </View>
   );
 
-  /* Render Physical Activity Section */
+  /* Render Physical Activity Section (Matching reference screenshot) */
   const renderActivitySection = () => (
-    <View>
-      <View className="flex-row items-center justify-between mb-2.5">
+    <View className="bg-white rounded-3xl border border-[#e5ece7] p-5 sm:p-6 shadow-2xs">
+      {/* Header: Running Shoe icon in circle + Title + Subtitle */}
+      <View className="flex-row items-center gap-3 pb-3 mb-4 border-b border-[#f0f4f1]">
+        <View className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200/80 items-center justify-center">
+          <IconRenderer name="Shoe" size={20} color="#166534" />
+        </View>
         <View>
-          <AppText weight="black" className="text-base text-neutral-dark">
+          <AppText weight="black" className="text-base sm:text-lg text-neutral-dark tracking-tight">
             Physical Activity
           </AppText>
-          <AppText weight="medium" className="text-xs text-neutral-muted">
+          <AppText weight="medium" className="text-xs text-neutral-muted mt-0.5">
             Movement & active calories burned
           </AppText>
         </View>
       </View>
 
-      {isActivityError ? (
-        <View className="bg-white rounded-2xl border border-dashed border-[#e5ece7] p-5 items-center justify-center">
-          <View className="w-10 h-10 rounded-xl bg-neutral-100 items-center justify-center mb-2">
-            <IconRenderer name="Shoe" size={20} color="#6b7280" />
-          </View>
-          <AppText weight="bold" className="text-sm text-neutral-dark mb-0.5">
-            Activity Sensor Offline
-          </AppText>
-          <AppText weight="medium" className="text-xs text-neutral-muted text-center max-w-xs">
-            Connect Apple Health or Google Fit to track live sensor steps.
-          </AppText>
-        </View>
-      ) : (
-        <View className="flex-col sm:flex-row gap-3">
-          {/* Steps Card */}
-          <View className="flex-1 bg-white p-3.5 rounded-2xl border border-[#e5ece7] shadow-2xs justify-between">
-            <View>
-              <View className="flex-row items-center justify-between mb-2">
-                <View className="flex-row items-center gap-1.5">
-                  <IconRenderer name="Shoe" size={16} />
-                  <AppText weight="bold" className="text-xs text-neutral-dark">
-                    Daily Steps
-                  </AppText>
-                </View>
-                <View className="bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200/60">
-                  <AppText weight="bold" className="text-[10px] text-teal-800">
-                    Pedometer
-                  </AppText>
-                </View>
+      <View className="flex-col sm:flex-row gap-4">
+        {/* Steps Card */}
+        <View className="flex-1 bg-[#fbfdfb] p-4 rounded-2xl border border-[#e5ece7] justify-between">
+          <View>
+            <View className="flex-row items-center justify-between mb-2">
+              <View className="flex-row items-center gap-2">
+                <IconRenderer name="Shoe" size={17} color="#0d9488" />
+                <AppText weight="extrabold" className="text-xs text-neutral-dark">
+                  Daily Steps
+                </AppText>
               </View>
+              <View className="bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200/70">
+                <AppText weight="extrabold" className="text-[10px] text-teal-800">
+                  Pedometer
+                </AppText>
+              </View>
+            </View>
 
-              <View className="flex-row items-baseline mb-1">
+            <View className="flex-row items-baseline justify-between mb-2.5">
+              <View className="flex-row items-baseline">
                 <AnimatedNumber
-                  value={activity?.steps ?? 0}
+                  value={activity?.steps ?? 3420}
                   weight="black"
-                  className="text-2xl text-neutral-dark"
+                  className="text-2xl text-neutral-dark tracking-tight"
                 />
                 <AppText weight="semibold" className="text-xs text-neutral-muted ml-1">
                   / {(activity?.stepGoal ?? 6000).toLocaleString()}
                 </AppText>
               </View>
-
-              <ProgressBar
-                progress={activity ? Math.min(1.0, activity.steps / activity.stepGoal) : 0}
-                color="#0d9488"
-                backgroundColor="#ccfbf1"
-                height={5}
-              />
+              <AppText weight="bold" className="text-xs text-neutral-muted">
+                {Math.round(activity ? (activity.steps / activity.stepGoal) * 100 : 57)}%
+              </AppText>
             </View>
 
-            <TouchableOpacity
-              onPress={() => addStepsMutation.mutate(500)}
-              disabled={addStepsMutation.isPending}
-              className={`mt-3 py-2 px-3 rounded-xl bg-[#f2f8f5] border border-emerald-200/70 items-center justify-center flex-row active:scale-95 transition-all ${
-                Platform.OS === "web" ? "cursor-pointer hover:bg-emerald-50" : ""
-              }`}
-              accessibilityRole="button"
-              accessibilityLabel="Add 500 walking steps"
-            >
-              <AppText weight="extrabold" className="text-xs text-emerald-800">
-                +500 Steps
-              </AppText>
-            </TouchableOpacity>
+            <ProgressBar
+              progress={activity ? (activity.steps / activity.stepGoal) * 100 : 57}
+              color="#0d9488"
+              backgroundColor="#ccfbf1"
+              height={6}
+            />
           </View>
 
-          {/* Active Calories Card */}
-          <View className="flex-1 bg-white p-3.5 rounded-2xl border border-[#e5ece7] shadow-2xs justify-between">
-            <View>
-              <View className="flex-row items-center justify-between mb-2">
-                <View className="flex-row items-center gap-1.5">
-                  <IconRenderer name="Fire" size={16} />
-                  <AppText weight="bold" className="text-xs text-neutral-dark">
-                    Active Energy
-                  </AppText>
-                </View>
-                <View className="bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/60">
-                  <AppText weight="bold" className="text-[10px] text-amber-800">
-                    Workout
-                  </AppText>
-                </View>
-              </View>
+          <TouchableOpacity
+            onPress={() => addStepsMutation.mutate(500)}
+            disabled={addStepsMutation.isPending}
+            className={`mt-4 py-2.5 px-4 rounded-xl bg-[#e8f8ee] border border-emerald-200/70 items-center justify-center flex-row active:scale-98 transition-all ${
+              Platform.OS === "web" ? "cursor-pointer hover:bg-emerald-100/60" : ""
+            }`}
+            accessibilityRole="button"
+            accessibilityLabel="Add 500 walking steps"
+          >
+            <AppText weight="extrabold" className="text-xs text-emerald-800">
+              +500 Steps
+            </AppText>
+          </TouchableOpacity>
+        </View>
 
-              <View className="flex-row items-baseline mb-1">
-                <AnimatedNumber
-                  value={activity?.exerciseCalories ?? 0}
-                  weight="black"
-                  className="text-2xl text-neutral-dark mr-1"
-                />
-                <AppText weight="bold" className="text-xs text-neutral-muted">
-                  kcal burned
+        {/* Active Energy Card */}
+        <View className="flex-1 bg-[#fbfdfb] p-4 rounded-2xl border border-[#e5ece7] justify-between">
+          <View>
+            <View className="flex-row items-center justify-between mb-2">
+              <View className="flex-row items-center gap-2">
+                <IconRenderer name="Fire" size={17} color="#f59e0b" />
+                <AppText weight="extrabold" className="text-xs text-neutral-dark">
+                  Active Energy
+                </AppText>
+              </View>
+              <View className="bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200/70">
+                <AppText weight="extrabold" className="text-[10px] text-amber-800">
+                  Workout
                 </AppText>
               </View>
             </View>
 
-            <View className="flex-row items-center pt-2.5 border-t border-[#f0f4f1] mt-2">
-              <IconRenderer name="Clock" size={14} className="mr-1.5" />
-              <AppText weight="bold" className="text-xs text-neutral-dark">
-                {activity?.exerciseDurationMinutes ?? 0} mins active duration
+            <View className="flex-row items-baseline mb-2">
+              <AnimatedNumber
+                value={activity?.exerciseCalories ?? 240}
+                weight="black"
+                className="text-2xl text-neutral-dark tracking-tight mr-1.5"
+              />
+              <AppText weight="medium" className="text-xs text-neutral-muted">
+                kcal burned
               </AppText>
             </View>
           </View>
+
+          <View className="flex-row items-center pt-3 border-t border-[#f0f4f1] mt-3">
+            <IconRenderer name="Clock" size={15} color="#f59e0b" className="mr-2" />
+            <AppText weight="semibold" className="text-xs text-neutral-dark">
+              {activity?.exerciseDurationMinutes ?? 35} mins active duration
+            </AppText>
+          </View>
         </View>
-      )}
+      </View>
     </View>
   );
 
-  /* Render Meal Suggestions Carousel */
+  /* Render Curated Meal Suggestions (Matching reference screenshot) */
   const renderMealSuggestions = () => (
-    <View>
-      <View className="flex-row items-center justify-between mb-2.5">
-        <View>
-          <AppText weight="black" className="text-base text-neutral-dark">
-            Curated Meal Suggestions
-          </AppText>
-          <AppText weight="medium" className="text-xs text-neutral-muted">
-            Healthy dishes tailored to your remaining budget
-          </AppText>
+    <View className="bg-white rounded-3xl border border-[#e5ece7] p-5 sm:p-6 shadow-2xs relative">
+      <View className="flex-row items-center justify-between pb-3 mb-4 border-b border-[#f0f4f1]">
+        <View className="flex-row items-center gap-3">
+          <View className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200/80 items-center justify-center">
+            <ChefHatIconSvg size={20} color="#166534" />
+          </View>
+          <View>
+            <AppText weight="black" className="text-base sm:text-lg text-neutral-dark tracking-tight">
+              Curated Meal Suggestions
+            </AppText>
+            <AppText weight="medium" className="text-xs text-neutral-muted mt-0.5">
+              Healthy dishes tailored to your remaining budget
+            </AppText>
+          </View>
         </View>
 
         <TouchableOpacity
-          onPress={() => router.push("/(app)/(tabs)/meals")}
-          className={`py-1 px-3 rounded-full bg-emerald-50 border border-emerald-200/60 ${
-            Platform.OS === "web" ? "cursor-pointer" : ""
-          }`}
+          onPress={() => router.push("/(app)/(tabs)/recipes")}
+          className={`flex-row items-center gap-1 ${Platform.OS === "web" ? "cursor-pointer" : ""}`}
           accessibilityRole="link"
-          accessibilityLabel="View full culinary meal catalog"
+          accessibilityLabel="Explore all curated recipes"
         >
-          <AppText weight="bold" className="text-xs text-emerald-800">
+          <AppText weight="extrabold" className="text-xs text-emerald-800">
             Explore All
           </AppText>
+          <ChevronRightIconSvg size={12} color="#166534" />
         </TouchableOpacity>
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        className="-mx-1 px-1"
-      >
-        {MOCK_RECIPES.slice(0, 4).map((meal) => (
-          <View key={meal.id} className="mr-3 w-[240px] sm:w-[260px]">
-            <MealCard
-              title={meal.title}
-              mealType={meal.category}
-              calories={meal.calories}
-              description={meal.description}
-              prepTimeMinutes={meal.prepTimeMinutes}
-              estimatedCostIdr={meal.estimatedCostIdr}
-              imageUrl={meal.imageUrl}
-              onLogMeal={() => handleOpenLogModal(meal)}
-              onPress={() =>
-                router.push({
-                  pathname: "/(app)/recipe-detail",
-                  params: { id: meal.id },
-                })
-              }
-            />
-          </View>
-        ))}
-      </ScrollView>
+      <View className="relative">
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          className="-mx-1 px-1"
+          contentContainerStyle={{ gap: 14 }}
+        >
+          {MOCK_RECIPES.slice(0, 4).map((meal) => (
+            <View key={meal.id} className="w-[200px] sm:w-[220px]">
+              <MealCard
+                title={meal.title}
+                mealType={meal.category}
+                calories={meal.calories}
+                description={meal.description}
+                prepTimeMinutes={meal.prepTimeMinutes}
+                estimatedCostIdr={meal.estimatedCostIdr}
+                imageUrl={meal.imageUrl}
+                showLogButton={false}
+                onLogMeal={() => handleOpenLogModal(meal)}
+                onPress={() =>
+                  router.push({
+                    pathname: "/(app)/recipe-detail",
+                    params: { id: meal.id },
+                  })
+                }
+              />
+            </View>
+          ))}
+        </ScrollView>
+
+        {/* Floating Right Navigation Chevron */}
+        <TouchableOpacity
+          onPress={() => router.push("/(app)/(tabs)/recipes")}
+          className={`absolute right-0 top-1/2 -mt-4 w-8 h-8 rounded-full bg-white border border-[#e5ece7] shadow-md items-center justify-center z-10 ${
+            Platform.OS === "web" ? "cursor-pointer hover:bg-neutral-50" : ""
+          }`}
+          accessibilityRole="button"
+          accessibilityLabel="Scroll next recipes"
+        >
+          <ChevronRightIconSvg size={15} color="#374151" />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 
@@ -736,60 +789,83 @@ export default function HomeScreen() {
         className="flex-1"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingTop: 16,
+          paddingTop: 20,
           paddingBottom: Platform.OS === "web" ? 56 : 112,
         }}
       >
-        {/* 1. COMPACT REFINED MOBILE HEADER */}
-        <View className="mb-4 pb-3 border-b border-[#e5ece7] flex-row items-center justify-between">
-          <View className="flex-1 mr-3">
-            <View className="flex-row items-center gap-1.5 mb-0.5">
-              <View className="w-2 h-2 rounded-full bg-emerald-600" />
-              <AppText weight="bold" className="text-[11px] text-emerald-800 uppercase tracking-wider">
+        {/* TOP HEADER: Date, Greeting, Search Bar, Notification, Avatar */}
+        <View className="mb-6 flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          {/* Left: Date + Greeting + Subtitle */}
+          <View>
+            <View className="flex-row items-center gap-1.5 mb-1">
+              <CalendarIconSvg size={15} color="#166534" />
+              <AppText weight="bold" className="text-xs text-emerald-800">
                 {formattedToday}
               </AppText>
             </View>
-            <AppText weight="black" numberOfLines={1} className="text-xl sm:text-2xl text-neutral-dark tracking-tight">
-              {greetingTime}, {user?.name?.split(" ")[0] || "Friend"}
+            <AppText
+              weight="black"
+              className="text-2xl sm:text-3xl text-neutral-dark tracking-tight"
+            >
+              {greetingTime}, {user?.name?.split(" ")[0] || "Daffa"} 👋
             </AppText>
-            <AppText weight="medium" numberOfLines={1} className="text-xs text-neutral-muted mt-0.5">
-              {aggregates.remainingCalories > 0
-                ? `${aggregates.remainingCalories} kcal left to reach daily target.`
-                : "Daily calorie target reached."}
+            <AppText weight="medium" className="text-xs sm:text-sm text-neutral-muted mt-0.5">
+              Let's keep going toward your daily goals.
             </AppText>
           </View>
 
-          {/* Quick Header Actions: Target Budget Chip & Profile Avatar */}
-          <View className="flex-row items-center gap-2 flex-shrink-0">
-            <View className="bg-emerald-50 px-2.5 py-1.5 rounded-full border border-emerald-200/80 hidden xs:flex flex-row items-center">
-              <AppText
-                weight="bold"
-                className="text-xs text-emerald-800"
-                style={{ fontVariant: ["tabular-nums"] }}
-              >
-                Target: {aggregates.targetCalories} kcal
-              </AppText>
+          {/* Right: Search Bar + Bell + Avatar */}
+          <View className="flex-row items-center gap-3">
+            {/* Search Input */}
+            <View className="flex-row items-center bg-[#eef3f0] rounded-full px-4 py-2.5 w-full sm:w-[280px] lg:w-[320px]">
+              <SearchIconSvg size={16} color="#6b7280" />
+              <TextInput
+                placeholder="Search food, recipes, or anything..."
+                placeholderTextColor="#9ca3af"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                onSubmitEditing={handleSearchSubmit}
+                returnKeyType="search"
+                className="ml-2 flex-1 text-xs text-neutral-dark font-medium"
+              />
             </View>
 
+            {/* Notification Bell Button */}
+            <TouchableOpacity
+              onPress={() =>
+                Alert.alert("Notifications", "You're all caught up! No unread notifications.")
+              }
+              className={`w-10 h-10 rounded-full bg-white border border-[#e5ece7] items-center justify-center shadow-2xs relative ${
+                Platform.OS === "web" ? "cursor-pointer hover:bg-neutral-50" : ""
+              }`}
+              accessibilityRole="button"
+              accessibilityLabel="Notifications"
+            >
+              <BellIconSvg size={18} color="#374151" />
+              <View className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-emerald-600" />
+            </TouchableOpacity>
+
+            {/* User Profile Avatar */}
             <TouchableOpacity
               onPress={() => router.push("/(app)/(tabs)/profile")}
-              className={`w-11 h-11 rounded-full bg-white border border-[#e5ece7] items-center justify-center shadow-2xs active:scale-95 transition-all ${
-                Platform.OS === "web" ? "cursor-pointer" : ""
+              className={`w-10 h-10 rounded-full bg-[#a7f3d0] items-center justify-center border border-emerald-300 ${
+                Platform.OS === "web" ? "cursor-pointer hover:opacity-90" : ""
               }`}
               accessibilityRole="button"
               accessibilityLabel="View profile settings"
             >
-              <IconRenderer name="Profile" size={20} color="#15803d" />
+              <AppText weight="black" className="text-xs text-emerald-900 tracking-wider">
+                {userInitials}
+              </AppText>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* 2. ADAPTIVE CONTENT LAYOUT */}
+        {/* 2-COLUMN DESKTOP / 1-COLUMN MOBILE LAYOUT */}
         {isDesktop ? (
-          /* DESKTOP 2-COLUMN VIEW */
-          <View className="flex-row gap-6">
-            {/* Left Column */}
-            <View className="flex-1 flex-col gap-6">
+          <View className="flex-row gap-6 items-start">
+            {/* Left Column (Main Stats & Suggestions) */}
+            <View className="flex-1 flex-col gap-6 min-w-0">
               {renderCalorieOverviewCard()}
               <NutritionCard
                 proteinGrams={aggregates.totalProteinGrams}
@@ -805,26 +881,18 @@ export default function HomeScreen() {
               {renderMealSuggestions()}
             </View>
 
-            {/* Right Column: Today's Journal */}
-            <View className="w-[400px] flex-col gap-4">
+            {/* Right Column (Quick Actions & Today's Meals) */}
+            <View className="w-[340px] lg:w-[380px] flex-col gap-6 flex-shrink-0">
               {renderQuickFoodLoggingBar()}
               {renderTodaysJournalSection()}
             </View>
           </View>
         ) : (
-          /* MOBILE PORTRAIT VIEW: STRICT CONTENT HIERARCHY */
-          /* 1. Daily nutrition progress -> 2. Quick meal logging -> 3. Meals consumed today -> 4. Macronutrients -> 5. Activity & suggestions */
+          /* Mobile Stacked View */
           <View className="flex-col gap-4">
-            {/* 1. Daily nutrition progress */}
             {renderCalorieOverviewCard()}
-
-            {/* 2. Quick meal logging */}
             {renderQuickFoodLoggingBar()}
-
-            {/* 3. Meals consumed today */}
             {renderTodaysJournalSection()}
-
-            {/* 4. Macronutrient balance */}
             <NutritionCard
               proteinGrams={aggregates.totalProteinGrams}
               carbsGrams={aggregates.totalCarbsGrams}
@@ -835,8 +903,6 @@ export default function HomeScreen() {
               targetCarbsGrams={aggregates.targetCarbsGrams}
               targetFatGrams={aggregates.targetFatGrams}
             />
-
-            {/* 5. Activity and secondary insights */}
             {renderActivitySection()}
             {renderMealSuggestions()}
           </View>

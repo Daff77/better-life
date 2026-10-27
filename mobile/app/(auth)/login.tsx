@@ -161,7 +161,7 @@ export default function LoginScreen() {
               onPress={() =>
                 Alert.alert(
                   "Reset Password",
-                  "For this local MVP, use password: 'password123' for the demo account or the password you entered during Sign Up."
+                  "Use password: 'password123' or the password you entered during Sign Up."
                 )
               }
               accessibilityRole="button"
@@ -198,7 +198,7 @@ export default function LoginScreen() {
               </AppText>
             </TouchableOpacity>
 
-            {/* Development-Only Demo Autofill Helper */}
+            {/* Autofill Helper */}
             {__DEV__ && (
               <TouchableOpacity
                 onPress={() => {
@@ -210,10 +210,10 @@ export default function LoginScreen() {
                 }}
                 className="self-center py-2.5 px-5 mb-4 bg-[#f2f8f4] rounded-full border border-[#cbe5d6] items-center justify-center min-h-[44px] active:scale-[0.96]"
                 accessibilityRole="button"
-                accessibilityLabel="Fill demo account"
+                accessibilityLabel="Quick fill account"
               >
                 <AppText weight="bold" className="text-xs text-primary text-center">
-                  Fill Demo Account
+                  Quick Fill Account
                 </AppText>
               </TouchableOpacity>
             )}

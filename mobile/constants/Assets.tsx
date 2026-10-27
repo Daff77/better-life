@@ -339,6 +339,165 @@ export const ZapIconSvg = ({ size = 16, color, stroke, strokeWidth = 2, fill = "
   </Svg>
 );
 
+export const BellIconSvg = ({ size = 18, color, stroke, strokeWidth = 2, ...props }: CustomSvgProps) => (
+  <Svg
+    width={props.width || size}
+    height={props.height || size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke={stroke || color || "#475569"}
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <Path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+    <Path d="M13.73 21a2 2 0 0 1-3.46 0" />
+  </Svg>
+);
+
+export const UtensilsIconSvg = ({ size = 18, color, stroke, strokeWidth = 2, ...props }: CustomSvgProps) => (
+  <Svg
+    width={props.width || size}
+    height={props.height || size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke={stroke || color || "#ffffff"}
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <Path d="M18 2v6a3 3 0 0 1-3 3 3 3 0 0 1-3-3V2" />
+    <Path d="M15 2v18" />
+    <Path d="M6 2v8a3 3 0 0 0 6 0V2" />
+    <Path d="M9 10v10" />
+  </Svg>
+);
+
+export const BookOpenIconSvg = ({ size = 18, color, stroke, strokeWidth = 2, ...props }: CustomSvgProps) => (
+  <Svg
+    width={props.width || size}
+    height={props.height || size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke={stroke || color || "#166534"}
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <Path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+    <Path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+  </Svg>
+);
+
+export const CalendarIconSvg = ({ size = 16, color, stroke, strokeWidth = 2, ...props }: CustomSvgProps) => (
+  <Svg
+    width={props.width || size}
+    height={props.height || size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke={stroke || color || "#166534"}
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <Path d="M8 2v4M16 2v4" />
+    <Path d="M3 10h18" />
+    <Path d="M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" />
+  </Svg>
+);
+
+export const CrownIconSvg = ({ size = 16, color = "#f59e0b", ...props }: CustomSvgProps) => (
+  <Svg
+    width={props.width || size}
+    height={props.height || size}
+    viewBox="0 0 24 24"
+    fill={color}
+    stroke={color}
+    strokeWidth={1}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <Path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14v2H5v-2z" />
+  </Svg>
+);
+
+export const BowlIconSvg = ({ size = 20, color, stroke, strokeWidth = 2, ...props }: CustomSvgProps) => (
+  <Svg
+    width={props.width || size}
+    height={props.height || size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke={stroke || color || "#166534"}
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <Path d="M4 11h16a1 1 0 0 1 1 1c0 5-4 9-9 9s-9-4-9-9a1 1 0 0 1 1-1Z" />
+    <Path d="M6 8c1-1.5 1-2.5 0-4" />
+    <Path d="M12 8c1-1.5 1-2.5 0-4" />
+    <Path d="M18 8c1-1.5 1-2.5 0-4" />
+  </Svg>
+);
+
+export const ChefHatIconSvg = ({ size = 18, color, stroke, strokeWidth = 2, ...props }: CustomSvgProps) => (
+  <Svg
+    width={props.width || size}
+    height={props.height || size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke={stroke || color || "#166534"}
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <Path d="M6 13.8a4.5 4.5 0 1 1 2.2-8.5 5 5 0 0 1 7.6 0A4.5 4.5 0 1 1 18 13.8" />
+    <Path d="M6 14h12v4a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-4z" />
+    <Path d="M9 17h6" />
+  </Svg>
+);
+
+export const LeafIconSvg = ({ size = 18, color, stroke, strokeWidth = 2, ...props }: CustomSvgProps) => (
+  <Svg
+    width={props.width || size}
+    height={props.height || size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke={stroke || color || "#166534"}
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <Path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
+    <Path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
+  </Svg>
+);
+
+export const BarChartIconSvg = ({ size = 18, color, stroke, strokeWidth = 2.2, ...props }: CustomSvgProps) => (
+  <Svg
+    width={props.width || size}
+    height={props.height || size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke={stroke || color || "#166534"}
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <Path d="M18 20V10" />
+    <Path d="M12 20V4" />
+    <Path d="M6 20v-6" />
+  </Svg>
+);
+
 export const RefreshIconSvg = ({ size = 16, color, stroke, strokeWidth = 2, ...props }: CustomSvgProps) => (
   <Svg
     width={props.width || size}
@@ -425,6 +584,15 @@ export const AppIcons = {
   Plus: PlusIconSvg,
   Zap: ZapIconSvg,
   Refresh: RefreshIconSvg,
+  Bell: BellIconSvg,
+  Utensils: UtensilsIconSvg,
+  BookOpen: BookOpenIconSvg,
+  Calendar: CalendarIconSvg,
+  Crown: CrownIconSvg,
+  Bowl: BowlIconSvg,
+  ChefHat: ChefHatIconSvg,
+  Leaf: LeafIconSvg,
+  BarChart: BarChartIconSvg,
 };
 
 export type AppIconName = keyof typeof AppIcons;

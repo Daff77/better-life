@@ -320,19 +320,17 @@ export interface NutritionCardProps extends ViewProps {
   targetProteinGrams?: number;
   targetCarbsGrams?: number;
   targetFatGrams?: number;
-  initialDemoMode?: boolean;
 }
 
 export const NutritionCard: React.FC<NutritionCardProps> = ({
-  proteinGrams,
-  carbsGrams,
-  fatGrams,
+  proteinGrams = 0,
+  carbsGrams = 0,
+  fatGrams = 0,
   fiberGrams,
   totalCalories,
-  targetProteinGrams = 134,
-  targetCarbsGrams = 268,
-  targetFatGrams = 60,
-  initialDemoMode = true,
+  targetProteinGrams = 161,
+  targetCarbsGrams = 323,
+  targetFatGrams = 72,
   className,
   style,
   ...props
@@ -341,38 +339,16 @@ export const NutritionCard: React.FC<NutritionCardProps> = ({
   const { width } = useWindowDimensions();
   const isNarrow = width < 375;
 
-  // Realistic demonstration data aligned with image 2 targets
-  const DEMO_TARGET_PROTEIN = targetProteinGrams > 0 ? targetProteinGrams : 134;
-  const DEMO_TARGET_CARBS = targetCarbsGrams > 0 ? targetCarbsGrams : 268;
-  const DEMO_TARGET_FAT = targetFatGrams > 0 ? targetFatGrams : 60;
-
-  // Demonstration figures representing a healthy, active day (~66-70% achieved)
-  const DEMO_CONSUMED_PROTEIN = 88; // 88 / 134g = ~66%
-  const DEMO_CONSUMED_CARBS = 185;  // 185 / 268g = ~69%
-  const DEMO_CONSUMED_FAT = 42;     // 42 / 60g = ~70%
-
-  // Check if real data has any logs; if 0, default to demonstration mode
-  const hasActualLogs = proteinGrams > 0 || carbsGrams > 0 || fatGrams > 0;
-  const [isDemoMode, setIsDemoMode] = useState<boolean>(
-    initialDemoMode ? true : !hasActualLogs
-  );
-
-  // Trigger state for re-running animations smoothly on demand
-  const [animTrigger, setAnimTrigger] = useState<number>(0);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState<boolean>(false);
 
-  const replayAnimation = () => {
-    setAnimTrigger((prev) => prev + 1);
-  };
+  // Active values from actual journal state
+  const activeProtein = proteinGrams;
+  const activeCarbs = carbsGrams;
+  const activeFat = fatGrams;
 
-  // Determine active values based on mode
-  const activeProtein = isDemoMode ? DEMO_CONSUMED_PROTEIN : proteinGrams;
-  const activeCarbs = isDemoMode ? DEMO_CONSUMED_CARBS : carbsGrams;
-  const activeFat = isDemoMode ? DEMO_CONSUMED_FAT : fatGrams;
-
-  const activeTargetProtein = isDemoMode ? DEMO_TARGET_PROTEIN : (targetProteinGrams || 134);
-  const activeTargetCarbs = isDemoMode ? DEMO_TARGET_CARBS : (targetCarbsGrams || 268);
-  const activeTargetFat = isDemoMode ? DEMO_TARGET_FAT : (targetFatGrams || 60);
+  const activeTargetProtein = targetProteinGrams || 161;
+  const activeTargetCarbs = targetCarbsGrams || 323;
+  const activeTargetFat = targetFatGrams || 72;
 
   // Calculate ratios & percentages
   const proteinRatio = activeTargetProtein > 0 ? Math.min(1.0, activeProtein / activeTargetProtein) : 0;
@@ -384,17 +360,17 @@ export const NutritionCard: React.FC<NutritionCardProps> = ({
   const fatPct = Math.round(fatRatio * 100);
 
   // Animated values for display
-  const animatedProteinVal = useAnimatedNumber(activeProtein, 850, animTrigger);
-  const animatedCarbsVal = useAnimatedNumber(activeCarbs, 850, animTrigger);
-  const animatedFatVal = useAnimatedNumber(activeFat, 850, animTrigger);
+  const animatedProteinVal = useAnimatedNumber(activeProtein, 850, 0);
+  const animatedCarbsVal = useAnimatedNumber(activeCarbs, 850, 0);
+  const animatedFatVal = useAnimatedNumber(activeFat, 850, 0);
 
   const proteinCalories = Math.round(activeProtein * 4);
   const carbsCalories = Math.round(activeCarbs * 4);
   const fatCalories = Math.round(activeFat * 9);
 
-  const animatedProteinKcal = useAnimatedNumber(proteinCalories, 850, animTrigger);
-  const animatedCarbsKcal = useAnimatedNumber(carbsCalories, 850, animTrigger);
-  const animatedFatKcal = useAnimatedNumber(fatCalories, 850, animTrigger);
+  const animatedProteinKcal = useAnimatedNumber(proteinCalories, 850, 0);
+  const animatedCarbsKcal = useAnimatedNumber(carbsCalories, 850, 0);
+  const animatedFatKcal = useAnimatedNumber(fatCalories, 850, 0);
 
   const totalCalculatedKcal = proteinCalories + carbsCalories + fatCalories;
 
@@ -414,8 +390,9 @@ export const NutritionCard: React.FC<NutritionCardProps> = ({
         borderTint: "border-[#d1f0dd]",
         iconBg: "bg-[#d7f3e4]",
         trackBg: "#dcf5e7",
-        ringTrack: "#e2f5e9",
-        icon: <DumbbellIcon size={20} color="#059669" />,
+        badgeBg: "bg-white",
+        badgeBorder: "border-[#c4e9d3]",
+        icon: <DumbbellIcon size={18} color="#059669" />,
         footerIcon: <FlameIcon size={13} color="#059669" />,
       },
       {
@@ -432,8 +409,9 @@ export const NutritionCard: React.FC<NutritionCardProps> = ({
         borderTint: "border-[#faedd3]",
         iconBg: "bg-[#feecd2]",
         trackBg: "#fef3c7",
-        ringTrack: "#feeed8",
-        icon: <WheatIcon size={20} color="#d97706" />,
+        badgeBg: "bg-white",
+        badgeBorder: "border-[#f6dfba]",
+        icon: <WheatIcon size={18} color="#d97706" />,
         footerIcon: <FlameIcon size={13} color="#d97706" />,
       },
       {
@@ -450,8 +428,9 @@ export const NutritionCard: React.FC<NutritionCardProps> = ({
         borderTint: "border-[#d8ecfc]",
         iconBg: "bg-[#dbedfc]",
         trackBg: "#e0f2fe",
-        ringTrack: "#e1f1fe",
-        icon: <DropletIcon size={20} color="#0284c7" />,
+        badgeBg: "bg-white",
+        badgeBorder: "border-[#cae4fa]",
+        icon: <DropletIcon size={18} color="#0284c7" />,
         footerIcon: <DropletIcon size={13} color="#0284c7" />,
       },
     ],
@@ -476,153 +455,103 @@ export const NutritionCard: React.FC<NutritionCardProps> = ({
 
   return (
     <View
-      className={`bg-white rounded-3xl border border-[#e5ebe7] p-4 sm:p-6 shadow-sm ${
+      className={`bg-white rounded-3xl border border-[#e5ece7] p-5 sm:p-6 shadow-2xs ${
         className || ""
       }`}
       style={style}
       {...props}
     >
-      {/* ==================================================== */}
-      {/* 1. Header Section: Badge, Title & Interactive Tools */}
-      {/* ==================================================== */}
-      <View className="flex-col sm:flex-row sm:items-center justify-between mb-4 pb-3.5 border-b border-[#f0f4f1] gap-3">
-        {/* Left: Green MACRONUTRIENTS Badge + Heading */}
-        <View className="flex-1">
-          <View className="flex-row items-center gap-2 mb-1.5">
-            <View className="bg-[#ecf9f2] border border-[#d2f1e1] px-2.5 py-0.5 rounded-full flex-row items-center gap-1.5 self-start">
-              <LeafBadgeIcon size={12} color="#059669" />
-              <AppText
-                weight="black"
-                className="text-[10px] text-[#059669] tracking-wider uppercase"
-              >
-                Macronutrients
-              </AppText>
-            </View>
-
-            {/* Interactive Demo Mode Toggle Pill */}
-            <Pressable
-              onPress={() => {
-                setIsDemoMode((prev) => !prev);
-                replayAnimation();
-              }}
-              className={`px-2.5 py-0.5 rounded-full flex-row items-center gap-1.5 border transition-all ${
-                isDemoMode
-                  ? "bg-amber-50 border-amber-300"
-                  : "bg-slate-50 border-slate-200"
-              }`}
-              accessibilityRole="button"
-              accessibilityLabel={`Toggle demonstration mode. Currently ${isDemoMode ? "Active" : "Inactive"}`}
-            >
-              <View
-                className={`w-1.5 h-1.5 rounded-full ${
-                  isDemoMode ? "bg-amber-500" : "bg-slate-400"
-                }`}
-              />
-              <AppText
-                weight="bold"
-                className={`text-[10px] ${
-                  isDemoMode ? "text-amber-800" : "text-slate-600"
-                }`}
-              >
-                {isDemoMode ? "Demo Mode" : "Real Logs"}
-              </AppText>
-            </Pressable>
-
-            {/* Replay Animation Button */}
-            <Pressable
-              onPress={replayAnimation}
-              className="w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 items-center justify-center active:scale-90"
-              accessibilityRole="button"
-              accessibilityLabel="Replay animations"
-            >
-              <AppText className="text-[11px] text-slate-600">↺</AppText>
-            </Pressable>
+      {/* 1. Header Section */}
+      <View className="flex-row items-center justify-between mb-4 pb-3 border-b border-[#f0f4f1]">
+        <View className="flex-row items-center gap-3 flex-1 mr-3">
+          <View className="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-200/80 items-center justify-center flex-shrink-0">
+            <BarChartIcon size={17} color="#1b7a53" />
           </View>
-
-          <AppText weight="black" className="text-xl sm:text-2xl text-slate-900 tracking-tight">
-            Macronutrient Balance
-          </AppText>
-          <AppText weight="medium" className="text-xs sm:text-sm text-slate-500 mt-0.5">
-            Protein, carbs & fats calibrated to your daily target
-          </AppText>
+          <View className="flex-1">
+            <AppText weight="black" className="text-base sm:text-lg text-neutral-dark tracking-tight leading-tight">
+              Macronutrient Balance
+            </AppText>
+            <AppText weight="medium" className="text-xs text-neutral-muted mt-0.5 leading-tight">
+              Protein, carbs & fats calibrated to your daily target
+            </AppText>
+          </View>
         </View>
 
-        {/* Right: "View Nutrition Details >" Action Button */}
+        {/* Right: View Nutrition Details Pill Link */}
         <Pressable
           onPress={() => setIsDetailsModalOpen(true)}
-          className="bg-[#f2f7f4] hover:bg-[#e6f1eb] active:scale-95 border border-[#dae8e0] px-3.5 py-2 rounded-xl flex-row items-center gap-2 self-start sm:self-auto transition-transform"
+          className="bg-[#f2f8f5] hover:bg-[#e7f3ec] active:scale-95 border border-emerald-200/70 px-3 py-1.5 rounded-full flex-row items-center gap-1.5 flex-shrink-0 transition-transform"
           accessibilityRole="button"
           accessibilityLabel="View comprehensive nutrition details"
         >
-          <BarChartIcon size={14} color="#1b4d3e" />
-          <AppText weight="extrabold" className="text-xs text-[#1b4d3e]">
+          <BarChartIcon size={13} color="#166534" />
+          <AppText weight="bold" className="text-xs text-emerald-800">
             View Nutrition Details
           </AppText>
-          <ChevronRightIcon size={13} color="#1b4d3e" />
+          <ChevronRightIcon size={12} color="#166534" />
         </Pressable>
       </View>
 
-      {/* ==================================================== */}
       {/* 2. Three Macro Cards (Protein, Carbs, Fat) */}
-      {/* ==================================================== */}
       <View className={isNarrow ? "flex-col gap-3" : "flex-row gap-3 sm:gap-4"}>
         {macroCards.map((card) => (
-          <Pressable
+          <View
             key={card.id}
-            onPress={replayAnimation}
-            className={`flex-1 ${card.bgTint} ${card.borderTint} border rounded-2xl p-3.5 sm:p-4 justify-between transition-all active:scale-[0.99]`}
+            className={`flex-1 ${card.bgTint} ${card.borderTint} border rounded-2xl p-3.5 sm:p-4 justify-between`}
           >
-            {/* Top Row: Icon + Label & Radial Circular Ring */}
+            {/* Top Row: Icon + Name + Subtitle + Top-Right Percentage Pill Badge */}
             <View className="flex-row items-start justify-between mb-2">
-              {/* Left: Icon Squircle + Name + Subtitle */}
               <View className="flex-row items-center gap-2.5 flex-1 mr-2">
                 <View
-                  className={`w-9 h-9 sm:w-10 sm:h-10 ${card.iconBg} rounded-xl items-center justify-center flex-shrink-0`}
+                  className={`w-9 h-9 ${card.iconBg} rounded-xl items-center justify-center flex-shrink-0`}
                 >
                   {card.icon}
                 </View>
-                <View className="flex-1">
+                <View className="flex-1 min-w-0">
                   <AppText
                     weight="extrabold"
                     numberOfLines={1}
-                    className="text-sm sm:text-base text-slate-800 leading-tight"
+                    className="text-sm sm:text-base text-neutral-dark leading-tight"
                   >
                     {card.title}
                   </AppText>
                   <AppText
                     weight="medium"
                     numberOfLines={1}
-                    className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5 leading-tight"
+                    className="text-[10px] sm:text-[11px] text-neutral-muted mt-0.5 leading-tight"
                   >
                     {card.subtitle}
                   </AppText>
                 </View>
               </View>
 
-              {/* Right: Circular SVG Mini Ring with Glowing Tip Dot */}
-              <View className="flex-shrink-0">
-                <MacroCircularRing
-                  percentage={card.percent}
-                  color={card.accentColor}
-                  trackColor={card.ringTrack}
-                  animTrigger={animTrigger}
-                />
+              {/* Percentage Pill Badge */}
+              <View
+                className={`${card.badgeBg} ${card.badgeBorder} border px-2 py-0.5 rounded-full flex-shrink-0`}
+              >
+                <AppText
+                  weight="bold"
+                  className="text-xs text-neutral-dark"
+                  style={{ fontVariant: ["tabular-nums"] }}
+                >
+                  {card.percent}%
+                </AppText>
               </View>
             </View>
 
-            {/* Middle Row: Large Consumed / Target Numbers */}
-            <View className="my-1.5">
+            {/* Middle Row: Consumed / Target Metrics */}
+            <View className="my-1">
               <View className="flex-row items-baseline">
                 <AppText
                   weight="black"
-                  className="text-2xl sm:text-3xl text-slate-900 tracking-tight leading-none"
+                  className="text-2xl sm:text-3xl text-neutral-dark tracking-tight leading-none"
                   style={{ fontVariant: ["tabular-nums"] }}
                 >
                   {card.consumed}
                 </AppText>
                 <AppText
                   weight="bold"
-                  className="text-xs sm:text-sm text-slate-400 ml-1.5"
+                  className="text-xs sm:text-sm text-neutral-muted ml-1"
                   style={{ fontVariant: ["tabular-nums"] }}
                 >
                   / {card.target}g
@@ -630,12 +559,11 @@ export const NutritionCard: React.FC<NutritionCardProps> = ({
               </View>
             </View>
 
-            {/* Horizontal Animated Progress Bar */}
+            {/* Progress Bar */}
             <AnimatedMacroBar
               ratio={card.ratio}
               color={card.accentColor}
               trackBg={card.trackBg}
-              animTrigger={animTrigger}
             />
 
             {/* Bottom Row: Calories & Calibrated Target */}
@@ -644,7 +572,7 @@ export const NutritionCard: React.FC<NutritionCardProps> = ({
                 {card.footerIcon}
                 <AppText
                   weight="bold"
-                  className="text-[11px] sm:text-xs text-slate-600"
+                  className="text-[11px] sm:text-xs text-neutral-dark"
                   style={{ fontVariant: ["tabular-nums"] }}
                 >
                   {card.calories} kcal
@@ -653,13 +581,13 @@ export const NutritionCard: React.FC<NutritionCardProps> = ({
 
               <AppText
                 weight="bold"
-                className="text-[11px] sm:text-xs text-slate-400"
+                className="text-[11px] sm:text-xs text-neutral-muted"
                 style={{ fontVariant: ["tabular-nums"] }}
               >
                 Target {card.target}g
               </AppText>
             </View>
-          </Pressable>
+          </View>
         ))}
       </View>
 
@@ -683,8 +611,8 @@ export const NutritionCard: React.FC<NutritionCardProps> = ({
                     Nutrition Breakdown
                   </AppText>
                 </View>
-                <AppText weight="medium" className="text-xs text-slate-500 mt-0.5">
-                  {isDemoMode ? "Demonstration Target Plan" : "Current Daily Progress"}
+                <AppText weight="medium" className="text-xs text-neutral-muted mt-0.5">
+                  Current Daily Progress
                 </AppText>
               </View>
               <Pressable

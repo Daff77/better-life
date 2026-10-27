@@ -82,19 +82,19 @@ interface OnboardingState {
 
 export const DEFAULT_PERSONALIZATION: PersonalizationMetrics = {
   goal: "Eat balanced",
-  weight: 65,
-  height: 170,
-  gender: "Female",
+  weight: 70,
+  height: 175,
+  gender: "Male",
   birthDate: { day: 15, month: "June", year: 2000 },
   cookingSkill: "Middle",
   dietType: "Omnivore",
-  allergies: ["Lactose"],
-  targetCalories: 1950,
-  bmr: 1444,
-  tdee: 1950,
-  targetProteinGrams: 122,
-  targetCarbGrams: 244,
-  targetFatGrams: 54,
+  allergies: [],
+  targetCalories: 2582,
+  bmr: 1720,
+  tdee: 2582,
+  targetProteinGrams: 161,
+  targetCarbGrams: 323,
+  targetFatGrams: 72,
 };
 
 export const useOnboardingStore = create<OnboardingState>((set, get) => ({

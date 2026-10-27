@@ -30,6 +30,7 @@ export interface MealCardProps {
   onLogMeal?: () => void;
   onPress?: () => void;
   isLogging?: boolean;
+  showLogButton?: boolean;
   className?: string;
 }
 
@@ -46,6 +47,7 @@ export const MealCard: React.FC<MealCardProps> = ({
   onLogMeal,
   onPress,
   isLogging = false,
+  showLogButton = false,
   className,
 }) => {
   const displayTitle = title || mealType;
@@ -69,11 +71,11 @@ export const MealCard: React.FC<MealCardProps> = ({
 
   return (
     <View
-      className={`w-full bg-white rounded-2xl overflow-hidden border border-[#e5ece7] shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 ${
+      className={`w-full bg-white rounded-2xl overflow-hidden border border-[#e5ece7] shadow-2xs transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 ${
         className || ""
       }`}
     >
-      {/* Top Clickable Region: Food Art, Title, Calories, and Description */}
+      {/* Clickable Food Art & Details */}
       <Pressable
         onPress={onPress}
         onPressIn={handlePressIn}
@@ -83,8 +85,8 @@ export const MealCard: React.FC<MealCardProps> = ({
         accessibilityLabel={`${displayTitle}, ${calories} calories`}
       >
         <Animated.View pointerEvents="none" style={cardAnimatedStyle}>
-          {/* Top Food Image Header with 1px Crisp Outline */}
-          <View className="h-[156px] w-full bg-[#f2f8f4] items-center justify-center relative overflow-hidden border-b border-black/[0.06]">
+          {/* Top Food Image Header */}
+          <View className="h-[148px] w-full bg-[#f2f8f4] items-center justify-center relative overflow-hidden border-b border-black/[0.06]">
             {effectiveImageSource ? (
               <>
                 <Image
@@ -92,8 +94,7 @@ export const MealCard: React.FC<MealCardProps> = ({
                   style={{ width: "100%", height: "100%" }}
                   resizeMode="cover"
                 />
-                {/* Subtle top vignette for badge contrast */}
-                <View className="absolute inset-x-0 top-0 h-12 bg-black/20" />
+                <View className="absolute inset-x-0 top-0 h-10 bg-black/20" />
               </>
             ) : (
               <View className="w-full h-full items-center justify-center py-2">
@@ -109,16 +110,18 @@ export const MealCard: React.FC<MealCardProps> = ({
               </View>
             )}
 
-            {/* Category Pill Tag */}
-            <View className="absolute top-3 left-3">
-              <Badge label={mealType} variant="accent" size="sm" />
+            {/* Category Pill Tag (Semi-transparent dark badge) */}
+            <View className="absolute top-2.5 left-2.5 bg-black/60 backdrop-blur-sm px-2.5 py-0.5 rounded-md">
+              <AppText weight="bold" className="text-[10px] text-white">
+                {mealType}
+              </AppText>
             </View>
 
-            {/* Prep Time Tag with Clean Vector Clock */}
+            {/* Prep Time Tag */}
             {Boolean(prepTimeMinutes) && (
-              <View className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm px-2.5 py-0.5 rounded-full border border-black/[0.06] flex-row items-center gap-1 shadow-xs">
-                <IconRenderer name="Clock" size={11} color="#64748b" />
-                <AppText weight="semibold" className="text-[11px] text-neutral-muted" style={{ fontVariant: ["tabular-nums"] }}>
+              <View className="absolute top-2.5 right-2.5 bg-white/95 backdrop-blur-sm px-2 py-0.5 rounded-md border border-black/[0.06] flex-row items-center gap-1 shadow-xs">
+                <IconRenderer name="Clock" size={10} color="#d97706" />
+                <AppText weight="bold" className="text-[10px] text-neutral-dark" style={{ fontVariant: ["tabular-nums"] }}>
                   {prepTimeMinutes}m
                 </AppText>
               </View>
@@ -126,53 +129,45 @@ export const MealCard: React.FC<MealCardProps> = ({
           </View>
 
           {/* Card Text Info */}
-          <View className="p-4 pt-3.5 pb-1">
-            {/* Title and Calorie Row */}
-            <View className="flex-row items-center justify-between mb-1.5">
+          <View className="p-3.5 pb-3">
+            {/* Title */}
+            <AppText
+              weight="extrabold"
+              numberOfLines={1}
+              className="text-sm text-neutral-dark mb-1 leading-snug"
+            >
+              {displayTitle}
+            </AppText>
+
+            {/* Calories & Estimated Cost Row */}
+            <View className="flex-row items-center gap-2 mb-1.5 flex-wrap">
               <AppText
-                weight="extrabold"
-                numberOfLines={1}
-                className="text-[16px] text-neutral-dark flex-1 mr-2"
+                weight="black"
+                className="text-xs text-emerald-600"
+                style={{ fontVariant: ["tabular-nums"] }}
               >
-                {displayTitle}
+                {calories} kcal
               </AppText>
 
-              {/* Calorie Display with Tabular Numbers */}
-              <View className="flex-row items-baseline">
+              {estimatedCostIdr !== undefined && (
                 <AppText
-                  weight="black"
-                  className="text-base text-primary"
-                  style={{ fontVariant: ["tabular-nums"] }}
-                >
-                  {calories}
-                </AppText>
-                <AppText weight="semibold" className="text-xs text-neutral-muted ml-0.5">
-                  kcal
-                </AppText>
-              </View>
-            </View>
-
-            {/* Estimated Local Ingredient Cost (Tabular Numbers) */}
-            {estimatedCostIdr !== undefined && (
-              <View className="flex-row items-center mb-1.5">
-                <AppText
-                  weight="semibold"
-                  className="text-xs text-emerald-800"
+                  weight="medium"
+                  className="text-xs text-neutral-400"
                   style={{ fontVariant: ["tabular-nums"] }}
                 >
                   Rp {estimatedCostIdr.toLocaleString("id-ID")}{" "}
-                  <AppText weight="regular" className="text-[11px] text-neutral-muted">
+                  <AppText weight="regular" className="text-[10px] text-neutral-400">
                     (est.)
                   </AppText>
                 </AppText>
-              </View>
-            )}
+              )}
+            </View>
 
-            {/* Description */}
+            {/* Description (2 lines) */}
             <AppText
               weight="medium"
               numberOfLines={2}
-              className="text-xs text-neutral-muted leading-4"
+              className="text-[11px] text-neutral-muted leading-relaxed"
             >
               {description}
             </AppText>
@@ -180,36 +175,30 @@ export const MealCard: React.FC<MealCardProps> = ({
         </Animated.View>
       </Pressable>
 
-      {/* Sibling Bottom Action Region: Nested CTA Log to Journal Button */}
-      <View className="px-4 pb-4 pt-2">
-        <Pressable
-          onPress={onLogMeal}
-          disabled={isLogging}
-          className={`w-full min-h-[46px] rounded-xl flex-row items-center justify-center active:scale-[0.96] transition-all duration-150 ${
-            isLogging ? "bg-primary/70" : "bg-primary active:bg-primary-dark"
-          } ${Platform.OS === "web" ? "cursor-pointer hover:bg-primary-dark shadow-xs" : ""}`}
-          accessibilityRole="button"
-          accessibilityLabel={`Log ${displayTitle} to journal`}
-        >
-          {isLogging ? (
-            <ActivityIndicator size="small" color="#ffffff" />
-          ) : (
-            <View className="flex-row items-center justify-center">
-              <View className="w-5 h-5 rounded-full bg-white/20 items-center justify-center mr-2">
-                <AppText weight="black" className="text-white text-xs leading-none">
-                  +
+      {/* Optional Sibling Bottom Log Button */}
+      {showLogButton && (
+        <View className="px-3.5 pb-3.5 pt-1">
+          <Pressable
+            onPress={onLogMeal}
+            disabled={isLogging}
+            className={`w-full min-h-[40px] rounded-xl flex-row items-center justify-center active:scale-[0.96] transition-all duration-150 ${
+              isLogging ? "bg-primary/70" : "bg-primary active:bg-primary-dark"
+            } ${Platform.OS === "web" ? "cursor-pointer hover:bg-primary-dark shadow-xs" : ""}`}
+            accessibilityRole="button"
+            accessibilityLabel={`Log ${displayTitle} to journal`}
+          >
+            {isLogging ? (
+              <ActivityIndicator size="small" color="#ffffff" />
+            ) : (
+              <View className="flex-row items-center justify-center">
+                <AppText weight="bold" className="text-white text-xs">
+                  + Log to Journal
                 </AppText>
               </View>
-              <AppText
-                weight="extrabold"
-                className="text-white text-xs tracking-wide"
-              >
-                Log to Journal
-              </AppText>
-            </View>
-          )}
-        </Pressable>
-      </View>
+            )}
+          </Pressable>
+        </View>
+      )}
     </View>
   );
 };

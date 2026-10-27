@@ -115,11 +115,11 @@ async function deleteStorageItem(key: string): Promise<void> {
   }
 }
 
-// Default pre-seeded demo account for local testing
+// Default pre-seeded account for local testing
 export const DEFAULT_DEMO_ACCOUNT: StoredAccount = {
-  id: "demo-user-1",
-  name: "John Doe",
-  email: "johndoe25@gmail.com",
+  id: "user-daffa",
+  name: "Daffa Pratama",
+  email: "daffa@gmail.com",
   password: "password123",
   phone: "+62 812-3456-7890",
   onboardingCompleted: true,
