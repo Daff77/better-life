@@ -35,28 +35,28 @@ export default function RecipesScreen() {
   }, [recipes, selectedCategory, searchQuery]);
 
   return (
-    <ScreenWrapper maxWidth="full" noPadding className="flex-1 bg-white">
+    <ScreenWrapper maxWidth="full" noPadding className="flex-1 bg-[#faf9f5]">
       {/* Header: Edge-to-edge with seamless top integration */}
-      <View className="w-full bg-white border-b border-[#e5ece7] px-4 sm:px-6 pt-1 pb-3 shadow-2xs">
-        <View className="max-w-[1240px] mx-auto w-full">
-          <AppText weight="black" className="text-xl sm:text-2xl text-neutral-dark tracking-tight">
+      <View className="w-full bg-[#faf9f5] border-b border-[#eae8e1] px-4 sm:px-6 lg:px-8 pt-3 pb-3.5">
+        <View className="max-w-[1280px] mx-auto w-full">
+          <AppText weight="bold" className="text-xl sm:text-2xl text-neutral-dark tracking-tight">
             Curated Healthy Recipes
           </AppText>
-          <AppText weight="medium" className="text-xs text-neutral-muted mt-0.5 leading-4">
-            Nutritious, budget-friendly meal ideas calibrated to your caloric goals
+          <AppText weight="medium" className="text-xs text-neutral-muted mt-0.5 leading-relaxed">
+            Nutritious, calorie-calibrated culinary ideas to support your health journey.
           </AppText>
 
           {/* Recipe Search Input */}
-          <View className="flex-row items-center bg-[#f2f8f4] border border-[#e5ece7] rounded-xl px-3 py-1.5 min-h-[44px] mt-3">
-            <View className="mr-2">
-              <IconRenderer name="Search" size={16} color="#9ca3af" />
+          <View className="flex-row items-center bg-[#f4f3ed] border border-[#eae8e1] rounded-xl px-3.5 py-1 min-h-[44px] mt-3 transition-colors focus:border-primary">
+            <View className="mr-2.5">
+              <IconRenderer name="Search" size={16} color="#788079" />
             </View>
             <TextInput
               value={searchQuery}
               onChangeText={setSearchQuery}
-              placeholder="Search recipes (e.g. Salad, Soup, Chicken, Curry)..."
-              placeholderTextColor="#9ca3af"
-              className="flex-1 text-sm text-neutral-dark"
+              placeholder="Search recipes (e.g. Salad, Soup, Chicken, Toast, Smoothie)..."
+              placeholderTextColor="#8a928b"
+              className="flex-1 text-sm text-neutral-dark font-medium"
               style={{
                 fontFamily: "Akatab-Medium",
                 includeFontPadding: false,
@@ -71,11 +71,11 @@ export default function RecipesScreen() {
               <TouchableOpacity
                 onPress={() => setSearchQuery("")}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                className="w-6 h-6 rounded-full bg-neutral-200 items-center justify-center ml-1"
+                className="w-6 h-6 rounded-full bg-[#e2e0d8] items-center justify-center ml-1"
                 accessibilityRole="button"
                 accessibilityLabel="Clear recipe search text"
               >
-                <CloseIconSvg size={12} color="#4b5563" />
+                <CloseIconSvg size={12} color="#5a625b" />
               </TouchableOpacity>
             )}
           </View>
@@ -83,16 +83,16 @@ export default function RecipesScreen() {
       </View>
 
       <ScrollView
-        className="flex-1 bg-[#f8faf8]"
+        className="flex-1 bg-[#faf9f5]"
         contentContainerStyle={{ paddingBottom: Platform.OS === "web" ? 56 : 112 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Category Horizontal Filter Chips (44px Minimum Touch Targets) */}
-        <View className="max-w-[1240px] mx-auto w-full pt-3 pb-2">
+        {/* Category Horizontal Filter Chips */}
+        <View className="max-w-[1280px] mx-auto w-full px-4 sm:px-6 lg:px-8 pt-3 pb-2">
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 16 }}
+            contentContainerStyle={{ gap: 8, alignItems: "center" }}
             className="flex-row"
           >
             {CATEGORIES.map((cat) => {
@@ -101,18 +101,18 @@ export default function RecipesScreen() {
                 <Pressable
                   key={cat}
                   onPress={() => setSelectedCategory(cat)}
-                  className={`min-h-[44px] px-4 sm:px-5 py-2 rounded-full mr-2 flex-row items-center justify-center transition-all duration-150 active:scale-[0.96] ${
+                  className={`min-h-[38px] px-4 py-1.5 rounded-full flex-row items-center justify-center transition-all duration-150 active:scale-[0.97] ${
                     isSelected
                       ? "bg-primary shadow-xs"
-                      : "bg-white border border-[#e5ece7] active:bg-[#f2f8f4]"
-                  } ${Platform.OS === "web" ? "cursor-pointer" : ""}`}
+                      : "bg-white border border-[#eae8e1] active:bg-[#f2f1eb]"
+                  } ${Platform.OS === "web" ? "cursor-pointer hover:border-[#dcdfd9]" : ""}`}
                   accessibilityRole="button"
                   accessibilityState={{ selected: isSelected }}
                   accessibilityLabel={`Filter by ${cat}`}
                 >
                   <AppText
-                    weight={isSelected ? "black" : "semibold"}
-                    className={`text-xs sm:text-[13px] ${
+                    weight={isSelected ? "bold" : "medium"}
+                    className={`text-xs ${
                       isSelected ? "text-white" : "text-neutral-dark"
                     }`}
                   >
@@ -124,14 +124,14 @@ export default function RecipesScreen() {
           </ScrollView>
         </View>
 
-        {/* Recipe Cards Grid */}
-        <View className="max-w-[1240px] mx-auto w-full px-4 sm:px-5 pt-1">
+        {/* Recipe Cards Responsive 4-Column Grid */}
+        <View className="max-w-[1280px] mx-auto w-full px-4 sm:px-6 lg:px-8 pt-2">
           {filteredRecipes.length === 0 ? (
-            <View className="w-full py-10 px-6 items-center justify-center bg-white rounded-2xl border border-neutral-border-light my-4">
-              <View className="w-14 h-14 rounded-2xl bg-secondary-soft items-center justify-center mb-3 border border-secondary shadow-2xs">
-                <IconRenderer name="Cook" size={28} />
+            <View className="w-full py-10 px-6 items-center justify-center bg-white rounded-2xl border border-[#eae8e1] my-4">
+              <View className="w-12 h-12 rounded-xl bg-secondary-soft items-center justify-center mb-3">
+                <IconRenderer name="Cook" size={24} color="#153e28" />
               </View>
-              <AppText weight="black" className="text-base text-neutral-dark mb-1 text-center">
+              <AppText weight="bold" className="text-base text-neutral-dark mb-1 text-center">
                 No matching recipes found
               </AppText>
               <AppText weight="medium" className="text-xs text-neutral-muted text-center max-w-xs mb-4 leading-relaxed">
@@ -144,7 +144,7 @@ export default function RecipesScreen() {
                   setSearchQuery("");
                   setSelectedCategory("All");
                 }}
-                className="px-5 py-2.5 rounded-full bg-primary active:bg-primary-dark transition-colors min-h-[44px] items-center justify-center"
+                className="px-5 py-2.5 rounded-xl bg-primary active:bg-primary-dark transition-colors min-h-[40px] items-center justify-center"
                 accessibilityRole="button"
                 accessibilityLabel="Show all recipes"
               >
@@ -158,7 +158,7 @@ export default function RecipesScreen() {
               {filteredRecipes.map((recipe) => (
                 <View
                   key={recipe.id}
-                  className="w-full sm:w-1/2 lg:w-1/3 px-2 mb-4"
+                  className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 px-2 mb-4"
                 >
                   <RecipeCard
                     title={recipe.title}
@@ -168,7 +168,12 @@ export default function RecipesScreen() {
                     difficulty={recipe.difficulty}
                     imageUrl={recipe.imageUrl}
                     svgName={recipe.svgIcon}
-                    onPress={() => router.push(`/(app)/recipe-detail?id=${recipe.id}`)}
+                    onPress={() =>
+                      router.push({
+                        pathname: "/(app)/recipe-detail",
+                        params: { id: recipe.id },
+                      })
+                    }
                   />
                 </View>
               ))}

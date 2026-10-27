@@ -237,51 +237,51 @@ export default function HomeScreen() {
     );
   };
 
-  /* Render Quick Actions Card (Matching screenshot) */
+  /* Render Quick Actions Card (Editorial Wellness) */
   const renderQuickFoodLoggingBar = () => (
-    <View className="bg-white rounded-3xl border border-[#e5ece7] p-5 shadow-2xs">
+    <View className="bg-white rounded-2xl border border-[#eae8e1] p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
       <View className="flex-row items-center gap-2 mb-3.5">
-        <ZapIconSvg size={16} color="#f59e0b" fill="#f59e0b" />
-        <AppText weight="black" className="text-sm sm:text-base text-neutral-dark">
+        <ZapIconSvg size={16} color="#b45309" fill="#b45309" />
+        <AppText weight="bold" className="text-sm sm:text-base text-neutral-dark">
           Quick Actions
         </AppText>
       </View>
 
       <View className="flex-col gap-2.5">
-        {/* Log Food Button (Solid Dark Forest Green) */}
+        {/* Log Food Button (Solid Deep Forest Green) */}
         <TouchableOpacity
           onPress={() => router.push("/(app)/(tabs)/meals")}
-          className={`w-full min-h-[48px] rounded-2xl bg-[#166534] active:bg-[#14532d] px-4 py-3.5 flex-row items-center justify-between shadow-xs transition-all ${
-            Platform.OS === "web" ? "cursor-pointer hover:bg-[#14532d]" : ""
+          className={`w-full min-h-[46px] rounded-xl bg-primary active:bg-primary-dark px-4 py-3 flex-row items-center justify-between transition-all ${
+            Platform.OS === "web" ? "cursor-pointer hover:bg-primary-dark" : ""
           }`}
           accessibilityRole="button"
           accessibilityLabel="Log Food"
         >
           <View className="flex-row items-center gap-2.5">
-            <UtensilsIconSvg size={17} color="#ffffff" />
-            <AppText weight="extrabold" className="text-white text-sm">
+            <UtensilsIconSvg size={16} color="#ffffff" />
+            <AppText weight="bold" className="text-white text-sm">
               Log Food
             </AppText>
           </View>
-          <ChevronRightIconSvg size={15} color="#ffffff" />
+          <ChevronRightIconSvg size={14} color="#ffffff" />
         </TouchableOpacity>
 
         {/* Browse Recipes Button (White with subtle border) */}
         <TouchableOpacity
           onPress={() => router.push("/(app)/(tabs)/recipes")}
-          className={`w-full min-h-[48px] rounded-2xl bg-white active:bg-neutral-50 border border-[#e5ece7] px-4 py-3.5 flex-row items-center justify-between transition-all ${
-            Platform.OS === "web" ? "cursor-pointer hover:border-emerald-300 hover:bg-emerald-50/20" : ""
+          className={`w-full min-h-[46px] rounded-xl bg-white active:bg-[#f4f3ed] border border-[#eae8e1] px-4 py-3 flex-row items-center justify-between transition-all ${
+            Platform.OS === "web" ? "cursor-pointer hover:border-[#dcdfd9] hover:bg-[#faf9f5]" : ""
           }`}
           accessibilityRole="button"
           accessibilityLabel="Browse Recipes"
         >
           <View className="flex-row items-center gap-2.5">
-            <BookOpenIconSvg size={17} color="#166534" />
-            <AppText weight="extrabold" className="text-neutral-dark text-sm">
+            <BookOpenIconSvg size={16} color="#153e28" />
+            <AppText weight="bold" className="text-neutral-dark text-sm">
               Browse Recipes
             </AppText>
           </View>
-          <ChevronRightIconSvg size={15} color="#166534" />
+          <ChevronRightIconSvg size={14} color="#153e28" />
         </TouchableOpacity>
       </View>
     </View>
@@ -289,14 +289,14 @@ export default function HomeScreen() {
 
   /* Render Today's Journal Section Component */
   const renderTodaysJournalSection = () => (
-    <View className="bg-white rounded-3xl border border-[#e5ece7] p-5 shadow-2xs">
+    <View className="bg-white rounded-2xl border border-[#eae8e1] p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
       {/* Journal Header */}
       <View className="flex-row items-center justify-between pb-1">
         <View className="flex-row items-center gap-2.5">
-          <View className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-200/80 items-center justify-center">
-            <BowlIconSvg size={18} color="#166534" />
+          <View className="w-8 h-8 rounded-xl bg-[#eaf2ec] border border-[#d6e4db] items-center justify-center">
+            <BowlIconSvg size={18} color="#153e28" />
           </View>
-          <AppText weight="black" className="text-base text-neutral-dark">
+          <AppText weight="bold" className="text-base text-neutral-dark">
             Today's Meals
           </AppText>
         </View>
@@ -307,10 +307,10 @@ export default function HomeScreen() {
           accessibilityRole="link"
           accessibilityLabel="View all today's meals"
         >
-          <AppText weight="bold" className="text-xs text-emerald-800">
+          <AppText weight="bold" className="text-xs text-primary">
             View All
           </AppText>
-          <ChevronRightIconSvg size={12} color="#166534" />
+          <ChevronRightIconSvg size={12} color="#153e28" />
         </TouchableOpacity>
       </View>
 
@@ -321,10 +321,10 @@ export default function HomeScreen() {
       {/* Journal Empty State (When 0 total meals logged today) */}
       {aggregates.entryCount === 0 ? (
         <View className="py-6 px-4 items-center justify-center">
-          <View className="w-14 h-14 rounded-full bg-[#dcf3e6] items-center justify-center mb-3">
-            <BowlIconSvg size={26} color="#166534" />
+          <View className="w-13 h-13 rounded-full bg-[#eef4f0] items-center justify-center mb-3">
+            <BowlIconSvg size={24} color="#153e28" />
           </View>
-          <AppText weight="black" className="text-sm sm:text-base text-neutral-dark mb-1 text-center">
+          <AppText weight="bold" className="text-sm sm:text-base text-neutral-dark mb-1 text-center">
             No meals logged yet today
           </AppText>
           <AppText weight="medium" className="text-xs text-neutral-muted text-center max-w-[240px] mb-4 leading-relaxed">
@@ -332,13 +332,13 @@ export default function HomeScreen() {
           </AppText>
           <TouchableOpacity
             onPress={() => router.push("/(app)/(tabs)/meals")}
-            className={`py-3 px-6 rounded-xl bg-[#166534] active:bg-[#14532d] shadow-xs ${
-              Platform.OS === "web" ? "cursor-pointer hover:bg-[#14532d]" : ""
+            className={`py-2.5 px-6 rounded-xl bg-primary active:bg-primary-dark transition-all ${
+              Platform.OS === "web" ? "cursor-pointer hover:bg-primary-dark" : ""
             }`}
             accessibilityRole="button"
             accessibilityLabel="Log First Meal"
           >
-            <AppText weight="black" className="text-xs text-white">
+            <AppText weight="bold" className="text-xs text-white">
               + Log First Meal
             </AppText>
           </TouchableOpacity>
@@ -487,17 +487,17 @@ export default function HomeScreen() {
     </View>
   );
 
-  /* Render Daily Calorie Budget Card (Matching reference screenshot) */
+  /* Render Daily Calorie Budget Card (Editorial Wellness) */
   const renderCalorieOverviewCard = () => (
-    <View className="bg-white rounded-3xl border border-[#e5ece7] p-5 sm:p-6 shadow-2xs">
+    <View className="bg-white rounded-2xl border border-[#eae8e1] p-5 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
       {/* Card Header: Leaf Icon + Title + Remaining pill */}
-      <View className="flex-row items-center justify-between pb-3 mb-3 border-b border-[#f0f4f1]">
+      <View className="flex-row items-center justify-between pb-3 mb-3 border-b border-[#f4f2ec]">
         <View className="flex-row items-center gap-3">
-          <View className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200/80 items-center justify-center">
-            <LeafIconSvg size={20} color="#166534" />
+          <View className="w-10 h-10 rounded-xl bg-[#eaf2ec] border border-[#d6e4db] items-center justify-center">
+            <LeafIconSvg size={20} color="#153e28" />
           </View>
           <View>
-            <AppText weight="black" className="text-base sm:text-lg text-neutral-dark tracking-tight">
+            <AppText weight="bold" className="text-base sm:text-lg text-neutral-dark tracking-tight">
               Daily Calorie Budget
             </AppText>
             <AppText weight="medium" className="text-xs text-neutral-muted mt-0.5">
@@ -507,9 +507,9 @@ export default function HomeScreen() {
         </View>
 
         {/* Top-Right Badge: Remaining kcal */}
-        <View className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/80">
-          <LeafIconSvg size={13} color="#059669" />
-          <AppText weight="extrabold" className="text-xs text-emerald-800">
+        <View className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#eef4f0] border border-[#d6e4db]">
+          <LeafIconSvg size={13} color="#153e28" />
+          <AppText weight="bold" className="text-xs text-[#153e28]">
             {aggregates.remainingCalories.toLocaleString()} kcal left
           </AppText>
         </View>
@@ -523,8 +523,8 @@ export default function HomeScreen() {
             progress={progressPercent}
             size={isNarrowMobile ? 96 : 116}
             strokeWidth={11}
-            color="#10b981"
-            backgroundColor="#dcf5e7"
+            color="#153e28"
+            backgroundColor="#e4ede7"
             label={`of ${aggregates.targetCalories.toLocaleString()} kcal`}
           />
         </View>
@@ -544,9 +544,9 @@ export default function HomeScreen() {
             </AppText>
           </View>
 
-          {/* Remaining (Bold Green) */}
+          {/* Remaining (Bold Deep Forest Green) */}
           <View className="items-center sm:items-start">
-            <AppText weight="black" className="text-2xl sm:text-3xl text-emerald-700 tracking-tight leading-none">
+            <AppText weight="black" className="text-2xl sm:text-3xl text-[#153e28] tracking-tight leading-none">
               {aggregates.remainingCalories.toLocaleString()}
             </AppText>
             <AppText weight="medium" className="text-xs text-neutral-muted mt-1.5">
@@ -573,12 +573,12 @@ export default function HomeScreen() {
       </View>
 
       {/* Bottom Progress Bar with consumed / target on left and percent on right */}
-      <View className="mt-3 pt-3 border-t border-[#f0f4f1]">
+      <View className="mt-3 pt-3 border-t border-[#f4f2ec]">
         <ProgressBar
           progress={progressPercent}
           height={7}
-          color="#10b981"
-          backgroundColor="#dcf5e7"
+          color="#153e28"
+          backgroundColor="#e4ede7"
         />
         <View className="flex-row items-center justify-between mt-2">
           <AppText weight="semibold" className="text-xs text-neutral-muted">
@@ -592,16 +592,16 @@ export default function HomeScreen() {
     </View>
   );
 
-  /* Render Physical Activity Section (Matching reference screenshot) */
+  /* Render Physical Activity Section (Editorial Wellness) */
   const renderActivitySection = () => (
-    <View className="bg-white rounded-3xl border border-[#e5ece7] p-5 sm:p-6 shadow-2xs">
+    <View className="bg-white rounded-2xl border border-[#eae8e1] p-5 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
       {/* Header: Running Shoe icon in circle + Title + Subtitle */}
-      <View className="flex-row items-center gap-3 pb-3 mb-4 border-b border-[#f0f4f1]">
-        <View className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200/80 items-center justify-center">
-          <IconRenderer name="Shoe" size={20} color="#166534" />
+      <View className="flex-row items-center gap-3 pb-3 mb-4 border-b border-[#f4f2ec]">
+        <View className="w-10 h-10 rounded-xl bg-[#eaf2ec] border border-[#d6e4db] items-center justify-center">
+          <IconRenderer name="Shoe" size={20} color="#153e28" />
         </View>
         <View>
-          <AppText weight="black" className="text-base sm:text-lg text-neutral-dark tracking-tight">
+          <AppText weight="bold" className="text-base sm:text-lg text-neutral-dark tracking-tight">
             Physical Activity
           </AppText>
           <AppText weight="medium" className="text-xs text-neutral-muted mt-0.5">
@@ -612,17 +612,17 @@ export default function HomeScreen() {
 
       <View className="flex-col sm:flex-row gap-4">
         {/* Steps Card */}
-        <View className="flex-1 bg-[#fbfdfb] p-4 rounded-2xl border border-[#e5ece7] justify-between">
+        <View className="flex-1 bg-[#fcfbf9] p-4 rounded-xl border border-[#eae8e1] justify-between">
           <View>
             <View className="flex-row items-center justify-between mb-2">
               <View className="flex-row items-center gap-2">
-                <IconRenderer name="Shoe" size={17} color="#0d9488" />
-                <AppText weight="extrabold" className="text-xs text-neutral-dark">
+                <IconRenderer name="Shoe" size={17} color="#52796f" />
+                <AppText weight="bold" className="text-xs text-neutral-dark">
                   Daily Steps
                 </AppText>
               </View>
-              <View className="bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200/70">
-                <AppText weight="extrabold" className="text-[10px] text-teal-800">
+              <View className="bg-[#edf3ef] px-2.5 py-0.5 rounded-full border border-[#d6e3db]">
+                <AppText weight="bold" className="text-[10px] text-[#2d463f]">
                   Pedometer
                 </AppText>
               </View>
@@ -646,8 +646,8 @@ export default function HomeScreen() {
 
             <ProgressBar
               progress={activity ? (activity.steps / activity.stepGoal) * 100 : 57}
-              color="#0d9488"
-              backgroundColor="#ccfbf1"
+              color="#52796f"
+              backgroundColor="#e4ede7"
               height={6}
             />
           </View>
@@ -655,30 +655,30 @@ export default function HomeScreen() {
           <TouchableOpacity
             onPress={() => addStepsMutation.mutate(500)}
             disabled={addStepsMutation.isPending}
-            className={`mt-4 py-2.5 px-4 rounded-xl bg-[#e8f8ee] border border-emerald-200/70 items-center justify-center flex-row active:scale-98 transition-all ${
-              Platform.OS === "web" ? "cursor-pointer hover:bg-emerald-100/60" : ""
+            className={`mt-4 py-2.5 px-4 rounded-xl bg-[#eef4f0] border border-[#d6e4db] items-center justify-center flex-row active:scale-98 transition-all ${
+              Platform.OS === "web" ? "cursor-pointer hover:bg-[#e4ede7]" : ""
             }`}
             accessibilityRole="button"
             accessibilityLabel="Add 500 walking steps"
           >
-            <AppText weight="extrabold" className="text-xs text-emerald-800">
+            <AppText weight="bold" className="text-xs text-[#153e28]">
               +500 Steps
             </AppText>
           </TouchableOpacity>
         </View>
 
         {/* Active Energy Card */}
-        <View className="flex-1 bg-[#fbfdfb] p-4 rounded-2xl border border-[#e5ece7] justify-between">
+        <View className="flex-1 bg-[#fcfbf9] p-4 rounded-xl border border-[#eae8e1] justify-between">
           <View>
             <View className="flex-row items-center justify-between mb-2">
               <View className="flex-row items-center gap-2">
-                <IconRenderer name="Fire" size={17} color="#f59e0b" />
-                <AppText weight="extrabold" className="text-xs text-neutral-dark">
+                <IconRenderer name="Fire" size={17} color="#b45309" />
+                <AppText weight="bold" className="text-xs text-neutral-dark">
                   Active Energy
                 </AppText>
               </View>
-              <View className="bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200/70">
-                <AppText weight="extrabold" className="text-[10px] text-amber-800">
+              <View className="bg-[#fef3c7] px-2.5 py-0.5 rounded-full border border-[#fde68a]">
+                <AppText weight="bold" className="text-[10px] text-[#92400e]">
                   Workout
                 </AppText>
               </View>
@@ -696,8 +696,8 @@ export default function HomeScreen() {
             </View>
           </View>
 
-          <View className="flex-row items-center pt-3 border-t border-[#f0f4f1] mt-3">
-            <IconRenderer name="Clock" size={15} color="#f59e0b" className="mr-2" />
+          <View className="flex-row items-center pt-3 border-t border-[#f4f2ec] mt-3">
+            <IconRenderer name="Clock" size={15} color="#b45309" className="mr-2" />
             <AppText weight="semibold" className="text-xs text-neutral-dark">
               {activity?.exerciseDurationMinutes ?? 35} mins active duration
             </AppText>
@@ -707,16 +707,16 @@ export default function HomeScreen() {
     </View>
   );
 
-  /* Render Curated Meal Suggestions (Matching reference screenshot) */
+  /* Render Curated Meal Suggestions (Editorial Wellness) */
   const renderMealSuggestions = () => (
-    <View className="bg-white rounded-3xl border border-[#e5ece7] p-5 sm:p-6 shadow-2xs relative">
-      <View className="flex-row items-center justify-between pb-3 mb-4 border-b border-[#f0f4f1]">
+    <View className="bg-white rounded-2xl border border-[#eae8e1] p-5 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.03)] relative">
+      <View className="flex-row items-center justify-between pb-3 mb-4 border-b border-[#f4f2ec]">
         <View className="flex-row items-center gap-3">
-          <View className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200/80 items-center justify-center">
-            <ChefHatIconSvg size={20} color="#166534" />
+          <View className="w-10 h-10 rounded-xl bg-[#eaf2ec] border border-[#d6e4db] items-center justify-center">
+            <ChefHatIconSvg size={20} color="#153e28" />
           </View>
           <View>
-            <AppText weight="black" className="text-base sm:text-lg text-neutral-dark tracking-tight">
+            <AppText weight="bold" className="text-base sm:text-lg text-neutral-dark tracking-tight">
               Curated Meal Suggestions
             </AppText>
             <AppText weight="medium" className="text-xs text-neutral-muted mt-0.5">
@@ -731,10 +731,10 @@ export default function HomeScreen() {
           accessibilityRole="link"
           accessibilityLabel="Explore all curated recipes"
         >
-          <AppText weight="extrabold" className="text-xs text-emerald-800">
+          <AppText weight="bold" className="text-xs text-[#153e28]">
             Explore All
           </AppText>
-          <ChevronRightIconSvg size={12} color="#166534" />
+          <ChevronRightIconSvg size={12} color="#153e28" />
         </TouchableOpacity>
       </View>
 
@@ -771,20 +771,20 @@ export default function HomeScreen() {
         {/* Floating Right Navigation Chevron */}
         <TouchableOpacity
           onPress={() => router.push("/(app)/(tabs)/recipes")}
-          className={`absolute right-0 top-1/2 -mt-4 w-8 h-8 rounded-full bg-white border border-[#e5ece7] shadow-md items-center justify-center z-10 ${
-            Platform.OS === "web" ? "cursor-pointer hover:bg-neutral-50" : ""
+          className={`absolute right-0 top-1/2 -mt-4 w-8 h-8 rounded-full bg-white border border-[#eae8e1] shadow-sm items-center justify-center z-10 ${
+            Platform.OS === "web" ? "cursor-pointer hover:bg-[#faf9f5]" : ""
           }`}
           accessibilityRole="button"
           accessibilityLabel="Scroll next recipes"
         >
-          <ChevronRightIconSvg size={15} color="#374151" />
+          <ChevronRightIconSvg size={15} color="#5a625b" />
         </TouchableOpacity>
       </View>
     </View>
   );
 
   return (
-    <ScreenWrapper maxWidth="wide" className="flex-1 bg-[#f8faf8]">
+    <ScreenWrapper maxWidth="wide" className="flex-1 bg-[#faf9f5]">
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
@@ -798,13 +798,13 @@ export default function HomeScreen() {
           {/* Left: Date + Greeting + Subtitle */}
           <View>
             <View className="flex-row items-center gap-1.5 mb-1">
-              <CalendarIconSvg size={15} color="#166534" />
-              <AppText weight="bold" className="text-xs text-emerald-800">
+              <CalendarIconSvg size={15} color="#153e28" />
+              <AppText weight="bold" className="text-xs text-[#153e28]">
                 {formattedToday}
               </AppText>
             </View>
             <AppText
-              weight="black"
+              weight="bold"
               className="text-2xl sm:text-3xl text-neutral-dark tracking-tight"
             >
               {greetingTime}, {user?.name?.split(" ")[0] || "Daffa"} 👋
@@ -817,11 +817,11 @@ export default function HomeScreen() {
           {/* Right: Search Bar + Bell + Avatar */}
           <View className="flex-row items-center gap-3">
             {/* Search Input */}
-            <View className="flex-row items-center bg-[#eef3f0] rounded-full px-4 py-2.5 w-full sm:w-[280px] lg:w-[320px]">
-              <SearchIconSvg size={16} color="#6b7280" />
+            <View className="flex-row items-center bg-[#f4f3ed] border border-[#eae8e1] rounded-full px-4 py-2 w-full sm:w-[280px] lg:w-[320px]">
+              <SearchIconSvg size={16} color="#788079" />
               <TextInput
                 placeholder="Search food, recipes, or anything..."
-                placeholderTextColor="#9ca3af"
+                placeholderTextColor="#8a928c"
                 value={searchQuery}
                 onChangeText={setSearchQuery}
                 onSubmitEditing={handleSearchSubmit}
@@ -835,26 +835,26 @@ export default function HomeScreen() {
               onPress={() =>
                 Alert.alert("Notifications", "You're all caught up! No unread notifications.")
               }
-              className={`w-10 h-10 rounded-full bg-white border border-[#e5ece7] items-center justify-center shadow-2xs relative ${
-                Platform.OS === "web" ? "cursor-pointer hover:bg-neutral-50" : ""
+              className={`w-10 h-10 rounded-full bg-white border border-[#eae8e1] items-center justify-center shadow-xs relative ${
+                Platform.OS === "web" ? "cursor-pointer hover:bg-[#faf9f5]" : ""
               }`}
               accessibilityRole="button"
               accessibilityLabel="Notifications"
             >
-              <BellIconSvg size={18} color="#374151" />
-              <View className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-emerald-600" />
+              <BellIconSvg size={18} color="#5a625b" />
+              <View className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-primary" />
             </TouchableOpacity>
 
             {/* User Profile Avatar */}
             <TouchableOpacity
               onPress={() => router.push("/(app)/(tabs)/profile")}
-              className={`w-10 h-10 rounded-full bg-[#a7f3d0] items-center justify-center border border-emerald-300 ${
+              className={`w-10 h-10 rounded-full bg-[#dce9df] items-center justify-center border border-[#bad1c0] ${
                 Platform.OS === "web" ? "cursor-pointer hover:opacity-90" : ""
               }`}
               accessibilityRole="button"
               accessibilityLabel="View profile settings"
             >
-              <AppText weight="black" className="text-xs text-emerald-900 tracking-wider">
+              <AppText weight="bold" className="text-xs text-[#153e28] tracking-wider">
                 {userInitials}
               </AppText>
             </TouchableOpacity>

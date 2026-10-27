@@ -11,25 +11,26 @@ module.exports = {
     extend: {
       colors: {
         primary: {
-          DEFAULT: "#1b7a53",
-          dark: "#145c3e",
-          light: "#eaf5ef",
-          subtle: "rgba(27, 122, 83, 0.08)",
+          DEFAULT: "#153e28",
+          dark: "#0f2e1e",
+          light: "#eaf2ec",
+          subtle: "rgba(21, 62, 40, 0.06)",
         },
         secondary: {
-          DEFAULT: "#e2efe7",
-          soft: "#f2f8f4",
+          DEFAULT: "#e4ede7",
+          soft: "#f2f7f4",
         },
         accent: {
-          teal: "#1e6074",
-          "teal-dark": "#164757",
+          sage: "#52796f",
+          "sage-dark": "#3a564f",
+          amber: "#b45309",
         },
         neutral: {
-          dark: "#111827",
-          muted: "#64748b",
-          border: "#cbd5e1",
-          "border-light": "#e2e8f0",
-          bg: "#f8faf8",
+          dark: "#1c201d",
+          muted: "#5a625b",
+          border: "#dcdfd9",
+          "border-light": "#eae8e1",
+          bg: "#faf9f5",
         },
       },
       fontFamily: {

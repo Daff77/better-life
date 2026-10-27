@@ -66,7 +66,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
       onPress={onPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
-      className={`bg-white rounded-2xl border border-[#e5ece7] mb-4 overflow-hidden shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 cursor-pointer ${
+      className={`bg-white rounded-2xl border border-[#eae8e1] overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.03)] transition-all duration-200 hover:-translate-y-0.5 hover:border-[#dcdfd9] cursor-pointer ${
         className || ""
       }`}
       style={style as any}
@@ -75,36 +75,35 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
       {...props}
     >
       <Animated.View pointerEvents="none" style={cardAnimatedStyle}>
-        {/* Visual Header Artwork with 1px Image Outline */}
-        <View className="h-[156px] w-full bg-[#f2f8f4] items-center justify-center relative overflow-hidden border-b border-black/[0.06]">
+        {/* Visual Header Artwork */}
+        <View className="h-[148px] w-full bg-[#f4f3ed] items-center justify-center relative overflow-hidden">
           {effectiveImageSource ? (
-            <>
-              <Image
-                source={effectiveImageSource}
-                style={{ width: "100%", height: "100%" }}
-                resizeMode="cover"
-              />
-              <View className="absolute inset-x-0 top-0 h-12 bg-black/20" />
-            </>
+            <Image
+              source={effectiveImageSource}
+              style={{ width: "100%", height: "100%" }}
+              resizeMode="cover"
+            />
           ) : svgName ? (
             <IconRenderer name={svgName} size={64} />
           ) : (
-            <View className="w-14 h-14 rounded-xl bg-emerald-50 border border-emerald-200/60 items-center justify-center">
-              <IconRenderer name="Cook" size={28} color="#1b7a53" />
+            <View className="w-12 h-12 rounded-xl bg-secondary-soft items-center justify-center">
+              <IconRenderer name="Cook" size={24} color="#153e28" />
             </View>
           )}
 
-          {/* Category Pill Tag */}
-          <View className="absolute top-3 left-3">
-            <Badge label={category} variant="accent" size="sm" />
+          {/* Category Pill Tag (Restrained soft white badge) */}
+          <View className="absolute top-2.5 left-2.5 bg-white/95 px-2.5 py-0.5 rounded-full border border-black/5 shadow-2xs">
+            <AppText weight="bold" className="text-[10px] text-neutral-dark">
+              {category}
+            </AppText>
           </View>
 
-          {/* Prep Time Pill Tag with Vector Clock */}
-          <View className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm px-2.5 py-0.5 rounded-full border border-black/[0.06] flex-row items-center gap-1 shadow-xs">
-            <IconRenderer name="Clock" size={11} color="#64748b" />
+          {/* Prep Time Tag */}
+          <View className="absolute top-2.5 right-2.5 bg-white/95 px-2 py-0.5 rounded-full border border-black/5 flex-row items-center gap-1 shadow-2xs">
+            <IconRenderer name="Clock" size={10} color="#b45309" />
             <AppText
-              weight="semibold"
-              className="text-[11px] text-neutral-muted"
+              weight="bold"
+              className="text-[10px] text-neutral-dark"
               style={{ fontVariant: ["tabular-nums"] }}
             >
               {prepTimeMinutes}m
@@ -113,33 +112,31 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
         </View>
 
         {/* Card Body Information */}
-        <View className="p-4">
-          <View className="flex-row items-start justify-between mb-2">
-            <AppText
-              weight="extrabold"
-              numberOfLines={1}
-              className="text-[16px] text-neutral-dark flex-1"
-            >
-              {title}
-            </AppText>
-          </View>
+        <View className="p-3.5">
+          <AppText
+            weight="bold"
+            numberOfLines={1}
+            className="text-sm sm:text-[15px] text-neutral-dark mb-1 leading-snug"
+          >
+            {title}
+          </AppText>
 
           {/* Nutrition & Difficulty Metadata Row */}
-          <View className="flex-row items-center justify-between pt-2 border-t border-[#f2f8f4]">
+          <View className="flex-row items-center justify-between pt-2.5 mt-1 border-t border-[#f4f2ec]">
             <View className="flex-row items-baseline">
               <AppText
                 weight="black"
-                className="text-sm text-primary"
+                className="text-xs sm:text-[13px] text-primary"
                 style={{ fontVariant: ["tabular-nums"] }}
               >
                 {calories}
               </AppText>
-              <AppText weight="semibold" className="text-xs text-neutral-muted ml-0.5">
+              <AppText weight="semibold" className="text-[11px] text-neutral-muted ml-0.5">
                 kcal
               </AppText>
             </View>
 
-            <AppText weight="semibold" className="text-xs text-neutral-muted">
+            <AppText weight="medium" className="text-xs text-neutral-muted">
               {difficulty}
             </AppText>
           </View>

@@ -455,20 +455,20 @@ export const NutritionCard: React.FC<NutritionCardProps> = ({
 
   return (
     <View
-      className={`bg-white rounded-3xl border border-[#e5ece7] p-5 sm:p-6 shadow-2xs ${
+      className={`bg-white rounded-2xl border border-[#eae8e1] p-5 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.03)] ${
         className || ""
       }`}
       style={style}
       {...props}
     >
       {/* 1. Header Section */}
-      <View className="flex-row items-center justify-between mb-4 pb-3 border-b border-[#f0f4f1]">
+      <View className="flex-row items-center justify-between mb-4 pb-3 border-b border-[#f4f2ec]">
         <View className="flex-row items-center gap-3 flex-1 mr-3">
-          <View className="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-200/80 items-center justify-center flex-shrink-0">
-            <BarChartIcon size={17} color="#1b7a53" />
+          <View className="w-9 h-9 rounded-xl bg-[#eaf2ec] border border-[#d6e4db] items-center justify-center flex-shrink-0">
+            <BarChartIcon size={17} color="#153e28" />
           </View>
           <View className="flex-1">
-            <AppText weight="black" className="text-base sm:text-lg text-neutral-dark tracking-tight leading-tight">
+            <AppText weight="bold" className="text-base sm:text-lg text-neutral-dark tracking-tight leading-tight">
               Macronutrient Balance
             </AppText>
             <AppText weight="medium" className="text-xs text-neutral-muted mt-0.5 leading-tight">
@@ -480,15 +480,15 @@ export const NutritionCard: React.FC<NutritionCardProps> = ({
         {/* Right: View Nutrition Details Pill Link */}
         <Pressable
           onPress={() => setIsDetailsModalOpen(true)}
-          className="bg-[#f2f8f5] hover:bg-[#e7f3ec] active:scale-95 border border-emerald-200/70 px-3 py-1.5 rounded-full flex-row items-center gap-1.5 flex-shrink-0 transition-transform"
+          className="bg-[#f0f5f2] hover:bg-[#e4ede7] active:scale-95 border border-[#d6e4db] px-3 py-1.5 rounded-full flex-row items-center gap-1.5 flex-shrink-0 transition-transform"
           accessibilityRole="button"
           accessibilityLabel="View comprehensive nutrition details"
         >
-          <BarChartIcon size={13} color="#166534" />
-          <AppText weight="bold" className="text-xs text-emerald-800">
+          <BarChartIcon size={13} color="#153e28" />
+          <AppText weight="bold" className="text-xs text-[#153e28]">
             View Nutrition Details
           </AppText>
-          <ChevronRightIcon size={12} color="#166534" />
+          <ChevronRightIcon size={12} color="#153e28" />
         </Pressable>
       </View>
 

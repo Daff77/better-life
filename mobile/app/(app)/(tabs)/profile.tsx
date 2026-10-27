@@ -228,99 +228,97 @@ export default function ProfileScreen() {
   };
 
   return (
-    <ScreenWrapper maxWidth="full" noPadding className="flex-1 bg-white">
+    <ScreenWrapper maxWidth="full" noPadding className="flex-1 bg-[#faf9f5]">
       {/* Top Header Bar: Edge-to-edge with seamless top integration */}
-      <View className="w-full px-6 pt-1 pb-3 flex-row justify-between items-center bg-white border-b border-neutral-border-light">
-        <AppText weight="black" className="text-2xl text-neutral-dark">
-          Profile
+      <View className="w-full px-4 sm:px-6 lg:px-8 pt-3 pb-3.5 flex-row justify-between items-center bg-[#faf9f5] border-b border-[#eae8e1]">
+        <AppText weight="bold" className="text-xl sm:text-2xl text-neutral-dark tracking-tight">
+          Profile & Preferences
         </AppText>
 
         <View className="flex-row items-center gap-x-2">
           {/* Edit Profile & Goal Button */}
           <TouchableOpacity
             onPress={handleOpenEdit}
-            className="w-11 h-11 rounded-full bg-secondary items-center justify-center transition-transform hover:scale-105 active:scale-95"
+            className="w-10 h-10 rounded-full bg-[#eef4f0] border border-[#d6e4db] items-center justify-center transition-transform active:scale-95"
             accessibilityRole="button"
             accessibilityLabel="Edit personalization preferences"
           >
-            <EditIconSvg size={18} color="#0d9488" />
+            <EditIconSvg size={16} color="#153e28" />
           </TouchableOpacity>
 
           {/* Settings Cog Icon */}
           <TouchableOpacity
             onPress={() => setSettingsVisible(true)}
-            className="w-11 h-11 rounded-full bg-secondary items-center justify-center transition-transform hover:scale-105 active:scale-95"
+            className="w-10 h-10 rounded-full bg-[#eef4f0] border border-[#d6e4db] items-center justify-center transition-transform active:scale-95"
             accessibilityRole="button"
             accessibilityLabel="Account settings"
           >
-            <SettingsIconSvg size={18} color="#0d9488" />
+            <SettingsIconSvg size={16} color="#153e28" />
           </TouchableOpacity>
         </View>
       </View>
 
       <ScrollView
-        className="flex-1 px-5 pt-4"
+        className="flex-1 px-4 sm:px-6 lg:px-8 pt-4 bg-[#faf9f5]"
         contentContainerStyle={{ paddingBottom: Platform.OS === "web" ? 64 : 112 }}
         showsVerticalScrollIndicator={false}
       >
-        <View className="flex-col lg:flex-row lg:gap-8">
+        <View className="max-w-[1280px] mx-auto w-full flex-col lg:flex-row lg:gap-8">
           {/* Left Column: Identity Banner & Personal Information */}
           <View className="w-full lg:w-5/12">
-            {/* 1. Double-Bezel Editorial Identity Banner */}
+            {/* 1. Editorial Identity Banner */}
             <View className="mb-4">
-              <View className="bg-[#f2f8f4] p-1.5 rounded-[26px] border border-[#e5ece7] shadow-xs">
-                <View className="bg-white p-5 rounded-[20px] border border-black/[0.04]">
-                  <View className="flex-row items-center mb-3.5">
-                    <View className="w-16 h-16 rounded-full bg-white items-center justify-center mr-3.5 border-2 border-emerald-500/20 relative shadow-xs">
-                      <Avatar name={user?.name || "User"} size={58} showBadge />
-                    </View>
-                    <View className="flex-1">
-                      <AppText weight="black" className="text-xl text-neutral-dark tracking-tight">
-                        {user?.name || "User"}
-                      </AppText>
-                      <AppText weight="medium" className="text-xs text-neutral-muted mt-0.5">
-                        {user?.email || "user@betterlife.local"}
-                      </AppText>
-                    </View>
+              <View className="bg-white p-5 rounded-2xl border border-[#eae8e1] shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
+                <View className="flex-row items-center mb-3.5">
+                  <View className="w-16 h-16 rounded-full bg-white items-center justify-center mr-3.5 border-2 border-primary/20 relative shadow-xs">
+                    <Avatar name={user?.name || "User"} size={58} showBadge />
                   </View>
+                  <View className="flex-1">
+                    <AppText weight="bold" className="text-xl text-neutral-dark tracking-tight">
+                      {user?.name || "User"}
+                    </AppText>
+                    <AppText weight="medium" className="text-xs text-neutral-muted mt-0.5">
+                      {user?.email || "user@betterlife.local"}
+                    </AppText>
+                  </View>
+                </View>
 
-                  {/* Metric Metadata with Tabular Numbers */}
-                  <View className="flex-row flex-wrap items-center gap-x-2 pt-2.5 border-t border-[#f2f8f4]">
-                    <AppText
-                      weight="bold"
-                      className="text-xs text-emerald-800"
-                      style={{ fontVariant: ["tabular-nums"] }}
-                    >
-                      {personalization.targetCalories || 1950} kcal/day
-                    </AppText>
-                    <AppText weight="medium" className="text-xs text-neutral-muted">•</AppText>
-                    <AppText weight="semibold" className="text-xs text-neutral-dark">
-                      {personalization.goal}
-                    </AppText>
-                    <AppText weight="medium" className="text-xs text-neutral-muted">•</AppText>
-                    <AppText weight="semibold" className="text-xs text-neutral-dark">
-                      {personalization.dietType}
-                    </AppText>
-                  </View>
+                {/* Metric Metadata with Tabular Numbers */}
+                <View className="flex-row flex-wrap items-center gap-x-2 pt-2.5 border-t border-[#f4f2ec]">
+                  <AppText
+                    weight="bold"
+                    className="text-xs text-primary"
+                    style={{ fontVariant: ["tabular-nums"] }}
+                  >
+                    {personalization.targetCalories || 2582} kcal/day
+                  </AppText>
+                  <AppText weight="medium" className="text-xs text-neutral-muted">•</AppText>
+                  <AppText weight="semibold" className="text-xs text-neutral-dark">
+                    {personalization.goal}
+                  </AppText>
+                  <AppText weight="medium" className="text-xs text-neutral-muted">•</AppText>
+                  <AppText weight="semibold" className="text-xs text-neutral-dark">
+                    {personalization.dietType}
+                  </AppText>
                 </View>
               </View>
             </View>
 
             {/* 2. Personal Information & Nutrition Plan Card */}
             <View>
-              <View className="bg-white p-4 rounded-2xl border border-[#e5ece7] mb-4 shadow-sm">
-                <View className="flex-row justify-between items-center mb-3 pb-2 border-b border-[#e5ece7]">
+              <View className="bg-white p-5 rounded-2xl border border-[#eae8e1] mb-4 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
+                <View className="flex-row justify-between items-center mb-3 pb-2 border-b border-[#f4f2ec]">
                   <View>
-                    <AppText weight="black" className="text-base text-neutral-dark">
+                    <AppText weight="bold" className="text-base text-neutral-dark">
                       Personal Information
                     </AppText>
                     <AppText weight="medium" className="text-xs text-neutral-muted">
-                      Used for daily calorie & nutrition estimates
+                      Calibrated for daily calorie & nutrition estimates
                     </AppText>
                   </View>
                   <TouchableOpacity
                     onPress={handleOpenEdit}
-                    className="px-3.5 py-1.5 bg-[#f2f8f4] rounded-full border border-[#cbe5d6] transition-all hover:bg-secondary active:scale-[0.96]"
+                    className="px-3 py-1 bg-[#eef4f0] rounded-full border border-[#d6e4db] transition-all hover:bg-[#e4ede7] active:scale-[0.96]"
                     accessibilityRole="button"
                     accessibilityLabel="Edit personal information"
                   >
