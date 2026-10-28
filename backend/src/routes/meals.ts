@@ -40,22 +40,30 @@ function logMealHandler(req: Request, res: Response) {
     carbsGrams,
     fatGrams,
     fiberGrams,
+    estimatedCostIdr,
     quantity,
+    dateKey: inputDateKey,
+    loggedAt: inputLoggedAt,
   } = parseResult.data;
 
+  const loggedAt = inputLoggedAt ? new Date(inputLoggedAt) : now;
+  const dateKey = inputDateKey || loggedAt.toISOString().split("T")[0];
+
   const newMeal = {
-    id: `meal-${Date.now()}`,
+    id: `meal-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
     userId,
     type,
     name,
     calories,
-    proteinGrams,
-    carbsGrams,
-    fatGrams,
-    fiberGrams,
-    quantity,
+    proteinGrams: proteinGrams || 0,
+    carbsGrams: carbsGrams || 0,
+    fatGrams: fatGrams || 0,
+    fiberGrams: fiberGrams || 0,
+    estimatedCostIdr: estimatedCostIdr || 0,
+    quantity: quantity || 1,
+    dateKey,
     time: timeStr,
-    loggedAt: now,
+    loggedAt,
   };
 
   const current = inMemoryStore.loggedMeals.get(userId) || [];

@@ -7,6 +7,7 @@ export default function AppLayout() {
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="recipe-detail" options={{ headerShown: false }} />
       <Stack.Screen name="meal-planner" options={{ headerShown: false }} />
+      <Stack.Screen name="analytics" options={{ headerShown: false }} />
       <Stack.Screen name="upgrade" options={{ headerShown: false, presentation: "modal" }} />
     </Stack>
   );

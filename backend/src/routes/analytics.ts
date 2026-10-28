@@ -3,95 +3,99 @@ import { authMiddleware } from "../middleware/auth.js";
 import { requireEntitlement } from "../middleware/entitlement.js";
 import { Entitlement } from "../types/subscription.js";
 import { inMemoryStore } from "../services/store.js";
+import { AnalyticsEngine } from "../services/analyticsEngine.js";
+import { AnalyticsQuerySchema } from "../schemas/validation.js";
 
 export const analyticsRouter = Router();
 
 // Apply base authentication to all analytics endpoints
 analyticsRouter.use(authMiddleware);
 
-// 1. GET /api/analytics/advanced — Advanced macro & micronutrient breakdown
+// 1. GET /api/analytics/advanced — Advanced macro & micronutrient breakdown & trends
 analyticsRouter.get(
   "/advanced",
   requireEntitlement(Entitlement.ADVANCED_ANALYTICS),
   (req: Request, res: Response) => {
     const userId = req.user!.userId;
+
+    // Validate query parameters
+    const parseResult = AnalyticsQuerySchema.safeParse(req.query);
+    if (!parseResult.success) {
+      return res.status(400).json({
+        error: "INVALID_QUERY_PARAMS",
+        details: parseResult.error.errors,
+      });
+    }
+
+    const { range = "7d", startDate, endDate } = parseResult.data;
     const meals = inMemoryStore.loggedMeals.get(userId) || [];
     const profile = inMemoryStore.profiles.get(userId);
-
-    const totalCalories = meals.reduce((sum, m) => sum + (m.calories || 0), 0);
-    const totalProtein = meals.reduce((sum, m) => sum + (m.proteinGrams || 0), 0);
-    const totalCarbs = meals.reduce((sum, m) => sum + (m.carbsGrams || 0), 0);
-    const totalFat = meals.reduce((sum, m) => sum + (m.fatGrams || 0), 0);
-    const totalFiber = meals.reduce((sum, m) => sum + (m.fiberGrams || 0), 0);
-
-    const macroCalories = totalProtein * 4 + totalCarbs * 4 + totalFat * 9;
-    const proteinRatio = macroCalories > 0 ? Math.round(((totalProtein * 4) / macroCalories) * 100) : 25;
-    const carbsRatio = macroCalories > 0 ? Math.round(((totalCarbs * 4) / macroCalories) * 100) : 50;
-    const fatRatio = macroCalories > 0 ? Math.round(((totalFat * 9) / macroCalories) * 100) : 25;
-
     const targetCalories = profile?.targetCalories || 2000;
-    const adherenceRatio = targetCalories > 0 ? Math.min(100, Math.round((totalCalories / targetCalories) * 100)) : 80;
 
+    const analytics = AnalyticsEngine.computeAnalytics(
+      userId,
+      meals,
+      targetCalories,
+      range,
+      startDate,
+      endDate
+    );
+
+    // Return full analytics payload with top-level backwards compatibility
     return res.json({
-      summary: {
-        totalCalories,
-        targetCalories,
-        adherenceScore: adherenceRatio,
-        fiberScore: totalFiber >= 25 ? "Optimal" : "Needs Improvement",
-      },
-      macroDistribution: {
-        proteinPercentage: proteinRatio,
-        carbsPercentage: carbsRatio,
-        fatPercentage: fatRatio,
-        grams: {
-          protein: totalProtein,
-          carbs: totalCarbs,
-          fat: totalFat,
-          fiber: totalFiber,
-        },
-      },
-      mealTimingDistribution: {
-        breakfastPercentage: 25,
-        lunchPercentage: 40,
-        dinnerPercentage: 30,
-        snacksPercentage: 5,
-      },
-      insights: [
-        "Your protein distribution is optimal for lean muscle preservation.",
-        totalFiber < 25
-          ? "Consider adding high-fiber legumes or chia seeds to reach the daily 25g target."
-          : "Fiber intake is within clinical dietary recommendations.",
-      ],
+      ...analytics,
+      mealTimingDistribution: analytics.consistency.mealTimingDistribution,
     });
   }
 );
 
-// 2. GET /api/analytics/reports — Weekly and monthly comprehensive nutrition reports
+// 2. GET /api/analytics/reports — Weekly and monthly comprehensive nutrition reports based on real user data
 analyticsRouter.get(
   "/reports",
   requireEntitlement(Entitlement.NUTRITION_REPORTS),
   (req: Request, res: Response) => {
     const userId = req.user!.userId;
     const meals = inMemoryStore.loggedMeals.get(userId) || [];
+    const profile = inMemoryStore.profiles.get(userId);
+    const targetCalories = profile?.targetCalories || 2000;
 
-    const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-    const weeklyData = days.map((day, idx) => ({
-      day,
-      calories: 1850 + (idx % 3) * 120,
-      proteinGrams: 95 + (idx % 2) * 15,
-      goalMet: true,
+    const analytics = AnalyticsEngine.computeAnalytics(
+      userId,
+      meals,
+      targetCalories,
+      "7d"
+    );
+
+    const dailyBreakdown = analytics.dailyTrends.map((point) => ({
+      date: point.date,
+      day: point.dayLabel,
+      calories: point.calories,
+      proteinGrams: point.proteinGrams,
+      carbsGrams: point.carbsGrams,
+      fatGrams: point.fatGrams,
+      hasData: point.hasData,
+      goalMet: point.adherenceStatus === "on_target",
     }));
+
+    // Calculate projection from real average delta against user target (7700 kcal ~= 1 kg)
+    const dailyDelta = analytics.summary.targetComparison.deltaKcal;
+    const estimatedWeightDeltaKg = Math.round(((dailyDelta * 30) / 7700) * 100) / 100;
 
     return res.json({
       period: "weekly",
-      loggedEntriesCount: meals.length,
-      averageDailyCalories: 1940,
-      weeklyConsistencyScore: 94,
-      dailyBreakdown: weeklyData,
+      loggedEntriesCount: analytics.consistency.totalMealsLogged,
+      loggedDaysCount: analytics.consistency.loggedDaysCount,
+      averageDailyCalories: analytics.summary.averageDailyCalories,
+      weeklyConsistencyScore: analytics.consistency.dataCoveragePercentage,
+      currentStreakDays: analytics.consistency.currentStreakDays,
+      dailyBreakdown,
+      spending: analytics.spending,
       monthlyProjection: {
-        estimatedWeightDeltaKg: -0.45,
-        targetConsistencyDays: 26,
+        estimatedWeightDeltaKg,
+        targetConsistencyDays: Math.round((analytics.consistency.dataCoveragePercentage / 100) * 30),
       },
+      narrative: analytics.narrative,
+      insights: analytics.insights,
     });
   }
 );

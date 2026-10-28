@@ -768,16 +768,28 @@ export default function HomeScreen() {
           </View>
 
           {isAnalyticsUnlocked && (
-            <TouchableOpacity
-              onPress={handleExport}
-              className="px-3 py-1.5 rounded-full bg-[#f4f3ed] border border-[#eae8e1] active:bg-[#e8e6dd]"
-              accessibilityRole="button"
-              accessibilityLabel="Export nutrition report"
-            >
-              <AppText weight="bold" className="text-xs text-neutral-dark">
-                Export Data
-              </AppText>
-            </TouchableOpacity>
+            <View className="flex-row items-center gap-2">
+              <TouchableOpacity
+                onPress={() => router.push("/(app)/analytics")}
+                className="px-3 py-1.5 rounded-full bg-[#153e28] active:bg-[#0f2e1d]"
+                accessibilityRole="button"
+                accessibilityLabel="Open full analytics dashboard"
+              >
+                <AppText weight="bold" className="text-xs text-white">
+                  Full Analytics
+                </AppText>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleExport}
+                className="px-3 py-1.5 rounded-full bg-[#f4f3ed] border border-[#eae8e1] active:bg-[#e8e6dd]"
+                accessibilityRole="button"
+                accessibilityLabel="Export nutrition report"
+              >
+                <AppText weight="bold" className="text-xs text-neutral-dark">
+                  Export
+                </AppText>
+              </TouchableOpacity>
+            </View>
           )}
         </View>
 
@@ -842,6 +854,20 @@ export default function HomeScreen() {
                 </AppText>
               </View>
             </View>
+
+            {/* Link to Full Analytics */}
+            <TouchableOpacity
+              onPress={() => router.push("/(app)/analytics")}
+              activeOpacity={0.8}
+              className="py-2.5 px-3.5 rounded-xl bg-[#faf9f5] border border-[#eae8e1] flex-row items-center justify-between active:bg-[#f4f3ed]"
+              accessibilityRole="link"
+              accessibilityLabel="View full 7-day and 30-day analytics trends"
+            >
+              <AppText weight="bold" className="text-xs text-primary">
+                View Full 7D & 30D Trends →
+              </AppText>
+              <ChevronRightIconSvg size={14} color="#153e28" />
+            </TouchableOpacity>
           </View>
         ) : (
           /* Locked Free Preview Banner */

@@ -57,6 +57,13 @@ export const loggedMeals = pgTable("logged_meals", {
   type: text("type").notNull(), // "Breakfast" | "Lunch" | "Dinner" | "Snack" | "Drink"
   name: text("name").notNull(),
   calories: integer("calories").notNull(),
+  proteinGrams: integer("protein_grams").default(0).notNull(),
+  carbsGrams: integer("carbs_grams").default(0).notNull(),
+  fatGrams: integer("fat_grams").default(0).notNull(),
+  fiberGrams: integer("fiber_grams").default(0).notNull(),
+  estimatedCostIdr: integer("estimated_cost_idr").default(0),
+  quantity: doublePrecision("quantity").default(1).notNull(),
+  dateKey: text("date_key"), // "YYYY-MM-DD" for indexed date-range queries
   time: text("time").notNull(),
   loggedAt: timestamp("logged_at").defaultNow().notNull(),
 });

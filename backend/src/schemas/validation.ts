@@ -48,7 +48,16 @@ export const LogMealInputSchema = z.object({
   carbsGrams: z.number().nonnegative().optional().default(0),
   fatGrams: z.number().nonnegative().optional().default(0),
   fiberGrams: z.number().nonnegative().optional().default(0),
+  estimatedCostIdr: z.number().nonnegative().optional().default(0),
   quantity: z.number().positive().optional().default(1),
+  dateKey: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  loggedAt: z.string().datetime().optional(),
+});
+
+export const AnalyticsQuerySchema = z.object({
+  range: z.enum(["7d", "30d", "custom"]).default("7d"),
+  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
 });
 
 export const AddStepsInputSchema = z.object({
