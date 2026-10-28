@@ -103,6 +103,7 @@ export default function HomeScreen() {
   const user = useAuthStore((state) => state.user);
   const personalization = useOnboardingStore((state) => state.personalization);
   const hasEntitlement = useSubscriptionStore((state) => state.hasEntitlement);
+  const isPremium = useSubscriptionStore((state) => state.isPremium);
 
   // Single Source of Truth: Central Journal Store with stable selector
   const todayDate = getTodayDateKey();
@@ -881,6 +882,64 @@ export default function HomeScreen() {
     );
   };
 
+  /* Render Personalized Meal Planner Card (Premium) */
+  const renderMealPlannerCard = () => (
+    <View className="bg-white rounded-2xl border border-[#eae8e1] p-5 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
+      <View className="flex-row items-center justify-between pb-3 mb-3 border-b border-[#f4f2ec]">
+        <View className="flex-row items-center gap-3">
+          <View className="w-10 h-10 rounded-xl bg-[#eaf2ec] border border-[#d6e4db] items-center justify-center">
+            <CrownIconSvg size={20} color={isPremium ? "#b45309" : "#153e28"} />
+          </View>
+          <View>
+            <View className="flex-row items-center gap-2">
+              <AppText weight="bold" className="text-base sm:text-lg text-neutral-dark tracking-tight">
+                Personalized Meal Planner
+              </AppText>
+              <Badge
+                label={isPremium ? "Active" : "Premium"}
+                variant={isPremium ? "primary" : "outline"}
+              />
+            </View>
+            <AppText weight="medium" className="text-xs text-neutral-muted mt-0.5">
+              Weekly schedules, allergy filtering & grocery budget intelligence
+            </AppText>
+          </View>
+        </View>
+
+        <TouchableOpacity
+          onPress={() => router.push("/(app)/meal-planner")}
+          className="px-3.5 py-1.5 rounded-full bg-[#eef4f0] border border-[#d6e4db] active:bg-[#e4ede7]"
+          accessibilityRole="button"
+          accessibilityLabel="Open Meal Planner"
+        >
+          <AppText weight="bold" className="text-xs text-[#153e28]">
+            {isPremium ? "View Schedule" : "Explore"}
+          </AppText>
+        </TouchableOpacity>
+      </View>
+
+      <TouchableOpacity
+        onPress={() => router.push("/(app)/meal-planner")}
+        activeOpacity={0.85}
+        className="p-4 rounded-xl bg-[#faf9f5] border border-[#eae8e1] flex-row items-center justify-between"
+      >
+        <View className="flex-1 pr-3">
+          <AppText weight="bold" className="text-xs text-neutral-dark">
+            {isPremium
+              ? "7-Day Clinical Nutrition & Grocery Plan"
+              : "Generate 7-Day Balanced Schedule"}
+          </AppText>
+          <AppText weight="medium" className="text-xs text-neutral-muted mt-0.5 leading-relaxed">
+            {isPremium
+              ? "Manage daily breakfast, lunch, dinner, and snack assignments, replace meals, and view your consolidated shopping list."
+              : "Calibrated to your exact calorie goal, macro targets, and regional grocery budget."}
+          </AppText>
+        </View>
+        <ChevronRightIconSvg size={16} color="#153e28" />
+      </TouchableOpacity>
+    </View>
+  );
+
   /* Render Curated Meal Suggestions (Editorial Wellness) */
   const renderMealSuggestions = () => (
     <View className="bg-white rounded-2xl border border-[#eae8e1] p-5 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.03)] relative">
@@ -1052,6 +1111,7 @@ export default function HomeScreen() {
                 targetFatGrams={aggregates.targetFatGrams}
               />
               {renderAdvancedAnalyticsCard()}
+              {renderMealPlannerCard()}
               {renderActivitySection()}
               {renderMealSuggestions()}
             </View>
@@ -1079,6 +1139,7 @@ export default function HomeScreen() {
               targetFatGrams={aggregates.targetFatGrams}
             />
             {renderAdvancedAnalyticsCard()}
+            {renderMealPlannerCard()}
             {renderActivitySection()}
             {renderMealSuggestions()}
           </View>

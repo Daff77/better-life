@@ -155,6 +155,8 @@ export const FoodItemSchema = z.object({
       timerMinutes: z.number().optional(),
     })
   ),
+  dietaryTags: z.array(z.string()).optional(),
+  allergens: z.array(z.string()).optional(),
 });
 
 export type FoodItem = z.infer<typeof FoodItemSchema>;

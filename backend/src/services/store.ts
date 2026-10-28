@@ -1,7 +1,9 @@
 import { INITIAL_RECIPES, FoodItemData } from "../data/seedData.js";
+import { MealPlanRecord } from "../types/mealPlan.js";
 
 // Fast memory store with Postgres schema symmetry
 export const inMemoryStore = {
+
   users: new Map<string, any>([
     [
       "user-1",
@@ -88,4 +90,5 @@ export const inMemoryStore = {
     ],
   ]),
   paymentEvents: new Map<string, any>(),
+  mealPlans: new Map<string, MealPlanRecord>(),
 };

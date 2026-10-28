@@ -9,10 +9,11 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
-import { AppText, MealCard, MealLogModal } from "@/components/ui";
+import { AppText, MealCard, MealLogModal, Badge } from "@/components/ui";
 import { useRecipes } from "@/hooks/useRecipesQuery";
 import { useJournalStore, getTodayDateKey, computeJournalAggregates } from "@/stores/useJournalStore";
-import { IconRenderer, CloseIconSvg, TagIconSvg, LightbulbIconSvg } from "@/constants/Assets";
+import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
+import { IconRenderer, CloseIconSvg, TagIconSvg, LightbulbIconSvg, CrownIconSvg } from "@/constants/Assets";
 import { FoodItem } from "@/data/mockRecipes";
 
 const SLOTS = ["All", "Breakfast", "Lunch", "Dinner", "Snack", "Drink"] as const;
@@ -20,6 +21,7 @@ const BUDGET_FILTERS = ["All Budgets", "Under Rp 20k", "Under Rp 35k"] as const;
 
 export default function MealsScreen() {
   const router = useRouter();
+  const isPremium = useSubscriptionStore((state) => state.isPremium);
   const { data: recipes = [] } = useRecipes();
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedSlot, setSelectedSlot] = useState<string>("All");
@@ -124,6 +126,39 @@ export default function MealsScreen() {
         contentContainerStyle={{ paddingBottom: Platform.OS === "web" ? 56 : 112 }}
         showsVerticalScrollIndicator={false}
       >
+        {/* PREMIUM MEAL PLANNER DISCOVERY BANNER */}
+        <View className="max-w-[1280px] mx-auto w-full px-4 sm:px-6 lg:px-8 pt-4 pb-1">
+          <TouchableOpacity
+            onPress={() => router.push("/(app)/meal-planner")}
+            className="w-full bg-white rounded-2xl p-4 border border-[#eae8e1] shadow-xs flex-col sm:flex-row sm:items-center justify-between gap-3 active:scale-[0.99] transition-transform"
+            accessibilityRole="button"
+            accessibilityLabel="Open Personalized Meal Planner"
+          >
+            <View className="flex-row items-center gap-3.5">
+              <View className="w-10 h-10 rounded-xl bg-[#eaf5ef] border border-[#d6e4db] items-center justify-center">
+                <CrownIconSvg size={20} color={isPremium ? "#b45309" : "#1b7a53"} />
+              </View>
+              <View>
+                <View className="flex-row items-center gap-2">
+                  <AppText weight="bold" className="text-sm text-neutral-dark">
+                    Personalized Weekly Meal Planner
+                  </AppText>
+                  <Badge label="Premium" variant={isPremium ? "primary" : "outline"} size="sm" />
+                </View>
+                <AppText weight="medium" className="text-xs text-neutral-muted mt-0.5">
+                  Generate complete 7-day schedules fitting calorie targets, dietary allergies, and budget.
+                </AppText>
+              </View>
+            </View>
+
+            <View className="self-end sm:self-center px-3.5 py-1.5 rounded-full bg-[#eef4f0] border border-[#d6e4db]">
+              <AppText weight="bold" className="text-xs text-[#153e28]">
+                {isPremium ? "Open Planner" : "Preview Feature"}
+              </AppText>
+            </View>
+          </TouchableOpacity>
+        </View>
+
         {/* ZONE 2: One Cohesive Search and Filter Area */}
         <View className="max-w-[1280px] mx-auto w-full px-4 sm:px-6 lg:px-8 pt-4 pb-2">
           {/* Integrated Search Input */}

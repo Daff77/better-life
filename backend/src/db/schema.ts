@@ -45,6 +45,8 @@ export const recipes = pgTable("recipes", {
   nutrition: jsonb("nutrition").notNull(), // { proteinGrams, carbsGrams, fatGrams, fiberGrams }
   ingredients: jsonb("ingredients").notNull(), // [{ name, amount }]
   instructions: jsonb("instructions").notNull(), // [{ step, text, timerMinutes? }]
+  dietaryTags: jsonb("dietary_tags"), // string[]: ["Vegetarian", "Gluten-Free", "High-Protein", etc.]
+  allergens: jsonb("allergens"), // string[]: ["Dairy", "Eggs", "Nuts", etc.]
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -101,4 +103,19 @@ export const paymentEvents = pgTable("payment_events", {
   payload: jsonb("payload").notNull(),
   processedAt: timestamp("processed_at").defaultNow().notNull(),
 });
+
+// 8. Personalized Meal Plans table
+export const mealPlans = pgTable("meal_plans", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id),
+  title: text("title").notNull(),
+  status: text("status").notNull().default("active"), // "active" | "archived"
+  preferences: jsonb("preferences").notNull(),
+  days: jsonb("days").notNull(),
+  summary: jsonb("summary").notNull(),
+  shoppingList: jsonb("shopping_list").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 
