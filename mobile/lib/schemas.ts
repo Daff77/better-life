@@ -22,6 +22,20 @@ export const UserPreferencesSchema = z.object({
 
 export type UserPreferences = z.infer<typeof UserPreferencesSchema>;
 
+export const MembershipTierSchema = z.enum(["free", "premium"]);
+export type MembershipTier = z.infer<typeof MembershipTierSchema>;
+
+export const SubscriptionStatusSchema = z.enum([
+  "free",
+  "pending_verification",
+  "premium_active",
+  "canceled",
+  "expired",
+  "payment_failed",
+  "revoked",
+]);
+export type SubscriptionStatus = z.infer<typeof SubscriptionStatusSchema>;
+
 export const UIStateSchema = z.object({
   isSettingsModalOpen: z.boolean().default(false),
   activeTab: z.string().default("home"),
@@ -121,6 +135,7 @@ export const FoodItemSchema = z.object({
   svgIcon: z.enum(["Breakfast", "Lunch", "Dinner", "Snacks", "Drinks"]).optional().default("Breakfast"),
   imageUrl: z.string().optional(),
   estimatedCostIdr: z.number().optional(),
+  isPremium: z.boolean().optional(),
   nutrition: z.object({
     proteinGrams: z.number().nonnegative(),
     carbsGrams: z.number().nonnegative(),

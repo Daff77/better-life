@@ -9,6 +9,8 @@ export interface FoodItem {
   svgIcon: "Breakfast" | "Lunch" | "Dinner" | "Snacks" | "Drinks";
   imageUrl?: string;
   estimatedCostIdr?: number;
+  isPremium?: boolean;
+  isLocked?: boolean;
   nutrition: {
     proteinGrams: number;
     carbsGrams: number;
@@ -395,4 +397,100 @@ export const MOCK_RECIPES: FoodItem[] = [
       },
     ],
   },
+  {
+    id: "chef-truffle-salmon",
+    title: "Pan-Seared Salmon & Truffle Quinoa",
+    category: "Dinner",
+    calories: 540,
+    prepTimeMinutes: 20,
+    difficulty: "Medium",
+    description: "Wild Atlantic salmon fillet over warm lemon-truffle tri-color quinoa, asparagus spears, and microgreens.",
+    svgIcon: "Dinner",
+    imageUrl: "https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=800&q=80",
+    estimatedCostIdr: 78000,
+    isPremium: true,
+    nutrition: {
+      proteinGrams: 44,
+      carbsGrams: 36,
+      fatGrams: 22,
+      fiberGrams: 7,
+    },
+    ingredients: [
+      { name: "Wild Atlantic Salmon Fillet", amount: "180 g" },
+      { name: "Cooked Tri-Color Quinoa", amount: "120 g" },
+      { name: "Fresh Baby Asparagus", amount: "6 spears" },
+      { name: "Cold-Pressed White Truffle Olive Oil", amount: "1 tsp" },
+      { name: "Meyer Lemon Zest & Flaky Sea Salt", amount: "to taste" },
+    ],
+    instructions: [
+      { step: 1, text: "Pat salmon skin dry. Season with flaky sea salt and freshly cracked black pepper." },
+      { step: 2, text: "Sear salmon skin-side down in a hot cast-iron skillet for 4.5 minutes until crisp, then flip for 2 minutes.", timerMinutes: 6 },
+      { step: 3, text: "Steam asparagus lightly for 3 minutes until vibrant and tender-crisp.", timerMinutes: 3 },
+      { step: 4, text: "Fold white truffle oil and lemon zest into warm quinoa." },
+      { step: 5, text: "Plate quinoa base, top with salmon and asparagus, finishing with microgreens." },
+    ],
+  },
+  {
+    id: "wagyu-macro-bowl",
+    title: "Beef Tenderloin & Roasted Kabocha Bowl",
+    category: "Lunch",
+    calories: 580,
+    prepTimeMinutes: 22,
+    difficulty: "Medium",
+    description: "Lean grass-fed beef slices, caramel-roasted Japanese kabocha squash, steamed broccolini, and avocado slices.",
+    svgIcon: "Lunch",
+    imageUrl: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80",
+    estimatedCostIdr: 85000,
+    isPremium: true,
+    nutrition: {
+      proteinGrams: 48,
+      carbsGrams: 42,
+      fatGrams: 20,
+      fiberGrams: 9,
+    },
+    ingredients: [
+      { name: "Lean Grass-Fed Beef Tenderloin", amount: "160 g" },
+      { name: "Roasted Kabocha Pumpkin Cubes", amount: "140 g" },
+      { name: "Steamed Broccolini Spears", amount: "80 g" },
+      { name: "Hass Avocado Slices", amount: "40 g" },
+      { name: "Toasted White Sesame & Coconut Aminos", amount: "1 tbsp" },
+    ],
+    instructions: [
+      { step: 1, text: "Preheat oven to 200°C. Roast kabocha cubes for 18 minutes until tender and caramelized.", timerMinutes: 18 },
+      { step: 2, text: "Sear tenderloin medallions on high heat for 2.5 minutes per side for medium-rare.", timerMinutes: 5 },
+      { step: 3, text: "Rest steak for 5 minutes, then slice thinly against the grain." },
+      { step: 4, text: "Assemble bowl with roasted kabocha, steamed broccolini, sliced beef, and avocado." },
+    ],
+  },
+  {
+    id: "ceremonial-matcha-adaptogen",
+    title: "Ceremonial Matcha & Lion's Mane",
+    category: "Drink",
+    calories: 75,
+    prepTimeMinutes: 4,
+    difficulty: "Easy",
+    description: "First-harvest ceremonial Uji matcha whisked with oat milk, organic Lion's Mane mushroom extract, and vanilla bean.",
+    svgIcon: "Drinks",
+    imageUrl: "https://images.unsplash.com/photo-1536256263959-770b48d82b0a?auto=format&fit=crop&w=800&q=80",
+    estimatedCostIdr: 32000,
+    isPremium: true,
+    nutrition: {
+      proteinGrams: 3,
+      carbsGrams: 9,
+      fatGrams: 2,
+      fiberGrams: 3,
+    },
+    ingredients: [
+      { name: "Ceremonial Uji Matcha Powder", amount: "2 g" },
+      { name: "Unsweetened Barista Oat Milk", amount: "200 ml" },
+      { name: "Organic Lion's Mane Extract Powder", amount: "500 mg" },
+      { name: "Madagascar Vanilla Bean Powder", amount: "pinch" },
+    ],
+    instructions: [
+      { step: 1, text: "Sift ceremonial matcha and Lion's Mane extract into a chawan bowl." },
+      { step: 2, text: "Add 50ml hot water (75°C) and whisk with bamboo chasen in 'W' motion until micro-foam develops." },
+      { step: 3, text: "Pour over warm frothed oat milk or iced oat milk and dust with vanilla bean." },
+    ],
+  },
 ];
+

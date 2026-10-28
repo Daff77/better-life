@@ -41,6 +41,7 @@ export const recipes = pgTable("recipes", {
   svgIcon: text("svg_icon").notNull(),
   imageUrl: text("image_url"),
   estimatedCostIdr: integer("estimated_cost_idr"),
+  isPremium: boolean("is_premium").default(false).notNull(),
   nutrition: jsonb("nutrition").notNull(), // { proteinGrams, carbsGrams, fatGrams, fiberGrams }
   ingredients: jsonb("ingredients").notNull(), // [{ name, amount }]
   instructions: jsonb("instructions").notNull(), // [{ step, text, timerMinutes? }]
@@ -69,3 +70,35 @@ export const activityStats = pgTable("activity_stats", {
   exerciseDurationMinutes: integer("exercise_duration_minutes").default(0).notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+// 6. Subscriptions table
+export const subscriptions = pgTable("subscriptions", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id),
+  tier: text("tier").notNull().default("free"), // "free" | "premium"
+  status: text("status").notNull().default("free"), // "free" | "pending_verification" | "premium_active" | "canceled" | "expired" | "payment_failed" | "revoked"
+  planId: text("plan_id"), // "monthly" | "annual" | "lifetime"
+  billingProvider: text("billing_provider").notNull().default("mock_sandbox"), // "stripe" | "apple_app_store" | "google_play" | "mock_sandbox" | "manual"
+  externalSubscriptionId: text("external_subscription_id"),
+  externalCustomerId: text("external_customer_id"),
+  currentPeriodStart: timestamp("current_period_start"),
+  currentPeriodEnd: timestamp("current_period_end"),
+  cancelAtPeriodEnd: boolean("cancel_at_period_end").default(false).notNull(),
+  canceledAt: timestamp("canceled_at"),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// 7. Payment Events & Audit Log table (strictly idempotent)
+export const paymentEvents = pgTable("payment_events", {
+  id: text("id").primaryKey(),
+  eventId: text("event_id").notNull().unique(), // Provider event ID used for idempotency
+  provider: text("provider").notNull(),
+  eventType: text("event_type").notNull(),
+  userId: text("user_id").references(() => users.id),
+  subscriptionId: text("subscription_id"),
+  payload: jsonb("payload").notNull(),
+  processedAt: timestamp("processed_at").defaultNow().notNull(),
+});
+

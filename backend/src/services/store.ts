@@ -65,4 +65,27 @@ export const inMemoryStore = {
       },
     ],
   ]),
+  subscriptions: new Map<string, any>([
+    [
+      "user-1",
+      {
+        id: "sub-user-1",
+        userId: "user-1",
+        tier: "free",
+        status: "free",
+        planId: null,
+        billingProvider: "mock_sandbox",
+        externalSubscriptionId: null,
+        externalCustomerId: null,
+        currentPeriodStart: new Date(),
+        currentPeriodEnd: null,
+        cancelAtPeriodEnd: false,
+        canceledAt: null,
+        metadata: {},
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ],
+  ]),
+  paymentEvents: new Map<string, any>(),
 };

@@ -54,3 +54,48 @@ export const LogMealInputSchema = z.object({
 export const AddStepsInputSchema = z.object({
   steps: z.number().positive(),
 });
+
+export const CheckoutInputSchema = z.object({
+  planId: z.enum(["monthly", "annual", "lifetime"]),
+  provider: z
+    .enum(["stripe", "apple_app_store", "google_play", "mock_sandbox"])
+    .default("mock_sandbox"),
+  cancelUrl: z.string().url().optional(),
+  successUrl: z.string().url().optional(),
+});
+
+export const VerifyTransactionInputSchema = z.object({
+  provider: z.enum(["stripe", "apple_app_store", "google_play", "mock_sandbox"]),
+  transactionId: z.string().min(1, "Transaction ID is required"),
+  receiptData: z.string().optional(),
+  planId: z.enum(["monthly", "annual", "lifetime"]).optional(),
+});
+
+export const CancelSubscriptionInputSchema = z.object({
+  reason: z.string().max(500).optional(),
+});
+
+export const RestoreSubscriptionInputSchema = z.object({
+  provider: z
+    .enum(["apple_app_store", "google_play", "stripe", "mock_sandbox"])
+    .default("mock_sandbox"),
+  receiptData: z.string().optional(),
+});
+
+export const WebhookEventInputSchema = z.object({
+  eventId: z.string().min(1, "Event ID is required"),
+  eventType: z.enum([
+    "subscription.created",
+    "subscription.renewed",
+    "subscription.canceled",
+    "subscription.payment_failed",
+    "subscription.revoked",
+  ]),
+  provider: z.enum(["stripe", "apple_app_store", "google_play", "mock_sandbox"]),
+  userId: z.string().optional(),
+  subscriptionId: z.string().optional(),
+  planId: z.enum(["monthly", "annual", "lifetime"]).optional(),
+  currentPeriodEnd: z.string().datetime().optional(),
+  payload: z.record(z.any()),
+});
+

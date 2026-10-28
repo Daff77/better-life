@@ -9,6 +9,7 @@ import { queryClient } from "@/lib/queryClient";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useJournalStore } from "@/stores/useJournalStore";
 import { useOnboardingStore } from "@/stores/useOnboardingStore";
+import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
 import "../styles/global.css";
 
 // Ignore benign dev-mode warnings in Expo Go (e.g. web-only CSS properties, reanimated worklets notices)
@@ -38,6 +39,7 @@ export default function RootLayout() {
     useAuthStore.getState().initializeAuth();
     useOnboardingStore.getState().initializePersonalization();
     useJournalStore.getState().initialize();
+    useSubscriptionStore.getState().fetchStatus();
   }, []);
 
   useEffect(() => {

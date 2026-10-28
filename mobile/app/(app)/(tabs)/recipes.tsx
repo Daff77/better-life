@@ -6,11 +6,14 @@ import {
   Platform,
   Pressable,
   TextInput,
+  Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
 import { AppText, RecipeCard } from "@/components/ui";
 import { useRecipes } from "@/hooks/useRecipesQuery";
+import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
+import { Entitlement } from "@/lib/subscriptionDomain";
 import { IconRenderer, CloseIconSvg } from "@/constants/Assets";
 
 const CATEGORIES = ["All", "Breakfast", "Lunch", "Dinner", "Snack", "Drink"] as const;
@@ -18,8 +21,9 @@ const CATEGORIES = ["All", "Breakfast", "Lunch", "Dinner", "Snack", "Drink"] as 
 export default function RecipesScreen() {
   const router = useRouter();
   const { data: recipes = [] } = useRecipes();
+  const hasEntitlement = useSubscriptionStore((state) => state.hasEntitlement);
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
-  const [searchQuery, setSearchQuery] = useState<string>("" );
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   const filteredRecipes = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -155,28 +159,52 @@ export default function RecipesScreen() {
             </View>
           ) : (
             <View className="flex-row flex-wrap -mx-2">
-              {filteredRecipes.map((recipe) => (
-                <View
-                  key={recipe.id}
-                  className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 px-2 mb-4"
-                >
-                  <RecipeCard
-                    title={recipe.title}
-                    category={recipe.category}
-                    calories={recipe.calories}
-                    prepTimeMinutes={recipe.prepTimeMinutes}
-                    difficulty={recipe.difficulty}
-                    imageUrl={recipe.imageUrl}
-                    svgName={recipe.svgIcon}
-                    onPress={() =>
-                      router.push({
-                        pathname: "/(app)/recipe-detail",
-                        params: { id: recipe.id },
-                      })
-                    }
-                  />
-                </View>
-              ))}
+              {filteredRecipes.map((recipe) => {
+                const isPremiumRecipe = Boolean((recipe as any).isPremium);
+                const isLocked = isPremiumRecipe && !hasEntitlement(Entitlement.PREMIUM_RECIPES);
+
+                const handlePress = () => {
+                  if (isLocked) {
+                    Alert.alert(
+                      "Premium Chef Collection",
+                      `"${recipe.title}" is an exclusive chef-calibrated recipe with precision cooking timers and clinical nutritional notes.\n\nUpgrade to Better Life Premium to unlock all chef collections.`,
+                      [
+                        { text: "Later", style: "cancel" },
+                        {
+                          text: "Upgrade Plan",
+                          onPress: () => router.push("/(app)/upgrade"),
+                        },
+                      ]
+                    );
+                    return;
+                  }
+
+                  router.push({
+                    pathname: "/(app)/recipe-detail",
+                    params: { id: recipe.id },
+                  });
+                };
+
+                return (
+                  <View
+                    key={recipe.id}
+                    className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 px-2 mb-4"
+                  >
+                    <RecipeCard
+                      title={recipe.title}
+                      category={recipe.category}
+                      calories={recipe.calories}
+                      prepTimeMinutes={recipe.prepTimeMinutes}
+                      difficulty={recipe.difficulty}
+                      imageUrl={recipe.imageUrl}
+                      svgName={recipe.svgIcon}
+                      isPremium={isPremiumRecipe}
+                      isLocked={isLocked}
+                      onPress={handlePress}
+                    />
+                  </View>
+                );
+              })}
             </View>
           )}
         </View>

@@ -25,6 +25,8 @@ import {
 } from "@/components/ui";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useOnboardingStore } from "@/stores/useOnboardingStore";
+import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
+import { Entitlement } from "@/lib/subscriptionDomain";
 import {
   useJournalStore,
   getTodayDateKey,
@@ -44,6 +46,7 @@ import {
   BellIconSvg,
   SearchIconSvg,
   ChevronRightIconSvg,
+  CrownIconSvg,
 } from "@/constants/Assets";
 import { MOCK_RECIPES, FoodItem } from "@/data/mockRecipes";
 
@@ -99,6 +102,7 @@ export default function HomeScreen() {
 
   const user = useAuthStore((state) => state.user);
   const personalization = useOnboardingStore((state) => state.personalization);
+  const hasEntitlement = useSubscriptionStore((state) => state.hasEntitlement);
 
   // Single Source of Truth: Central Journal Store with stable selector
   const todayDate = getTodayDateKey();
@@ -707,6 +711,176 @@ export default function HomeScreen() {
     </View>
   );
 
+  /* Render Advanced Nutrition Analytics (Premium Entitlement) */
+  const renderAdvancedAnalyticsCard = () => {
+    const isAnalyticsUnlocked = hasEntitlement(Entitlement.ADVANCED_ANALYTICS);
+
+    // Derived macro percentages
+    const totalMacroKcal =
+      aggregates.totalProteinGrams * 4 +
+      aggregates.totalCarbsGrams * 4 +
+      aggregates.totalFatGrams * 9;
+
+    const pPct =
+      totalMacroKcal > 0
+        ? Math.round(((aggregates.totalProteinGrams * 4) / totalMacroKcal) * 100)
+        : 25;
+    const cPct =
+      totalMacroKcal > 0
+        ? Math.round(((aggregates.totalCarbsGrams * 4) / totalMacroKcal) * 100)
+        : 50;
+    const fPct =
+      totalMacroKcal > 0
+        ? Math.round(((aggregates.totalFatGrams * 9) / totalMacroKcal) * 100)
+        : 25;
+
+    const handleExport = () => {
+      Alert.alert(
+        "Export Nutrition Report",
+        `Daily logs for ${todayDate}:\n• Consumed: ${aggregates.totalConsumed} kcal\n• Protein: ${aggregates.totalProteinGrams}g\n• Carbs: ${aggregates.totalCarbsGrams}g\n• Fat: ${aggregates.totalFatGrams}g\n• Fiber: ${aggregates.totalFiberGrams}g\n\nReport ready in CSV / JSON format.`,
+        [{ text: "OK" }]
+      );
+    };
+
+    return (
+      <View className="bg-white rounded-2xl border border-[#eae8e1] p-5 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.03)] relative overflow-hidden">
+        {/* Header */}
+        <View className="flex-row items-center justify-between pb-3 mb-4 border-b border-[#f4f2ec]">
+          <View className="flex-row items-center gap-3">
+            <View className="w-10 h-10 rounded-xl bg-[#eaf2ec] border border-[#d6e4db] items-center justify-center">
+              <CrownIconSvg size={20} color={isAnalyticsUnlocked ? "#b45309" : "#153e28"} />
+            </View>
+            <View>
+              <View className="flex-row items-center gap-2">
+                <AppText weight="bold" className="text-base sm:text-lg text-neutral-dark tracking-tight">
+                  Advanced Analytics
+                </AppText>
+                <Badge
+                  label={isAnalyticsUnlocked ? "Unlocked" : "Premium"}
+                  variant={isAnalyticsUnlocked ? "primary" : "outline"}
+                />
+              </View>
+              <AppText weight="medium" className="text-xs text-neutral-muted mt-0.5">
+                Caloric macro partitioning and clinical fiber balance
+              </AppText>
+            </View>
+          </View>
+
+          {isAnalyticsUnlocked && (
+            <TouchableOpacity
+              onPress={handleExport}
+              className="px-3 py-1.5 rounded-full bg-[#f4f3ed] border border-[#eae8e1] active:bg-[#e8e6dd]"
+              accessibilityRole="button"
+              accessibilityLabel="Export nutrition report"
+            >
+              <AppText weight="bold" className="text-xs text-neutral-dark">
+                Export Data
+              </AppText>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {isAnalyticsUnlocked ? (
+          /* Unlocked Premium View */
+          <View className="gap-y-4">
+            {/* Macro Ratio Split Bar */}
+            <View>
+              <View className="flex-row justify-between items-center mb-1.5">
+                <AppText weight="bold" className="text-xs text-neutral-dark">
+                  Macro Caloric Energy Split
+                </AppText>
+                <AppText
+                  weight="medium"
+                  className="text-xs text-neutral-muted"
+                  style={{ fontVariant: ["tabular-nums"] }}
+                >
+                  P: {pPct}% • C: {cPct}% • F: {fPct}%
+                </AppText>
+              </View>
+              <View className="h-3 rounded-full bg-[#f4f3ed] flex-row overflow-hidden border border-[#eae8e1]">
+                <View style={{ width: `${pPct}%` }} className="bg-emerald-600 h-full" />
+                <View style={{ width: `${cPct}%` }} className="bg-amber-500 h-full" />
+                <View style={{ width: `${fPct}%` }} className="bg-rose-500 h-full" />
+              </View>
+            </View>
+
+            {/* Metric Strip */}
+            <View className="flex-row gap-3 pt-1">
+              <View className="flex-1 p-3 rounded-xl bg-[#faf9f5] border border-[#eae8e1]">
+                <AppText weight="bold" className="text-[10px] text-neutral-muted uppercase">
+                  Fiber Index
+                </AppText>
+                <AppText
+                  weight="black"
+                  className="text-base text-neutral-dark mt-0.5"
+                  style={{ fontVariant: ["tabular-nums"] }}
+                >
+                  {aggregates.totalFiberGrams}g{" "}
+                  <AppText weight="medium" className="text-[11px] text-neutral-muted">
+                    / 25g
+                  </AppText>
+                </AppText>
+                <AppText weight="medium" className="text-[10px] text-primary mt-0.5">
+                  {aggregates.totalFiberGrams >= 25 ? "Optimal target met" : "Needs 7g more"}
+                </AppText>
+              </View>
+
+              <View className="flex-1 p-3 rounded-xl bg-[#faf9f5] border border-[#eae8e1]">
+                <AppText weight="bold" className="text-[10px] text-neutral-muted uppercase">
+                  Adherence Score
+                </AppText>
+                <AppText
+                  weight="black"
+                  className="text-base text-primary mt-0.5"
+                  style={{ fontVariant: ["tabular-nums"] }}
+                >
+                  {Math.min(100, Math.round(aggregates.progressRatio * 100))}%
+                </AppText>
+                <AppText weight="medium" className="text-[10px] text-neutral-muted mt-0.5">
+                  Calorie budget pacing
+                </AppText>
+              </View>
+            </View>
+          </View>
+        ) : (
+          /* Locked Free Preview Banner */
+          <View className="p-4 rounded-xl bg-[#faf9f5] border border-[#eae8e1]">
+            <View className="flex-row items-center justify-between mb-2">
+              <AppText weight="bold" className="text-xs text-neutral-dark">
+                Macro Caloric Distribution: Teaser
+              </AppText>
+              <AppText weight="medium" className="text-[11px] text-neutral-muted">
+                P: 28% • C: 45% • F: 27%
+              </AppText>
+            </View>
+
+            <View className="h-2.5 rounded-full bg-[#eae8e1] flex-row overflow-hidden opacity-60 mb-3">
+              <View style={{ width: "28%" }} className="bg-emerald-600 h-full" />
+              <View style={{ width: "45%" }} className="bg-amber-500 h-full" />
+              <View style={{ width: "27%" }} className="bg-rose-500 h-full" />
+            </View>
+
+            <View className="flex-row items-center justify-between pt-1">
+              <AppText weight="medium" className="text-xs text-neutral-muted flex-1 pr-3">
+                Unlock weekly nutrition trends, macro ratios, and report exports.
+              </AppText>
+              <TouchableOpacity
+                onPress={() => router.push("/(app)/upgrade")}
+                className="px-3.5 py-1.5 rounded-full bg-primary active:bg-primary-dark"
+                accessibilityRole="button"
+                accessibilityLabel="Upgrade to unlock analytics"
+              >
+                <AppText weight="bold" className="text-xs text-white">
+                  Unlock
+                </AppText>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+      </View>
+    );
+  };
+
   /* Render Curated Meal Suggestions (Editorial Wellness) */
   const renderMealSuggestions = () => (
     <View className="bg-white rounded-2xl border border-[#eae8e1] p-5 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.03)] relative">
@@ -877,6 +1051,7 @@ export default function HomeScreen() {
                 targetCarbsGrams={aggregates.targetCarbsGrams}
                 targetFatGrams={aggregates.targetFatGrams}
               />
+              {renderAdvancedAnalyticsCard()}
               {renderActivitySection()}
               {renderMealSuggestions()}
             </View>
@@ -903,6 +1078,7 @@ export default function HomeScreen() {
               targetCarbsGrams={aggregates.targetCarbsGrams}
               targetFatGrams={aggregates.targetFatGrams}
             />
+            {renderAdvancedAnalyticsCard()}
             {renderActivitySection()}
             {renderMealSuggestions()}
           </View>

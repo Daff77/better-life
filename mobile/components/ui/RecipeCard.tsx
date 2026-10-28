@@ -12,8 +12,7 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 import { AppText } from "./AppText";
-import { Badge } from "./Badge";
-import { IconRenderer, AppIconName } from "@/constants/Assets";
+import { IconRenderer, AppIconName, CrownIconSvg } from "@/constants/Assets";
 import { AnimationEasings } from "@/constants/AnimationTokens";
 
 export interface RecipeCardProps extends Omit<TouchableOpacityProps, "children"> {
@@ -25,6 +24,8 @@ export interface RecipeCardProps extends Omit<TouchableOpacityProps, "children">
   svgName?: AppIconName;
   imageUrl?: string;
   imageSource?: ImageSourcePropType;
+  isPremium?: boolean;
+  isLocked?: boolean;
   onPress?: () => void;
   className?: string;
 }
@@ -38,6 +39,8 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
   svgName,
   imageUrl,
   imageSource,
+  isPremium,
+  isLocked,
   onPress,
   className,
   style,
@@ -109,6 +112,16 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
               {prepTimeMinutes}m
             </AppText>
           </View>
+
+          {/* Premium Special Indicator */}
+          {isPremium && (
+            <View className="absolute bottom-2.5 left-2.5 bg-[#fef3c7] px-2 py-0.5 rounded-full border border-[#fde68a] flex-row items-center gap-1 shadow-2xs">
+              <CrownIconSvg size={10} color="#b45309" />
+              <AppText weight="bold" className="text-[9px] text-[#92400e] tracking-wider uppercase">
+                {isLocked ? "Premium" : "Chef Special"}
+              </AppText>
+            </View>
+          )}
         </View>
 
         {/* Card Body Information */}

@@ -20,6 +20,7 @@ export interface SessionData {
   user: StoredUser;
   isAuthenticated: boolean;
   onboardingCompleted: boolean;
+  token?: string;
 }
 
 const SESSION_KEY = "betterlife_session_v1";

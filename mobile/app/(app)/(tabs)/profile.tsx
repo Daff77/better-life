@@ -19,6 +19,7 @@ import { AppText, Card, Avatar, Button, Badge } from "@/components/ui";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useOnboardingStore, calculatePersonalizedPlan, DEFAULT_PERSONALIZATION } from "@/stores/useOnboardingStore";
 import { useJournalStore } from "@/stores/useJournalStore";
+import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
 import { journalStorage } from "@/lib/journalStorage";
 import { sessionStorage } from "@/lib/sessionStorage";
 import { useResetMealsMutation } from "@/hooks/useMealsQuery";
@@ -31,6 +32,7 @@ import {
   LogoutIconSvg,
   TrashIconSvg,
   ChevronRightIconSvg,
+  CrownIconSvg,
 } from "@/constants/Assets";
 import { MOCK_RECIPES } from "@/data/mockRecipes";
 
@@ -44,6 +46,8 @@ export default function ProfileScreen() {
   const savePersonalization = useOnboardingStore((state) => state.savePersonalization);
   const logout = useAuthStore((state) => state.logout);
   const resetMealsMutation = useResetMealsMutation();
+  const isPremium = useSubscriptionStore((state) => state.isPremium);
+  const currentPeriodEnd = useSubscriptionStore((state) => state.currentPeriodEnd);
 
   const currentYear = new Date().getFullYear();
   const userAge = Math.max(14, currentYear - (personalization.birthDate?.year || 2000));
@@ -301,6 +305,48 @@ export default function ProfileScreen() {
                     {personalization.dietType}
                   </AppText>
                 </View>
+              </View>
+            </View>
+
+            {/* 1.5 Membership Tier & Subscription Status Card */}
+            <View className="mb-4 bg-white p-4 rounded-2xl border border-[#eae8e1] shadow-xs">
+              <View className="flex-row items-center justify-between">
+                <View className="flex-row items-center gap-2.5 flex-1 pr-2">
+                  <View className="w-10 h-10 rounded-xl bg-[#eaf5ef] border border-[#d6e4db] items-center justify-center">
+                    <CrownIconSvg size={18} color={isPremium ? "#b45309" : "#1b7a53"} />
+                  </View>
+                  <View className="flex-1">
+                    <View className="flex-row items-center gap-1.5">
+                      <AppText weight="bold" className="text-sm text-neutral-dark">
+                        {isPremium ? "Premium Member" : "Free Member"}
+                      </AppText>
+                      <Badge
+                        label={isPremium ? "Active" : "Free"}
+                        variant={isPremium ? "primary" : "outline"}
+                      />
+                    </View>
+                    <AppText weight="medium" className="text-[11px] text-neutral-muted mt-0.5">
+                      {isPremium
+                        ? currentPeriodEnd
+                          ? `Renews on ${new Date(currentPeriodEnd).toLocaleDateString()}`
+                          : "Full clinical features unlocked"
+                        : "Upgrade for advanced analytics & custom meal plans"}
+                    </AppText>
+                  </View>
+                </View>
+
+                <TouchableOpacity
+                  onPress={() => router.push("/(app)/upgrade")}
+                  className={`px-3.5 py-1.5 rounded-full ${
+                    isPremium ? "bg-white border border-[#eae8e1] active:bg-[#f2f1eb]" : "bg-primary active:bg-primary-dark"
+                  }`}
+                  accessibilityRole="button"
+                  accessibilityLabel={isPremium ? "Manage subscription plan" : "Upgrade membership plan"}
+                >
+                  <AppText weight="bold" className={`text-xs ${isPremium ? "text-neutral-dark" : "text-white"}`}>
+                    {isPremium ? "Manage" : "Upgrade"}
+                  </AppText>
+                </TouchableOpacity>
               </View>
             </View>
 
@@ -834,6 +880,24 @@ export default function ProfileScreen() {
                   <AppText weight="bold" className="text-sm text-neutral-dark">
                     Re-run Full Onboarding
                   </AppText>
+                  <ChevronRightIconSvg size={18} color="#9ca3af" />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => {
+                    setSettingsVisible(false);
+                    router.push("/(app)/upgrade");
+                  }}
+                  className="p-3.5 min-h-[48px] bg-neutral-surface rounded-xl flex-row justify-between items-center mt-2 hover:bg-neutral-border-light transition-colors"
+                  accessibilityRole="button"
+                  accessibilityLabel="Membership & Subscription"
+                >
+                  <View className="flex-row items-center gap-2">
+                    <CrownIconSvg size={16} color="#b45309" />
+                    <AppText weight="bold" className="text-sm text-neutral-dark">
+                      Membership & Plan
+                    </AppText>
+                  </View>
                   <ChevronRightIconSvg size={18} color="#9ca3af" />
                 </TouchableOpacity>
               </View>

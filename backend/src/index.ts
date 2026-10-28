@@ -8,6 +8,9 @@ import { profileRouter } from "./routes/profile.js";
 import { mealsRouter } from "./routes/meals.js";
 import { recipesRouter } from "./routes/recipes.js";
 import { activityRouter } from "./routes/activity.js";
+import { subscriptionRouter } from "./routes/subscription.js";
+import { analyticsRouter } from "./routes/analytics.js";
+import { mealPlansRouter } from "./routes/mealPlans.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
 export const app: Express = express();
@@ -67,6 +70,10 @@ app.use("/api/profile", profileRouter);
 app.use("/api/meals", mealsRouter);
 app.use("/api/recipes", recipesRouter);
 app.use("/api/activity", activityRouter);
+app.use("/api/subscription", subscriptionRouter);
+app.use("/api/analytics", analyticsRouter);
+app.use("/api/meal-plans", mealPlansRouter);
+
 
 // 7. Centralized Error Handler Middleware
 app.use(errorHandler);

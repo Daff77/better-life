@@ -6,9 +6,11 @@ import {
   useWindowDimensions,
   Platform,
 } from "react-native";
+import { useRouter } from "expo-router";
 import { AppText } from "@/components/ui/AppText";
 import { AnimatedTabIcon } from "@/components/ui/AnimatedTabIcon";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
 import { BrandImages, CrownIconSvg, LeafIconSvg } from "@/constants/Assets";
 
 export interface ResponsiveTabBarProps {
@@ -32,9 +34,11 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({
   navigation,
   insets,
 }) => {
+  const router = useRouter();
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
   const user = useAuthStore((state) => state.user);
+  const isPremium = useSubscriptionStore((state) => state.isPremium);
 
   // Derive user initials for avatar
   const userInitials = React.useMemo(() => {
@@ -152,26 +156,26 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({
         <View className="bg-[#f2f6f3] border border-[#dce8e0] rounded-2xl p-3.5 relative overflow-hidden">
           <View className="mb-2">
             <AppText weight="bold" className="text-xs text-neutral-dark leading-snug">
-              Stay consistent
+              {isPremium ? "Premium Member" : "Stay consistent"}
             </AppText>
             <AppText weight="medium" className="text-xs text-neutral-muted mt-0.5">
-              for a healthier you
+              {isPremium ? "All features unlocked" : "for a healthier you"}
             </AppText>
           </View>
 
-          {/* Upgrade Plan button */}
+          {/* Upgrade / Manage Plan button */}
           <View className="flex-row items-center justify-between mt-2 pt-1">
             <TouchableOpacity
-              onPress={() => {}}
+              onPress={() => router.push("/(app)/upgrade")}
               className={`w-full py-2 px-3 rounded-full bg-white border border-[#d0ded5] flex-row items-center justify-center gap-1.5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] active:scale-95 transition-all ${
                 Platform.OS === "web" ? "cursor-pointer" : ""
               }`}
               accessibilityRole="button"
-              accessibilityLabel="Upgrade Plan"
+              accessibilityLabel={isPremium ? "Manage Plan" : "Upgrade Plan"}
             >
               <CrownIconSvg size={14} color="#b45309" />
               <AppText weight="bold" className="text-xs text-neutral-dark">
-                Upgrade Plan
+                {isPremium ? "Manage Plan" : "Upgrade Plan"}
               </AppText>
             </TouchableOpacity>
           </View>
