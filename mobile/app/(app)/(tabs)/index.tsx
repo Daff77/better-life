@@ -47,6 +47,7 @@ import {
   SearchIconSvg,
   ChevronRightIconSvg,
   CrownIconSvg,
+  BrandImages,
 } from "@/constants/Assets";
 import { MOCK_RECIPES, FoodItem } from "@/data/mockRecipes";
 
@@ -1052,6 +1053,21 @@ export default function HomeScreen() {
           paddingBottom: Platform.OS === "web" ? 56 : 112,
         }}
       >
+        {/* Mobile Brand Bar (shown on smaller screens where sidebar is not present) */}
+        {!isDesktop && (
+          <View className="flex-row items-center gap-2 mb-4 pb-2 border-b border-[#eae8e1]">
+            <Image
+              source={BrandImages.logoPng}
+              style={{ width: 28, height: 28 }}
+              resizeMode="contain"
+              accessibilityLabel="Better Life Logo"
+            />
+            <AppText weight="bold" className="text-base text-neutral-dark tracking-tight">
+              Better Life
+            </AppText>
+          </View>
+        )}
+
         {/* TOP HEADER: Date, Greeting, Search Bar, Notification, Avatar */}
         <View className="mb-6 flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           {/* Left: Date + Greeting + Subtitle */}

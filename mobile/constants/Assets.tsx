@@ -2,7 +2,7 @@ import React from "react";
 import { SvgProps } from "react-native-svg";
 
 // Brand & Logomark
-import BetterLifeLogoSvg from "../assets/images/get started 1.svg";
+import BetterLifeIllustrationSvg from "../assets/images/get started 1.svg";
 
 // Social Auth Icons
 import GoogleIconSvg from "../assets/images/google.svg";
@@ -525,7 +525,8 @@ export const BrandImages = {
 
 export const AppIcons = {
   // Brand
-  LogoSvg: BetterLifeLogoSvg,
+  LogoSvg: BetterLifeIllustrationSvg,
+  Illustration: BetterLifeIllustrationSvg,
 
   // Social
   Google: GoogleIconSvg,

@@ -1,8 +1,8 @@
 import React from "react";
-import { View, TouchableOpacity } from "react-native";
+import { View, Image, TouchableOpacity } from "react-native";
 import { AppText } from "./AppText";
 import { IconButton } from "./IconButton";
-import { ChevronLeftIconSvg } from "@/constants/Assets";
+import { ChevronLeftIconSvg, BrandImages } from "@/constants/Assets";
 
 export interface HeaderProps {
   title?: string;
@@ -14,6 +14,7 @@ export interface HeaderProps {
   rightElement?: React.ReactNode;
   subtitle?: string;
   centered?: boolean;
+  showLogo?: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -23,6 +24,7 @@ export const Header: React.FC<HeaderProps> = ({
   rightElement,
   subtitle,
   centered = false,
+  showLogo = false,
 }) => {
   return (
     <View className="w-full pt-3 pb-2 px-1">
@@ -39,9 +41,23 @@ export const Header: React.FC<HeaderProps> = ({
           ) : null}
         </View>
 
-        {/* Center: Title / Content */}
+        {/* Center: Title / Content / Logo */}
         <View className={`flex-1 ${centered ? "items-center" : "items-start px-2"}`}>
-          {title ? (
+          {showLogo ? (
+            <View className="flex-row items-center gap-2">
+              <Image
+                source={BrandImages.logoPng}
+                style={{ width: 24, height: 24 }}
+                resizeMode="contain"
+                accessibilityLabel="Better Life Logo"
+              />
+              {title ? (
+                <AppText weight="extrabold" className="text-lg text-neutral-dark">
+                  {title}
+                </AppText>
+              ) : null}
+            </View>
+          ) : title ? (
             <AppText weight="extrabold" className="text-lg text-neutral-dark">
               {title}
             </AppText>

@@ -7,6 +7,7 @@ import {
   Alert,
   Platform,
   useWindowDimensions,
+  Image,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
@@ -25,6 +26,7 @@ import {
   CloseIconSvg,
   ChevronLeftIconSvg,
   LeafIconSvg,
+  BrandImages,
 } from "@/constants/Assets";
 
 export default function UpgradeScreen() {
@@ -153,6 +155,12 @@ export default function UpgradeScreen() {
           >
             <ChevronLeftIconSvg size={18} color="#153e28" />
           </TouchableOpacity>
+          <Image
+            source={BrandImages.logoPng}
+            style={{ width: 34, height: 34 }}
+            resizeMode="contain"
+            accessibilityLabel="Better Life Logo"
+          />
           <View>
             <AppText weight="bold" className="text-xl sm:text-2xl text-neutral-dark tracking-tight">
               Better Life Premium

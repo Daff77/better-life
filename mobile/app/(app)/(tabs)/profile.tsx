@@ -33,6 +33,7 @@ import {
   TrashIconSvg,
   ChevronRightIconSvg,
   CrownIconSvg,
+  BrandImages,
 } from "@/constants/Assets";
 import { MOCK_RECIPES } from "@/data/mockRecipes";
 
@@ -933,6 +934,22 @@ export default function ProfileScreen() {
                   </AppText>
                   <TrashIconSvg size={18} color="#ef4444" />
                 </TouchableOpacity>
+              </View>
+
+              {/* App Brand & Version info */}
+              <View className="items-center justify-center pt-5 pb-1">
+                <Image
+                  source={BrandImages.logoPng}
+                  style={{ width: 42, height: 42 }}
+                  resizeMode="contain"
+                  accessibilityLabel="Better Life Logo"
+                />
+                <AppText weight="bold" className="text-xs text-neutral-dark mt-1.5">
+                  Better Life
+                </AppText>
+                <AppText weight="medium" className="text-[11px] text-neutral-muted">
+                  Version 1.0.0 • Mindful Wellness & Nutrition
+                </AppText>
               </View>
             </View>
           </View>

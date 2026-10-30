@@ -1,9 +1,10 @@
 import React from "react";
-import { View, ScrollView, useWindowDimensions } from "react-native";
+import { View, ScrollView, useWindowDimensions, Image } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
 import { AppText, Button, Card, Badge } from "@/components/ui";
 import { useOnboardingStore } from "@/stores/useOnboardingStore";
+import { BrandImages } from "@/constants/Assets";
 
 export default function PersonalizedPlanScreen() {
   const router = useRouter();
@@ -40,7 +41,13 @@ export default function PersonalizedPlanScreen() {
       >
         {/* Header Section */}
         <View className="mb-6">
-          <View className="flex-row items-center gap-x-2 mb-2">
+          <View className="flex-row items-center gap-x-2.5 mb-2">
+            <Image
+              source={BrandImages.logoPng}
+              style={{ width: 28, height: 28 }}
+              resizeMode="contain"
+              accessibilityLabel="Better Life Logo"
+            />
             <View className="bg-primary/20 px-3 py-1 rounded-full">
               <AppText weight="bold" className="text-xs text-primary uppercase tracking-wide">
                 Personalized Blueprint

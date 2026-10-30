@@ -176,6 +176,7 @@ export default function OnboardingScreen() {
       {/* Header with Step Indicator */}
       <Header
         onBack={handleBack}
+        showLogo={true}
         step={{ current: Math.min(currentStep, 8), total: 8 }}
       />
 

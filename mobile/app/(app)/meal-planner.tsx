@@ -33,6 +33,7 @@ import {
   ChevronRightIconSvg,
   EditIconSvg,
   LeafIconSvg,
+  BrandImages,
 } from "@/constants/Assets";
 
 export default function MealPlannerScreen() {
@@ -153,6 +154,12 @@ export default function MealPlannerScreen() {
             >
               <ChevronLeftIconSvg size={18} color="#153e28" />
             </TouchableOpacity>
+            <Image
+              source={BrandImages.logoPng}
+              style={{ width: 34, height: 34 }}
+              resizeMode="contain"
+              accessibilityLabel="Better Life Logo"
+            />
             <View>
               <View className="flex-row items-center gap-2">
                 <AppText weight="bold" className="text-xl sm:text-2xl text-neutral-dark tracking-tight">
@@ -310,6 +317,12 @@ export default function MealPlannerScreen() {
           >
             <ChevronLeftIconSvg size={18} color="#153e28" />
           </TouchableOpacity>
+          <Image
+            source={BrandImages.logoPng}
+            style={{ width: 34, height: 34 }}
+            resizeMode="contain"
+            accessibilityLabel="Better Life Logo"
+          />
           <View>
             <View className="flex-row items-center gap-2">
               <AppText weight="bold" className="text-xl sm:text-2xl text-neutral-dark tracking-tight">

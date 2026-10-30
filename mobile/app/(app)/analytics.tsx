@@ -8,6 +8,7 @@ import {
   Alert,
   Platform,
   useWindowDimensions,
+  Image,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
@@ -30,6 +31,7 @@ import {
   RefreshIconSvg,
   CheckIconSvg,
   LeafIconSvg,
+  BrandImages,
 } from "@/constants/Assets";
 
 export default function AnalyticsScreen() {
@@ -163,6 +165,12 @@ export default function AnalyticsScreen() {
             </TouchableOpacity>
 
             <View className="flex-row items-center gap-2">
+              <Image
+                source={BrandImages.logoPng}
+                style={{ width: 26, height: 26 }}
+                resizeMode="contain"
+                accessibilityLabel="Better Life Logo"
+              />
               <AppText weight="black" className="text-lg text-neutral-dark">
                 Nutrition Analytics
               </AppText>

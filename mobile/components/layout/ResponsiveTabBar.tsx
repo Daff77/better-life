@@ -87,9 +87,12 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({
             accessibilityRole="link"
             accessibilityLabel="Better Life Home"
           >
-            <View className="w-8 h-8 rounded-lg bg-[#eaf2ec] border border-[#d6e4db] items-center justify-center">
-              <LeafIconSvg size={18} color="#153e28" />
-            </View>
+            <Image
+              source={BrandImages.logoPng}
+              style={{ width: 34, height: 34 }}
+              resizeMode="contain"
+              accessibilityLabel="Better Life Logo"
+            />
             <View>
               <AppText weight="bold" className="text-base text-neutral-dark tracking-tight leading-none">
                 Better Life

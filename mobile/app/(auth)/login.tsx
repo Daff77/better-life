@@ -6,13 +6,14 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  Image,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
 import { AppText, Button, Input, Header, Divider, GoogleSignInModal } from "@/components/ui";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { DEFAULT_DEMO_ACCOUNT } from "@/lib/sessionStorage";
-import { IconRenderer } from "@/constants/Assets";
+import { BrandImages, IconRenderer } from "@/constants/Assets";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -100,8 +101,18 @@ export default function LoginScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View className="w-full my-auto md:bg-white md:p-8 md:rounded-3xl md:border md:border-[#e5ece7] md:shadow-md">
+            {/* Brand Logo */}
+            <View className="items-center mb-5">
+              <Image
+                source={BrandImages.logoPng}
+                style={{ width: 84, height: 84 }}
+                resizeMode="contain"
+                accessibilityLabel="Better Life Logo"
+              />
+            </View>
+
             {/* Header Typography */}
-            <View className="mb-8">
+            <View className="mb-6">
               <AppText weight="bold" className="text-3xl text-primary mb-1">
                 Welcome!
               </AppText>
