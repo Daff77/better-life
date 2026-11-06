@@ -455,23 +455,23 @@ export const NutritionCard: React.FC<NutritionCardProps> = ({
 
   return (
     <View
-      className={`bg-white rounded-2xl border border-[#eae8e1] p-5 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.03)] ${
+      className={`bg-white rounded-2xl border border-[#eaeaea] p-5 sm:p-6 ${
         className || ""
       }`}
       style={style}
       {...props}
     >
       {/* 1. Header Section */}
-      <View className="flex-row items-center justify-between mb-4 pb-3 border-b border-[#f4f2ec]">
+      <View className="flex-row items-center justify-between mb-4 pb-3 border-b border-[#f4f4f5]">
         <View className="flex-row items-center gap-3 flex-1 mr-3">
-          <View className="w-9 h-9 rounded-xl bg-[#eaf2ec] border border-[#d6e4db] items-center justify-center flex-shrink-0">
-            <BarChartIcon size={17} color="#153e28" />
+          <View className="w-9 h-9 rounded-xl bg-[#f4f4f5] border border-[#e4e4e7] items-center justify-center flex-shrink-0">
+            <BarChartIcon size={17} color="#18181b" />
           </View>
           <View className="flex-1">
-            <AppText weight="bold" className="text-base sm:text-lg text-neutral-dark tracking-tight leading-tight">
+            <AppText weight="bold" className="text-base sm:text-lg text-[#18181b] tracking-tight leading-tight">
               Macronutrient Balance
             </AppText>
-            <AppText weight="medium" className="text-xs text-neutral-muted mt-0.5 leading-tight">
+            <AppText weight="medium" className="text-xs text-[#71717a] mt-0.5 leading-tight">
               Protein, carbs & fats calibrated to your daily target
             </AppText>
           </View>

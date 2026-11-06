@@ -39,16 +39,16 @@ export default function RecipesScreen() {
   }, [recipes, selectedCategory, searchQuery]);
 
   return (
-    <ScreenWrapper maxWidth="full" noPadding className="flex-1 bg-[#f7faf7]">
-      {/* Header: Apple Translucent Frosted Glass Header */}
+    <ScreenWrapper maxWidth="full" noPadding className="flex-1 bg-[#fafaf9]">
+      {/* Header */}
       <View
-        className="w-full border-b border-[#e5ece7] px-4 sm:px-6 lg:px-8 pt-4 pb-4 z-20"
+        className="w-full border-b border-[#eaeaea] px-4 sm:px-6 lg:px-8 pt-4 pb-4 z-20"
         style={
           Platform.OS === "web"
             ? ({
-                backgroundColor: "rgba(255, 255, 255, 0.88)",
-                backdropFilter: "blur(20px) saturate(180%)",
-                WebkitBackdropFilter: "blur(20px) saturate(180%)",
+                backgroundColor: "rgba(255, 255, 255, 0.92)",
+                backdropFilter: "blur(20px)",
+                WebkitBackdropFilter: "blur(20px)",
                 position: "sticky",
                 top: 0,
               } as any)
@@ -58,31 +58,31 @@ export default function RecipesScreen() {
         <View className="max-w-[1280px] mx-auto w-full">
           <View className="flex-row items-center justify-between">
             <View>
-              <AppText weight="black" className="text-xl sm:text-2xl text-[#14261c] tracking-tight">
+              <AppText weight="bold" className="text-xl sm:text-2xl text-[#18181b] tracking-tight">
                 Resep Sehat Terkurasi
               </AppText>
-              <AppText weight="medium" className="text-xs text-neutral-muted mt-0.5 leading-relaxed">
+              <AppText weight="medium" className="text-xs text-[#71717a] mt-0.5 leading-relaxed">
                 Ide kuliner bergizi dan seimbang kalori untuk menemani perjalanan hidup sehat Anda.
               </AppText>
             </View>
-            <View className="hidden sm:flex px-3 py-1 rounded-full bg-[#eaf4ed] border border-[#d2e7d7]">
-              <AppText weight="bold" className="text-xs text-[#1b5e37]">
+            <View className="hidden sm:flex px-3 py-1 rounded-full bg-[#f4f4f5] border border-[#e4e4e7]">
+              <AppText weight="bold" className="text-xs text-[#52525b]">
                 {recipes.length} Resep Teruji
               </AppText>
             </View>
           </View>
 
           {/* Search Input */}
-          <View className="flex-row items-center bg-white border border-[#e2eae4] rounded-2xl px-4 py-1.5 min-h-[46px] mt-3.5 shadow-2xs">
+          <View className="flex-row items-center bg-white border border-[#eaeaea] rounded-xl px-4 py-1.5 min-h-[44px] mt-3.5">
             <View className="mr-2.5">
-              <IconRenderer name="Search" size={16} color="#607065" />
+              <IconRenderer name="Search" size={15} color="#71717a" />
             </View>
             <TextInput
               value={searchQuery}
               onChangeText={setSearchQuery}
               placeholder="Cari resep sehat (misal: Salad, Sup, Salmon, Ayam, Oatmeal)..."
-              placeholderTextColor="#8a9a8f"
-              className="flex-1 text-sm text-[#14261c] font-medium"
+              placeholderTextColor="#a1a1aa"
+              className="flex-1 text-sm text-[#18181b] font-medium"
               style={{
                 fontFamily: "Akatab-Medium",
                 includeFontPadding: false,
@@ -95,11 +95,11 @@ export default function RecipesScreen() {
               <TouchableOpacity
                 onPress={() => setSearchQuery("")}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                className="w-6 h-6 rounded-full bg-[#ebf0ec] items-center justify-center ml-1"
+                className="w-5 h-5 rounded-full bg-[#f4f4f5] items-center justify-center ml-1"
                 accessibilityRole="button"
                 accessibilityLabel="Hapus pencarian resep"
               >
-                <CloseIconSvg size={12} color="#5a625b" />
+                <CloseIconSvg size={10} color="#71717a" />
               </TouchableOpacity>
             )}
           </View>
@@ -107,7 +107,7 @@ export default function RecipesScreen() {
       </View>
 
       <ScrollView
-        className="flex-1 bg-[#f7faf7]"
+        className="flex-1 bg-[#fafaf9]"
         contentContainerStyle={{ paddingBottom: Platform.OS === "web" ? 56 : 112 }}
         showsVerticalScrollIndicator={false}
       >
@@ -125,11 +125,11 @@ export default function RecipesScreen() {
                 <Pressable
                   key={cat}
                   onPress={() => setSelectedCategory(cat)}
-                  className={`min-h-[38px] px-4 py-1.5 rounded-full flex-row items-center justify-center transition-all duration-150 active:scale-[0.97] ${
+                  className={`min-h-[34px] px-3.5 py-1.5 rounded-lg flex-row items-center justify-center ${
                     isSelected
-                      ? "bg-[#1b5e37] shadow-xs"
-                      : "bg-white border border-[#e5ece7] active:bg-[#f2f7f4]"
-                  } ${Platform.OS === "web" ? "cursor-pointer" : ""}`}
+                      ? "bg-[#18181b] border border-[#18181b]"
+                      : "bg-white border border-[#eaeaea]"
+                  }`}
                   accessibilityRole="button"
                   accessibilityState={{ selected: isSelected }}
                   accessibilityLabel={`Filter ${cat}`}
@@ -137,7 +137,7 @@ export default function RecipesScreen() {
                   <AppText
                     weight={isSelected ? "bold" : "medium"}
                     className={`text-xs ${
-                      isSelected ? "text-white" : "text-[#14261c]"
+                      isSelected ? "text-white" : "text-[#52525b]"
                     }`}
                   >
                     {cat}
@@ -151,14 +151,14 @@ export default function RecipesScreen() {
         {/* Recipe Cards Responsive Grid */}
         <View className="max-w-[1280px] mx-auto w-full px-4 sm:px-6 lg:px-8 pt-2">
           {filteredRecipes.length === 0 ? (
-            <View className="w-full py-12 px-6 items-center justify-center bg-white rounded-[24px] border border-[#e5ece7] my-4 shadow-xs">
-              <View className="w-12 h-12 rounded-xl bg-[#eaf4ed] items-center justify-center mb-3">
-                <IconRenderer name="Cook" size={24} color="#1b5e37" />
+            <View className="w-full py-12 px-6 items-center justify-center bg-white rounded-2xl border border-[#eaeaea] my-4">
+              <View className="w-12 h-12 rounded-xl bg-[#f4f4f5] border border-[#e4e4e7] items-center justify-center mb-3">
+                <IconRenderer name="Cook" size={24} color="#71717a" />
               </View>
-              <AppText weight="bold" className="text-base text-[#14261c] mb-1 text-center">
+              <AppText weight="bold" className="text-base text-[#18181b] mb-1 text-center">
                 Resep tidak ditemukan
               </AppText>
-              <AppText weight="medium" className="text-xs text-neutral-muted text-center max-w-xs mb-4 leading-relaxed">
+              <AppText weight="medium" className="text-xs text-[#71717a] text-center max-w-xs mb-4 leading-relaxed">
                 {searchQuery
                   ? `Tidak ada resep yang cocok dengan "${searchQuery}". Coba kata kunci lain atau reset filter.`
                   : `Belum ada resep dalam kategori "${selectedCategory}". Pilih kategori lain.`}
@@ -168,7 +168,7 @@ export default function RecipesScreen() {
                   setSearchQuery("");
                   setSelectedCategory("Semua");
                 }}
-                className="px-5 py-2.5 rounded-xl bg-[#1b5e37] active:bg-[#154a2b] transition-colors min-h-[40px] items-center justify-center"
+                className="px-5 py-2.5 rounded-lg bg-[#18181b] min-h-[40px] items-center justify-center"
                 accessibilityRole="button"
                 accessibilityLabel="Tampilkan semua resep"
               >

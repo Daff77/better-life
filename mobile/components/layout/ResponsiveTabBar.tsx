@@ -64,7 +64,7 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({
           width: 230,
           zIndex: 50,
         }}
-        className="h-full bg-white border-r border-[#e5ece7] px-4 py-6 justify-between shadow-[2px_0_12px_rgba(20,50,25,0.02)]"
+        className="h-full bg-white border-r border-[#eaeaea] px-4 py-6 justify-between"
         accessibilityLabel="Desktop primary navigation sidebar"
       >
         {/* Top: Brand Logo & Navigation Links */}

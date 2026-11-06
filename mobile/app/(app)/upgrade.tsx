@@ -143,9 +143,9 @@ export default function UpgradeScreen() {
   ];
 
   return (
-    <ScreenWrapper maxWidth="full" noPadding className="flex-1 bg-[#faf9f5]">
+    <ScreenWrapper maxWidth="full" noPadding className="flex-1 bg-[#fafaf9]">
       {/* Top Header */}
-      <View className="w-full bg-[#faf9f5] border-b border-[#eae8e1] px-4 sm:px-6 lg:px-8 pt-3 pb-3.5 flex-row justify-between items-center">
+      <View className="w-full bg-[#fafaf9] border-b border-[#eaeaea] px-4 sm:px-6 lg:px-8 pt-3 pb-3.5 flex-row justify-between items-center">
         <View className="flex-row items-center gap-3">
           <TouchableOpacity
             onPress={() => router.back()}
@@ -174,7 +174,7 @@ export default function UpgradeScreen() {
         <TouchableOpacity
           onPress={handleRestore}
           disabled={isLoading || isUpgrading}
-          className="px-3 py-1.5 rounded-full bg-white border border-[#eae8e1] active:bg-[#f2f1eb]"
+          className="px-3 py-1.5 rounded-full bg-white border border-[#eaeaea] active:bg-[#f2f1eb]"
           accessibilityRole="button"
           accessibilityLabel="Restore purchases"
         >
@@ -185,13 +185,13 @@ export default function UpgradeScreen() {
       </View>
 
       <ScrollView
-        className="flex-1 px-4 sm:px-6 lg:px-8 pt-4 bg-[#faf9f5]"
+        className="flex-1 px-4 sm:px-6 lg:px-8 pt-4 bg-[#fafaf9]"
         contentContainerStyle={{ paddingBottom: Platform.OS === "web" ? 64 : 112 }}
         showsVerticalScrollIndicator={false}
       >
         <View className="max-w-[960px] mx-auto w-full">
           {/* Current Membership Status Banner */}
-          <View className="mb-5 bg-white p-4 sm:p-5 rounded-2xl border border-[#eae8e1] shadow-xs">
+          <View className="mb-5 bg-white p-4 sm:p-5 rounded-2xl border border-[#eaeaea] shadow-xs">
             <View className="flex-row items-center justify-between">
               <View className="flex-row items-center gap-3">
                 <View className="w-11 h-11 rounded-xl bg-[#eaf5ef] border border-[#d6e4db] items-center justify-center">
@@ -316,7 +316,7 @@ export default function UpgradeScreen() {
               className={`flex-1 p-5 rounded-2xl border transition-all ${
                 selectedPlan === "annual"
                   ? "bg-[#f4f9f6] border-primary shadow-xs"
-                  : "bg-white border-[#eae8e1]"
+                  : "bg-white border-[#eaeaea]"
               }`}
               accessibilityRole="radio"
               accessibilityState={{ selected: selectedPlan === "annual" }}
@@ -375,7 +375,7 @@ export default function UpgradeScreen() {
               className={`flex-1 p-5 rounded-2xl border transition-all ${
                 selectedPlan === "monthly"
                   ? "bg-[#f4f9f6] border-primary shadow-xs"
-                  : "bg-white border-[#eae8e1]"
+                  : "bg-white border-[#eaeaea]"
               }`}
               accessibilityRole="radio"
               accessibilityState={{ selected: selectedPlan === "monthly" }}
@@ -445,8 +445,8 @@ export default function UpgradeScreen() {
           </View>
 
           {/* Feature Comparison Table */}
-          <View className="bg-white rounded-2xl border border-[#eae8e1] overflow-hidden mb-6 shadow-xs">
-            <View className="px-5 py-4 bg-[#faf9f5] border-b border-[#eae8e1] flex-row justify-between items-center">
+          <View className="bg-white rounded-2xl border border-[#eaeaea] overflow-hidden mb-6 shadow-xs">
+            <View className="px-5 py-4 bg-[#fafaf9] border-b border-[#eaeaea] flex-row justify-between items-center">
               <AppText weight="bold" className="text-sm text-neutral-dark">
                 Membership Entitlements
               </AppText>
@@ -500,7 +500,7 @@ export default function UpgradeScreen() {
           </View>
 
           {/* Honest Subscription Terms */}
-          <View className="p-4 bg-[#f4f3ed] rounded-xl border border-[#eae8e1] mb-8">
+          <View className="p-4 bg-[#f4f3ed] rounded-xl border border-[#eaeaea] mb-8">
             <AppText weight="bold" className="text-xs text-neutral-dark mb-1">
               Transparent Subscription Policy:
             </AppText>

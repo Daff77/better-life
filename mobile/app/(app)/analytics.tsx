@@ -93,12 +93,12 @@ export default function AnalyticsScreen() {
   if (!isPremium) {
     return (
       <ScreenWrapper noPadding={true} testID="analytics-screen-locked">
-        <View className="flex-1 bg-[#faf9f5]">
+        <View className="flex-1 bg-[#fafaf9]">
           {/* Header */}
-          <View className="flex-row items-center justify-between px-5 pt-4 pb-3 border-b border-[#eae8e1] bg-white">
+          <View className="flex-row items-center justify-between px-5 pt-4 pb-3 border-b border-[#eaeaea] bg-white">
             <TouchableOpacity
               onPress={() => router.back()}
-              className="w-10 h-10 rounded-xl bg-[#faf9f5] border border-[#eae8e1] items-center justify-center active:bg-[#eae8e1]"
+              className="w-10 h-10 rounded-xl bg-[#fafaf9] border border-[#eaeaea] items-center justify-center active:bg-[#eaeaea]"
               accessibilityRole="button"
               accessibilityLabel="Go back"
             >
@@ -148,16 +148,16 @@ export default function AnalyticsScreen() {
   return (
     <ScreenWrapper noPadding={true} testID="analytics-screen">
       <ScrollView
-        className="flex-1 bg-[#faf9f5]"
+        className="flex-1 bg-[#fafaf9]"
         contentContainerStyle={{ paddingBottom: 64 }}
         showsVerticalScrollIndicator={false}
       >
         {/* Screen Header */}
-        <View className="px-5 pt-4 pb-4 bg-white border-b border-[#eae8e1]">
+        <View className="px-5 pt-4 pb-4 bg-white border-b border-[#eaeaea]">
           <View className="flex-row items-center justify-between mb-3">
             <TouchableOpacity
               onPress={() => router.back()}
-              className="w-10 h-10 rounded-xl bg-[#faf9f5] border border-[#eae8e1] items-center justify-center active:bg-[#eae8e1]"
+              className="w-10 h-10 rounded-xl bg-[#fafaf9] border border-[#eaeaea] items-center justify-center active:bg-[#eaeaea]"
               accessibilityRole="button"
               accessibilityLabel="Go back"
             >
@@ -180,7 +180,7 @@ export default function AnalyticsScreen() {
             <TouchableOpacity
               onPress={() => fetchAnalytics()}
               disabled={isLoading}
-              className="w-10 h-10 rounded-xl bg-[#faf9f5] border border-[#eae8e1] items-center justify-center active:bg-[#eae8e1]"
+              className="w-10 h-10 rounded-xl bg-[#fafaf9] border border-[#eaeaea] items-center justify-center active:bg-[#eaeaea]"
               accessibilityRole="button"
               accessibilityLabel="Refresh analytics data"
             >
@@ -190,18 +190,18 @@ export default function AnalyticsScreen() {
 
           {/* Range Selector Pills (7 Days vs 30 Days) */}
           <View className="flex-row items-center justify-between gap-2 pt-1">
-            <View className="flex-1 flex-row bg-[#f4f3ed] p-1 rounded-xl border border-[#eae8e1]">
+            <View className="flex-1 flex-row bg-[#f4f4f5] p-1 rounded-xl border border-[#e4e4e7]">
               <TouchableOpacity
                 onPress={() => setRange("7d")}
-                className={`flex-1 py-2 rounded-lg items-center justify-center transition-all ${
-                  range === "7d" ? "bg-white shadow-[0_1px_2px_rgba(0,0,0,0.05)] border border-[#eae8e1]" : ""
+                className={`flex-1 py-2 rounded-lg items-center justify-center ${
+                  range === "7d" ? "bg-white border border-[#eaeaea]" : ""
                 }`}
                 accessibilityRole="button"
                 accessibilityLabel="View 7-day trend"
               >
                 <AppText
                   weight="bold"
-                  className={`text-xs ${range === "7d" ? "text-primary" : "text-neutral-muted"}`}
+                  className={`text-xs ${range === "7d" ? "text-[#18181b]" : "text-[#71717a]"}`}
                 >
                   7 Days
                 </AppText>
@@ -209,15 +209,15 @@ export default function AnalyticsScreen() {
 
               <TouchableOpacity
                 onPress={() => setRange("30d")}
-                className={`flex-1 py-2 rounded-lg items-center justify-center transition-all ${
-                  range === "30d" ? "bg-white shadow-[0_1px_2px_rgba(0,0,0,0.05)] border border-[#eae8e1]" : ""
+                className={`flex-1 py-2 rounded-lg items-center justify-center ${
+                  range === "30d" ? "bg-white border border-[#eaeaea]" : ""
                 }`}
                 accessibilityRole="button"
                 accessibilityLabel="View 30-day trend"
               >
                 <AppText
                   weight="bold"
-                  className={`text-xs ${range === "30d" ? "text-primary" : "text-neutral-muted"}`}
+                  className={`text-xs ${range === "30d" ? "text-[#18181b]" : "text-[#71717a]"}`}
                 >
                   30 Days
                 </AppText>
@@ -228,7 +228,7 @@ export default function AnalyticsScreen() {
             <TouchableOpacity
               onPress={() => handleExport("csv")}
               disabled={exporting}
-              className="px-3.5 py-2.5 rounded-xl bg-white border border-[#eae8e1] active:bg-[#f4f3ed] flex-row items-center gap-1.5"
+              className="px-3.5 py-2.5 rounded-xl bg-white border border-[#eaeaea] active:bg-[#f4f3ed] flex-row items-center gap-1.5"
               accessibilityRole="button"
               accessibilityLabel="Export nutrition data as CSV"
             >
@@ -275,7 +275,7 @@ export default function AnalyticsScreen() {
         ) : (
           <View className="p-4 sm:p-6 gap-y-5 max-w-4xl mx-auto w-full">
             {/* 1. Target Comparison & Adherence Summary Card */}
-            <View className="bg-white rounded-2xl border border-[#eae8e1] p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
+            <View className="bg-white rounded-2xl border border-[#eaeaea] p-5">
               <View className="flex-row items-center justify-between pb-3 border-b border-[#f4f2ec]">
                 <View>
                   <AppText weight="bold" className="text-xs text-neutral-muted uppercase tracking-wider">
@@ -329,7 +329,7 @@ export default function AnalyticsScreen() {
 
               {/* 3 Metric Pills */}
               <View className="flex-row gap-3 pt-3">
-                <View className="flex-1 p-3 rounded-xl bg-[#faf9f5] border border-[#eae8e1]">
+                <View className="flex-1 p-3 rounded-xl bg-[#fafaf9] border border-[#eaeaea]">
                   <AppText weight="bold" className="text-[10px] text-neutral-muted uppercase">
                     Adherence Score
                   </AppText>
@@ -345,7 +345,7 @@ export default function AnalyticsScreen() {
                   </AppText>
                 </View>
 
-                <View className="flex-1 p-3 rounded-xl bg-[#faf9f5] border border-[#eae8e1]">
+                <View className="flex-1 p-3 rounded-xl bg-[#fafaf9] border border-[#eaeaea]">
                   <AppText weight="bold" className="text-[10px] text-neutral-muted uppercase">
                     Dietary Fiber
                   </AppText>
@@ -357,7 +357,7 @@ export default function AnalyticsScreen() {
                   </AppText>
                 </View>
 
-                <View className="flex-1 p-3 rounded-xl bg-[#faf9f5] border border-[#eae8e1]">
+                <View className="flex-1 p-3 rounded-xl bg-[#fafaf9] border border-[#eaeaea]">
                   <AppText weight="bold" className="text-[10px] text-neutral-muted uppercase">
                     Logged Days
                   </AppText>
@@ -376,7 +376,7 @@ export default function AnalyticsScreen() {
             </View>
 
             {/* 2. Calorie Trend Bar Chart */}
-            <View className="bg-white rounded-2xl border border-[#eae8e1] p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
+            <View className="bg-white rounded-2xl border border-[#eaeaea] p-5">
               <View className="flex-row items-center justify-between pb-2 mb-2">
                 <View>
                   <AppText weight="bold" className="text-base text-neutral-dark">
@@ -414,7 +414,7 @@ export default function AnalyticsScreen() {
                 contentContainerStyle={{ paddingVertical: 12, minWidth: "100%" }}
                 className="overflow-visible"
               >
-                <View className="flex-row items-end gap-2.5 h-44 pb-6 pt-2 border-b border-[#eae8e1] relative flex-1 justify-between">
+                <View className="flex-row items-end gap-2.5 h-44 pb-6 pt-2 border-b border-[#eaeaea] relative flex-1 justify-between">
                   {/* Dashed Target Line */}
                   <View
                     style={{
@@ -432,7 +432,7 @@ export default function AnalyticsScreen() {
                       : 4;
 
                     const barColor = !pt.hasData
-                      ? "#eae8e1"
+                      ? "#eaeaea"
                       : pt.adherenceStatus === "on_target"
                       ? "#1b7a53"
                       : pt.adherenceStatus === "over_target"
@@ -510,7 +510,7 @@ export default function AnalyticsScreen() {
                   </AppText>
                 </View>
                 <View className="flex-row items-center gap-1.5">
-                  <View className="w-2.5 h-2.5 rounded-full bg-[#eae8e1]" />
+                  <View className="w-2.5 h-2.5 rounded-full bg-[#eaeaea]" />
                   <AppText weight="medium" className="text-[11px] text-neutral-muted">
                     No Data Logged
                   </AppText>
@@ -520,7 +520,7 @@ export default function AnalyticsScreen() {
 
             {/* 3. Selected Day Detailed Inspector */}
             {selectedPoint && (
-              <View className="bg-white rounded-2xl border border-[#eae8e1] p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
+              <View className="bg-white rounded-2xl border border-[#eaeaea] p-5">
                 <View className="flex-row items-center justify-between pb-3 border-b border-[#f4f2ec]">
                   <View className="flex-row items-center gap-2">
                     <CalendarIconSvg size={16} color="#153e28" />
@@ -548,7 +548,7 @@ export default function AnalyticsScreen() {
                 {selectedPoint.hasData ? (
                   <View className="pt-3 gap-y-3">
                     {/* Day Macro Stats Strip */}
-                    <View className="flex-row items-center justify-between p-3 rounded-xl bg-[#faf9f5] border border-[#eae8e1]">
+                    <View className="flex-row items-center justify-between p-3 rounded-xl bg-[#fafaf9] border border-[#eaeaea]">
                       <View className="items-center flex-1">
                         <AppText weight="bold" className="text-[10px] text-neutral-muted uppercase">
                           Calories
@@ -561,7 +561,7 @@ export default function AnalyticsScreen() {
                           {selectedPoint.calories} kcal
                         </AppText>
                       </View>
-                      <View className="w-[1px] h-6 bg-[#eae8e1]" />
+                      <View className="w-[1px] h-6 bg-[#eaeaea]" />
                       <View className="items-center flex-1">
                         <AppText weight="bold" className="text-[10px] text-neutral-muted uppercase">
                           Protein
@@ -574,7 +574,7 @@ export default function AnalyticsScreen() {
                           {formatGrams(selectedPoint.proteinGrams)}
                         </AppText>
                       </View>
-                      <View className="w-[1px] h-6 bg-[#eae8e1]" />
+                      <View className="w-[1px] h-6 bg-[#eaeaea]" />
                       <View className="items-center flex-1">
                         <AppText weight="bold" className="text-[10px] text-neutral-muted uppercase">
                           Carbs
@@ -587,7 +587,7 @@ export default function AnalyticsScreen() {
                           {formatGrams(selectedPoint.carbsGrams)}
                         </AppText>
                       </View>
-                      <View className="w-[1px] h-6 bg-[#eae8e1]" />
+                      <View className="w-[1px] h-6 bg-[#eaeaea]" />
                       <View className="items-center flex-1">
                         <AppText weight="bold" className="text-[10px] text-neutral-muted uppercase">
                           Fat
@@ -611,7 +611,7 @@ export default function AnalyticsScreen() {
                         {selectedPoint.meals.map((meal) => (
                           <View
                             key={meal.id}
-                            className="p-2.5 rounded-xl bg-[#faf9f5] border border-[#eae8e1] flex-row items-center justify-between"
+                            className="p-2.5 rounded-xl bg-[#fafaf9] border border-[#eaeaea] flex-row items-center justify-between"
                           >
                             <View className="flex-1 pr-2">
                               <AppText weight="bold" className="text-xs text-neutral-dark">
@@ -659,7 +659,7 @@ export default function AnalyticsScreen() {
             )}
 
             {/* 4. Macronutrient Distribution & Trends */}
-            <View className="bg-white rounded-2xl border border-[#eae8e1] p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
+            <View className="bg-white rounded-2xl border border-[#eaeaea] p-5">
               <View className="flex-row items-center justify-between pb-3 border-b border-[#f4f2ec] mb-3">
                 <View>
                   <AppText weight="bold" className="text-base text-neutral-dark">
@@ -685,7 +685,7 @@ export default function AnalyticsScreen() {
                     Protein: {analyticsData?.macroDistribution.proteinPercentage}% • Carbs: {analyticsData?.macroDistribution.carbsPercentage}% • Fat: {analyticsData?.macroDistribution.fatPercentage}%
                   </AppText>
                 </View>
-                <View className="h-3.5 rounded-full bg-[#f4f3ed] flex-row overflow-hidden border border-[#eae8e1]">
+                <View className="h-3.5 rounded-full bg-[#f4f3ed] flex-row overflow-hidden border border-[#eaeaea]">
                   <View
                     style={{ width: `${analyticsData?.macroDistribution.proteinPercentage || 25}%` }}
                     className="bg-emerald-600 h-full"
@@ -704,7 +704,7 @@ export default function AnalyticsScreen() {
               {/* 3 Macro Cards */}
               <View className="flex-row gap-2.5">
                 {/* Protein */}
-                <View className="flex-1 p-3 rounded-xl bg-[#faf9f5] border border-[#eae8e1]">
+                <View className="flex-1 p-3 rounded-xl bg-[#fafaf9] border border-[#eaeaea]">
                   <View className="flex-row items-center gap-1.5 mb-1">
                     <View className="w-2.5 h-2.5 rounded-full bg-emerald-600" />
                     <AppText weight="bold" className="text-xs text-neutral-dark">
@@ -724,7 +724,7 @@ export default function AnalyticsScreen() {
                 </View>
 
                 {/* Carbs */}
-                <View className="flex-1 p-3 rounded-xl bg-[#faf9f5] border border-[#eae8e1]">
+                <View className="flex-1 p-3 rounded-xl bg-[#fafaf9] border border-[#eaeaea]">
                   <View className="flex-row items-center gap-1.5 mb-1">
                     <View className="w-2.5 h-2.5 rounded-full bg-amber-500" />
                     <AppText weight="bold" className="text-xs text-neutral-dark">
@@ -744,7 +744,7 @@ export default function AnalyticsScreen() {
                 </View>
 
                 {/* Fat */}
-                <View className="flex-1 p-3 rounded-xl bg-[#faf9f5] border border-[#eae8e1]">
+                <View className="flex-1 p-3 rounded-xl bg-[#fafaf9] border border-[#eaeaea]">
                   <View className="flex-row items-center gap-1.5 mb-1">
                     <View className="w-2.5 h-2.5 rounded-full bg-rose-500" />
                     <AppText weight="bold" className="text-xs text-neutral-dark">
@@ -766,7 +766,7 @@ export default function AnalyticsScreen() {
             </View>
 
             {/* 5. Logging Consistency & Meal Frequency */}
-            <View className="bg-white rounded-2xl border border-[#eae8e1] p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
+            <View className="bg-white rounded-2xl border border-[#eaeaea] p-5">
               <View className="pb-3 border-b border-[#f4f2ec] mb-3">
                 <AppText weight="bold" className="text-base text-neutral-dark">
                   Logging Consistency & Meal Timing
@@ -777,7 +777,7 @@ export default function AnalyticsScreen() {
               </View>
 
               <View className="flex-row gap-3 mb-4">
-                <View className="flex-1 p-3 rounded-xl bg-[#faf9f5] border border-[#eae8e1]">
+                <View className="flex-1 p-3 rounded-xl bg-[#fafaf9] border border-[#eaeaea]">
                   <AppText weight="bold" className="text-[10px] text-neutral-muted uppercase">
                     Current Streak
                   </AppText>
@@ -793,7 +793,7 @@ export default function AnalyticsScreen() {
                   </AppText>
                 </View>
 
-                <View className="flex-1 p-3 rounded-xl bg-[#faf9f5] border border-[#eae8e1]">
+                <View className="flex-1 p-3 rounded-xl bg-[#fafaf9] border border-[#eaeaea]">
                   <AppText weight="bold" className="text-[10px] text-neutral-muted uppercase">
                     Meals per Day
                   </AppText>
@@ -828,7 +828,7 @@ export default function AnalyticsScreen() {
                       <AppText weight="medium" className="text-xs text-neutral-dark w-16">
                         {s.label}
                       </AppText>
-                      <View className="flex-1 h-2 rounded-full bg-[#f4f3ed] overflow-hidden border border-[#eae8e1]">
+                      <View className="flex-1 h-2 rounded-full bg-[#f4f3ed] overflow-hidden border border-[#eaeaea]">
                         <View style={{ width: `${s.pct}%` }} className={`h-full ${s.color}`} />
                       </View>
                       <AppText
@@ -845,7 +845,7 @@ export default function AnalyticsScreen() {
             </View>
 
             {/* 6. Estimated Grocery & Food Spending */}
-            <View className="bg-white rounded-2xl border border-[#eae8e1] p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
+            <View className="bg-white rounded-2xl border border-[#eaeaea] p-5">
               <View className="flex-row items-center justify-between pb-3 border-b border-[#f4f2ec] mb-3">
                 <View>
                   <AppText weight="bold" className="text-base text-neutral-dark">
@@ -864,7 +864,7 @@ export default function AnalyticsScreen() {
               </View>
 
               <View className="flex-row gap-3">
-                <View className="flex-1 p-3 rounded-xl bg-[#faf9f5] border border-[#eae8e1]">
+                <View className="flex-1 p-3 rounded-xl bg-[#fafaf9] border border-[#eaeaea]">
                   <AppText weight="bold" className="text-[10px] text-neutral-muted uppercase">
                     Total Estimated
                   </AppText>
@@ -880,7 +880,7 @@ export default function AnalyticsScreen() {
                   </AppText>
                 </View>
 
-                <View className="flex-1 p-3 rounded-xl bg-[#faf9f5] border border-[#eae8e1]">
+                <View className="flex-1 p-3 rounded-xl bg-[#fafaf9] border border-[#eaeaea]">
                   <AppText weight="bold" className="text-[10px] text-neutral-muted uppercase">
                     Daily Average
                   </AppText>
@@ -896,7 +896,7 @@ export default function AnalyticsScreen() {
                   </AppText>
                 </View>
 
-                <View className="flex-1 p-3 rounded-xl bg-[#faf9f5] border border-[#eae8e1]">
+                <View className="flex-1 p-3 rounded-xl bg-[#fafaf9] border border-[#eaeaea]">
                   <AppText weight="bold" className="text-[10px] text-neutral-muted uppercase">
                     Cost per Meal
                   </AppText>
@@ -915,7 +915,7 @@ export default function AnalyticsScreen() {
             </View>
 
             {/* 7. Clinical Narrative & Recommendations */}
-            <View className="bg-white rounded-2xl border border-[#eae8e1] p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
+            <View className="bg-white rounded-2xl border border-[#eaeaea] p-5">
               <AppText weight="bold" className="text-base text-neutral-dark mb-1">
                 Clinical Summary & Guidance
               </AppText>
