@@ -145,18 +145,33 @@ export const MealLogModal: React.FC<MealLogModalProps> = ({
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         className="flex-1 justify-end sm:justify-center items-center p-0 sm:p-4"
       >
-        {/* Backdrop as a separate full-screen layer */}
+        {/* Backdrop as a separate full-screen layer with Apple Frosted Glass Dimming Scrim */}
         <Pressable
           onPress={onClose}
-          style={StyleSheet.absoluteFill}
-          className="bg-black/50"
+          style={[
+            StyleSheet.absoluteFill,
+            Platform.OS === "web"
+              ? ({
+                  backgroundColor: "rgba(15, 23, 18, 0.45)",
+                  backdropFilter: "blur(12px) saturate(160%)",
+                  WebkitBackdropFilter: "blur(12px) saturate(160%)",
+                } as any)
+              : { backgroundColor: "rgba(0, 0, 0, 0.55)" },
+          ]}
           accessibilityRole="button"
           accessibilityLabel="Dismiss modal backdrop"
         />
 
-        {/* Sheet Container: Sibling to backdrop */}
+        {/* Sheet Container: Sibling to backdrop with concentric radii and subtle light catching edge */}
         <View
-          className="w-full max-w-lg bg-white rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 shadow-2xl border-t sm:border border-neutral-border-light max-h-[92%] z-10"
+          className="w-full max-w-lg bg-white rounded-t-[32px] sm:rounded-[32px] p-5 sm:p-6 border-t sm:border border-[#e5ece7] max-h-[92%] z-10"
+          style={
+            Platform.OS === "web"
+              ? ({
+                  boxShadow: "0 20px 50px rgba(10, 30, 18, 0.16), 0 4px 12px rgba(0, 0, 0, 0.04)",
+                } as any)
+              : undefined
+          }
         >
           {/* Header Bar */}
           <View className="flex-row justify-between items-center pb-3 border-b border-neutral-border-light">

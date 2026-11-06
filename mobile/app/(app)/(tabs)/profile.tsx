@@ -234,8 +234,21 @@ export default function ProfileScreen() {
 
   return (
     <ScreenWrapper maxWidth="full" noPadding className="flex-1 bg-[#faf9f5]">
-      {/* Top Header Bar: Edge-to-edge with seamless top integration */}
-      <View className="w-full px-4 sm:px-6 lg:px-8 pt-3 pb-3.5 flex-row justify-between items-center bg-[#faf9f5] border-b border-[#eae8e1]">
+      {/* Top Header Bar: Apple Translucent Frosted Glass Header */}
+      <View
+        className="w-full px-4 sm:px-6 lg:px-8 pt-3.5 pb-3.5 flex-row justify-between items-center border-b border-[#eae8e1] z-20"
+        style={
+          Platform.OS === "web"
+            ? ({
+                backgroundColor: "rgba(250, 249, 245, 0.88)",
+                backdropFilter: "blur(20px) saturate(180%)",
+                WebkitBackdropFilter: "blur(20px) saturate(180%)",
+                position: "sticky",
+                top: 0,
+              } as any)
+            : { backgroundColor: "#faf9f5" }
+        }
+      >
         <AppText weight="bold" className="text-xl sm:text-2xl text-neutral-dark tracking-tight">
           Profile & Preferences
         </AppText>

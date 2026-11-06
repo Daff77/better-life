@@ -16,22 +16,22 @@ import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
 import { IconRenderer, CloseIconSvg, TagIconSvg, LightbulbIconSvg, CrownIconSvg } from "@/constants/Assets";
 import { FoodItem } from "@/data/mockRecipes";
 
-const SLOTS = ["All", "Breakfast", "Lunch", "Dinner", "Snack", "Drink"] as const;
-const BUDGET_FILTERS = ["All Budgets", "Under Rp 20k", "Under Rp 35k"] as const;
+const SLOTS = ["Semua", "Breakfast", "Lunch", "Dinner", "Snack", "Drink"] as const;
+const BUDGET_FILTERS = ["Semua Budget", "Di bawah Rp 20k", "Di bawah Rp 35k"] as const;
 
 export default function MealsScreen() {
   const router = useRouter();
   const isPremium = useSubscriptionStore((state) => state.isPremium);
   const { data: recipes = [] } = useRecipes();
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [selectedSlot, setSelectedSlot] = useState<string>("All");
-  const [selectedBudget, setSelectedBudget] = useState<string>("All Budgets");
+  const [selectedSlot, setSelectedSlot] = useState<string>("Semua");
+  const [selectedBudget, setSelectedBudget] = useState<string>("Semua Budget");
 
   // Logging modal states
   const [selectedMealForLog, setSelectedMealForLog] = useState<FoodItem | null>(null);
   const [isLogModalVisible, setIsLogModalVisible] = useState<boolean>(false);
 
-  // Derive aggregates directly from single source of truth with stable selector
+  // Derive aggregates directly from single source of truth
   const todayDate = getTodayDateKey();
   const todayJournal = useJournalStore((state) => state.journals[todayDate]);
   const aggregates = useMemo(
@@ -49,14 +49,14 @@ export default function MealsScreen() {
         m.category.toLowerCase().includes(q);
 
       const matchSlot =
-        selectedSlot === "All" ||
+        selectedSlot === "Semua" ||
         m.category.toLowerCase() === selectedSlot.toLowerCase();
 
       const cost = m.estimatedCostIdr ?? 0;
       let matchBudget = true;
-      if (selectedBudget === "Under Rp 20k") {
+      if (selectedBudget === "Di bawah Rp 20k") {
         matchBudget = cost > 0 && cost <= 20000;
-      } else if (selectedBudget === "Under Rp 35k") {
+      } else if (selectedBudget === "Di bawah Rp 35k") {
         matchBudget = cost > 0 && cost <= 35000;
       }
 
@@ -77,52 +77,54 @@ export default function MealsScreen() {
   };
 
   return (
-    <ScreenWrapper maxWidth="full" noPadding className="flex-1 bg-[#faf9f5]">
-      {/* ZONE 1: Compact Page Heading & Daily Journal Summary */}
-      <View className="w-full bg-[#faf9f5] border-b border-[#eae8e1] px-4 sm:px-6 lg:px-8 pt-3 pb-3.5">
+    <ScreenWrapper maxWidth="full" noPadding className="flex-1 bg-[#f7faf7]">
+      {/* Header Bar: Apple Translucent Frosted Glass Header */}
+      <View
+        className="w-full border-b border-[#e5ece7] px-4 sm:px-6 lg:px-8 pt-4 pb-4 z-20"
+        style={
+          Platform.OS === "web"
+            ? ({
+                backgroundColor: "rgba(255, 255, 255, 0.88)",
+                backdropFilter: "blur(20px) saturate(180%)",
+                WebkitBackdropFilter: "blur(20px) saturate(180%)",
+                position: "sticky",
+                top: 0,
+              } as any)
+            : { backgroundColor: "#ffffff" }
+        }
+      >
         <View className="max-w-[1280px] mx-auto w-full flex-col sm:flex-row sm:items-center justify-between gap-3">
           <View className="flex-1">
-            <AppText weight="bold" className="text-xl sm:text-2xl text-neutral-dark tracking-tight">
-              Daily Meals & Journal
+            <AppText weight="black" className="text-xl sm:text-2xl text-[#14261c] tracking-tight">
+              Jurnal Makan & Menu Harian
             </AppText>
-            <AppText
-              weight="medium"
-              className="text-xs text-neutral-muted mt-0.5 leading-relaxed"
-            >
-              Browse dishes, explore ingredients, and track nutrition into your daily journal.
+            <AppText weight="medium" className="text-xs text-neutral-muted mt-0.5 leading-relaxed">
+              Pilih hidangan bergizi dan catat kalori langsung ke jurnal harian Anda.
             </AppText>
           </View>
 
-          {/* Quiet Daily Journal Progress Chip */}
+          {/* Daily Journal Progress Chip */}
           <View
-            className="self-start sm:self-center h-8 px-3.5 rounded-full bg-secondary-soft border border-secondary flex-row items-center gap-2"
+            className="self-start sm:self-center h-8 px-3.5 rounded-full bg-[#eaf4ed] border border-[#d2e7d7] flex-row items-center gap-2"
             accessibilityRole="summary"
-            accessibilityLabel={`Today's log: ${aggregates.entryCount} meals, ${aggregates.totalConsumed} of ${aggregates.targetCalories || 2582} calories`}
+            accessibilityLabel={`Tercatat: ${aggregates.entryCount} makanan, ${aggregates.totalConsumed} dari ${aggregates.targetCalories || 2582} kalori`}
           >
-            <View className="w-2 h-2 rounded-full bg-primary" />
-            <AppText
-              weight="bold"
-              className="text-xs text-neutral-dark"
-              style={{ fontVariant: ["tabular-nums"] }}
-            >
-              {aggregates.entryCount} Logged
+            <View className="w-2 h-2 rounded-full bg-[#1b5e37]" />
+            <AppText weight="bold" className="text-xs text-[#14261c]" style={{ fontVariant: ["tabular-nums"] }}>
+              {aggregates.entryCount} Tercatat
             </AppText>
             <AppText weight="medium" className="text-xs text-neutral-muted">
               ·
             </AppText>
-            <AppText
-              weight="bold"
-              className="text-xs text-primary"
-              style={{ fontVariant: ["tabular-nums"] }}
-            >
-              {aggregates.totalConsumed} / {aggregates.targetCalories || 2582} kcal
+            <AppText weight="bold" className="text-xs text-[#1b5e37]" style={{ fontVariant: ["tabular-nums"] }}>
+              {aggregates.totalConsumed.toLocaleString("id-ID")} / {(aggregates.targetCalories || 2582).toLocaleString("id-ID")} kcal
             </AppText>
           </View>
         </View>
       </View>
 
       <ScrollView
-        className="flex-1 bg-[#faf9f5]"
+        className="flex-1 bg-[#f7faf7]"
         contentContainerStyle={{ paddingBottom: Platform.OS === "web" ? 56 : 112 }}
         showsVerticalScrollIndicator={false}
       >
@@ -130,72 +132,70 @@ export default function MealsScreen() {
         <View className="max-w-[1280px] mx-auto w-full px-4 sm:px-6 lg:px-8 pt-4 pb-1">
           <TouchableOpacity
             onPress={() => router.push("/(app)/meal-planner")}
-            className="w-full bg-white rounded-2xl p-4 border border-[#eae8e1] shadow-xs flex-col sm:flex-row sm:items-center justify-between gap-3 active:scale-[0.99] transition-transform"
+            className="w-full bg-white rounded-[20px] p-4 border border-[#e5ece7] shadow-[0_2px_10px_rgba(20,50,25,0.03)] flex-col sm:flex-row sm:items-center justify-between gap-3 active:scale-[0.99] transition-transform"
             accessibilityRole="button"
-            accessibilityLabel="Open Personalized Meal Planner"
+            accessibilityLabel="Buka Personalized Meal Planner"
           >
             <View className="flex-row items-center gap-3.5">
-              <View className="w-10 h-10 rounded-xl bg-[#eaf5ef] border border-[#d6e4db] items-center justify-center">
-                <CrownIconSvg size={20} color={isPremium ? "#b45309" : "#1b7a53"} />
+              <View className="w-10 h-10 rounded-xl bg-[#fdf6e7] border border-[#f5e3ba] items-center justify-center">
+                <CrownIconSvg size={20} color="#b45309" />
               </View>
               <View>
                 <View className="flex-row items-center gap-2">
-                  <AppText weight="bold" className="text-sm text-neutral-dark">
+                  <AppText weight="bold" className="text-sm text-[#14261c]">
                     Personalized Weekly Meal Planner
                   </AppText>
-                  <Badge label="Premium" variant={isPremium ? "primary" : "outline"} size="sm" />
+                  <Badge label={isPremium ? "Aktif" : "Premium"} variant={isPremium ? "primary" : "outline"} size="sm" />
                 </View>
                 <AppText weight="medium" className="text-xs text-neutral-muted mt-0.5">
-                  Generate complete 7-day schedules fitting calorie targets, dietary allergies, and budget.
+                  Jadwal makan 7 hari otomatis sesuai kalori, alergi makanan, dan budget belanja pasar.
                 </AppText>
               </View>
             </View>
 
-            <View className="self-end sm:self-center px-3.5 py-1.5 rounded-full bg-[#eef4f0] border border-[#d6e4db]">
-              <AppText weight="bold" className="text-xs text-[#153e28]">
-                {isPremium ? "Open Planner" : "Preview Feature"}
+            <View className="self-end sm:self-center px-3.5 py-1.5 rounded-full bg-[#eaf4ed] border border-[#d2e7d7]">
+              <AppText weight="bold" className="text-xs text-[#1b5e37]">
+                {isPremium ? "Buka Jadwal" : "Lihat Fitur"}
               </AppText>
             </View>
           </TouchableOpacity>
         </View>
 
-        {/* ZONE 2: One Cohesive Search and Filter Area */}
+        {/* SEARCH AND FILTERS */}
         <View className="max-w-[1280px] mx-auto w-full px-4 sm:px-6 lg:px-8 pt-4 pb-2">
           {/* Integrated Search Input */}
-          <View className="flex-row items-center bg-[#f4f3ed] border border-[#eae8e1] rounded-xl px-3.5 py-1 min-h-[44px] transition-colors focus:border-primary">
+          <View className="flex-row items-center bg-white border border-[#e2eae4] rounded-2xl px-4 py-1.5 min-h-[46px] shadow-2xs">
             <View className="mr-2.5">
-              <IconRenderer name="Search" size={16} color="#788079" />
+              <IconRenderer name="Search" size={16} color="#607065" />
             </View>
             <TextInput
               value={searchQuery}
               onChangeText={setSearchQuery}
-              placeholder="Search dishes (e.g. Chicken, Rice, Tempeh, Oatmeal, Salad)..."
-              placeholderTextColor="#8a928b"
-              className="flex-1 text-sm text-neutral-dark font-medium"
+              placeholder="Cari makanan (misal: Ayam panggang, Tempe, Oatmeal, Salmon)..."
+              placeholderTextColor="#8a9a8f"
+              className="flex-1 text-sm text-[#14261c] font-medium"
               style={{
                 fontFamily: "Akatab-Medium",
                 includeFontPadding: false,
-                ...(Platform.OS === "web"
-                  ? ({ outlineStyle: "none", boxShadow: "none" } as any)
-                  : {}),
+                ...(Platform.OS === "web" ? ({ outlineStyle: "none" } as any) : {}),
               }}
-              accessibilityLabel="Search foods and meals"
+              accessibilityLabel="Cari makanan"
               returnKeyType="search"
             />
             {Boolean(searchQuery) && (
               <TouchableOpacity
                 onPress={() => setSearchQuery("")}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                className="w-6 h-6 rounded-full bg-[#e2e0d8] items-center justify-center ml-1"
+                className="w-6 h-6 rounded-full bg-[#ebf0ec] items-center justify-center ml-1"
                 accessibilityRole="button"
-                accessibilityLabel="Clear search text"
+                accessibilityLabel="Hapus pencarian"
               >
                 <CloseIconSvg size={12} color="#5a625b" />
               </TouchableOpacity>
             )}
           </View>
 
-          {/* Unified Horizontal Filter Strip (Categories & Budgets) */}
+          {/* Unified Horizontal Filter Strip */}
           <View className="mt-3">
             <ScrollView
               horizontal
@@ -212,17 +212,17 @@ export default function MealsScreen() {
                     onPress={() => setSelectedSlot(slot)}
                     className={`min-h-[38px] px-4 py-1.5 rounded-full flex-row items-center justify-center transition-all duration-150 active:scale-[0.97] ${
                       isSelected
-                        ? "bg-primary shadow-xs"
-                        : "bg-white border border-[#eae8e1] active:bg-[#f2f1eb]"
-                    } ${Platform.OS === "web" ? "cursor-pointer hover:border-[#dcdfd9]" : ""}`}
+                        ? "bg-[#1b5e37] shadow-xs"
+                        : "bg-white border border-[#e5ece7] active:bg-[#f2f7f4]"
+                    } ${Platform.OS === "web" ? "cursor-pointer" : ""}`}
                     accessibilityRole="button"
                     accessibilityState={{ selected: isSelected }}
-                    accessibilityLabel={`Filter by ${slot}`}
+                    accessibilityLabel={`Filter ${slot}`}
                   >
                     <AppText
                       weight={isSelected ? "bold" : "medium"}
                       className={`text-xs ${
-                        isSelected ? "text-white" : "text-neutral-dark"
+                        isSelected ? "text-white" : "text-[#14261c]"
                       }`}
                     >
                       {slot}
@@ -231,8 +231,7 @@ export default function MealsScreen() {
                 );
               })}
 
-              {/* Subtle Vertical Divider between categories and budgets */}
-              <View className="w-[1px] h-5 bg-[#e2dfd7] mx-1" />
+              <View className="w-[1px] h-5 bg-[#e2eae4] mx-1" />
 
               {/* Budget Filter Pills */}
               {BUDGET_FILTERS.map((budget) => {
@@ -243,22 +242,22 @@ export default function MealsScreen() {
                     onPress={() => setSelectedBudget(budget)}
                     className={`min-h-[38px] px-3.5 py-1.5 rounded-full flex-row items-center justify-center transition-all duration-150 active:scale-[0.97] ${
                       isSelected
-                        ? "bg-[#52796f] shadow-xs"
-                        : "bg-[#edf3ef] border border-[#d6e3db] active:bg-[#e4ede7]"
-                    } ${Platform.OS === "web" ? "cursor-pointer hover:border-[#b8cfc2]" : ""}`}
+                        ? "bg-[#1b5e37] shadow-xs"
+                        : "bg-white border border-[#e5ece7] active:bg-[#f2f7f4]"
+                    } ${Platform.OS === "web" ? "cursor-pointer" : ""}`}
                     accessibilityRole="button"
                     accessibilityState={{ selected: isSelected }}
                     accessibilityLabel={`Filter budget: ${budget}`}
                   >
                     <TagIconSvg
                       size={11}
-                      color={isSelected ? "#ffffff" : "#3a564f"}
+                      color={isSelected ? "#ffffff" : "#1b5e37"}
                       style={{ marginRight: 4 }}
                     />
                     <AppText
                       weight={isSelected ? "bold" : "medium"}
                       className={`text-xs ${
-                        isSelected ? "text-white" : "text-[#2d463f]"
+                        isSelected ? "text-white" : "text-[#14261c]"
                       }`}
                     >
                       {budget}
@@ -270,38 +269,37 @@ export default function MealsScreen() {
           </View>
         </View>
 
-        {/* ZONE 3: Well-Aligned Recipe Catalogue (Primary Content) */}
+        {/* RECIPE CATALOGUE GRID */}
         <View className="px-4 sm:px-6 lg:px-8 pt-3 max-w-[1280px] mx-auto w-full">
           {filteredMeals.length === 0 ? (
-            <View className="bg-white rounded-2xl p-8 items-center justify-center border border-[#eae8e1] my-4 w-full">
-              <View className="w-12 h-12 rounded-xl bg-secondary-soft items-center justify-center mb-3">
-                <IconRenderer name="Cook" size={24} color="#153e28" />
+            <View className="bg-white rounded-[24px] p-8 items-center justify-center border border-[#e5ece7] my-4 w-full shadow-xs">
+              <View className="w-12 h-12 rounded-xl bg-[#eaf4ed] items-center justify-center mb-3">
+                <IconRenderer name="Cook" size={24} color="#1b5e37" />
               </View>
-              <AppText weight="bold" className="text-base text-neutral-dark mb-1 text-center">
-                No matching meals found
+              <AppText weight="bold" className="text-base text-[#14261c] mb-1 text-center">
+                Tidak ada menu yang sesuai
               </AppText>
               <AppText weight="medium" className="text-xs text-neutral-muted text-center max-w-xs mb-4 leading-relaxed">
                 {searchQuery
-                  ? `No dishes matching "${searchQuery}". Try a different keyword or reset filters.`
-                  : "No dishes matching the active slot and budget filter."}
+                  ? `Tidak ditemukan menu dengan kata kunci "${searchQuery}". Coba kata kunci lain atau ubah filter.`
+                  : "Tidak ada menu yang sesuai dengan kategori dan filter budget yang dipilih."}
               </AppText>
               <TouchableOpacity
                 onPress={() => {
                   setSearchQuery("");
-                  setSelectedSlot("All");
-                  setSelectedBudget("All Budgets");
+                  setSelectedSlot("Semua");
+                  setSelectedBudget("Semua Budget");
                 }}
-                className="px-5 py-2.5 rounded-xl bg-primary active:bg-primary-dark transition-colors min-h-[40px] items-center justify-center"
+                className="px-5 py-2.5 rounded-xl bg-[#1b5e37] active:bg-[#154a2b] transition-colors min-h-[40px] items-center justify-center"
                 accessibilityRole="button"
-                accessibilityLabel="Reset all filters and search"
+                accessibilityLabel="Reset pencarian dan filter"
               >
                 <AppText weight="bold" className="text-xs text-white">
-                  Reset Search & Filters
+                  Reset Filter & Pencarian
                 </AppText>
               </TouchableOpacity>
             </View>
           ) : (
-            /* Responsive Grid: 4 columns on desktop, 3 on tablet, 2 on small tablet, 1 on narrow phone */
             <View className="flex-row flex-wrap -mx-2">
               {filteredMeals.map((meal) => (
                 <View
@@ -326,18 +324,18 @@ export default function MealsScreen() {
           )}
         </View>
 
-        {/* ZONE 4: Restrained Affordability Information Section */}
-        <View className="px-4 sm:px-6 lg:px-8 pt-4 pb-6 max-w-[1280px] mx-auto w-full">
-          <View className="bg-[#f5f4ee] rounded-xl p-4 border border-[#e8e6df] flex-row items-start">
-            <View className="w-7 h-7 rounded-lg bg-[#e8ede7] items-center justify-center mr-3 mt-0.5">
-              <LightbulbIconSvg size={15} color="#153e28" />
+        {/* AFFORDABILITY FOOTER NOTE */}
+        <View className="px-4 sm:px-6 lg:px-8 pt-2 pb-6 max-w-[1280px] mx-auto w-full">
+          <View className="bg-white rounded-2xl p-4 border border-[#e5ece7] flex-row items-start shadow-2xs">
+            <View className="w-7 h-7 rounded-lg bg-[#eaf4ed] items-center justify-center mr-3 mt-0.5">
+              <LightbulbIconSvg size={15} color="#1b5e37" />
             </View>
             <View className="flex-1">
-              <AppText weight="bold" className="text-xs text-neutral-dark mb-0.5">
-                Affordability & Local Price Estimates
+              <AppText weight="bold" className="text-xs text-[#14261c] mb-0.5">
+                Estimasi Biaya Bahan Pasar Indonesia
               </AppText>
               <AppText weight="medium" className="text-xs text-neutral-muted leading-relaxed">
-                Estimated ingredient costs reflect average local Indonesian market prices (crowdsourced estimates) to help you plan balanced, realistic nutrition within budget.
+                Harga dihitung berdasarkan rata-rata harga pasar lokal untuk membantu Anda merencanakan nutrisi seimbang yang realistis dan hemat budget harian.
               </AppText>
             </View>
           </View>

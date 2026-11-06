@@ -11,7 +11,7 @@ import { AppText } from "@/components/ui/AppText";
 import { AnimatedTabIcon } from "@/components/ui/AnimatedTabIcon";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
-import { BrandImages, CrownIconSvg, LeafIconSvg } from "@/constants/Assets";
+import { CrownIconSvg, LeafIconSvg } from "@/constants/Assets";
 
 export interface ResponsiveTabBarProps {
   state: {
@@ -40,16 +40,6 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({
   const user = useAuthStore((state) => state.user);
   const isPremium = useSubscriptionStore((state) => state.isPremium);
 
-  // Derive user initials for avatar
-  const userInitials = React.useMemo(() => {
-    if (!user?.name) return "U";
-    const parts = user.name.trim().split(" ");
-    if (parts.length >= 2) {
-      return (parts[0][0] + parts[1][0]).toUpperCase();
-    }
-    return user.name.slice(0, 2).toUpperCase();
-  }, [user?.name]);
-
   const handleTabPress = (routeKey: string, routeName: string, isFocused: boolean) => {
     const event = navigation.emit({
       type: "tabPress",
@@ -74,12 +64,11 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({
           width: 230,
           zIndex: 50,
         }}
-        className="h-full bg-[#fcfbf9] border-r border-[#eae8e1] px-4 py-6 justify-between"
+        className="h-full bg-white border-r border-[#e5ece7] px-4 py-6 justify-between shadow-[2px_0_12px_rgba(20,50,25,0.02)]"
         accessibilityLabel="Desktop primary navigation sidebar"
       >
-        {/* Top: Logo & Navigation Links */}
+        {/* Top: Brand Logo & Navigation Links */}
         <View>
-          {/* Brand Logo & Name */}
           <TouchableOpacity
             onPress={() => navigation.navigate("index")}
             activeOpacity={0.8}
@@ -87,18 +76,15 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({
             accessibilityRole="link"
             accessibilityLabel="Better Life Home"
           >
-            <Image
-              source={BrandImages.logoPng}
-              style={{ width: 34, height: 34 }}
-              resizeMode="contain"
-              accessibilityLabel="Better Life Logo"
-            />
+            <View className="w-8 h-8 rounded-xl bg-[#eaf4ed] border border-[#d2e7d7] items-center justify-center shadow-2xs">
+              <LeafIconSvg size={18} color="#1b5e37" />
+            </View>
             <View>
-              <AppText weight="bold" className="text-base text-neutral-dark tracking-tight leading-none">
+              <AppText weight="black" className="text-base text-[#14261c] tracking-tight leading-none">
                 Better Life
               </AppText>
-              <AppText weight="bold" className="text-[9px] text-[#2c5840] tracking-wider uppercase mt-0.5">
-                Wellness & Nutrition
+              <AppText weight="bold" className="text-[9px] text-[#1b5e37] tracking-wider uppercase mt-1">
+                Nutrisi & Vitalitas
               </AppText>
             </View>
           </TouchableOpacity>
@@ -128,8 +114,8 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({
                     Platform.OS === "web" ? "cursor-pointer" : ""
                   } ${
                     isFocused
-                      ? "bg-[#eef4f0] border border-[#d6e4db]"
-                      : "hover:bg-[#f4f3ed]"
+                      ? "bg-[#eaf4ed] border border-[#d2e7d7]"
+                      : "hover:bg-[#f6f9f7]"
                   }`}
                   accessibilityRole="tab"
                   accessibilityState={{ selected: isFocused }}
@@ -139,12 +125,12 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({
                     name={displayLabel}
                     focused={isFocused}
                     size={19}
-                    color={isFocused ? "#153e28" : "#6c746e"}
+                    color={isFocused ? "#1b5e37" : "#7d8c82"}
                   />
                   <AppText
                     weight={isFocused ? "bold" : "medium"}
                     className={`text-sm ${
-                      isFocused ? "text-[#153e28]" : "text-neutral-muted hover:text-neutral-dark"
+                      isFocused ? "text-[#1b5e37]" : "text-[#5a625b]"
                     }`}
                   >
                     {displayLabel}
@@ -156,49 +142,63 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({
         </View>
 
         {/* Bottom: Upgrade Plan Promo Card */}
-        <View className="bg-[#f2f6f3] border border-[#dce8e0] rounded-2xl p-3.5 relative overflow-hidden">
+        <View className="bg-[#f7faf8] border border-[#e5ece7] rounded-2xl p-3.5 relative overflow-hidden">
           <View className="mb-2">
-            <AppText weight="bold" className="text-xs text-neutral-dark leading-snug">
-              {isPremium ? "Premium Member" : "Stay consistent"}
-            </AppText>
-            <AppText weight="medium" className="text-xs text-neutral-muted mt-0.5">
-              {isPremium ? "All features unlocked" : "for a healthier you"}
+            <View className="flex-row items-center gap-1.5">
+              <CrownIconSvg size={14} color="#b45309" />
+              <AppText weight="bold" className="text-xs text-[#14261c] leading-snug">
+                {isPremium ? "Premium Aktif" : "Better Life Plus"}
+              </AppText>
+            </View>
+            <AppText weight="medium" className="text-[11px] text-neutral-muted mt-0.5">
+              {isPremium ? "Semua fitur terbuka" : "Meal plan & analitik 30D"}
             </AppText>
           </View>
 
-          {/* Upgrade / Manage Plan button */}
-          <View className="flex-row items-center justify-between mt-2 pt-1">
-            <TouchableOpacity
-              onPress={() => router.push("/(app)/upgrade")}
-              className={`w-full py-2 px-3 rounded-full bg-white border border-[#d0ded5] flex-row items-center justify-center gap-1.5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] active:scale-95 transition-all ${
-                Platform.OS === "web" ? "cursor-pointer" : ""
-              }`}
-              accessibilityRole="button"
-              accessibilityLabel={isPremium ? "Manage Plan" : "Upgrade Plan"}
-            >
-              <CrownIconSvg size={14} color="#b45309" />
-              <AppText weight="bold" className="text-xs text-neutral-dark">
-                {isPremium ? "Manage Plan" : "Upgrade Plan"}
-              </AppText>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            onPress={() => router.push("/(app)/upgrade")}
+            className={`w-full py-2 px-3 rounded-xl bg-white border border-[#dce8e0] flex-row items-center justify-center gap-1.5 shadow-2xs active:scale-95 transition-all ${
+              Platform.OS === "web" ? "cursor-pointer hover:bg-[#fafcfa]" : ""
+            }`}
+            accessibilityRole="button"
+            accessibilityLabel={isPremium ? "Kelola Langganan" : "Upgrade Member"}
+          >
+            <AppText weight="bold" className="text-xs text-[#1b5e37]">
+              {isPremium ? "Kelola Status" : "Lihat Paket"}
+            </AppText>
+          </TouchableOpacity>
         </View>
       </View>
     );
   }
 
-  // 2. MOBILE BOTTOM NAVIGATION
+  // 2. MOBILE BOTTOM NAVIGATION (Minimalist Editorial Bar)
   return (
     <View
-      className="w-full bg-[#fcfbf9] border-t border-[#eae8e1] shadow-xs z-50"
-      style={{
-        paddingBottom: Math.max(insets.bottom, 10),
-        paddingTop: 8,
-      }}
+      className="w-full z-50 bg-white"
+      style={[
+        {
+          borderTopWidth: 1,
+          borderTopColor: "#eaeaea",
+          paddingBottom: Math.max(insets.bottom, 10),
+          paddingTop: 8,
+        },
+        Platform.OS === "web"
+          ? ({
+              position: "fixed",
+              bottom: 0,
+              left: 0,
+              right: 0,
+              backgroundColor: "rgba(255, 255, 255, 0.95)",
+              backdropFilter: "blur(16px)",
+              WebkitBackdropFilter: "blur(16px)",
+            } as any)
+          : undefined,
+      ]}
       accessibilityRole="tablist"
       accessibilityLabel="Mobile bottom navigation"
     >
-      <View className="flex-row items-center justify-around max-w-[480px] mx-auto w-full px-2">
+      <View className="flex-row items-center justify-around max-w-[480px] mx-auto w-full px-3">
         {state.routes.map((route, index) => {
           const { options } = descriptors[route.key] || {};
           const label =
@@ -218,21 +218,24 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({
             <TouchableOpacity
               key={route.key}
               onPress={() => handleTabPress(route.key, route.name, isFocused)}
-              className="items-center justify-center py-1.5 flex-1 min-h-[48px] active:opacity-75"
+              activeOpacity={0.7}
+              className={`items-center justify-center py-1.5 px-3 rounded-xl min-h-[44px] transition-all ${
+                isFocused ? "bg-[#f4f4f5]" : ""
+              }`}
               accessibilityRole="tab"
               accessibilityState={{ selected: isFocused }}
-              accessibilityLabel={`Navigate to ${displayLabel}`}
+              accessibilityLabel={`Navigasi ke ${displayLabel}`}
             >
               <AnimatedTabIcon
                 name={displayLabel}
                 focused={isFocused}
-                size={22}
-                color={isFocused ? "#153e28" : "#8a928c"}
+                size={20}
+                color={isFocused ? "#18181b" : "#a1a1aa"}
               />
               <AppText
                 weight={isFocused ? "bold" : "medium"}
-                className={`text-[11px] mt-1 tracking-tight ${
-                  isFocused ? "text-[#153e28]" : "text-neutral-muted"
+                className={`text-[10px] mt-0.5 tracking-tight ${
+                  isFocused ? "text-[#18181b]" : "text-[#a1a1aa]"
                 }`}
               >
                 {displayLabel}

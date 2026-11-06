@@ -251,10 +251,19 @@ export default function RecipeDetailScreen() {
 
       {/* Sticky Bottom Floating Log Dock for Mobile */}
       <View
-        className="lg:hidden bg-white/95 border-t border-neutral-border-light px-5 pt-3 shadow-lg"
-        style={{
-          paddingBottom: Math.max(insets.bottom, 12),
-        }}
+        className="lg:hidden px-5 pt-3 border-t border-[#eaeaea] bg-white"
+        style={[
+          {
+            paddingBottom: Math.max(insets.bottom, 12),
+          },
+          Platform.OS === "web"
+            ? ({
+                backgroundColor: "rgba(255, 255, 255, 0.95)",
+                backdropFilter: "blur(16px)",
+                WebkitBackdropFilter: "blur(16px)",
+              } as any)
+            : undefined,
+        ]}
       >
         <View className="flex-row items-center justify-between gap-3 max-w-md mx-auto w-full">
           <View className="flex-1">

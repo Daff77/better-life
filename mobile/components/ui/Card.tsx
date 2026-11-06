@@ -5,17 +5,24 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
 } from "react-native-reanimated";
-import { AnimationEasings } from "@/constants/AnimationTokens";
+import { AnimationEasings, AnimationScales } from "@/constants/AnimationTokens";
 
 interface CardProps extends Omit<PressableProps, "children"> {
   children?: React.ReactNode;
   elevated?: boolean;
+  translucent?: boolean;
   className?: string;
   pressable?: boolean;
 }
 
+/**
+ * Apple Design Material Card
+ * - Concentric radii, hairline light-catching border, subtle ambient depth.
+ * - Instant pointer-down response using critically damped spring (damping 1.0, zero overshoot).
+ */
 export const Card: React.FC<CardProps> = ({
   elevated = false,
+  translucent = false,
   pressable = false,
   className,
   children,
@@ -32,7 +39,7 @@ export const Card: React.FC<CardProps> = ({
 
   const handlePressIn = () => {
     if (!isInteractive) return;
-    scale.value = withSpring(0.985, AnimationEasings.pressSpringConfig);
+    scale.value = withSpring(AnimationScales.pressCard, AnimationEasings.pressSpringConfig);
   };
 
   const handlePressOut = () => {
@@ -40,13 +47,13 @@ export const Card: React.FC<CardProps> = ({
     scale.value = withSpring(1, AnimationEasings.pressSpringConfig);
   };
 
+  const baseSurfaceClass = "bg-white border border-[#eaeaea]";
+
   if (!isInteractive) {
     const resolvedStyle = typeof style === "function" ? style({ pressed: false }) : style;
     return (
       <View
-        className={`bg-white rounded-2xl p-4 border border-neutral-border-light/60 ${
-          elevated ? "shadow-md" : "shadow-sm"
-        } ${className || ""}`}
+        className={`${baseSurfaceClass} rounded-2xl p-4.5 ${className || ""}`}
         style={resolvedStyle}
       >
         {children}
@@ -59,11 +66,9 @@ export const Card: React.FC<CardProps> = ({
       onPress={onPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
-      className={`bg-white rounded-2xl p-4 border border-neutral-border-light/60 ${
-        elevated ? "shadow-md" : "shadow-sm"
-      } ${
+      className={`${baseSurfaceClass} rounded-2xl p-4.5 ${
         Platform.OS === "web"
-          ? "hover:shadow-md hover:-translate-y-0.5 transition-all duration-150 cursor-pointer"
+          ? "transition-all duration-150 hover:border-[#d4d4d8] cursor-pointer select-none"
           : ""
       } ${className || ""}`}
       style={style}

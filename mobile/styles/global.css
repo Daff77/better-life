@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Apple Design Typography & Font Smoothing */
+html, body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  -webkit-tap-highlight-color: transparent;
+}
+
 /* Reset HTML inputs in React Native Web: eliminate browser focus outlines & force min-width 0 */
 input, textarea, select {
   outline: none !important;
@@ -17,5 +25,23 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
   outline-style: none !important;
   box-shadow: none !important;
 }
+
+/* Apple Design: Reduced Motion & Accessibility Overrides */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  * {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}
+
 
 
