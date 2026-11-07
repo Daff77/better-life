@@ -15,6 +15,8 @@ interface CardProps extends Omit<PressableProps, "children"> {
   pressable?: boolean;
 }
 
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
 /**
  * Apple Design Material Card
  * - Concentric radii, hairline light-catching border, subtle ambient depth.
@@ -65,23 +67,23 @@ export const Card: React.FC<CardProps> = ({
     );
   }
 
+  const resolvedStyle = typeof style === "function" ? style({ pressed: false }) : style;
+
   return (
-    <Pressable
+    <AnimatedPressable
       onPress={onPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       className={`${baseSurfaceClass} rounded-2xl p-4.5 ${
         Platform.OS === "web"
-          ? "transition-all duration-150 hover:shadow-md cursor-pointer select-none"
+          ? "transition-shadow duration-150 hover:shadow-md cursor-pointer select-none"
           : ""
       } ${className || ""}`}
-      style={style}
+      style={[animatedStyle, resolvedStyle]}
       {...props}
     >
-      <Animated.View style={animatedStyle}>
-        {children}
-      </Animated.View>
-    </Pressable>
+      {children}
+    </AnimatedPressable>
   );
 };
 

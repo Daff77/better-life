@@ -14,7 +14,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { AppText } from "./AppText";
 import { Badge } from "./Badge";
-import { AnimationEasings } from "@/constants/AnimationTokens";
+import { AnimationEasings, AnimationScales } from "@/constants/AnimationTokens";
 import { IconRenderer } from "@/constants/Assets";
 
 export interface MealCardProps {
@@ -59,7 +59,7 @@ export const MealCard: React.FC<MealCardProps> = ({
 
   const handlePressIn = () => {
     if (!onPress) return;
-    cardScale.value = withSpring(0.985, AnimationEasings.pressSpringConfig);
+    cardScale.value = withSpring(AnimationScales.pressCard, AnimationEasings.pressSpringConfig);
   };
 
   const handlePressOut = () => {
@@ -70,8 +70,9 @@ export const MealCard: React.FC<MealCardProps> = ({
   const effectiveImageSource = imageSource || (imageUrl ? { uri: imageUrl } : null);
 
   return (
-    <View
-      className={`w-full bg-white rounded-2xl overflow-hidden border border-[#eae8e1] shadow-[0_1px_3px_rgba(0,0,0,0.03)] transition-all duration-200 hover:-translate-y-0.5 hover:border-[#dcdfd9] flex-col justify-between ${
+    <Animated.View
+      style={cardAnimatedStyle}
+      className={`w-full bg-white rounded-2xl overflow-hidden border border-[#eae8e1] shadow-[0_1px_3px_rgba(0,0,0,0.03)] transition-shadow duration-200 hover:-translate-y-0.5 hover:border-[#dcdfd9] flex-col justify-between ${
         className || ""
       }`}
     >
@@ -84,7 +85,7 @@ export const MealCard: React.FC<MealCardProps> = ({
         accessibilityRole="button"
         accessibilityLabel={`${displayTitle}, ${calories} calories`}
       >
-        <Animated.View pointerEvents="none" style={cardAnimatedStyle}>
+        <View pointerEvents="none">
           {/* Top Food Image Header */}
           <View className="h-[148px] w-full bg-[#f4f3ed] items-center justify-center relative overflow-hidden">
             {effectiveImageSource ? (
@@ -145,7 +146,7 @@ export const MealCard: React.FC<MealCardProps> = ({
               {description}
             </AppText>
           </View>
-        </Animated.View>
+        </View>
       </Pressable>
 
       {/* Pinned Bottom Action & Metadata Strip */}
@@ -171,11 +172,12 @@ export const MealCard: React.FC<MealCardProps> = ({
           )}
         </View>
 
-        {/* Quick Log Button */}
+        {/* Quick Log Button with Ergonomic 44pt Touch Target */}
         {showLogButton && (
           <Pressable
             onPress={onLogMeal}
             disabled={isLogging}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             className={`min-h-[32px] px-3 py-1.5 rounded-lg bg-primary active:bg-primary-dark flex-row items-center justify-center transition-all duration-150 ${
               isLogging ? "opacity-75" : ""
             } ${Platform.OS === "web" ? "cursor-pointer hover:bg-primary-dark" : ""}`}
@@ -192,7 +194,7 @@ export const MealCard: React.FC<MealCardProps> = ({
           </Pressable>
         )}
       </View>
-    </View>
+    </Animated.View>
   );
 };
 

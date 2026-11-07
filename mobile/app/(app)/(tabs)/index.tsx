@@ -892,18 +892,15 @@ export default function HomeScreen() {
         <View className="mb-5 flex-col md:flex-row md:items-center md:justify-between gap-3.5">
           {/* Greeting Column */}
           <View>
-            <View className="flex-row items-center gap-2 mb-1">
-              <View className="w-2 h-2 rounded-full bg-emerald-600" />
-              <AppText weight="bold" className="text-xs text-[#165b33]">
-                {formattedToday}
+            <AppText weight="black" className="text-2xl sm:text-3xl text-[#14261c] tracking-tight">
+              {greetingTime}, {user?.name?.split(" ")[0] || "Daffa"}
+            </AppText>
+            <View className="flex-row items-center gap-1.5 mt-0.5">
+              <View className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+              <AppText weight="medium" className="text-xs text-neutral-muted">
+                {formattedToday} · Target aktif {targetCalories.toLocaleString("id-ID")} kcal
               </AppText>
             </View>
-            <AppText weight="black" className="text-2xl sm:text-3xl text-[#14261c] tracking-tight">
-              {greetingTime}, {user?.name?.split(" ")[0] || "Daffa"} 👋
-            </AppText>
-            <AppText weight="medium" className="text-xs text-neutral-muted mt-0.5">
-              Target aktif: {targetCalories.toLocaleString("id-ID")} kcal · Naik massa otot
-            </AppText>
           </View>
 
           {/* Action Row: Search Bar + Bell + Profile Avatar */}

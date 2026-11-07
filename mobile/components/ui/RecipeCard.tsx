@@ -13,7 +13,9 @@ import Animated, {
 } from "react-native-reanimated";
 import { AppText } from "./AppText";
 import { IconRenderer, AppIconName, CrownIconSvg } from "@/constants/Assets";
-import { AnimationEasings } from "@/constants/AnimationTokens";
+import { AnimationEasings, AnimationScales } from "@/constants/AnimationTokens";
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export interface RecipeCardProps extends Omit<TouchableOpacityProps, "children"> {
   title: string;
@@ -54,7 +56,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
 
   const handlePressIn = () => {
     if (!onPress) return;
-    cardScale.value = withSpring(0.97, AnimationEasings.pressSpringConfig);
+    cardScale.value = withSpring(AnimationScales.pressCard, AnimationEasings.pressSpringConfig);
   };
 
   const handlePressOut = () => {
@@ -65,19 +67,18 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
   const effectiveImageSource = imageSource || (imageUrl ? { uri: imageUrl } : null);
 
   return (
-    <Pressable
+    <AnimatedPressable
       onPress={onPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
-      className={`bg-white rounded-2xl border border-[#eae8e1] overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.03)] transition-all duration-200 hover:-translate-y-0.5 hover:border-[#dcdfd9] cursor-pointer ${
+      className={`bg-white rounded-2xl border border-[#eae8e1] overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.03)] transition-shadow duration-200 hover:-translate-y-0.5 hover:border-[#dcdfd9] cursor-pointer ${
         className || ""
       }`}
-      style={style as any}
+      style={[cardAnimatedStyle, style as any]}
       accessibilityRole="button"
       accessibilityLabel={`${title}, ${calories} calories, ${prepTimeMinutes} minutes preparation`}
       {...props}
     >
-      <Animated.View pointerEvents="none" style={cardAnimatedStyle}>
         {/* Visual Header Artwork */}
         <View className="h-[148px] w-full bg-[#f4f3ed] items-center justify-center relative overflow-hidden">
           {effectiveImageSource ? (
@@ -154,8 +155,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
             </AppText>
           </View>
         </View>
-      </Animated.View>
-    </Pressable>
+    </AnimatedPressable>
   );
 };
 
