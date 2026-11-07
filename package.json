@@ -13,6 +13,7 @@
     "test": "npm run test:backend && npm run test:mobile",
     "test:backend": "npm run test --prefix backend",
     "test:mobile": "npm run test --prefix mobile",
+    "typecheck": "npm run typecheck --prefix backend && npm run typecheck --prefix mobile",
     "start": "npm run dev"
   },
   "keywords": [
