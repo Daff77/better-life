@@ -9,6 +9,7 @@ import {
 import Svg, { Path, Circle } from "react-native-svg";
 import { useRouter } from "expo-router";
 import { AppText } from "./AppText";
+import { useOnboardingStore } from "@/stores/useOnboardingStore";
 
 // ==========================================
 // Vector Icons for Crisp, Emoji-free Design
@@ -328,9 +329,9 @@ export const NutritionCard: React.FC<NutritionCardProps> = ({
   fatGrams = 0,
   fiberGrams,
   totalCalories,
-  targetProteinGrams = 161,
-  targetCarbsGrams = 323,
-  targetFatGrams = 72,
+  targetProteinGrams,
+  targetCarbsGrams,
+  targetFatGrams,
   className,
   style,
   ...props
@@ -341,14 +342,15 @@ export const NutritionCard: React.FC<NutritionCardProps> = ({
 
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState<boolean>(false);
 
-  // Active values from actual journal state
+  // Active values from actual journal state or recipe props
   const activeProtein = proteinGrams;
   const activeCarbs = carbsGrams;
   const activeFat = fatGrams;
 
-  const activeTargetProtein = targetProteinGrams || 161;
-  const activeTargetCarbs = targetCarbsGrams || 323;
-  const activeTargetFat = targetFatGrams || 72;
+  const profile = useOnboardingStore.getState().personalization;
+  const activeTargetProtein = targetProteinGrams ?? profile?.targetProteinGrams ?? 161;
+  const activeTargetCarbs = targetCarbsGrams ?? profile?.targetCarbGrams ?? 323;
+  const activeTargetFat = targetFatGrams ?? profile?.targetFatGrams ?? 72;
 
   // Calculate ratios & percentages
   const proteinRatio = activeTargetProtein > 0 ? Math.min(1.0, activeProtein / activeTargetProtein) : 0;
@@ -455,23 +457,23 @@ export const NutritionCard: React.FC<NutritionCardProps> = ({
 
   return (
     <View
-      className={`bg-white rounded-2xl border border-[#eaeaea] p-5 sm:p-6 ${
+      className={`bg-white rounded-2xl border border-[#eae8e1] p-5 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.03)] ${
         className || ""
       }`}
       style={style}
       {...props}
     >
       {/* 1. Header Section */}
-      <View className="flex-row items-center justify-between mb-4 pb-3 border-b border-[#f4f4f5]">
+      <View className="flex-row items-center justify-between mb-4 pb-3 border-b border-[#f4f2ec]">
         <View className="flex-row items-center gap-3 flex-1 mr-3">
-          <View className="w-9 h-9 rounded-xl bg-[#f4f4f5] border border-[#e4e4e7] items-center justify-center flex-shrink-0">
-            <BarChartIcon size={17} color="#18181b" />
+          <View className="w-9 h-9 rounded-xl bg-[#eaf2ec] border border-[#d6e4db] items-center justify-center flex-shrink-0">
+            <BarChartIcon size={17} color="#153e28" />
           </View>
           <View className="flex-1">
-            <AppText weight="bold" className="text-base sm:text-lg text-[#18181b] tracking-tight leading-tight">
+            <AppText weight="bold" className="text-base sm:text-lg text-neutral-dark tracking-tight leading-tight">
               Macronutrient Balance
             </AppText>
-            <AppText weight="medium" className="text-xs text-[#71717a] mt-0.5 leading-tight">
+            <AppText weight="medium" className="text-xs text-neutral-muted mt-0.5 leading-tight">
               Protein, carbs & fats calibrated to your daily target
             </AppText>
           </View>
@@ -636,7 +638,7 @@ export const NutritionCard: React.FC<NutritionCardProps> = ({
               {fiberGrams !== undefined && (
                 <View className="bg-white px-3 py-1.5 rounded-xl border border-emerald-200">
                   <AppText weight="bold" className="text-[11px] text-emerald-800">
-                    Dietary Fiber: {fiberGrams || 18}g
+                    Dietary Fiber: {fiberGrams ?? 0}g
                   </AppText>
                 </View>
               )}
@@ -700,7 +702,7 @@ export const NutritionCard: React.FC<NutritionCardProps> = ({
             <Pressable
               onPress={() => {
                 setIsDetailsModalOpen(false);
-                router.push("/meals");
+                router.push("/(app)/(tabs)/meals");
               }}
               className="mt-5 bg-emerald-600 hover:bg-emerald-700 py-3 rounded-2xl items-center justify-center active:scale-95"
             >

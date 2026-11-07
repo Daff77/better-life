@@ -47,7 +47,11 @@ export const Card: React.FC<CardProps> = ({
     scale.value = withSpring(1, AnimationEasings.pressSpringConfig);
   };
 
-  const baseSurfaceClass = "bg-white border border-[#eaeaea]";
+  const baseSurfaceClass = translucent
+    ? "bg-white/85 border border-[#e5ece7]/90 shadow-[0_1px_3px_rgba(0,0,0,0.02),0_8px_20px_rgba(20,50,25,0.02)]"
+    : elevated
+    ? "bg-white border border-[#e5ece7] shadow-[0_2px_4px_rgba(0,0,0,0.02),0_12px_28px_rgba(20,50,25,0.04)]"
+    : "bg-white border border-[#e8edea] shadow-[0_1px_3px_rgba(0,0,0,0.02)]";
 
   if (!isInteractive) {
     const resolvedStyle = typeof style === "function" ? style({ pressed: false }) : style;
@@ -68,7 +72,7 @@ export const Card: React.FC<CardProps> = ({
       onPressOut={handlePressOut}
       className={`${baseSurfaceClass} rounded-2xl p-4.5 ${
         Platform.OS === "web"
-          ? "transition-all duration-150 hover:border-[#d4d4d8] cursor-pointer select-none"
+          ? "transition-all duration-150 hover:shadow-md cursor-pointer select-none"
           : ""
       } ${className || ""}`}
       style={style}

@@ -142,9 +142,9 @@ export default function MealPlannerScreen() {
   // Render Free Teaser / Preview View
   if (!isPremium) {
     return (
-      <ScreenWrapper maxWidth="full" noPadding className="flex-1 bg-[#fafaf9]">
+      <ScreenWrapper maxWidth="full" noPadding className="flex-1 bg-[#faf9f5]">
         {/* Header */}
-        <View className="w-full bg-[#fafaf9] border-b border-[#eaeaea] px-4 sm:px-6 lg:px-8 pt-3 pb-3.5 flex-row justify-between items-center">
+        <View className="w-full bg-[#faf9f5] border-b border-[#eae8e1] px-4 sm:px-6 lg:px-8 pt-3 pb-3.5 flex-row justify-between items-center">
           <View className="flex-row items-center gap-3">
             <TouchableOpacity
               onPress={() => router.back()}
@@ -175,13 +175,13 @@ export default function MealPlannerScreen() {
         </View>
 
         <ScrollView
-          className="flex-1 px-4 sm:px-6 lg:px-8 pt-5 bg-[#fafaf9]"
+          className="flex-1 px-4 sm:px-6 lg:px-8 pt-5 bg-[#faf9f5]"
           contentContainerStyle={{ paddingBottom: 110 }}
           showsVerticalScrollIndicator={false}
         >
           <View className="max-w-[920px] mx-auto w-full">
             {/* Value Proposition Hero Card */}
-            <View className="bg-white rounded-3xl p-6 sm:p-8 border border-[#eaeaea] shadow-xs mb-6 overflow-hidden">
+            <View className="bg-white rounded-3xl p-6 sm:p-8 border border-[#eae8e1] shadow-xs mb-6 overflow-hidden">
               <View className="flex-row items-center gap-3 mb-3">
                 <View className="w-12 h-12 rounded-2xl bg-[#eaf5ef] border border-[#d6e4db] items-center justify-center">
                   <CrownIconSvg size={24} color="#b45309" />
@@ -196,13 +196,13 @@ export default function MealPlannerScreen() {
                 </View>
               </View>
 
-              <View className="my-5 p-4 bg-[#fafaf9] rounded-2xl border border-[#eaeaea]">
+              <View className="my-5 p-4 bg-[#faf9f5] rounded-2xl border border-[#eae8e1]">
                 <AppText weight="bold" className="text-xs text-neutral-dark mb-3">
                   Sample 1-Day Clinical Meal Schedule Preview:
                 </AppText>
 
                 <View className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <View className="p-3 bg-white rounded-xl border border-[#eaeaea]">
+                  <View className="p-3 bg-white rounded-xl border border-[#eae8e1]">
                     <AppText weight="bold" className="text-[11px] text-primary uppercase">
                       Breakfast (320 kcal)
                     </AppText>
@@ -214,7 +214,7 @@ export default function MealPlannerScreen() {
                     </AppText>
                   </View>
 
-                  <View className="p-3 bg-white rounded-xl border border-[#eaeaea]">
+                  <View className="p-3 bg-white rounded-xl border border-[#eae8e1]">
                     <AppText weight="bold" className="text-[11px] text-primary uppercase">
                       Lunch (580 kcal)
                     </AppText>
@@ -226,7 +226,7 @@ export default function MealPlannerScreen() {
                     </AppText>
                   </View>
 
-                  <View className="p-3 bg-white rounded-xl border border-[#eaeaea]">
+                  <View className="p-3 bg-white rounded-xl border border-[#eae8e1]">
                     <AppText weight="bold" className="text-[11px] text-primary uppercase">
                       Dinner (480 kcal)
                     </AppText>
@@ -238,7 +238,7 @@ export default function MealPlannerScreen() {
                     </AppText>
                   </View>
 
-                  <View className="p-3 bg-white rounded-xl border border-[#eaeaea]">
+                  <View className="p-3 bg-white rounded-xl border border-[#eae8e1]">
                     <AppText weight="bold" className="text-[11px] text-primary uppercase">
                       Snack (160 kcal)
                     </AppText>
@@ -252,7 +252,7 @@ export default function MealPlannerScreen() {
                 </View>
 
                 {/* Day Summary Total Bar */}
-                <View className="mt-4 pt-3 border-t border-[#eaeaea] flex-row justify-between items-center">
+                <View className="mt-4 pt-3 border-t border-[#eae8e1] flex-row justify-between items-center">
                   <AppText weight="bold" className="text-xs text-neutral-dark">
                     Daily Total: 1.540 kcal • Protein 100g (26%)
                   </AppText>
@@ -305,9 +305,9 @@ export default function MealPlannerScreen() {
 
   // Render PREMIUM User Full Interactive Experience
   return (
-    <ScreenWrapper maxWidth="full" noPadding className="flex-1 bg-[#fafaf9]">
+    <ScreenWrapper maxWidth="full" noPadding className="flex-1 bg-[#faf9f5]">
       {/* Top Header */}
-      <View className="w-full bg-[#fafaf9] border-b border-[#eaeaea] px-4 sm:px-6 lg:px-8 pt-3 pb-3.5 flex-row justify-between items-center">
+      <View className="w-full bg-[#faf9f5] border-b border-[#eae8e1] px-4 sm:px-6 lg:px-8 pt-3 pb-3.5 flex-row justify-between items-center">
         <View className="flex-row items-center gap-3">
           <TouchableOpacity
             onPress={() => router.back()}
@@ -341,7 +341,7 @@ export default function MealPlannerScreen() {
         <View className="flex-row items-center gap-2">
           <TouchableOpacity
             onPress={() => setPreferenceModalOpen(true)}
-            className="px-3.5 py-2 rounded-full bg-white border border-[#eaeaea] flex-row items-center gap-1.5 active:bg-[#f4f2ec]"
+            className="px-3.5 py-2 rounded-full bg-white border border-[#eae8e1] flex-row items-center gap-1.5 active:bg-[#f4f2ec]"
             accessibilityRole="button"
             accessibilityLabel="Preferences"
           >
@@ -377,14 +377,14 @@ export default function MealPlannerScreen() {
       </View>
 
       <ScrollView
-        className="flex-1 px-4 sm:px-6 lg:px-8 pt-4 bg-[#fafaf9]"
+        className="flex-1 px-4 sm:px-6 lg:px-8 pt-4 bg-[#faf9f5]"
         contentContainerStyle={{ paddingBottom: 110 }}
         showsVerticalScrollIndicator={false}
       >
         <View className="max-w-[960px] mx-auto w-full">
           {/* If no plan generated yet, show prompt to generate */}
           {!activePlan && !isLoading && (
-            <View className="bg-white rounded-3xl p-8 border border-[#eaeaea] items-center text-center my-6">
+            <View className="bg-white rounded-3xl p-8 border border-[#eae8e1] items-center text-center my-6">
               <View className="w-14 h-14 rounded-2xl bg-[#eaf5ef] items-center justify-center mb-4">
                 <LeafIconSvg size={28} color="#1b7a53" />
               </View>
@@ -464,7 +464,7 @@ export default function MealPlannerScreen() {
                             className={`px-3.5 py-2.5 rounded-2xl border transition-all ${
                               isSelected
                                 ? "bg-primary border-primary shadow-xs"
-                                : "bg-white border-[#eaeaea]"
+                                : "bg-white border-[#eae8e1]"
                             }`}
                             accessibilityRole="button"
                             accessibilityLabel={`Select ${day.day}`}
@@ -501,7 +501,7 @@ export default function MealPlannerScreen() {
 
                   {/* Day Nutrition Metrics Card */}
                   {currentDay && (
-                    <View className="bg-white rounded-3xl p-5 border border-[#eaeaea] shadow-xs mb-5">
+                    <View className="bg-white rounded-3xl p-5 border border-[#eae8e1] shadow-xs mb-5">
                       <View className="flex-row justify-between items-center mb-3">
                         <View>
                           <AppText weight="bold" className="text-base text-neutral-dark">
@@ -573,7 +573,7 @@ export default function MealPlannerScreen() {
                       {currentDay.meals.map((item, idx) => (
                         <View
                           key={idx}
-                          className="bg-white rounded-2xl border border-[#eaeaea] p-4 shadow-xs flex-col sm:flex-row sm:items-center justify-between gap-4"
+                          className="bg-white rounded-2xl border border-[#eae8e1] p-4 shadow-xs flex-col sm:flex-row sm:items-center justify-between gap-4"
                         >
                           <TouchableOpacity
                             onPress={() =>
@@ -638,7 +638,7 @@ export default function MealPlannerScreen() {
                   )}
 
                   {/* Trade-Off Notes & Wellness Disclaimers */}
-                  <View className="p-4 bg-[#f4f3ed] rounded-2xl border border-[#eaeaea] mb-6">
+                  <View className="p-4 bg-[#f4f3ed] rounded-2xl border border-[#eae8e1] mb-6">
                     <AppText weight="bold" className="text-xs text-neutral-dark mb-1">
                       Nutritional Guidance & Solver Notes:
                     </AppText>
@@ -654,7 +654,7 @@ export default function MealPlannerScreen() {
                 </>
               ) : (
                 /* Shopping List Mode */
-                <View className="bg-white rounded-3xl p-5 sm:p-6 border border-[#eaeaea] shadow-xs mb-6">
+                <View className="bg-white rounded-3xl p-5 sm:p-6 border border-[#eae8e1] shadow-xs mb-6">
                   <View className="flex-row justify-between items-center mb-4 pb-3 border-b border-[#f2f0ea]">
                     <View>
                       <AppText weight="bold" className="text-base text-neutral-dark">
@@ -683,7 +683,7 @@ export default function MealPlannerScreen() {
                         <AppText weight="bold" className="text-xs text-primary uppercase tracking-wide mb-2.5">
                           {cat.category}
                         </AppText>
-                        <View className="divide-y divide-[#f2f0ea] bg-[#fafaf9] rounded-2xl border border-[#eaeaea] overflow-hidden">
+                        <View className="divide-y divide-[#f2f0ea] bg-[#faf9f5] rounded-2xl border border-[#eae8e1] overflow-hidden">
                           {cat.items.map((item) => {
                             const isChecked = checkedShoppingItemIds.includes(item.id);
                             return (
@@ -741,7 +741,7 @@ export default function MealPlannerScreen() {
       {preferenceModalOpen && (
         <View className="absolute inset-0 bg-black/50 items-center justify-center px-4 py-8 z-50">
           <View className="w-full max-w-[500px] bg-white rounded-3xl p-6 shadow-2xl max-h-[90%] flex-col">
-            <View className="flex-row justify-between items-center mb-4 pb-3 border-b border-[#eaeaea]">
+            <View className="flex-row justify-between items-center mb-4 pb-3 border-b border-[#eae8e1]">
               <AppText weight="bold" className="text-lg text-neutral-dark">
                 Meal Plan Preferences
               </AppText>
@@ -763,7 +763,7 @@ export default function MealPlannerScreen() {
                   value={calorieInput}
                   onChangeText={setCalorieInput}
                   keyboardType="numeric"
-                  className="w-full h-11 px-3.5 bg-[#fafaf9] border border-[#d6e4db] rounded-xl text-neutral-dark text-sm font-semibold"
+                  className="w-full h-11 px-3.5 bg-[#faf9f5] border border-[#d6e4db] rounded-xl text-neutral-dark text-sm font-semibold"
                   placeholder="e.g. 2000"
                 />
               </View>
@@ -777,7 +777,7 @@ export default function MealPlannerScreen() {
                   value={budgetInput}
                   onChangeText={setBudgetInput}
                   keyboardType="numeric"
-                  className="w-full h-11 px-3.5 bg-[#fafaf9] border border-[#d6e4db] rounded-xl text-neutral-dark text-sm font-semibold"
+                  className="w-full h-11 px-3.5 bg-[#faf9f5] border border-[#d6e4db] rounded-xl text-neutral-dark text-sm font-semibold"
                   placeholder="e.g. 50000"
                 />
               </View>
@@ -803,7 +803,7 @@ export default function MealPlannerScreen() {
                         className={`px-3 py-1.5 rounded-full border ${
                           isSelected
                             ? "bg-primary border-primary"
-                            : "bg-[#fafaf9] border-[#eaeaea]"
+                            : "bg-[#faf9f5] border-[#eae8e1]"
                         }`}
                       >
                         <AppText
@@ -839,7 +839,7 @@ export default function MealPlannerScreen() {
                         className={`px-3 py-1.5 rounded-full border ${
                           isSelected
                             ? "bg-[#b45309] border-[#b45309]"
-                            : "bg-[#fafaf9] border-[#eaeaea]"
+                            : "bg-[#faf9f5] border-[#eae8e1]"
                         }`}
                       >
                         <AppText
@@ -862,13 +862,13 @@ export default function MealPlannerScreen() {
                 <TextInput
                   value={pantryInput}
                   onChangeText={setPantryInput}
-                  className="w-full h-11 px-3.5 bg-[#fafaf9] border border-[#d6e4db] rounded-xl text-neutral-dark text-sm"
+                  className="w-full h-11 px-3.5 bg-[#faf9f5] border border-[#d6e4db] rounded-xl text-neutral-dark text-sm"
                   placeholder="e.g. Avocado, Quinoa, Eggs, Tempeh"
                 />
               </View>
             </ScrollView>
 
-            <View className="pt-4 border-t border-[#eaeaea] flex-row gap-3">
+            <View className="pt-4 border-t border-[#eae8e1] flex-row gap-3">
               <TouchableOpacity
                 onPress={() => setPreferenceModalOpen(false)}
                 className="flex-1 py-3 rounded-xl bg-neutral-surface border border-neutral-border items-center justify-center"
@@ -900,7 +900,7 @@ export default function MealPlannerScreen() {
       {substitutionModal.isOpen && (
         <View className="absolute inset-0 bg-black/50 items-center justify-center px-4 py-8 z-50">
           <View className="w-full max-w-[480px] bg-white rounded-3xl p-6 shadow-2xl max-h-[85%] flex-col">
-            <View className="flex-row justify-between items-center mb-3 pb-3 border-b border-[#eaeaea]">
+            <View className="flex-row justify-between items-center mb-3 pb-3 border-b border-[#eae8e1]">
               <View>
                 <AppText weight="bold" className="text-base text-neutral-dark">
                   Substitute {substitutionModal.slot}

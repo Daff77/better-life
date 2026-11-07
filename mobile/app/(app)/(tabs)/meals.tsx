@@ -77,16 +77,16 @@ export default function MealsScreen() {
   };
 
   return (
-    <ScreenWrapper maxWidth="full" noPadding className="flex-1 bg-[#fafaf9]">
-      {/* Header Bar */}
+    <ScreenWrapper maxWidth="full" noPadding className="flex-1 bg-[#f7faf7]">
+      {/* Header Bar: Apple Translucent Frosted Glass Header */}
       <View
-        className="w-full border-b border-[#eaeaea] px-4 sm:px-6 lg:px-8 pt-4 pb-4 z-20"
+        className="w-full border-b border-[#e5ece7] px-4 sm:px-6 lg:px-8 pt-4 pb-4 z-20"
         style={
           Platform.OS === "web"
             ? ({
-                backgroundColor: "rgba(255, 255, 255, 0.92)",
-                backdropFilter: "blur(20px)",
-                WebkitBackdropFilter: "blur(20px)",
+                backgroundColor: "rgba(255, 255, 255, 0.88)",
+                backdropFilter: "blur(20px) saturate(180%)",
+                WebkitBackdropFilter: "blur(20px) saturate(180%)",
                 position: "sticky",
                 top: 0,
               } as any)
@@ -95,28 +95,28 @@ export default function MealsScreen() {
       >
         <View className="max-w-[1280px] mx-auto w-full flex-col sm:flex-row sm:items-center justify-between gap-3">
           <View className="flex-1">
-            <AppText weight="bold" className="text-xl sm:text-2xl text-[#18181b] tracking-tight">
+            <AppText weight="black" className="text-xl sm:text-2xl text-[#14261c] tracking-tight">
               Jurnal Makan & Menu Harian
             </AppText>
-            <AppText weight="medium" className="text-xs text-[#71717a] mt-0.5 leading-relaxed">
+            <AppText weight="medium" className="text-xs text-neutral-muted mt-0.5 leading-relaxed">
               Pilih hidangan bergizi dan catat kalori langsung ke jurnal harian Anda.
             </AppText>
           </View>
 
           {/* Daily Journal Progress Chip */}
           <View
-            className="self-start sm:self-center h-8 px-3.5 rounded-full bg-[#f4f4f5] border border-[#e4e4e7] flex-row items-center gap-2"
+            className="self-start sm:self-center h-8 px-3.5 rounded-full bg-[#eaf4ed] border border-[#d2e7d7] flex-row items-center gap-2"
             accessibilityRole="summary"
             accessibilityLabel={`Tercatat: ${aggregates.entryCount} makanan, ${aggregates.totalConsumed} dari ${aggregates.targetCalories || 2582} kalori`}
           >
-            <View className="w-1.5 h-1.5 rounded-full bg-[#18181b]" />
-            <AppText weight="bold" className="text-xs text-[#18181b]" style={{ fontVariant: ["tabular-nums"] }}>
+            <View className="w-2 h-2 rounded-full bg-[#1b5e37]" />
+            <AppText weight="bold" className="text-xs text-[#14261c]" style={{ fontVariant: ["tabular-nums"] }}>
               {aggregates.entryCount} Tercatat
             </AppText>
-            <AppText weight="medium" className="text-xs text-[#a1a1aa]">
+            <AppText weight="medium" className="text-xs text-neutral-muted">
               ·
             </AppText>
-            <AppText weight="bold" className="text-xs text-[#18181b]" style={{ fontVariant: ["tabular-nums"] }}>
+            <AppText weight="bold" className="text-xs text-[#1b5e37]" style={{ fontVariant: ["tabular-nums"] }}>
               {aggregates.totalConsumed.toLocaleString("id-ID")} / {(aggregates.targetCalories || 2582).toLocaleString("id-ID")} kcal
             </AppText>
           </View>
@@ -124,7 +124,7 @@ export default function MealsScreen() {
       </View>
 
       <ScrollView
-        className="flex-1 bg-[#fafaf9]"
+        className="flex-1 bg-[#f7faf7]"
         contentContainerStyle={{ paddingBottom: Platform.OS === "web" ? 56 : 112 }}
         showsVerticalScrollIndicator={false}
       >
@@ -132,33 +132,29 @@ export default function MealsScreen() {
         <View className="max-w-[1280px] mx-auto w-full px-4 sm:px-6 lg:px-8 pt-4 pb-1">
           <TouchableOpacity
             onPress={() => router.push("/(app)/meal-planner")}
-            className="w-full bg-white rounded-2xl p-4 border border-[#eaeaea] flex-col sm:flex-row sm:items-center justify-between gap-3"
+            className="w-full bg-white rounded-[20px] p-4 border border-[#e5ece7] shadow-[0_2px_10px_rgba(20,50,25,0.03)] flex-col sm:flex-row sm:items-center justify-between gap-3 active:scale-[0.99] transition-transform"
             accessibilityRole="button"
             accessibilityLabel="Buka Personalized Meal Planner"
           >
             <View className="flex-row items-center gap-3.5">
-              <View className="w-10 h-10 rounded-xl bg-[#fbf3db] border border-[#f5e3ba] items-center justify-center">
-                <CrownIconSvg size={18} color="#956400" />
+              <View className="w-10 h-10 rounded-xl bg-[#fdf6e7] border border-[#f5e3ba] items-center justify-center">
+                <CrownIconSvg size={20} color="#b45309" />
               </View>
               <View>
                 <View className="flex-row items-center gap-2">
-                  <AppText weight="bold" className="text-sm text-[#18181b]">
+                  <AppText weight="bold" className="text-sm text-[#14261c]">
                     Personalized Weekly Meal Planner
                   </AppText>
-                  <View className="px-2 py-0.5 rounded bg-[#f4f4f5] border border-[#e4e4e7]">
-                    <AppText weight="bold" className="text-[10px] text-[#52525b] uppercase tracking-wider">
-                      {isPremium ? "Aktif" : "Premium"}
-                    </AppText>
-                  </View>
+                  <Badge label={isPremium ? "Aktif" : "Premium"} variant={isPremium ? "primary" : "outline"} size="sm" />
                 </View>
-                <AppText weight="medium" className="text-xs text-[#71717a] mt-0.5">
+                <AppText weight="medium" className="text-xs text-neutral-muted mt-0.5">
                   Jadwal makan 7 hari otomatis sesuai kalori, alergi makanan, dan budget belanja pasar.
                 </AppText>
               </View>
             </View>
 
-            <View className="self-end sm:self-center px-3.5 py-1.5 rounded-lg bg-[#18181b]">
-              <AppText weight="bold" className="text-xs text-white">
+            <View className="self-end sm:self-center px-3.5 py-1.5 rounded-full bg-[#eaf4ed] border border-[#d2e7d7]">
+              <AppText weight="bold" className="text-xs text-[#1b5e37]">
                 {isPremium ? "Buka Jadwal" : "Lihat Fitur"}
               </AppText>
             </View>
@@ -168,16 +164,16 @@ export default function MealsScreen() {
         {/* SEARCH AND FILTERS */}
         <View className="max-w-[1280px] mx-auto w-full px-4 sm:px-6 lg:px-8 pt-4 pb-2">
           {/* Integrated Search Input */}
-          <View className="flex-row items-center bg-white border border-[#eaeaea] rounded-xl px-4 py-1.5 min-h-[44px]">
+          <View className="flex-row items-center bg-white border border-[#e2eae4] rounded-2xl px-4 py-1.5 min-h-[46px] shadow-2xs">
             <View className="mr-2.5">
-              <IconRenderer name="Search" size={15} color="#71717a" />
+              <IconRenderer name="Search" size={16} color="#607065" />
             </View>
             <TextInput
               value={searchQuery}
               onChangeText={setSearchQuery}
               placeholder="Cari makanan (misal: Ayam panggang, Tempe, Oatmeal, Salmon)..."
-              placeholderTextColor="#a1a1aa"
-              className="flex-1 text-sm text-[#18181b] font-medium"
+              placeholderTextColor="#8a9a8f"
+              className="flex-1 text-sm text-[#14261c] font-medium"
               style={{
                 fontFamily: "Akatab-Medium",
                 includeFontPadding: false,
@@ -190,11 +186,11 @@ export default function MealsScreen() {
               <TouchableOpacity
                 onPress={() => setSearchQuery("")}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                className="w-5 h-5 rounded-full bg-[#f4f4f5] items-center justify-center ml-1"
+                className="w-6 h-6 rounded-full bg-[#ebf0ec] items-center justify-center ml-1"
                 accessibilityRole="button"
                 accessibilityLabel="Hapus pencarian"
               >
-                <CloseIconSvg size={10} color="#71717a" />
+                <CloseIconSvg size={12} color="#5a625b" />
               </TouchableOpacity>
             )}
           </View>
@@ -214,11 +210,11 @@ export default function MealsScreen() {
                   <Pressable
                     key={slot}
                     onPress={() => setSelectedSlot(slot)}
-                    className={`min-h-[34px] px-3.5 py-1.5 rounded-lg flex-row items-center justify-center ${
+                    className={`min-h-[38px] px-4 py-1.5 rounded-full flex-row items-center justify-center transition-all duration-150 active:scale-[0.97] ${
                       isSelected
-                        ? "bg-[#18181b] border border-[#18181b]"
-                        : "bg-white border border-[#eaeaea]"
-                    }`}
+                        ? "bg-[#1b5e37] shadow-xs"
+                        : "bg-white border border-[#e5ece7] active:bg-[#f2f7f4]"
+                    } ${Platform.OS === "web" ? "cursor-pointer" : ""}`}
                     accessibilityRole="button"
                     accessibilityState={{ selected: isSelected }}
                     accessibilityLabel={`Filter ${slot}`}
@@ -226,7 +222,7 @@ export default function MealsScreen() {
                     <AppText
                       weight={isSelected ? "bold" : "medium"}
                       className={`text-xs ${
-                        isSelected ? "text-white" : "text-[#52525b]"
+                        isSelected ? "text-white" : "text-[#14261c]"
                       }`}
                     >
                       {slot}
@@ -235,7 +231,7 @@ export default function MealsScreen() {
                 );
               })}
 
-              <View className="w-[1px] h-5 bg-[#eaeaea] mx-1" />
+              <View className="w-[1px] h-5 bg-[#e2eae4] mx-1" />
 
               {/* Budget Filter Pills */}
               {BUDGET_FILTERS.map((budget) => {
@@ -244,24 +240,24 @@ export default function MealsScreen() {
                   <Pressable
                     key={budget}
                     onPress={() => setSelectedBudget(budget)}
-                    className={`min-h-[34px] px-3 py-1.5 rounded-lg flex-row items-center justify-center ${
+                    className={`min-h-[38px] px-3.5 py-1.5 rounded-full flex-row items-center justify-center transition-all duration-150 active:scale-[0.97] ${
                       isSelected
-                        ? "bg-[#18181b] border border-[#18181b]"
-                        : "bg-white border border-[#eaeaea]"
-                    }`}
+                        ? "bg-[#1b5e37] shadow-xs"
+                        : "bg-white border border-[#e5ece7] active:bg-[#f2f7f4]"
+                    } ${Platform.OS === "web" ? "cursor-pointer" : ""}`}
                     accessibilityRole="button"
                     accessibilityState={{ selected: isSelected }}
                     accessibilityLabel={`Filter budget: ${budget}`}
                   >
                     <TagIconSvg
                       size={11}
-                      color={isSelected ? "#ffffff" : "#71717a"}
+                      color={isSelected ? "#ffffff" : "#1b5e37"}
                       style={{ marginRight: 4 }}
                     />
                     <AppText
                       weight={isSelected ? "bold" : "medium"}
                       className={`text-xs ${
-                        isSelected ? "text-white" : "text-[#52525b]"
+                        isSelected ? "text-white" : "text-[#14261c]"
                       }`}
                     >
                       {budget}
@@ -276,14 +272,14 @@ export default function MealsScreen() {
         {/* RECIPE CATALOGUE GRID */}
         <View className="px-4 sm:px-6 lg:px-8 pt-3 max-w-[1280px] mx-auto w-full">
           {filteredMeals.length === 0 ? (
-            <View className="bg-white rounded-2xl p-8 items-center justify-center border border-[#eaeaea] my-4 w-full">
-              <View className="w-12 h-12 rounded-xl bg-[#f4f4f5] border border-[#e4e4e7] items-center justify-center mb-3">
-                <IconRenderer name="Cook" size={24} color="#71717a" />
+            <View className="bg-white rounded-[24px] p-8 items-center justify-center border border-[#e5ece7] my-4 w-full shadow-xs">
+              <View className="w-12 h-12 rounded-xl bg-[#eaf4ed] items-center justify-center mb-3">
+                <IconRenderer name="Cook" size={24} color="#1b5e37" />
               </View>
-              <AppText weight="bold" className="text-base text-[#18181b] mb-1 text-center">
+              <AppText weight="bold" className="text-base text-[#14261c] mb-1 text-center">
                 Tidak ada menu yang sesuai
               </AppText>
-              <AppText weight="medium" className="text-xs text-[#71717a] text-center max-w-xs mb-4 leading-relaxed">
+              <AppText weight="medium" className="text-xs text-neutral-muted text-center max-w-xs mb-4 leading-relaxed">
                 {searchQuery
                   ? `Tidak ditemukan menu dengan kata kunci "${searchQuery}". Coba kata kunci lain atau ubah filter.`
                   : "Tidak ada menu yang sesuai dengan kategori dan filter budget yang dipilih."}
@@ -294,7 +290,7 @@ export default function MealsScreen() {
                   setSelectedSlot("Semua");
                   setSelectedBudget("Semua Budget");
                 }}
-                className="px-5 py-2.5 rounded-lg bg-[#18181b] min-h-[40px] items-center justify-center"
+                className="px-5 py-2.5 rounded-xl bg-[#1b5e37] active:bg-[#154a2b] transition-colors min-h-[40px] items-center justify-center"
                 accessibilityRole="button"
                 accessibilityLabel="Reset pencarian dan filter"
               >
@@ -330,15 +326,15 @@ export default function MealsScreen() {
 
         {/* AFFORDABILITY FOOTER NOTE */}
         <View className="px-4 sm:px-6 lg:px-8 pt-2 pb-6 max-w-[1280px] mx-auto w-full">
-          <View className="bg-white rounded-xl p-4 border border-[#eaeaea] flex-row items-start">
-            <View className="w-7 h-7 rounded-lg bg-[#f4f4f5] border border-[#e4e4e7] items-center justify-center mr-3 mt-0.5">
-              <LightbulbIconSvg size={14} color="#71717a" />
+          <View className="bg-white rounded-2xl p-4 border border-[#e5ece7] flex-row items-start shadow-2xs">
+            <View className="w-7 h-7 rounded-lg bg-[#eaf4ed] items-center justify-center mr-3 mt-0.5">
+              <LightbulbIconSvg size={15} color="#1b5e37" />
             </View>
             <View className="flex-1">
-              <AppText weight="bold" className="text-xs text-[#18181b] mb-0.5">
+              <AppText weight="bold" className="text-xs text-[#14261c] mb-0.5">
                 Estimasi Biaya Bahan Pasar Indonesia
               </AppText>
-              <AppText weight="medium" className="text-xs text-[#71717a] leading-relaxed">
+              <AppText weight="medium" className="text-xs text-neutral-muted leading-relaxed">
                 Harga dihitung berdasarkan rata-rata harga pasar lokal untuk membantu Anda merencanakan nutrisi seimbang yang realistis dan hemat budget harian.
               </AppText>
             </View>

@@ -233,23 +233,23 @@ export default function ProfileScreen() {
   };
 
   return (
-    <ScreenWrapper maxWidth="full" noPadding className="flex-1 bg-[#fafaf9]">
-      {/* Top Header Bar */}
+    <ScreenWrapper maxWidth="full" noPadding className="flex-1 bg-[#faf9f5]">
+      {/* Top Header Bar: Apple Translucent Frosted Glass Header */}
       <View
-        className="w-full px-4 sm:px-6 lg:px-8 pt-3.5 pb-3.5 flex-row justify-between items-center border-b border-[#eaeaea] z-20"
+        className="w-full px-4 sm:px-6 lg:px-8 pt-3.5 pb-3.5 flex-row justify-between items-center border-b border-[#eae8e1] z-20"
         style={
           Platform.OS === "web"
             ? ({
-                backgroundColor: "rgba(255, 255, 255, 0.92)",
-                backdropFilter: "blur(20px)",
-                WebkitBackdropFilter: "blur(20px)",
+                backgroundColor: "rgba(250, 249, 245, 0.88)",
+                backdropFilter: "blur(20px) saturate(180%)",
+                WebkitBackdropFilter: "blur(20px) saturate(180%)",
                 position: "sticky",
                 top: 0,
               } as any)
-            : { backgroundColor: "#ffffff" }
+            : { backgroundColor: "#faf9f5" }
         }
       >
-        <AppText weight="bold" className="text-xl sm:text-2xl text-[#18181b] tracking-tight">
+        <AppText weight="bold" className="text-xl sm:text-2xl text-neutral-dark tracking-tight">
           Profile & Preferences
         </AppText>
 
@@ -257,27 +257,27 @@ export default function ProfileScreen() {
           {/* Edit Profile & Goal Button */}
           <TouchableOpacity
             onPress={handleOpenEdit}
-            className="w-9 h-9 rounded-full bg-[#f4f4f5] border border-[#e4e4e7] items-center justify-center active:opacity-80"
+            className="w-10 h-10 rounded-full bg-[#eef4f0] border border-[#d6e4db] items-center justify-center transition-transform active:scale-95"
             accessibilityRole="button"
             accessibilityLabel="Edit personalization preferences"
           >
-            <EditIconSvg size={15} color="#18181b" />
+            <EditIconSvg size={16} color="#153e28" />
           </TouchableOpacity>
 
           {/* Settings Cog Icon */}
           <TouchableOpacity
             onPress={() => setSettingsVisible(true)}
-            className="w-9 h-9 rounded-full bg-[#f4f4f5] border border-[#e4e4e7] items-center justify-center active:opacity-80"
+            className="w-10 h-10 rounded-full bg-[#eef4f0] border border-[#d6e4db] items-center justify-center transition-transform active:scale-95"
             accessibilityRole="button"
             accessibilityLabel="Account settings"
           >
-            <SettingsIconSvg size={15} color="#18181b" />
+            <SettingsIconSvg size={16} color="#153e28" />
           </TouchableOpacity>
         </View>
       </View>
 
       <ScrollView
-        className="flex-1 px-4 sm:px-6 lg:px-8 pt-4 bg-[#fafaf9]"
+        className="flex-1 px-4 sm:px-6 lg:px-8 pt-4 bg-[#faf9f5]"
         contentContainerStyle={{ paddingBottom: Platform.OS === "web" ? 64 : 112 }}
         showsVerticalScrollIndicator={false}
       >
@@ -286,36 +286,36 @@ export default function ProfileScreen() {
           <View className="w-full lg:w-5/12">
             {/* 1. Editorial Identity Banner */}
             <View className="mb-4">
-              <View className="bg-white p-5 rounded-2xl border border-[#eaeaea]">
+              <View className="bg-white p-5 rounded-2xl border border-[#eae8e1] shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
                 <View className="flex-row items-center mb-3.5">
-                  <View className="w-16 h-16 rounded-full bg-white items-center justify-center mr-3.5 border border-[#eaeaea] relative">
+                  <View className="w-16 h-16 rounded-full bg-white items-center justify-center mr-3.5 border-2 border-primary/20 relative shadow-xs">
                     <Avatar name={user?.name || "User"} size={58} showBadge />
                   </View>
                   <View className="flex-1">
-                    <AppText weight="bold" className="text-xl text-[#18181b] tracking-tight">
+                    <AppText weight="bold" className="text-xl text-neutral-dark tracking-tight">
                       {user?.name || "User"}
                     </AppText>
-                    <AppText weight="medium" className="text-xs text-[#71717a] mt-0.5">
+                    <AppText weight="medium" className="text-xs text-neutral-muted mt-0.5">
                       {user?.email || "user@betterlife.local"}
                     </AppText>
                   </View>
                 </View>
 
                 {/* Metric Metadata with Tabular Numbers */}
-                <View className="flex-row flex-wrap items-center gap-x-2 pt-2.5 border-t border-[#f4f4f5]">
+                <View className="flex-row flex-wrap items-center gap-x-2 pt-2.5 border-t border-[#f4f2ec]">
                   <AppText
                     weight="bold"
-                    className="text-xs text-[#18181b]"
+                    className="text-xs text-primary"
                     style={{ fontVariant: ["tabular-nums"] }}
                   >
                     {personalization.targetCalories || 2582} kcal/day
                   </AppText>
-                  <AppText weight="medium" className="text-xs text-[#a1a1aa]">•</AppText>
-                  <AppText weight="semibold" className="text-xs text-[#71717a]">
+                  <AppText weight="medium" className="text-xs text-neutral-muted">•</AppText>
+                  <AppText weight="semibold" className="text-xs text-neutral-dark">
                     {personalization.goal}
                   </AppText>
-                  <AppText weight="medium" className="text-xs text-[#a1a1aa]">•</AppText>
-                  <AppText weight="semibold" className="text-xs text-[#71717a]">
+                  <AppText weight="medium" className="text-xs text-neutral-muted">•</AppText>
+                  <AppText weight="semibold" className="text-xs text-neutral-dark">
                     {personalization.dietType}
                   </AppText>
                 </View>
@@ -323,24 +323,23 @@ export default function ProfileScreen() {
             </View>
 
             {/* 1.5 Membership Tier & Subscription Status Card */}
-            <View className="mb-4 bg-white p-4 rounded-2xl border border-[#eaeaea]">
+            <View className="mb-4 bg-white p-4 rounded-2xl border border-[#eae8e1] shadow-xs">
               <View className="flex-row items-center justify-between">
                 <View className="flex-row items-center gap-2.5 flex-1 pr-2">
-                  <View className="w-10 h-10 rounded-xl bg-[#fbf3db] border border-[#f5e3ba] items-center justify-center">
-                    <CrownIconSvg size={18} color="#956400" />
+                  <View className="w-10 h-10 rounded-xl bg-[#eaf5ef] border border-[#d6e4db] items-center justify-center">
+                    <CrownIconSvg size={18} color={isPremium ? "#b45309" : "#1b7a53"} />
                   </View>
                   <View className="flex-1">
                     <View className="flex-row items-center gap-1.5">
-                      <AppText weight="bold" className="text-sm text-[#18181b]">
+                      <AppText weight="bold" className="text-sm text-neutral-dark">
                         {isPremium ? "Premium Member" : "Free Member"}
                       </AppText>
-                      <View className="px-2 py-0.5 rounded bg-[#f4f4f5] border border-[#e4e4e7]">
-                        <AppText weight="bold" className="text-[10px] text-[#52525b] uppercase tracking-wider">
-                          {isPremium ? "Active" : "Free"}
-                        </AppText>
-                      </View>
+                      <Badge
+                        label={isPremium ? "Active" : "Free"}
+                        variant={isPremium ? "primary" : "outline"}
+                      />
                     </View>
-                    <AppText weight="medium" className="text-[11px] text-[#71717a] mt-0.5">
+                    <AppText weight="medium" className="text-[11px] text-neutral-muted mt-0.5">
                       {isPremium
                         ? currentPeriodEnd
                           ? `Renews on ${new Date(currentPeriodEnd).toLocaleDateString()}`
@@ -352,13 +351,13 @@ export default function ProfileScreen() {
 
                 <TouchableOpacity
                   onPress={() => router.push("/(app)/upgrade")}
-                  className={`px-3.5 py-1.5 rounded-lg ${
-                    isPremium ? "bg-white border border-[#eaeaea] active:bg-[#f4f4f5]" : "bg-[#18181b] active:opacity-85"
+                  className={`px-3.5 py-1.5 rounded-full ${
+                    isPremium ? "bg-white border border-[#eae8e1] active:bg-[#f2f1eb]" : "bg-primary active:bg-primary-dark"
                   }`}
                   accessibilityRole="button"
                   accessibilityLabel={isPremium ? "Manage subscription plan" : "Upgrade membership plan"}
                 >
-                  <AppText weight="bold" className={`text-xs ${isPremium ? "text-[#18181b]" : "text-white"}`}>
+                  <AppText weight="bold" className={`text-xs ${isPremium ? "text-neutral-dark" : "text-white"}`}>
                     {isPremium ? "Manage" : "Upgrade"}
                   </AppText>
                 </TouchableOpacity>
@@ -367,23 +366,23 @@ export default function ProfileScreen() {
 
             {/* 2. Personal Information & Nutrition Plan Card */}
             <View>
-              <View className="bg-white p-5 rounded-2xl border border-[#eaeaea] mb-4">
-                <View className="flex-row justify-between items-center mb-3 pb-2 border-b border-[#f4f4f5]">
+              <View className="bg-white p-5 rounded-2xl border border-[#eae8e1] mb-4 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
+                <View className="flex-row justify-between items-center mb-3 pb-2 border-b border-[#f4f2ec]">
                   <View>
-                    <AppText weight="bold" className="text-base text-[#18181b]">
+                    <AppText weight="bold" className="text-base text-neutral-dark">
                       Personal Information
                     </AppText>
-                    <AppText weight="medium" className="text-xs text-[#71717a]">
+                    <AppText weight="medium" className="text-xs text-neutral-muted">
                       Calibrated for daily calorie & nutrition estimates
                     </AppText>
                   </View>
                   <TouchableOpacity
                     onPress={handleOpenEdit}
-                    className="px-3 py-1 bg-[#f4f4f5] rounded-lg border border-[#e4e4e7]"
+                    className="px-3 py-1 bg-[#eef4f0] rounded-full border border-[#d6e4db] transition-all hover:bg-[#e4ede7] active:scale-[0.96]"
                     accessibilityRole="button"
                     accessibilityLabel="Edit personal information"
                   >
-                    <AppText weight="bold" className="text-xs text-[#18181b]">
+                    <AppText weight="bold" className="text-xs text-primary">
                       Edit
                     </AppText>
                   </TouchableOpacity>

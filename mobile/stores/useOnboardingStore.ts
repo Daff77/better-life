@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { PersonalizationMetrics, PersonalizationSchema } from "@/lib/schemas";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { sessionStorage } from "@/lib/sessionStorage";
+import { API_BASE_URL } from "@/lib/api/config";
 
 export interface PlanCalculationResult {
   bmr: number;
@@ -182,6 +183,33 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
 
     // Persist to storage
     await sessionStorage.savePersonalization(updatedMetrics);
+
+    // Synchronize with backend profile if token exists
+    try {
+      const session = await sessionStorage.getSession();
+      if (session?.token) {
+        await fetch(`${API_BASE_URL}/profile/personalization`, {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${session.token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            goal: updatedMetrics.goal,
+            weight: updatedMetrics.weight,
+            height: updatedMetrics.height,
+            gender: updatedMetrics.gender,
+            age: currentYear - (updatedMetrics.birthDate?.year || 2000),
+            targetCalories: updatedMetrics.targetCalories,
+            dietType: updatedMetrics.dietType,
+            cookingSkill: updatedMetrics.cookingSkill,
+            allergies: updatedMetrics.allergies,
+          }),
+        });
+      }
+    } catch {
+      // Non-fatal if backend is offline
+    }
 
     // Synchronize active Journal target
     try {

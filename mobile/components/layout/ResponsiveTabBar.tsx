@@ -19,7 +19,9 @@ export interface ResponsiveTabBarProps {
     routes: Array<{ key: string; name: string; params?: any }>;
   };
   descriptors: Record<string, { options: any }>;
-  navigation: any;
+  navigation?: any;
+  navigateToTab?: (routeKey: string) => void;
+  emitter?: any;
   insets: {
     top: number;
     right: number;
@@ -32,6 +34,7 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({
   state,
   descriptors,
   navigation,
+  navigateToTab,
   insets,
 }) => {
   const router = useRouter();
@@ -41,14 +44,24 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({
   const isPremium = useSubscriptionStore((state) => state.isPremium);
 
   const handleTabPress = (routeKey: string, routeName: string, isFocused: boolean) => {
-    const event = navigation.emit({
-      type: "tabPress",
-      target: routeKey,
-      canPreventDefault: true,
-    });
+    let defaultPrevented = false;
+    if (navigation?.emit) {
+      const event = navigation.emit({
+        type: "tabPress",
+        target: routeKey,
+        canPreventDefault: true,
+      });
+      defaultPrevented = !!event?.defaultPrevented;
+    }
 
-    if (!isFocused && !event.defaultPrevented) {
-      navigation.navigate(routeName);
+    if (!isFocused && !defaultPrevented) {
+      if (navigateToTab) {
+        navigateToTab(routeKey);
+      } else if (navigation?.navigate) {
+        navigation.navigate(routeName);
+      } else {
+        router.push(routeName === "index" ? "/(app)/(tabs)" : (`/(app)/(tabs)/${routeName}` as any));
+      }
     }
   };
 
@@ -64,13 +77,19 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({
           width: 230,
           zIndex: 50,
         }}
-        className="h-full bg-white border-r border-[#eaeaea] px-4 py-6 justify-between"
+        className="h-full bg-white border-r border-[#e5ece7] px-4 py-6 justify-between shadow-[2px_0_12px_rgba(20,50,25,0.02)]"
         accessibilityLabel="Desktop primary navigation sidebar"
       >
         {/* Top: Brand Logo & Navigation Links */}
         <View>
           <TouchableOpacity
-            onPress={() => navigation.navigate("index")}
+            onPress={() => {
+              if (navigation?.navigate) {
+                navigation.navigate("index");
+              } else {
+                router.push("/(app)/(tabs)");
+              }
+            }}
             activeOpacity={0.8}
             className={`flex-row items-center gap-2.5 px-2 mb-8 ${Platform.OS === "web" ? "cursor-pointer" : ""}`}
             accessibilityRole="link"
@@ -172,29 +191,26 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({
     );
   }
 
-  // 2. MOBILE BOTTOM NAVIGATION (Minimalist Editorial Bar)
+  // 2. MOBILE BOTTOM NAVIGATION (Apple Translucent Frosted Glass Bar)
   return (
     <View
-      className="w-full z-50 bg-white"
-      style={[
+      className="w-full z-50"
+      style={
         {
+          position: Platform.OS === "web" ? ("fixed" as any) : undefined,
+          bottom: 0,
+          left: 0,
+          right: 0,
+          backgroundColor: Platform.OS === "web" ? "rgba(255, 255, 255, 0.88)" : "#ffffff",
+          backdropFilter: Platform.OS === "web" ? "blur(20px) saturate(180%)" : undefined,
+          WebkitBackdropFilter: Platform.OS === "web" ? "blur(20px) saturate(180%)" : undefined,
           borderTopWidth: 1,
-          borderTopColor: "#eaeaea",
+          borderTopColor: "rgba(229, 236, 231, 0.85)",
+          boxShadow: "0 -4px 20px rgba(20, 50, 25, 0.03)",
           paddingBottom: Math.max(insets.bottom, 10),
           paddingTop: 8,
-        },
-        Platform.OS === "web"
-          ? ({
-              position: "fixed",
-              bottom: 0,
-              left: 0,
-              right: 0,
-              backgroundColor: "rgba(255, 255, 255, 0.95)",
-              backdropFilter: "blur(16px)",
-              WebkitBackdropFilter: "blur(16px)",
-            } as any)
-          : undefined,
-      ]}
+        } as any
+      }
       accessibilityRole="tablist"
       accessibilityLabel="Mobile bottom navigation"
     >
@@ -218,9 +234,13 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({
             <TouchableOpacity
               key={route.key}
               onPress={() => handleTabPress(route.key, route.name, isFocused)}
-              activeOpacity={0.7}
-              className={`items-center justify-center py-1.5 px-3 rounded-xl min-h-[44px] transition-all ${
-                isFocused ? "bg-[#f4f4f5]" : ""
+              activeOpacity={0.75}
+              className={`items-center justify-center py-1.5 px-3.5 rounded-2xl min-h-[46px] transition-all active:scale-[0.96] ${
+                isFocused
+                  ? "bg-[#eaf4ed] border border-[#d2e7d7]/80 shadow-2xs"
+                  : Platform.OS === "web"
+                  ? "hover:bg-neutral-100/50"
+                  : ""
               }`}
               accessibilityRole="tab"
               accessibilityState={{ selected: isFocused }}
@@ -230,12 +250,12 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({
                 name={displayLabel}
                 focused={isFocused}
                 size={20}
-                color={isFocused ? "#18181b" : "#a1a1aa"}
+                color={isFocused ? "#1b5e37" : "#7d8c82"}
               />
               <AppText
                 weight={isFocused ? "bold" : "medium"}
-                className={`text-[10px] mt-0.5 tracking-tight ${
-                  isFocused ? "text-[#18181b]" : "text-[#a1a1aa]"
+                className={`text-[11px] mt-0.5 tracking-tight ${
+                  isFocused ? "text-[#1b5e37]" : "text-neutral-muted"
                 }`}
               >
                 {displayLabel}

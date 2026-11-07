@@ -16,6 +16,17 @@ export const inMemoryStore = {
         createdAt: new Date(),
       },
     ],
+    [
+      "user-daffa",
+      {
+        id: "user-daffa",
+        name: "Daffa Pratama",
+        email: "daffa@gmail.com",
+        phone: "+62 812-3456-7890",
+        passwordHash: "hashed_pass_placeholder",
+        createdAt: new Date(),
+      },
+    ],
   ]),
   profiles: new Map<string, any>([
     [

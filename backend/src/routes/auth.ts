@@ -105,7 +105,7 @@ authRouter.post("/login", async (req: Request, res: Response) => {
   // Fallback for pre-seeded demo user if needed
   const isLegacyDemoMatch =
     !isMatch &&
-    matchedUser.email === "johndoe25@gmail.com" &&
+    (matchedUser.email === "johndoe25@gmail.com" || matchedUser.email === "daffa@gmail.com") &&
     password === "password123";
 
   if (!isMatch && !isLegacyDemoMatch) {

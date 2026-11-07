@@ -50,9 +50,9 @@ export const Input = React.forwardRef<TextInput, InputProps>(
     const isSecure = isPassword || secureTextEntry;
     const [isFocused, setIsFocused] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
-    const innerInputRef = useRef<TextInput>(null);
+    const innerInputRef = useRef<any>(null);
 
-    useImperativeHandle(ref, () => innerInputRef.current as TextInput);
+    useImperativeHandle(ref, () => innerInputRef.current);
 
     const hasError = !!error;
 

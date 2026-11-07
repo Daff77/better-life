@@ -2,6 +2,8 @@ import { create } from "zustand";
 import { DailyJournal, JournalCategory, JournalEntry, JournalEntrySchema } from "@/lib/schemas";
 import { journalStorage } from "@/lib/journalStorage";
 import { useOnboardingStore } from "@/stores/useOnboardingStore";
+import { sessionStorage } from "@/lib/sessionStorage";
+import { API_BASE_URL } from "@/lib/api/config";
 
 export function getTodayDateKey(): string {
   const d = new Date();
@@ -267,6 +269,34 @@ export const useJournalStore = create<JournalState>((set, get) => ({
     set({ journals });
     await journalStorage.saveDailyJournal(updatedDay);
 
+    // Sync to backend if token is available
+    try {
+      const session = await sessionStorage.getSession();
+      if (session?.token) {
+        await fetch(`${API_BASE_URL}/meals`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session.token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            type: newEntry.category,
+            name: newEntry.title,
+            calories: newEntry.calories,
+            proteinGrams: newEntry.proteinGrams,
+            carbsGrams: newEntry.carbsGrams,
+            fatGrams: newEntry.fatGrams,
+            fiberGrams: newEntry.fiberGrams,
+            quantity: newEntry.quantity,
+            dateKey: targetDate,
+            loggedAt: newEntry.loggedAt,
+          }),
+        });
+      }
+    } catch {
+      // Backend offline or unreachable
+    }
+
     return newEntry;
   },
 
@@ -292,6 +322,21 @@ export const useJournalStore = create<JournalState>((set, get) => ({
     journals[targetDate] = updatedDay;
     set({ journals });
     await journalStorage.saveDailyJournal(updatedDay);
+
+    try {
+      const session = await sessionStorage.getSession();
+      if (session?.token) {
+        await fetch(`${API_BASE_URL}/meals/${entryId}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${session.token}`,
+          },
+        });
+      }
+    } catch {
+      // Backend offline
+    }
+
     return true;
   },
 
@@ -361,6 +406,20 @@ export const useJournalStore = create<JournalState>((set, get) => ({
     journals[targetDate] = clearedDay;
     set({ journals });
     await journalStorage.saveDailyJournal(clearedDay);
+
+    try {
+      const session = await sessionStorage.getSession();
+      if (session?.token) {
+        await fetch(`${API_BASE_URL}/meals/reset`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session.token}`,
+          },
+        });
+      }
+    } catch {
+      // Backend offline
+    }
   },
 
   setTargetCalories: async (target: number, date?: string) => {

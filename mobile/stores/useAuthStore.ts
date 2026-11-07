@@ -92,10 +92,26 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       isAuthenticated: true,
     };
 
+    let token: string | undefined = undefined;
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: trimmedEmail, password: password || "password123" }),
+      });
+      if (res.ok) {
+        const authData = await res.json();
+        token = authData.token;
+      }
+    } catch {
+      // Backend offline or unreachable, proceed locally
+    }
+
     await sessionStorage.saveSession({
       user: sessionUser,
       isAuthenticated: true,
       onboardingCompleted: account.onboardingCompleted,
+      token,
     });
 
     set({
@@ -139,15 +155,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       isAuthenticated: true,
     };
 
-    await sessionStorage.saveSession({
-      user: sessionUser,
-      isAuthenticated: true,
-      onboardingCompleted: account.onboardingCompleted,
-    });
-
-    // Optional sync with backend API if active
+    let token: string | undefined = undefined;
     try {
-      await fetch(`${API_BASE_URL}/auth/google`, {
+      const res = await fetch(`${API_BASE_URL}/auth/google`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -156,9 +166,20 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           photoUrl: data.photoUrl,
         }),
       });
+      if (res.ok) {
+        const authData = await res.json();
+        token = authData.token;
+      }
     } catch {
       // Local session works seamlessly even without backend
     }
+
+    await sessionStorage.saveSession({
+      user: sessionUser,
+      isAuthenticated: true,
+      onboardingCompleted: account.onboardingCompleted,
+      token,
+    });
 
     set({
       user: sessionUser,
@@ -206,10 +227,31 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       isAuthenticated: true,
     };
 
+    let token: string | undefined = undefined;
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: data.name.trim(),
+          email: trimmedEmail,
+          phone: data.phone?.trim() || "+62 812-3456-7890",
+          password: data.password,
+        }),
+      });
+      if (res.ok) {
+        const resData = await res.json();
+        token = resData.token;
+      }
+    } catch {
+      // Backend offline
+    }
+
     await sessionStorage.saveSession({
       user: sessionUser,
       isAuthenticated: true,
       onboardingCompleted: false,
+      token,
     });
 
     set({

@@ -96,7 +96,23 @@ export const analyticsApi = {
   async computeLocalAnalytics(range: DateRangeOption): Promise<AdvancedAnalyticsResponse> {
     const daysCount = range === "30d" ? 30 : 7;
     const journals = await journalStorage.getJournals();
-    const targetCalories = 2000;
+    let targetCalories = 2000;
+    let targetProteinGrams = Math.round((2000 * 0.25) / 4);
+    let targetCarbsGrams = Math.round((2000 * 0.5) / 4);
+    let targetFatGrams = Math.round((2000 * 0.25) / 9);
+
+    try {
+      const { useOnboardingStore } = require("../../stores/useOnboardingStore");
+      const profile = useOnboardingStore.getState().personalization;
+      if (profile?.targetCalories && profile.targetCalories > 0) {
+        targetCalories = profile.targetCalories;
+      }
+      if (profile?.targetProteinGrams) targetProteinGrams = profile.targetProteinGrams;
+      if (profile?.targetCarbGrams) targetCarbsGrams = profile.targetCarbGrams;
+      if (profile?.targetFatGrams) targetFatGrams = profile.targetFatGrams;
+    } catch {
+      // safe fallback
+    }
 
     // Generate date sequence
     const dateKeys: string[] = [];
@@ -287,9 +303,9 @@ export const analyticsApi = {
           fiber: Math.round(totalFiber),
         },
         targetGrams: {
-          protein: Math.round((targetCalories * 0.25) / 4),
-          carbs: Math.round((targetCalories * 0.5) / 4),
-          fat: Math.round((targetCalories * 0.25) / 9),
+          protein: targetProteinGrams,
+          carbs: targetCarbsGrams,
+          fat: targetFatGrams,
         },
       },
       dailyTrends,

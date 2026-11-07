@@ -1,5 +1,6 @@
 import React from "react";
-import { View, ViewProps, StatusBar, Platform } from "react-native";
+import { View, Platform } from "react-native";
+import { StatusBar } from "expo-status-bar";
 import { SafeAreaView, SafeAreaViewProps } from "react-native-safe-area-context";
 
 interface ScreenWrapperProps extends SafeAreaViewProps {
@@ -38,11 +39,7 @@ export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
       edges={edges}
       {...props}
     >
-      <StatusBar
-        barStyle="dark-content"
-        backgroundColor="transparent"
-        translucent={Platform.OS === "android"}
-      />
+      <StatusBar style="dark" />
       <View
         className={`flex-1 w-full ${getMaxWidthClass()} self-center ${
           noPadding ? "px-0" : "px-4 sm:px-6 lg:px-8"

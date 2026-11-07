@@ -5,8 +5,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
 import { AppText, Button, Header, NutritionCard, MealLogModal } from "@/components/ui";
 import { MOCK_RECIPES } from "@/data/mockRecipes";
-import { IconRenderer } from "@/constants/Assets";
+import { IconRenderer, CrownIconSvg } from "@/constants/Assets";
 import { useRecipe } from "@/hooks/useRecipesQuery";
+import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
+import { Entitlement } from "@/lib/subscriptionDomain";
 
 export default function RecipeDetailScreen() {
   const router = useRouter();
@@ -14,11 +16,13 @@ export default function RecipeDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: queriedRecipe, isLoading } = useRecipe(id || "");
 
+  const hasEntitlement = useSubscriptionStore((state) => state.hasEntitlement);
   const [activeTab, setActiveTab] = useState<"instructions" | "ingredients">("instructions");
   const [isLogModalVisible, setIsLogModalVisible] = useState<boolean>(false);
 
   // Resolve recipe from query cache or mock recipes fallback
   const recipe = queriedRecipe || MOCK_RECIPES.find((r) => r.id === id) || (id ? null : MOCK_RECIPES[0]);
+  const isLocked = Boolean((recipe as any)?.isPremium && !hasEntitlement(Entitlement.PREMIUM_RECIPES));
 
   if (isLoading && !recipe) {
     return (
@@ -180,6 +184,29 @@ export default function RecipeDetailScreen() {
             {/* Tab Content: Instructions */}
             {activeTab === "instructions" && (
               <View className="gap-y-4 mb-6">
+                {isLocked && (
+                  <View className="p-4 rounded-2xl bg-[#fef8ea] border border-[#f5e3ba] flex-col gap-2.5">
+                    <View className="flex-row items-center gap-2">
+                      <CrownIconSvg size={18} color="#b45309" />
+                      <AppText weight="bold" className="text-sm text-[#78350f]">
+                        Koleksi Chef Eksklusif
+                      </AppText>
+                    </View>
+                    <AppText weight="medium" className="text-xs text-[#92400e] leading-relaxed">
+                      Resep ini dirancang khusus oleh chef nutrisi Better Life dengan panduan memasak presisi. Upgrade ke Premium untuk membuka instruksi lengkap dan timer interaktif.
+                    </AppText>
+                    <TouchableOpacity
+                      onPress={() => router.push("/(app)/upgrade")}
+                      className="self-start px-4 py-2 rounded-xl bg-[#b45309] active:bg-[#92400e] mt-1"
+                      accessibilityRole="button"
+                      accessibilityLabel="Upgrade ke Premium"
+                    >
+                      <AppText weight="bold" className="text-xs text-white">
+                        Upgrade ke Premium
+                      </AppText>
+                    </TouchableOpacity>
+                  </View>
+                )}
                 {recipe.instructions.map((step) => (
                   <View
                     key={step.step}
@@ -249,21 +276,18 @@ export default function RecipeDetailScreen() {
         </View>
       </ScrollView>
 
-      {/* Sticky Bottom Floating Log Dock for Mobile */}
+      {/* Sticky Bottom Floating Log Dock for Mobile with Apple Frosted Glass */}
       <View
-        className="lg:hidden px-5 pt-3 border-t border-[#eaeaea] bg-white"
-        style={[
+        className="lg:hidden px-5 pt-3 border-t border-[#e5ece7]"
+        style={
           {
             paddingBottom: Math.max(insets.bottom, 12),
-          },
-          Platform.OS === "web"
-            ? ({
-                backgroundColor: "rgba(255, 255, 255, 0.95)",
-                backdropFilter: "blur(16px)",
-                WebkitBackdropFilter: "blur(16px)",
-              } as any)
-            : undefined,
-        ]}
+            backgroundColor: Platform.OS === "web" ? "rgba(255, 255, 255, 0.88)" : "#ffffff",
+            backdropFilter: Platform.OS === "web" ? "blur(20px) saturate(180%)" : undefined,
+            WebkitBackdropFilter: Platform.OS === "web" ? "blur(20px) saturate(180%)" : undefined,
+            boxShadow: "0 -4px 20px rgba(20, 50, 25, 0.04)",
+          } as any
+        }
       >
         <View className="flex-row items-center justify-between gap-3 max-w-md mx-auto w-full">
           <View className="flex-1">
