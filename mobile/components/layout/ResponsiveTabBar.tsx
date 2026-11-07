@@ -77,7 +77,7 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({
           width: 230,
           zIndex: 50,
         }}
-        className="h-full bg-[#0d0d0f] border-r border-[#26262b] px-4 py-6 justify-between"
+        className="h-full bg-white border-r border-[#e5ece7] px-4 py-6 justify-between shadow-[2px_0_12px_rgba(20,50,25,0.02)]"
         accessibilityLabel="Desktop primary navigation sidebar"
       >
         {/* Top: Brand Logo & Navigation Links */}
@@ -95,14 +95,14 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({
             accessibilityRole="link"
             accessibilityLabel="Better Life Home"
           >
-            <View className="w-8 h-8 rounded-xl bg-[#241710] border border-[#ff6417]/30 items-center justify-center shadow-2xs">
-              <LeafIconSvg size={18} color="#ff6417" />
+            <View className="w-8 h-8 rounded-xl bg-[#eaf4ed] border border-[#d2e7d7] items-center justify-center shadow-2xs">
+              <LeafIconSvg size={18} color="#1b5e37" />
             </View>
             <View>
-              <AppText weight="black" className="text-base text-white tracking-tight leading-none">
+              <AppText weight="black" className="text-base text-[#14261c] tracking-tight leading-none">
                 Better Life
               </AppText>
-              <AppText weight="bold" className="text-[9px] text-[#ff6417] tracking-wider uppercase mt-1">
+              <AppText weight="bold" className="text-[9px] text-[#1b5e37] tracking-wider uppercase mt-1">
                 Nutrisi & Vitalitas
               </AppText>
             </View>
@@ -133,8 +133,8 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({
                     Platform.OS === "web" ? "cursor-pointer" : ""
                   } ${
                     isFocused
-                      ? "bg-[#241710] border border-[#ff6417]/30"
-                      : "hover:bg-[#1a1a1e]"
+                      ? "bg-[#eaf4ed] border border-[#d2e7d7]"
+                      : "hover:bg-[#f6f9f7]"
                   }`}
                   accessibilityRole="tab"
                   accessibilityState={{ selected: isFocused }}
@@ -144,12 +144,12 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({
                     name={displayLabel}
                     focused={isFocused}
                     size={19}
-                    color={isFocused ? "#ff6417" : "#8e8e93"}
+                    color={isFocused ? "#1b5e37" : "#7d8c82"}
                   />
                   <AppText
                     weight={isFocused ? "bold" : "medium"}
                     className={`text-sm ${
-                      isFocused ? "text-[#ff6417]" : "text-[#8e8e93]"
+                      isFocused ? "text-[#1b5e37]" : "text-[#5a625b]"
                     }`}
                   >
                     {displayLabel}
@@ -161,28 +161,28 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({
         </View>
 
         {/* Bottom: Upgrade Plan Promo Card */}
-        <View className="bg-[#141416] border border-[#26262b] rounded-2xl p-3.5 relative overflow-hidden">
+        <View className="bg-[#f7faf8] border border-[#e5ece7] rounded-2xl p-3.5 relative overflow-hidden">
           <View className="mb-2">
             <View className="flex-row items-center gap-1.5">
-              <CrownIconSvg size={14} color="#ff6417" />
-              <AppText weight="bold" className="text-xs text-white leading-snug">
+              <CrownIconSvg size={14} color="#b45309" />
+              <AppText weight="bold" className="text-xs text-[#14261c] leading-snug">
                 {isPremium ? "Premium Aktif" : "Better Life Plus"}
               </AppText>
             </View>
-            <AppText weight="medium" className="text-[11px] text-[#8e8e93] mt-0.5">
+            <AppText weight="medium" className="text-[11px] text-neutral-muted mt-0.5">
               {isPremium ? "Semua fitur terbuka" : "Meal plan & analitik 30D"}
             </AppText>
           </View>
 
           <TouchableOpacity
             onPress={() => router.push("/(app)/upgrade")}
-            className={`w-full py-2 px-3 rounded-xl bg-[#241710] border border-[#ff6417]/40 flex-row items-center justify-center gap-1.5 active:scale-95 transition-all ${
-              Platform.OS === "web" ? "cursor-pointer hover:bg-[#321c12]" : ""
+            className={`w-full py-2 px-3 rounded-xl bg-white border border-[#dce8e0] flex-row items-center justify-center gap-1.5 shadow-2xs active:scale-95 transition-all ${
+              Platform.OS === "web" ? "cursor-pointer hover:bg-[#fafcfa]" : ""
             }`}
             accessibilityRole="button"
             accessibilityLabel={isPremium ? "Kelola Langganan" : "Upgrade Member"}
           >
-            <AppText weight="bold" className="text-xs text-[#ff6417]">
+            <AppText weight="bold" className="text-xs text-[#1b5e37]">
               {isPremium ? "Kelola Status" : "Lihat Paket"}
             </AppText>
           </TouchableOpacity>
@@ -191,7 +191,7 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({
     );
   }
 
-  // 2. MOBILE BOTTOM NAVIGATION (Frosted Dark Glass Bar with Orange Accent)
+  // 2. MOBILE BOTTOM NAVIGATION (Apple Translucent Frosted Glass Bar)
   return (
     <View
       className="w-full z-50"
@@ -201,12 +201,12 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({
           bottom: 0,
           left: 0,
           right: 0,
-          backgroundColor: Platform.OS === "web" ? "rgba(13, 13, 15, 0.94)" : "#0d0d0f",
+          backgroundColor: Platform.OS === "web" ? "rgba(255, 255, 255, 0.88)" : "#ffffff",
           backdropFilter: Platform.OS === "web" ? "blur(20px) saturate(180%)" : undefined,
           WebkitBackdropFilter: Platform.OS === "web" ? "blur(20px) saturate(180%)" : undefined,
           borderTopWidth: 1,
-          borderTopColor: "rgba(38, 38, 43, 0.85)",
-          boxShadow: "0 -4px 20px rgba(0, 0, 0, 0.5)",
+          borderTopColor: "rgba(229, 236, 231, 0.85)",
+          boxShadow: "0 -4px 20px rgba(20, 50, 25, 0.03)",
           paddingBottom: Math.max(insets.bottom, 10),
           paddingTop: 8,
         } as any
@@ -237,9 +237,9 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({
               activeOpacity={0.75}
               className={`items-center justify-center py-1.5 px-3.5 rounded-2xl min-h-[46px] transition-all active:scale-[0.96] ${
                 isFocused
-                  ? "bg-[#241710] border border-[#ff6417]/30 shadow-2xs"
+                  ? "bg-[#eaf4ed] border border-[#d2e7d7]/80 shadow-2xs"
                   : Platform.OS === "web"
-                  ? "hover:bg-white/5"
+                  ? "hover:bg-neutral-100/50"
                   : ""
               }`}
               accessibilityRole="tab"
@@ -250,12 +250,12 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({
                 name={displayLabel}
                 focused={isFocused}
                 size={20}
-                color={isFocused ? "#ff6417" : "#71717a"}
+                color={isFocused ? "#1b5e37" : "#7d8c82"}
               />
               <AppText
                 weight={isFocused ? "bold" : "medium"}
                 className={`text-[11px] mt-0.5 tracking-tight ${
-                  isFocused ? "text-[#ff6417]" : "text-[#71717a]"
+                  isFocused ? "text-[#1b5e37]" : "text-neutral-muted"
                 }`}
               >
                 {displayLabel}

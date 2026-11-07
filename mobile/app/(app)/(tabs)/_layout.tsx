@@ -14,7 +14,7 @@ export default function TabsLayout() {
         headerShown: false,
         sceneStyle: {
           marginLeft: isDesktop ? 230 : 0,
-          backgroundColor: "#09090b",
+          backgroundColor: "#faf9f5",
         },
       }}
     >
