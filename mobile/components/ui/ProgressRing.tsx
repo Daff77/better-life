@@ -2,13 +2,14 @@ import React, { useEffect } from "react";
 import { View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 import Animated, {
+  Easing,
   useSharedValue,
   useAnimatedProps,
   withTiming,
 } from "react-native-reanimated";
 import { AppText } from "./AppText";
 import { Colors } from "@/constants/DesignTokens";
-import { AnimationTimings } from "@/constants/AnimationTokens";
+import { MotionCurves, MotionDurations } from "@/constants/AnimationTokens";
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -42,8 +43,11 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
   const animatedProgress = useSharedValue(0);
 
   useEffect(() => {
+    // Ease-out fill: the arc jumps toward the new value first, then settles,
+    // so logging a meal reads as immediate feedback.
     animatedProgress.value = withTiming(clampedProgress, {
-      duration: AnimationTimings.pageFast,
+      duration: MotionDurations.fill,
+      easing: Easing.bezier(...MotionCurves.out),
     });
   }, [clampedProgress]);
 

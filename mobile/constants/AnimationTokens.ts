@@ -87,6 +87,29 @@ export const AnimationScales = {
   modalEntry: 0.96,
 };
 
+/**
+ * Motion curves (Bezier control points) for Reanimated `Easing.bezier`.
+ * - out: strong ease-out for entrances and data fills (fast start reads as responsive).
+ * - inOut: on-screen movement between two resting states.
+ */
+export const MotionCurves = {
+  out: [0.23, 1, 0.32, 1] as const,
+  inOut: [0.77, 0, 0.175, 1] as const,
+};
+
+/**
+ * Durations for the redesign motion system (MOTION dial 2).
+ * - enter: section reveal on first mount, orients the eye top to bottom.
+ * - stagger: delay between sibling sections (kept short so nothing waits).
+ * - fill: progress ring and macro bars, long enough to read the change after logging.
+ */
+export const MotionDurations = {
+  press: 140,
+  enter: 320,
+  stagger: 45,
+  fill: 560,
+};
+
 export const AnimationDistances = {
   cardHoverY: -2,
   tabActiveY: -1,

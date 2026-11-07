@@ -1,15 +1,8 @@
 import React from "react";
-import {
-  View,
-  Image,
-  TouchableOpacity,
-  useWindowDimensions,
-  Platform,
-} from "react-native";
+import { View, Pressable, useWindowDimensions, Platform } from "react-native";
 import { useRouter } from "expo-router";
 import { AppText } from "@/components/ui/AppText";
 import { AnimatedTabIcon } from "@/components/ui/AnimatedTabIcon";
-import { useAuthStore } from "@/stores/useAuthStore";
 import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
 import { CrownIconSvg, LeafIconSvg } from "@/constants/Assets";
 
@@ -30,9 +23,19 @@ export interface ResponsiveTabBarProps {
   };
 }
 
+/** Route name to icon key and Indonesian label. Icons stay keyed in English. */
+const TAB_META: Record<string, { icon: string; label: string }> = {
+  index: { icon: "Home", label: "Beranda" },
+  meals: { icon: "Meals", label: "Makan" },
+  recipes: { icon: "Recipes", label: "Resep" },
+  profile: { icon: "Profile", label: "Profil" },
+};
+
+const ACTIVE = "#153e28";
+const IDLE = "#6b736c";
+
 export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({
   state,
-  descriptors,
   navigation,
   navigateToTab,
   insets,
@@ -40,32 +43,24 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({
   const router = useRouter();
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
-  const user = useAuthStore((state) => state.user);
-  const isPremium = useSubscriptionStore((state) => state.isPremium);
+  const isPremium = useSubscriptionStore((s) => s.isPremium);
 
   const handleTabPress = (routeKey: string, routeName: string, isFocused: boolean) => {
     let defaultPrevented = false;
     if (navigation?.emit) {
-      const event = navigation.emit({
-        type: "tabPress",
-        target: routeKey,
-        canPreventDefault: true,
-      });
+      const event = navigation.emit({ type: "tabPress", target: routeKey, canPreventDefault: true });
       defaultPrevented = !!event?.defaultPrevented;
     }
-
     if (!isFocused && !defaultPrevented) {
-      if (navigateToTab) {
-        navigateToTab(routeKey);
-      } else if (navigation?.navigate) {
-        navigation.navigate(routeName);
-      } else {
-        router.push(routeName === "index" ? "/(app)/(tabs)" : (`/(app)/(tabs)/${routeName}` as any));
-      }
+      if (navigateToTab) navigateToTab(routeKey);
+      else if (navigation?.navigate) navigation.navigate(routeName);
+      else router.push(routeName === "index" ? "/(app)/(tabs)" : (`/(app)/(tabs)/${routeName}` as any));
     }
   };
 
-  // 1. DESKTOP / TABLET LEFT SIDEBAR NAVIGATION
+  const meta = (name: string) => TAB_META[name] ?? { icon: name, label: name };
+
+  // Desktop / tablet: quiet left rail. Active row gets the sage tint, nothing else.
   if (isDesktop) {
     return (
       <View
@@ -77,190 +72,113 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({
           width: 230,
           zIndex: 50,
         }}
-        className="h-full bg-white border-r border-[#e5ece7] px-4 py-6 justify-between shadow-[2px_0_12px_rgba(20,50,25,0.02)]"
-        accessibilityLabel="Desktop primary navigation sidebar"
+        className="h-full bg-[#faf9f5] border-r border-[#ebe9e2] px-4 py-6 justify-between"
+        accessibilityLabel="Navigasi utama"
       >
-        {/* Top: Brand Logo & Navigation Links */}
         <View>
-          <TouchableOpacity
-            onPress={() => {
-              if (navigation?.navigate) {
-                navigation.navigate("index");
-              } else {
-                router.push("/(app)/(tabs)");
-              }
-            }}
-            activeOpacity={0.8}
-            className={`flex-row items-center gap-2.5 px-2 mb-8 ${Platform.OS === "web" ? "cursor-pointer" : ""}`}
-            accessibilityRole="link"
-            accessibilityLabel="Better Life Home"
-          >
-            <View className="w-8 h-8 rounded-xl bg-[#eaf4ed] border border-[#d2e7d7] items-center justify-center shadow-2xs">
-              <LeafIconSvg size={18} color="#1b5e37" />
+          <View className="flex-row items-center gap-2.5 px-2 mb-8">
+            <View className="w-8 h-8 rounded-lg bg-primary items-center justify-center">
+              <LeafIconSvg size={17} color="#ffffff" />
             </View>
-            <View>
-              <AppText weight="black" className="text-base text-[#14261c] tracking-tight leading-none">
-                Better Life
-              </AppText>
-              <AppText weight="bold" className="text-[9px] text-[#1b5e37] tracking-wider uppercase mt-1">
-                Nutrisi & Vitalitas
-              </AppText>
-            </View>
-          </TouchableOpacity>
+            <AppText weight="black" className="text-[17px] text-neutral-dark" style={{ letterSpacing: -0.3 }}>
+              Better Life
+            </AppText>
+          </View>
 
-          {/* Navigation Route Items */}
-          <View className="flex-col gap-1.5">
+          <View className="gap-1">
             {state.routes.map((route, index) => {
-              const { options } = descriptors[route.key] || {};
-              const label =
-                options?.tabBarLabel !== undefined
-                  ? typeof options.tabBarLabel === "function"
-                    ? route.name
-                    : options.tabBarLabel
-                  : options?.title !== undefined
-                  ? options.title
-                  : route.name;
-
               const isFocused = state.index === index;
-              const displayLabel =
-                label === "index" ? "Home" : typeof label === "string" ? label : route.name;
-
+              const m = meta(route.name);
               return (
-                <TouchableOpacity
+                <Pressable
                   key={route.key}
                   onPress={() => handleTabPress(route.key, route.name, isFocused)}
-                  className={`px-3.5 py-2.5 rounded-xl flex-row items-center gap-3 transition-colors ${
-                    Platform.OS === "web" ? "cursor-pointer" : ""
-                  } ${
-                    isFocused
-                      ? "bg-[#eaf4ed] border border-[#d2e7d7]"
-                      : "hover:bg-[#f6f9f7]"
-                  }`}
+                  className={`h-11 px-3 rounded-xl flex-row items-center gap-3 ${
+                    Platform.OS === "web" ? "cursor-pointer transition-colors duration-150" : ""
+                  } ${isFocused ? "bg-primary-light" : "hover:bg-[#f1f0ea]"}`}
                   accessibilityRole="tab"
                   accessibilityState={{ selected: isFocused }}
-                  accessibilityLabel={`Navigate to ${displayLabel}`}
+                  accessibilityLabel={m.label}
                 >
-                  <AnimatedTabIcon
-                    name={displayLabel}
-                    focused={isFocused}
-                    size={19}
-                    color={isFocused ? "#1b5e37" : "#7d8c82"}
-                  />
+                  <AnimatedTabIcon name={m.icon} focused={isFocused} size={19} color={isFocused ? ACTIVE : IDLE} />
                   <AppText
                     weight={isFocused ? "bold" : "medium"}
-                    className={`text-sm ${
-                      isFocused ? "text-[#1b5e37]" : "text-[#5a625b]"
-                    }`}
+                    className={`text-sm ${isFocused ? "text-primary" : "text-neutral-muted"}`}
                   >
-                    {displayLabel}
+                    {m.label}
                   </AppText>
-                </TouchableOpacity>
+                </Pressable>
               );
             })}
           </View>
         </View>
 
-        {/* Bottom: Upgrade Plan Promo Card */}
-        <View className="bg-[#f7faf8] border border-[#e5ece7] rounded-2xl p-3.5 relative overflow-hidden">
-          <View className="mb-2">
-            <View className="flex-row items-center gap-1.5">
-              <CrownIconSvg size={14} color="#b45309" />
-              <AppText weight="bold" className="text-xs text-[#14261c] leading-snug">
-                {isPremium ? "Premium Aktif" : "Better Life Plus"}
-              </AppText>
-            </View>
-            <AppText weight="medium" className="text-[11px] text-neutral-muted mt-0.5">
-              {isPremium ? "Semua fitur terbuka" : "Meal plan & analitik 30D"}
+        <Pressable
+          onPress={() => router.push("/(app)/upgrade")}
+          className={`rounded-2xl border border-[#ebe9e2] bg-white p-3.5 ${
+            Platform.OS === "web" ? "cursor-pointer hover:border-[#d6e0d9] transition-colors duration-150" : ""
+          }`}
+          accessibilityRole="button"
+          accessibilityLabel={isPremium ? "Kelola langganan" : "Lihat paket Premium"}
+        >
+          <View className="flex-row items-center gap-1.5">
+            <CrownIconSvg size={14} color="#b45309" />
+            <AppText weight="bold" className="text-[13px] text-neutral-dark">
+              {isPremium ? "Premium aktif" : "Better Life Premium"}
             </AppText>
           </View>
-
-          <TouchableOpacity
-            onPress={() => router.push("/(app)/upgrade")}
-            className={`w-full py-2 px-3 rounded-xl bg-white border border-[#dce8e0] flex-row items-center justify-center gap-1.5 shadow-2xs active:scale-95 transition-all ${
-              Platform.OS === "web" ? "cursor-pointer hover:bg-[#fafcfa]" : ""
-            }`}
-            accessibilityRole="button"
-            accessibilityLabel={isPremium ? "Kelola Langganan" : "Upgrade Member"}
-          >
-            <AppText weight="bold" className="text-xs text-[#1b5e37]">
-              {isPremium ? "Kelola Status" : "Lihat Paket"}
-            </AppText>
-          </TouchableOpacity>
-        </View>
+          <AppText weight="medium" className="text-xs text-neutral-muted mt-1">
+            {isPremium ? "Kelola langganan" : "Rencana makan dan tren 30 hari"}
+          </AppText>
+        </Pressable>
       </View>
     );
   }
 
-  // 2. MOBILE BOTTOM NAVIGATION (Apple Translucent Frosted Glass Bar)
+  // Mobile: solid bar. Food photos scrolling behind glass would hurt label legibility.
   return (
     <View
-      className="w-full z-50"
+      className="w-full z-50 bg-white border-t border-[#ebe9e2]"
       style={
         {
           position: Platform.OS === "web" ? ("fixed" as any) : undefined,
           bottom: 0,
           left: 0,
           right: 0,
-          backgroundColor: Platform.OS === "web" ? "rgba(255, 255, 255, 0.88)" : "#ffffff",
-          backdropFilter: Platform.OS === "web" ? "blur(20px) saturate(180%)" : undefined,
-          WebkitBackdropFilter: Platform.OS === "web" ? "blur(20px) saturate(180%)" : undefined,
-          borderTopWidth: 1,
-          borderTopColor: "rgba(229, 236, 231, 0.85)",
-          boxShadow: "0 -4px 20px rgba(20, 50, 25, 0.03)",
-          paddingBottom: Math.max(insets.bottom, 10),
-          paddingTop: 8,
+          paddingBottom: Math.max(insets.bottom, 8),
+          paddingTop: 6,
         } as any
       }
       accessibilityRole="tablist"
-      accessibilityLabel="Mobile bottom navigation"
+      accessibilityLabel="Navigasi utama"
     >
-      <View className="flex-row items-center justify-around max-w-[480px] mx-auto w-full px-3">
+      <View className="flex-row items-center justify-around max-w-[480px] mx-auto w-full px-2">
         {state.routes.map((route, index) => {
-          const { options } = descriptors[route.key] || {};
-          const label =
-            options?.tabBarLabel !== undefined
-              ? typeof options.tabBarLabel === "function"
-                ? route.name
-                : options.tabBarLabel
-              : options?.title !== undefined
-              ? options.title
-              : route.name;
-
           const isFocused = state.index === index;
-          const displayLabel =
-            label === "index" ? "Home" : typeof label === "string" ? label : route.name;
-
+          const m = meta(route.name);
           return (
-            <TouchableOpacity
+            <Pressable
               key={route.key}
               onPress={() => handleTabPress(route.key, route.name, isFocused)}
-              activeOpacity={0.75}
-              className={`items-center justify-center py-1.5 px-3.5 rounded-2xl min-h-[46px] transition-all active:scale-[0.96] ${
-                isFocused
-                  ? "bg-[#eaf4ed] border border-[#d2e7d7]/80 shadow-2xs"
-                  : Platform.OS === "web"
-                  ? "hover:bg-neutral-100/50"
-                  : ""
-              }`}
+              className="flex-1 items-center justify-center min-h-[52px]"
               accessibilityRole="tab"
               accessibilityState={{ selected: isFocused }}
-              accessibilityLabel={`Navigasi ke ${displayLabel}`}
+              accessibilityLabel={m.label}
             >
-              <AnimatedTabIcon
-                name={displayLabel}
-                focused={isFocused}
-                size={20}
-                color={isFocused ? "#1b5e37" : "#7d8c82"}
-              />
-              <AppText
-                weight={isFocused ? "bold" : "medium"}
-                className={`text-[11px] mt-0.5 tracking-tight ${
-                  isFocused ? "text-[#1b5e37]" : "text-neutral-muted"
+              <View
+                className={`w-14 h-8 rounded-full items-center justify-center ${
+                  isFocused ? "bg-primary-light" : ""
                 }`}
               >
-                {displayLabel}
+                <AnimatedTabIcon name={m.icon} focused={isFocused} size={20} color={isFocused ? ACTIVE : IDLE} />
+              </View>
+              <AppText
+                weight={isFocused ? "bold" : "medium"}
+                className={`text-[11px] mt-0.5 ${isFocused ? "text-primary" : "text-neutral-muted"}`}
+              >
+                {m.label}
               </AppText>
-            </TouchableOpacity>
+            </Pressable>
           );
         })}
       </View>

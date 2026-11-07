@@ -8,6 +8,13 @@ export interface BadgeProps extends ViewProps {
   size?: "sm" | "md";
 }
 
+/**
+ * Status label. Use only for a real state (Premium, Aktif), never as decoration.
+ * - primary: forest fill, for an active state.
+ * - secondary: sage tint, for neutral metadata.
+ * - accent: amber tint, reserved for premium / attention.
+ * - outline: hairline forest border.
+ */
 export const Badge: React.FC<BadgeProps> = ({
   label,
   variant = "primary",
@@ -15,41 +22,28 @@ export const Badge: React.FC<BadgeProps> = ({
   className,
   ...props
 }) => {
-  const getVariantStyles = () => {
-    switch (variant) {
-      case "primary":
-        return "bg-primary text-white";
-      case "secondary":
-        return "bg-secondary text-accent-teal";
-      case "accent":
-        return "bg-accent-teal text-white";
-      case "outline":
-        return "border border-primary bg-transparent text-primary";
-    }
-  };
+  const container = {
+    primary: "bg-primary",
+    secondary: "bg-primary-light",
+    accent: "bg-[#fdf3e3]",
+    outline: "border border-[#cfdcd3] bg-transparent",
+  }[variant];
 
-  const getSizeStyles = () => {
-    return size === "sm" ? "px-2 py-0.5" : "px-3 py-1";
-  };
-
-  const getTextColor = () => {
-    switch (variant) {
-      case "primary":
-      case "accent":
-        return "text-white";
-      case "secondary":
-        return "text-accent-teal";
-      case "outline":
-        return "text-primary";
-    }
-  };
+  const text = {
+    primary: "text-white",
+    secondary: "text-primary",
+    accent: "text-[#8a4106]",
+    outline: "text-primary",
+  }[variant];
 
   return (
     <View
-      className={`rounded-full self-start items-center justify-center ${getSizeStyles()} ${getVariantStyles()} ${className || ""}`}
+      className={`rounded-md self-start items-center justify-center ${
+        size === "sm" ? "px-1.5 py-0.5" : "px-2 py-0.5"
+      } ${container} ${className || ""}`}
       {...props}
     >
-      <AppText weight="bold" className={`text-xs ${getTextColor()}`}>
+      <AppText weight="bold" className={`${size === "sm" ? "text-[10px]" : "text-[11px]"} ${text}`}>
         {label}
       </AppText>
     </View>

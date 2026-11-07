@@ -1,10 +1,11 @@
 import { ActivityStats, ActivityStatsSchema } from "@/lib/schemas";
 
 let mockActivityDatabase: ActivityStats = {
-  steps: 3420,
+  // Starts empty: no step tracker is connected yet, so no number is invented.
+  steps: 0,
   stepGoal: 6000,
-  exerciseCalories: 240,
-  exerciseDurationMinutes: 35,
+  exerciseCalories: 0,
+  exerciseDurationMinutes: 0,
 };
 
 export const activityApi = {

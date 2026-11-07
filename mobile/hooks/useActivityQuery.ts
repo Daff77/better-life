@@ -8,12 +8,6 @@ export function useActivityStats() {
   return useQuery({
     queryKey: ACTIVITY_QUERY_KEY,
     queryFn: () => activityApi.getActivityStats(),
-    initialData: {
-      steps: 3420,
-      stepGoal: 6000,
-      exerciseCalories: 240,
-      exerciseDurationMinutes: 35,
-    },
   });
 }
 

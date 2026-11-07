@@ -1,26 +1,26 @@
 import React, { useState, useMemo } from "react";
-import {
-  View,
-  ScrollView,
-  TouchableOpacity,
-  Platform,
-  Pressable,
-  TextInput,
-  Alert,
-} from "react-native";
+import { View, ScrollView, Platform, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
-import { AppText, RecipeCard } from "@/components/ui";
+import {
+  AppText,
+  RecipeCard,
+  PressableScale,
+  FadeInView,
+  FilterChip,
+  SearchField,
+} from "@/components/ui";
 import { useRecipes } from "@/hooks/useRecipesQuery";
 import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
 import { Entitlement } from "@/lib/subscriptionDomain";
-import { IconRenderer, CloseIconSvg } from "@/constants/Assets";
+import { IconRenderer } from "@/constants/Assets";
+import { mealLabel } from "@/constants/MealLabels";
 
 const CATEGORIES = ["Semua", "Breakfast", "Lunch", "Dinner", "Snack", "Drink"] as const;
 
 export default function RecipesScreen() {
   const router = useRouter();
-  const { data: recipes = [] } = useRecipes();
+  const { data: recipes = [], isLoading, isError, refetch } = useRecipes();
   const hasEntitlement = useSubscriptionStore((state) => state.hasEntitlement);
   const [selectedCategory, setSelectedCategory] = useState<string>("Semua");
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -33,167 +33,126 @@ export default function RecipesScreen() {
       const matchSearch =
         !q ||
         r.title.toLowerCase().includes(q) ||
+        mealLabel(r.category).toLowerCase().includes(q) ||
         r.category.toLowerCase().includes(q);
       return matchCat && matchSearch;
     });
   }, [recipes, selectedCategory, searchQuery]);
 
+  const resetFilters = () => {
+    setSearchQuery("");
+    setSelectedCategory("Semua");
+  };
+
   return (
-    <ScreenWrapper maxWidth="full" noPadding className="flex-1 bg-[#f7faf7]">
-      {/* Header: Apple Translucent Frosted Glass Header */}
-      <View
-        className="w-full border-b border-[#e5ece7] px-4 sm:px-6 lg:px-8 pt-4 pb-4 z-20"
-        style={
-          Platform.OS === "web"
-            ? ({
-                backgroundColor: "rgba(255, 255, 255, 0.88)",
-                backdropFilter: "blur(20px) saturate(180%)",
-                WebkitBackdropFilter: "blur(20px) saturate(180%)",
-                position: "sticky",
-                top: 0,
-              } as any)
-            : { backgroundColor: "#ffffff" }
-        }
-      >
-        <View className="max-w-[1280px] mx-auto w-full">
-          <View className="flex-row items-center justify-between">
-            <View>
-              <AppText weight="black" className="text-xl sm:text-2xl text-[#14261c] tracking-tight">
-                Resep Sehat Terkurasi
-              </AppText>
-              <AppText weight="medium" className="text-xs text-neutral-muted mt-0.5 leading-relaxed">
-                Ide kuliner bergizi dan seimbang kalori untuk menemani perjalanan hidup sehat Anda.
-              </AppText>
-            </View>
-            <View className="hidden sm:flex px-3 py-1 rounded-full bg-[#eaf4ed] border border-[#d2e7d7]">
-              <AppText weight="bold" className="text-xs text-[#1b5e37]">
-                {recipes.length} Resep Teruji
-              </AppText>
-            </View>
-          </View>
-
-          {/* Search Input */}
-          <View className="flex-row items-center bg-white border border-[#e2eae4] rounded-2xl px-4 py-1.5 min-h-[46px] mt-3.5 shadow-2xs">
-            <View className="mr-2.5">
-              <IconRenderer name="Search" size={16} color="#607065" />
-            </View>
-            <TextInput
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              placeholder="Cari resep sehat (misal: Salad, Sup, Salmon, Ayam, Oatmeal)..."
-              placeholderTextColor="#8a9a8f"
-              className="flex-1 text-sm text-[#14261c] font-medium"
-              style={{
-                fontFamily: "Akatab-Medium",
-                includeFontPadding: false,
-                ...(Platform.OS === "web" ? ({ outlineStyle: "none" } as any) : {}),
-              }}
-              accessibilityLabel="Cari resep"
-              returnKeyType="search"
-            />
-            {Boolean(searchQuery) && (
-              <TouchableOpacity
-                onPress={() => setSearchQuery("")}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                className="w-6 h-6 rounded-full bg-[#ebf0ec] items-center justify-center ml-1"
-                accessibilityRole="button"
-                accessibilityLabel="Hapus pencarian resep"
-              >
-                <CloseIconSvg size={12} color="#5a625b" />
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
-      </View>
-
+    <ScreenWrapper maxWidth="wide" className="flex-1 bg-[#faf9f5]">
       <ScrollView
-        className="flex-1 bg-[#f7faf7]"
-        contentContainerStyle={{ paddingBottom: Platform.OS === "web" ? 56 : 112 }}
+        className="flex-1"
+        contentContainerStyle={{ paddingTop: 16, paddingBottom: Platform.OS === "web" ? 64 : 110 }}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
-        {/* Category Horizontal Filter Chips */}
-        <View className="max-w-[1280px] mx-auto w-full px-4 sm:px-6 lg:px-8 pt-4 pb-2">
+        <FadeInView index={0} className="flex-row items-end justify-between mb-4">
+          <View className="flex-1 min-w-0 mr-3">
+            <AppText weight="black" className="text-[26px] text-neutral-dark" style={{ letterSpacing: -0.6 }}>
+              Resep sehat
+            </AppText>
+            <AppText weight="medium" className="text-[13px] text-neutral-muted mt-0.5">
+              Takaran bahan jelas dan kalori terhitung per porsi
+            </AppText>
+          </View>
+          {!isLoading && (
+            <AppText weight="bold" className="text-xs text-primary" style={{ fontVariant: ["tabular-nums"] }}>
+              {recipes.length} resep
+            </AppText>
+          )}
+        </FadeInView>
+
+        <FadeInView index={1}>
+          <SearchField
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholder="Cari resep, misal salad, sup, atau salmon"
+            accessibilityLabel="Cari resep sehat"
+          />
+        </FadeInView>
+
+        <FadeInView index={2} className="mt-3 -mx-4 sm:mx-0">
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ gap: 8, alignItems: "center" }}
-            className="flex-row"
+            contentContainerStyle={{ gap: 8, paddingHorizontal: 16, alignItems: "center" }}
           >
-            {CATEGORIES.map((cat) => {
-              const isSelected = selectedCategory === cat;
-              return (
-                <Pressable
-                  key={cat}
-                  onPress={() => setSelectedCategory(cat)}
-                  className={`min-h-[38px] px-4 py-1.5 rounded-full flex-row items-center justify-center transition-all duration-150 active:scale-[0.97] ${
-                    isSelected
-                      ? "bg-[#1b5e37] shadow-xs"
-                      : "bg-white border border-[#e5ece7] active:bg-[#f2f7f4]"
-                  } ${Platform.OS === "web" ? "cursor-pointer" : ""}`}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: isSelected }}
-                  accessibilityLabel={`Filter ${cat}`}
-                >
-                  <AppText
-                    weight={isSelected ? "bold" : "medium"}
-                    className={`text-xs ${
-                      isSelected ? "text-white" : "text-[#14261c]"
-                    }`}
-                  >
-                    {cat}
-                  </AppText>
-                </Pressable>
-              );
-            })}
+            {CATEGORIES.map((cat) => (
+              <FilterChip
+                key={cat}
+                label={mealLabel(cat)}
+                selected={selectedCategory === cat}
+                onPress={() => setSelectedCategory(cat)}
+              />
+            ))}
           </ScrollView>
-        </View>
+        </FadeInView>
 
-        {/* Recipe Cards Responsive Grid */}
-        <View className="max-w-[1280px] mx-auto w-full px-4 sm:px-6 lg:px-8 pt-2">
-          {filteredRecipes.length === 0 ? (
-            <View className="w-full py-12 px-6 items-center justify-center bg-white rounded-[24px] border border-[#e5ece7] my-4 shadow-xs">
-              <View className="w-12 h-12 rounded-xl bg-[#eaf4ed] items-center justify-center mb-3">
-                <IconRenderer name="Cook" size={24} color="#1b5e37" />
+        <View className="mt-5">
+          {isLoading ? (
+            <AppText weight="medium" className="text-sm text-neutral-muted py-10 text-center">
+              Memuat koleksi resep...
+            </AppText>
+          ) : isError ? (
+            <View className="items-center py-10">
+              <AppText weight="bold" className="text-base text-neutral-dark">
+                Resep belum bisa dimuat
+              </AppText>
+              <AppText weight="medium" className="text-[13px] text-neutral-muted mt-1 mb-4 text-center">
+                Periksa koneksi Anda, lalu coba muat ulang.
+              </AppText>
+              <PressableScale onPress={() => refetch()} className="h-11 px-5 rounded-full bg-primary justify-center">
+                <AppText weight="bold" className="text-sm text-white">
+                  Muat ulang
+                </AppText>
+              </PressableScale>
+            </View>
+          ) : filteredRecipes.length === 0 ? (
+            <View className="items-center py-10 px-6">
+              <View className="w-12 h-12 rounded-2xl bg-primary-light items-center justify-center mb-3">
+                <IconRenderer name="Cook" size={22} color="#153e28" />
               </View>
-              <AppText weight="bold" className="text-base text-[#14261c] mb-1 text-center">
+              <AppText weight="bold" className="text-base text-neutral-dark text-center">
                 Resep tidak ditemukan
               </AppText>
-              <AppText weight="medium" className="text-xs text-neutral-muted text-center max-w-xs mb-4 leading-relaxed">
+              <AppText weight="medium" className="text-[13px] text-neutral-muted text-center max-w-xs mt-1 mb-4">
                 {searchQuery
-                  ? `Tidak ada resep yang cocok dengan "${searchQuery}". Coba kata kunci lain atau reset filter.`
-                  : `Belum ada resep dalam kategori "${selectedCategory}". Pilih kategori lain.`}
+                  ? `Tidak ada resep untuk "${searchQuery}". Coba kata kunci lain atau hapus filter.`
+                  : `Belum ada resep pada kategori "${mealLabel(selectedCategory)}".`}
               </AppText>
-              <TouchableOpacity
-                onPress={() => {
-                  setSearchQuery("");
-                  setSelectedCategory("Semua");
-                }}
-                className="px-5 py-2.5 rounded-xl bg-[#1b5e37] active:bg-[#154a2b] transition-colors min-h-[40px] items-center justify-center"
-                accessibilityRole="button"
-                accessibilityLabel="Tampilkan semua resep"
+              <PressableScale
+                onPress={resetFilters}
+                className="h-11 px-5 rounded-full border border-[#dfe6e0] justify-center"
               >
-                <AppText weight="bold" className="text-xs text-white">
-                  Lihat Semua Resep
+                <AppText weight="bold" className="text-sm text-primary">
+                  Tampilkan semua resep
                 </AppText>
-              </TouchableOpacity>
+              </PressableScale>
             </View>
           ) : (
             <View className="flex-row flex-wrap -mx-2">
-              {filteredRecipes.map((recipe) => {
+              {filteredRecipes.map((recipe, i) => {
                 const isPremiumRecipe = Boolean((recipe as any).isPremium);
                 const isLocked = isPremiumRecipe && !hasEntitlement(Entitlement.PREMIUM_RECIPES);
 
                 const handlePress = () => {
                   if (isLocked) {
+                    if (Platform.OS === "web") {
+                      router.push("/(app)/upgrade");
+                      return;
+                    }
                     Alert.alert(
-                      "Koleksi Chef Premium",
-                      `"${recipe.title}" adalah resep eksklusif terkalibrasi nutrisi klinis dengan panduan memasak presisi.\n\nUpgrade ke Better Life Premium untuk membuka semua koleksi chef.`,
+                      "Koleksi Resep Premium",
+                      `"${recipe.title}" termasuk koleksi resep terkalibrasi nutrisi dengan takaran lengkap.\n\nAktifkan Better Life Premium untuk membuka semua resep.`,
                       [
                         { text: "Nanti", style: "cancel" },
-                        {
-                          text: "Upgrade Paket",
-                          onPress: () => router.push("/(app)/upgrade"),
-                        },
+                        { text: "Lihat Paket", onPress: () => router.push("/(app)/upgrade") },
                       ]
                     );
                     return;
@@ -206,8 +165,9 @@ export default function RecipesScreen() {
                 };
 
                 return (
-                  <View
+                  <FadeInView
                     key={recipe.id}
+                    index={Math.min(i, 8)}
                     className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 px-2 mb-4"
                   >
                     <RecipeCard
@@ -222,7 +182,7 @@ export default function RecipesScreen() {
                       isLocked={isLocked}
                       onPress={handlePress}
                     />
-                  </View>
+                  </FadeInView>
                 );
               })}
             </View>

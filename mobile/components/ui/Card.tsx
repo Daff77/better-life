@@ -76,7 +76,7 @@ export const Card: React.FC<CardProps> = ({
       onPressOut={handlePressOut}
       className={`${baseSurfaceClass} rounded-2xl p-4.5 ${
         Platform.OS === "web"
-          ? "transition-shadow duration-150 hover:shadow-md cursor-pointer select-none"
+          ? "transition-colors duration-150 hover:border-[#d6e0d9] cursor-pointer select-none"
           : ""
       } ${className || ""}`}
       style={[animatedStyle, resolvedStyle]}

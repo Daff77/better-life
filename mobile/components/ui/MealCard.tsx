@@ -3,19 +3,12 @@ import {
   View,
   Image,
   ImageSourcePropType,
-  Pressable,
   ActivityIndicator,
-  Platform,
 } from "react-native";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-} from "react-native-reanimated";
 import { AppText } from "./AppText";
-import { Badge } from "./Badge";
-import { AnimationEasings, AnimationScales } from "@/constants/AnimationTokens";
-import { IconRenderer } from "@/constants/Assets";
+import { PressableScale } from "./PressableScale";
+import { IconRenderer, PlusIconSvg } from "@/constants/Assets";
+import { mealLabel } from "@/constants/MealLabels";
 
 export interface MealCardProps {
   title?: string;
@@ -31,9 +24,15 @@ export interface MealCardProps {
   onPress?: () => void;
   isLogging?: boolean;
   showLogButton?: boolean;
+  /** "stack": image on top (grids, carousels). "row": thumbnail left (phone lists). */
+  layout?: "stack" | "row";
   className?: string;
 }
 
+/**
+ * Meal tile. One surface, one image, three facts (name, kcal, price) and one action.
+ * Category and prep time move into the meta line so the photo stays clean.
+ */
 export const MealCard: React.FC<MealCardProps> = ({
   title,
   mealType,
@@ -48,153 +47,121 @@ export const MealCard: React.FC<MealCardProps> = ({
   onPress,
   isLogging = false,
   showLogButton = false,
+  layout = "stack",
   className,
 }) => {
   const displayTitle = title || mealType;
-  const cardScale = useSharedValue(1);
-
-  const cardAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: cardScale.value }],
-  }));
-
-  const handlePressIn = () => {
-    if (!onPress) return;
-    cardScale.value = withSpring(AnimationScales.pressCard, AnimationEasings.pressSpringConfig);
-  };
-
-  const handlePressOut = () => {
-    if (!onPress) return;
-    cardScale.value = withSpring(1, AnimationEasings.pressSpringConfig);
-  };
-
   const effectiveImageSource = imageSource || (imageUrl ? { uri: imageUrl } : null);
 
-  return (
-    <Animated.View
-      style={cardAnimatedStyle}
-      className={`w-full bg-white rounded-2xl overflow-hidden border border-[#eae8e1] shadow-[0_1px_3px_rgba(0,0,0,0.03)] transition-shadow duration-200 hover:-translate-y-0.5 hover:border-[#dcdfd9] flex-col justify-between ${
-        className || ""
-      }`}
+  const meta = [
+    mealLabel(mealType),
+    prepTimeMinutes ? `${prepTimeMinutes} mnt` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
+  const artwork = effectiveImageSource ? (
+    <Image source={effectiveImageSource} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
+  ) : svgElement ? (
+    <View className="w-full h-full items-center justify-center">{svgElement}</View>
+  ) : (
+    <View className="w-full h-full items-center justify-center">
+      <IconRenderer name="Cook" size={26} color="#153e28" />
+    </View>
+  );
+
+  const logButton = showLogButton ? (
+    <PressableScale
+      onPress={onLogMeal}
+      disabled={isLogging}
+      hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+      className="w-9 h-9 rounded-full bg-primary items-center justify-center"
+      accessibilityRole="button"
+      accessibilityLabel={`Catat ${displayTitle} ke jurnal`}
     >
-      {/* Clickable Food Art & Details */}
-      <Pressable
-        onPress={onPress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        className={`w-full ${Platform.OS === "web" ? "cursor-pointer" : ""}`}
-        accessibilityRole="button"
-        accessibilityLabel={`${displayTitle}, ${calories} calories`}
+      {isLogging ? (
+        <ActivityIndicator size="small" color="#ffffff" />
+      ) : (
+        <PlusIconSvg size={16} color="#ffffff" strokeWidth={2.4} />
+      )}
+    </PressableScale>
+  ) : null;
+
+  const priceAndKcal = (
+    <View className="flex-row items-baseline flex-wrap">
+      <AppText weight="bold" className="text-[13px] text-neutral-dark" style={{ fontVariant: ["tabular-nums"] }}>
+        {calories} kcal
+      </AppText>
+      {estimatedCostIdr !== undefined && (
+        <AppText
+          weight="medium"
+          numberOfLines={1}
+          className="text-xs text-neutral-muted ml-1.5"
+          style={{ fontVariant: ["tabular-nums"] }}
+        >
+          Rp {estimatedCostIdr.toLocaleString("id-ID")}
+        </AppText>
+      )}
+    </View>
+  );
+
+  if (layout === "row") {
+    return (
+      <View
+        className={`w-full flex-row items-center bg-white rounded-2xl border border-[#ebe9e2] p-2.5 ${className || ""}`}
       >
-        <View pointerEvents="none">
-          {/* Top Food Image Header */}
-          <View className="h-[148px] w-full bg-[#f4f3ed] items-center justify-center relative overflow-hidden">
-            {effectiveImageSource ? (
-              <Image
-                source={effectiveImageSource}
-                style={{ width: "100%", height: "100%" }}
-                resizeMode="cover"
-              />
-            ) : (
-              <View className="w-full h-full items-center justify-center py-2">
-                {svgElement ? (
-                  <View className="w-full h-full items-center justify-center">
-                    {svgElement}
-                  </View>
-                ) : (
-                  <View className="w-12 h-12 rounded-xl bg-secondary-soft items-center justify-center">
-                    <IconRenderer name="Cook" size={24} color="#153e28" />
-                  </View>
-                )}
-              </View>
-            )}
-
-            {/* Category Pill Tag (Restrained soft white badge) */}
-            <View className="absolute top-2.5 left-2.5 bg-white/95 px-2.5 py-0.5 rounded-full border border-black/5 shadow-2xs">
-              <AppText weight="bold" className="text-[10px] text-neutral-dark">
-                {mealType}
-              </AppText>
-            </View>
-
-            {/* Prep Time Tag */}
-            {Boolean(prepTimeMinutes) && (
-              <View className="absolute top-2.5 right-2.5 bg-white/95 px-2 py-0.5 rounded-full border border-black/5 flex-row items-center gap-1 shadow-2xs">
-                <IconRenderer name="Clock" size={10} color="#b45309" />
-                <AppText weight="bold" className="text-[10px] text-neutral-dark" style={{ fontVariant: ["tabular-nums"] }}>
-                  {prepTimeMinutes}m
-                </AppText>
-              </View>
-            )}
+        <PressableScale
+          onPress={onPress}
+          pressedScale={0.985}
+          className="flex-1 flex-row items-center min-w-0"
+          accessibilityRole="button"
+          accessibilityLabel={`${displayTitle}, ${calories} kalori`}
+        >
+          <View className="w-[72px] h-[72px] rounded-xl overflow-hidden bg-[#f2f1ec] border border-black/[0.05]">
+            {artwork}
           </View>
-
-          {/* Card Text Info */}
-          <View className="p-3.5 pb-2">
-            {/* Title */}
-            <AppText
-              weight="bold"
-              numberOfLines={1}
-              className="text-sm sm:text-[15px] text-neutral-dark leading-snug"
-            >
+          <View className="flex-1 min-w-0 ml-3 mr-2">
+            <AppText weight="medium" numberOfLines={1} className="text-[11px] text-neutral-muted">
+              {meta}
+            </AppText>
+            <AppText weight="bold" numberOfLines={2} className="text-[15px] text-neutral-dark leading-snug mt-0.5">
               {displayTitle}
             </AppText>
-
-            {/* Description (2 lines, predictable height) */}
-            <AppText
-              weight="medium"
-              numberOfLines={2}
-              className="text-xs text-neutral-muted leading-relaxed mt-1 min-h-[34px]"
-            >
-              {description}
-            </AppText>
+            <View className="mt-1">{priceAndKcal}</View>
           </View>
-        </View>
-      </Pressable>
-
-      {/* Pinned Bottom Action & Metadata Strip */}
-      <View className="px-3.5 pb-3 pt-2.5 border-t border-[#f4f2ec] flex-row items-center justify-between mt-auto">
-        {/* Calories & Estimated Cost */}
-        <View className="flex-row items-baseline gap-1.5 flex-1 mr-2 min-w-0 flex-wrap">
-          <AppText
-            weight="black"
-            className="text-xs sm:text-[13px] text-primary"
-            style={{ fontVariant: ["tabular-nums"] }}
-          >
-            {calories} kcal
-          </AppText>
-          {estimatedCostIdr !== undefined && (
-            <AppText
-              weight="medium"
-              numberOfLines={1}
-              className="text-[11px] text-neutral-muted"
-              style={{ fontVariant: ["tabular-nums"] }}
-            >
-              · Rp {estimatedCostIdr.toLocaleString("id-ID")}
-            </AppText>
-          )}
-        </View>
-
-        {/* Quick Log Button with Ergonomic 44pt Touch Target */}
-        {showLogButton && (
-          <Pressable
-            onPress={onLogMeal}
-            disabled={isLogging}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            className={`min-h-[32px] px-3 py-1.5 rounded-lg bg-primary active:bg-primary-dark flex-row items-center justify-center transition-all duration-150 ${
-              isLogging ? "opacity-75" : ""
-            } ${Platform.OS === "web" ? "cursor-pointer hover:bg-primary-dark" : ""}`}
-            accessibilityRole="button"
-            accessibilityLabel={`Log ${displayTitle} to journal`}
-          >
-            {isLogging ? (
-              <ActivityIndicator size="small" color="#ffffff" />
-            ) : (
-              <AppText weight="bold" className="text-white text-xs">
-                + Log
-              </AppText>
-            )}
-          </Pressable>
-        )}
+        </PressableScale>
+        {logButton}
       </View>
-    </Animated.View>
+    );
+  }
+
+  return (
+    <View
+      className={`w-full bg-white rounded-2xl overflow-hidden border border-[#ebe9e2] ${className || ""}`}
+    >
+      <PressableScale
+        onPress={onPress}
+        pressedScale={0.985}
+        accessibilityRole="button"
+        accessibilityLabel={`${displayTitle}, ${calories} kalori`}
+      >
+        <View className="h-[136px] w-full bg-[#f2f1ec]">{artwork}</View>
+        <View className="px-3.5 pt-3">
+          <AppText weight="medium" numberOfLines={1} className="text-[11px] text-neutral-muted">
+            {meta}
+          </AppText>
+          <AppText weight="bold" numberOfLines={1} className="text-[15px] text-neutral-dark leading-snug mt-0.5">
+            {displayTitle}
+          </AppText>
+          <AppText weight="regular" numberOfLines={2} className="text-xs text-neutral-muted leading-relaxed mt-1 min-h-[34px]">
+            {description}
+          </AppText>
+        </View>
+      </PressableScale>
+      <View className="px-3.5 pb-3 pt-2 flex-row items-center justify-between">
+        <View className="flex-1 min-w-0 mr-2">{priceAndKcal}</View>
+        {logButton}
+      </View>
+    </View>
   );
 };
-

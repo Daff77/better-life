@@ -18,30 +18,10 @@ export default function TabsLayout() {
         },
       }}
     >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: "Home",
-        }}
-      />
-      <Tabs.Screen
-        name="meals"
-        options={{
-          title: "Meals",
-        }}
-      />
-      <Tabs.Screen
-        name="recipes"
-        options={{
-          title: "Recipes",
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: "Profile",
-        }}
-      />
+      <Tabs.Screen name="index" options={{ title: "Beranda" }} />
+      <Tabs.Screen name="meals" options={{ title: "Makan" }} />
+      <Tabs.Screen name="recipes" options={{ title: "Resep" }} />
+      <Tabs.Screen name="profile" options={{ title: "Profil" }} />
     </Tabs>
   );
 }

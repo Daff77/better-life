@@ -1,11 +1,20 @@
 import React, { useState } from "react";
-import { View, Image, ScrollView, TouchableOpacity, ActivityIndicator, Platform } from "react-native";
+import { View, Image, ScrollView, ActivityIndicator, Platform } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
-import { AppText, Button, Header, NutritionCard, MealLogModal } from "@/components/ui";
+import {
+  AppText,
+  Button,
+  Header,
+  NutritionCard,
+  MealLogModal,
+  PressableScale,
+  FadeInView,
+} from "@/components/ui";
 import { MOCK_RECIPES } from "@/data/mockRecipes";
 import { IconRenderer, CrownIconSvg } from "@/constants/Assets";
+import { mealLabel, DIFFICULTY_LABELS } from "@/constants/MealLabels";
 import { useRecipe } from "@/hooks/useRecipesQuery";
 import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
 import { Entitlement } from "@/lib/subscriptionDomain";
@@ -20,106 +29,97 @@ export default function RecipeDetailScreen() {
   const [activeTab, setActiveTab] = useState<"instructions" | "ingredients">("instructions");
   const [isLogModalVisible, setIsLogModalVisible] = useState<boolean>(false);
 
-  // Resolve recipe from query cache or mock recipes fallback
   const recipe = queriedRecipe || MOCK_RECIPES.find((r) => r.id === id) || (id ? null : MOCK_RECIPES[0]);
   const isLocked = Boolean((recipe as any)?.isPremium && !hasEntitlement(Entitlement.PREMIUM_RECIPES));
 
   if (isLoading && !recipe) {
     return (
-      <ScreenWrapper className="flex-1 bg-white items-center justify-center">
-        <ActivityIndicator size="large" color="#67c090" />
+      <ScreenWrapper className="flex-1 bg-[#faf9f5] items-center justify-center">
+        <ActivityIndicator size="large" color="#153e28" />
         <AppText weight="medium" className="text-sm text-neutral-muted mt-3">
-          Loading recipe details...
+          Memuat detail resep...
         </AppText>
       </ScreenWrapper>
     );
   }
 
-  // Graceful handling of invalid or missing recipe ID
   if (!recipe) {
     return (
-      <ScreenWrapper className="flex-1 bg-white">
-        <Header onBack={() => router.back()} title="Recipe Not Found" />
+      <ScreenWrapper className="flex-1 bg-[#faf9f5]">
+        <Header onBack={() => router.back()} title="Resep tidak ditemukan" />
         <View className="flex-1 items-center justify-center p-6">
-          <View className="w-16 h-16 rounded-full bg-status-error/10 items-center justify-center mb-4">
+          <View className="w-14 h-14 rounded-2xl bg-status-error/10 items-center justify-center mb-4">
             <AppText weight="bold" className="text-2xl text-status-error">
               !
             </AppText>
           </View>
           <AppText weight="extrabold" className="text-xl text-neutral-dark mb-1 text-center">
-            Recipe Unavailable
+            Resep tidak tersedia
           </AppText>
           <AppText weight="medium" className="text-sm text-neutral-muted text-center mb-6 max-w-xs">
-            The requested recipe could not be found or has an invalid reference.
+            Resep yang Anda cari tidak ditemukan atau telah dipindahkan.
           </AppText>
           <Button
-            title="Browse All Recipes"
+            title="Lihat semua resep"
             variant="primary"
             onPress={() => router.replace("/(app)/(tabs)/recipes")}
-            accessibilityLabel="Return to recipe catalog"
+            accessibilityLabel="Kembali ke katalog resep"
           />
         </View>
       </ScreenWrapper>
     );
   }
 
+  const diffLabel = DIFFICULTY_LABELS[recipe.difficulty] ?? recipe.difficulty;
+
   return (
-    <ScreenWrapper maxWidth="wide" className="flex-1 bg-white">
-      {/* Header */}
+    <ScreenWrapper maxWidth="wide" className="flex-1 bg-[#faf9f5]">
       <Header
         onBack={() => router.back()}
         title={recipe.title}
-        subtitle={`${recipe.category} • ${recipe.prepTimeMinutes} min • ${recipe.difficulty}`}
+        subtitle={`${mealLabel(recipe.category)} · ${recipe.prepTimeMinutes} mnt · ${diffLabel}`}
       />
 
       <ScrollView
-        className="flex-1 px-6 pt-2"
+        className="flex-1 pt-2"
         contentContainerStyle={{ paddingBottom: Platform.OS === "web" ? 96 : 116 }}
         showsVerticalScrollIndicator={false}
       >
-        <View className="flex-col lg:flex-row lg:gap-8 mt-2">
-          {/* Left Column: Hero Art + Nutrition + Primary Action */}
-          <View className="w-full lg:w-5/12">
-            {/* Hero Artwork Box with 1px Image Outline and Concentric Radii */}
-            <View className="w-full h-64 lg:h-80 bg-[#f2f8f4] rounded-3xl items-center justify-center my-3 overflow-hidden border border-black/[0.08] shadow-sm relative">
+        <View className="flex-col lg:flex-row lg:gap-8 mt-1">
+          {/* Left Column: Hero Art + Cost + Nutrition + Desktop Action */}
+          <FadeInView index={0} className="w-full lg:w-5/12">
+            <View className="w-full h-60 lg:h-76 bg-[#f2f1ec] rounded-[24px] items-center justify-center my-2 overflow-hidden border border-black/[0.06]">
               {recipe.imageUrl ? (
-                <>
-                  <Image
-                    source={{ uri: recipe.imageUrl }}
-                    style={{ width: "100%", height: "100%" }}
-                    resizeMode="cover"
-                  />
-                  <View className="absolute inset-x-0 bottom-0 h-16 bg-black/25" />
-                </>
+                <Image
+                  source={{ uri: recipe.imageUrl }}
+                  style={{ width: "100%", height: "100%" }}
+                  resizeMode="cover"
+                />
               ) : (
-                <IconRenderer name={recipe.svgIcon} size={180} />
+                <IconRenderer name={recipe.svgIcon} size={160} />
               )}
             </View>
 
-            {/* Estimated Ingredient Cost Banner with Tabular Numbers */}
             {recipe.estimatedCostIdr !== undefined && (
-              <View className="mb-4 bg-emerald-50/70 p-3.5 rounded-2xl border border-emerald-200/70 flex-row items-center justify-between">
+              <View className="my-3 bg-white p-3.5 rounded-2xl border border-[#ebe9e2] flex-row items-center justify-between">
                 <View>
-                  <AppText weight="extrabold" className="text-xs text-emerald-900">
-                    Est. Ingredient Cost
+                  <AppText weight="bold" className="text-xs text-neutral-dark">
+                    Estimasi harga bahan
                   </AppText>
-                  <AppText weight="medium" className="text-[10px] text-emerald-700/80">
-                    Average local market price (IDR)
-                  </AppText>
-                </View>
-                <View className="bg-white px-3 py-1 rounded-xl border border-emerald-200/60 shadow-xs">
-                  <AppText
-                    weight="black"
-                    className="text-sm text-emerald-800"
-                    style={{ fontVariant: ["tabular-nums"] }}
-                  >
-                    Rp {recipe.estimatedCostIdr.toLocaleString("id-ID")}
+                  <AppText weight="medium" className="text-[11px] text-neutral-muted">
+                    Rata-rata pasar lokal per porsi
                   </AppText>
                 </View>
+                <AppText
+                  weight="black"
+                  className="text-sm text-primary"
+                  style={{ fontVariant: ["tabular-nums"] }}
+                >
+                  Rp {recipe.estimatedCostIdr.toLocaleString("id-ID")}
+                </AppText>
               </View>
             )}
 
-            {/* Nutritional Breakdown Card */}
             <NutritionCard
               proteinGrams={recipe.nutrition.proteinGrams}
               carbsGrams={recipe.nutrition.carbsGrams}
@@ -129,25 +129,24 @@ export default function RecipeDetailScreen() {
               className="mb-6"
             />
 
-            {/* Structured Log to Journal Button (Desktop placement) */}
             <View className="hidden lg:flex mb-8">
               <Button
-                title={`+ Log to Journal (${recipe.calories} kcal)`}
+                title={`Catat ke jurnal (${recipe.calories} kcal)`}
                 variant="primary"
                 onPress={() => setIsLogModalVisible(true)}
-                accessibilityLabel={`Open log sheet for ${recipe.title}`}
+                accessibilityLabel={`Catat ${recipe.title} ke jurnal`}
               />
             </View>
-          </View>
+          </FadeInView>
 
           {/* Right Column: Cooking Tabs, Steps, Ingredients */}
-          <View className="w-full lg:w-7/12">
-            {/* Two-Tab Navigation: Instructions vs Ingredients */}
-            <View className="flex-row bg-[#f2f8f4] rounded-2xl p-1 mb-6 border border-[#e5ece7]">
-              <TouchableOpacity
+          <FadeInView index={1} className="w-full lg:w-7/12">
+            <View className="flex-row bg-[#efeee8] rounded-2xl p-1 mb-5">
+              <PressableScale
                 onPress={() => setActiveTab("instructions")}
-                className={`flex-1 py-2.5 items-center justify-center rounded-xl transition-all ${
-                  activeTab === "instructions" ? "bg-white shadow-xs border border-[#e5ece7]" : ""
+                pressedScale={0.98}
+                className={`flex-1 py-2.5 items-center justify-center rounded-xl ${
+                  activeTab === "instructions" ? "bg-white" : ""
                 }`}
                 accessibilityRole="tab"
                 accessibilityState={{ selected: activeTab === "instructions" }}
@@ -158,14 +157,15 @@ export default function RecipeDetailScreen() {
                     activeTab === "instructions" ? "text-primary" : "text-neutral-muted"
                   }`}
                 >
-                  How to Cook
+                  Langkah memasak
                 </AppText>
-              </TouchableOpacity>
+              </PressableScale>
 
-              <TouchableOpacity
+              <PressableScale
                 onPress={() => setActiveTab("ingredients")}
-                className={`flex-1 py-2.5 items-center justify-center rounded-xl transition-all ${
-                  activeTab === "ingredients" ? "bg-white shadow-xs border border-[#e5ece7]" : ""
+                pressedScale={0.98}
+                className={`flex-1 py-2.5 items-center justify-center rounded-xl ${
+                  activeTab === "ingredients" ? "bg-white" : ""
                 }`}
                 accessibilityRole="tab"
                 accessibilityState={{ selected: activeTab === "ingredients" }}
@@ -176,61 +176,62 @@ export default function RecipeDetailScreen() {
                     activeTab === "ingredients" ? "text-primary" : "text-neutral-muted"
                   }`}
                 >
-                  Ingredients ({recipe.ingredients.length})
+                  Bahan ({recipe.ingredients.length})
                 </AppText>
-              </TouchableOpacity>
+              </PressableScale>
             </View>
 
-            {/* Tab Content: Instructions */}
             {activeTab === "instructions" && (
-              <View className="gap-y-4 mb-6">
+              <View className="gap-y-3 mb-6">
                 {isLocked && (
-                  <View className="p-4 rounded-2xl bg-[#fef8ea] border border-[#f5e3ba] flex-col gap-2.5">
+                  <View className="p-4 rounded-2xl bg-[#fdf3e3] border border-[#f5e3ba] gap-2">
                     <View className="flex-row items-center gap-2">
-                      <CrownIconSvg size={18} color="#b45309" />
-                      <AppText weight="bold" className="text-sm text-[#78350f]">
-                        Koleksi Chef Eksklusif
+                      <CrownIconSvg size={17} color="#b45309" />
+                      <AppText weight="bold" className="text-sm text-[#8a4106]">
+                        Koleksi Resep Premium
                       </AppText>
                     </View>
-                    <AppText weight="medium" className="text-xs text-[#92400e] leading-relaxed">
-                      Resep ini dirancang khusus oleh chef nutrisi Better Life dengan panduan memasak presisi. Upgrade ke Premium untuk membuka instruksi lengkap dan timer interaktif.
+                    <AppText weight="medium" className="text-xs text-[#8a4106] leading-relaxed">
+                      Aktifkan Better Life Premium untuk membuka panduan memasak lengkap dan takaran presisi.
                     </AppText>
-                    <TouchableOpacity
+                    <PressableScale
                       onPress={() => router.push("/(app)/upgrade")}
-                      className="self-start px-4 py-2 rounded-xl bg-[#b45309] active:bg-[#92400e] mt-1"
+                      className="self-start px-4 py-2 rounded-full bg-primary mt-1"
                       accessibilityRole="button"
-                      accessibilityLabel="Upgrade ke Premium"
+                      accessibilityLabel="Lihat paket Premium"
                     >
                       <AppText weight="bold" className="text-xs text-white">
-                        Upgrade ke Premium
+                        Lihat paket Premium
                       </AppText>
-                    </TouchableOpacity>
+                    </PressableScale>
                   </View>
                 )}
+
                 {recipe.instructions.map((step) => (
                   <View
                     key={step.step}
-                    className="flex-row items-start bg-neutral-surface/60 p-4 rounded-2xl border border-neutral-border-light/60"
+                    className="flex-row items-start bg-white p-4 rounded-2xl border border-[#ebe9e2]"
                   >
-                    <View className="w-7 h-7 rounded-full bg-primary items-center justify-center mr-3.5 mt-0.5 shadow-sm">
-                      <AppText weight="bold" className="text-xs text-white">
+                    <View className="w-7 h-7 rounded-full bg-primary-light items-center justify-center mr-3.5 mt-0.5">
+                      <AppText weight="bold" className="text-xs text-primary" style={{ fontVariant: ["tabular-nums"] }}>
                         {step.step}
                       </AppText>
                     </View>
 
                     <View className="flex-1">
-                      <AppText
-                        weight="medium"
-                        className="text-sm text-neutral-dark leading-relaxed"
-                      >
+                      <AppText weight="medium" className="text-sm text-neutral-dark leading-relaxed">
                         {step.text}
                       </AppText>
 
-                      {step.timerMinutes && (
-                        <View className="flex-row items-center mt-2.5 bg-secondary-soft px-3 py-1 rounded-full self-start border border-secondary">
-                          <IconRenderer name="Clock" size={14} className="mr-1.5" />
-                          <AppText weight="bold" className="text-xs text-accent-teal">
-                            Timer: {step.timerMinutes}:00 min
+                      {Boolean(step.timerMinutes) && (
+                        <View className="flex-row items-center mt-2.5 bg-[#f4f3ee] px-2.5 py-1 rounded-md self-start">
+                          <IconRenderer name="Clock" size={12} color="#153e28" />
+                          <AppText
+                            weight="bold"
+                            className="text-xs text-primary ml-1.5"
+                            style={{ fontVariant: ["tabular-nums"] }}
+                          >
+                            {step.timerMinutes} menit
                           </AppText>
                         </View>
                       )}
@@ -240,54 +241,37 @@ export default function RecipeDetailScreen() {
               </View>
             )}
 
-            {/* Tab Content: Ingredients */}
             {activeTab === "ingredients" && (
-              <View className="gap-y-3 mb-6">
+              <View className="bg-white rounded-2xl border border-[#ebe9e2] px-4 mb-6">
                 {recipe.ingredients.map((ing, idx) => (
                   <View
                     key={idx}
-                    className="flex-row items-center justify-between p-3.5 bg-neutral-surface/60 rounded-xl border border-neutral-border-light/60"
+                    className={`flex-row items-center justify-between py-3.5 ${
+                      idx > 0 ? "border-t border-[#f0eee8]" : ""
+                    }`}
                   >
-                    <View className="flex-row items-center gap-x-2.5">
-                      <View className="w-2.5 h-2.5 rounded-full bg-primary" />
-                      <AppText weight="bold" className="text-sm text-neutral-dark">
-                        {ing.name}
-                      </AppText>
-                    </View>
-                    <AppText weight="semibold" className="text-xs text-primary">
+                    <AppText weight="semibold" className="text-sm text-neutral-dark">
+                      {ing.name}
+                    </AppText>
+                    <AppText
+                      weight="bold"
+                      className="text-xs text-primary"
+                      style={{ fontVariant: ["tabular-nums"] }}
+                    >
                       {ing.amount}
                     </AppText>
                   </View>
                 ))}
               </View>
             )}
-
-            {/* Secondary inline button at end of instructions for convenience */}
-            <View className="lg:hidden mt-2 mb-6">
-              <Button
-                title={`+ Log to Journal (${recipe.calories} kcal)`}
-                variant="primary"
-                onPress={() => setIsLogModalVisible(true)}
-                accessibilityLabel={`Open log sheet for ${recipe.title}`}
-                className="min-h-[46px]"
-              />
-            </View>
-          </View>
+          </FadeInView>
         </View>
       </ScrollView>
 
-      {/* Sticky Bottom Floating Log Dock for Mobile with Apple Frosted Glass */}
+      {/* Sticky Bottom Dock for Mobile */}
       <View
-        className="lg:hidden px-5 pt-3 border-t border-[#e5ece7]"
-        style={
-          {
-            paddingBottom: Math.max(insets.bottom, 12),
-            backgroundColor: Platform.OS === "web" ? "rgba(255, 255, 255, 0.88)" : "#ffffff",
-            backdropFilter: Platform.OS === "web" ? "blur(20px) saturate(180%)" : undefined,
-            WebkitBackdropFilter: Platform.OS === "web" ? "blur(20px) saturate(180%)" : undefined,
-            boxShadow: "0 -4px 20px rgba(20, 50, 25, 0.04)",
-          } as any
-        }
+        className="lg:hidden px-5 pt-3 bg-white border-t border-[#ebe9e2]"
+        style={{ paddingBottom: Math.max(insets.bottom, 12) }}
       >
         <View className="flex-row items-center justify-between gap-3 max-w-md mx-auto w-full">
           <View className="flex-1">
@@ -298,23 +282,22 @@ export default function RecipeDetailScreen() {
             >
               {recipe.calories} kcal
             </AppText>
-            <AppText weight="semibold" className="text-xs text-neutral-muted">
-              {recipe.prepTimeMinutes} min prep • {recipe.difficulty}
+            <AppText weight="medium" className="text-xs text-neutral-muted">
+              {recipe.prepTimeMinutes} mnt · {diffLabel}
             </AppText>
           </View>
           <View className="w-44">
             <Button
-              title="+ Log to Journal"
+              title="Catat ke jurnal"
               variant="primary"
               onPress={() => setIsLogModalVisible(true)}
-              accessibilityLabel={`Open log sheet for ${recipe.title}`}
-              className="min-h-[46px] shadow-sm"
+              accessibilityLabel={`Catat ${recipe.title} ke jurnal`}
+              className="min-h-[46px]"
             />
           </View>
         </View>
       </View>
 
-      {/* Shared MealLogModal for structured quantity and meal-type logging */}
       <MealLogModal
         visible={isLogModalVisible}
         meal={recipe}

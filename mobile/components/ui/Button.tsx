@@ -88,7 +88,7 @@ export const Button: React.FC<ButtonProps> = ({
       case "primary":
         return "text-white";
       case "secondary":
-        return "text-emerald-900";
+        return "text-primary";
       case "outline":
         return "text-primary";
       case "ghost":
@@ -125,7 +125,7 @@ export const Button: React.FC<ButtonProps> = ({
       onPressOut={handlePressOut}
       className={`flex-row items-center justify-center min-h-[44px] ${
         Platform.OS === "web"
-          ? "transition-all duration-150 hover:scale-[1.02] hover:-translate-y-0.5 hover:shadow-md cursor-pointer"
+          ? "transition-colors duration-150 cursor-pointer"
           : ""
       } ${getSizeStyle()} ${getContainerStyle()} ${
         disabled ? "opacity-45" : ""

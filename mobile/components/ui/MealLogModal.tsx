@@ -4,17 +4,37 @@ import {
   Image,
   Modal,
   Pressable,
-  TouchableOpacity,
   KeyboardAvoidingView,
   ScrollView,
   Platform,
   StyleSheet,
   useWindowDimensions,
 } from "react-native";
+import Animated, {
+  Easing,
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withTiming,
+} from "react-native-reanimated";
 import { AppText } from "./AppText";
 import { Button } from "./Button";
-import { Badge } from "./Badge";
-import { IconRenderer, CloseIconSvg, CheckIconSvg, MinusIconSvg, PlusIconSvg } from "@/constants/Assets";
+import { PressableScale } from "./PressableScale";
+import {
+  IconRenderer,
+  CloseIconSvg,
+  CheckIconSvg,
+  MinusIconSvg,
+  PlusIconSvg,
+} from "@/constants/Assets";
+import {
+  AnimationEasings,
+  AnimationScales,
+  AnimationDistances,
+  MotionCurves,
+  MotionDurations,
+} from "@/constants/AnimationTokens";
+import { mealLabel } from "@/constants/MealLabels";
 import { FoodItem } from "@/data/mockRecipes";
 import { JournalCategory, JournalEntry } from "@/lib/schemas";
 import { useJournalStore } from "@/stores/useJournalStore";
@@ -47,7 +67,11 @@ export const MealLogModal: React.FC<MealLogModalProps> = ({
   } | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Initialize defaults whenever modal opens or meal changes
+  // Sheet entrance animation (never from scale(0), starts at 0.96 + 16px rise)
+  const sheetScale = useSharedValue<number>(AnimationScales.modalEntry);
+  const sheetTranslateY = useSharedValue<number>(AnimationDistances.modalSlideY);
+  const sheetOpacity = useSharedValue<number>(0);
+
   useEffect(() => {
     if (visible && meal) {
       setQuantity(1);
@@ -55,7 +79,6 @@ export const MealLogModal: React.FC<MealLogModalProps> = ({
       setConfirmation(null);
       setErrorMessage(null);
 
-      // Pre-select meal type if catalogue category matches standard journal categories
       if (
         meal.category === "Breakfast" ||
         meal.category === "Lunch" ||
@@ -66,8 +89,27 @@ export const MealLogModal: React.FC<MealLogModalProps> = ({
       } else {
         setSelectedMealType("Breakfast");
       }
+
+      sheetScale.value = AnimationScales.modalEntry;
+      sheetTranslateY.value = AnimationDistances.modalSlideY;
+      sheetOpacity.value = 0;
+
+      sheetScale.value = withSpring(1, AnimationEasings.appleDefaultSpring);
+      sheetTranslateY.value = withSpring(0, AnimationEasings.appleDefaultSpring);
+      sheetOpacity.value = withTiming(1, {
+        duration: MotionDurations.enter,
+        easing: Easing.bezier(...MotionCurves.out),
+      });
     }
   }, [visible, meal]);
+
+  const sheetAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: sheetOpacity.value,
+    transform: [
+      { translateY: sheetTranslateY.value },
+      { scale: sheetScale.value },
+    ],
+  }));
 
   if (!meal) return null;
 
@@ -123,14 +165,13 @@ export const MealLogModal: React.FC<MealLogModalProps> = ({
         onSuccess(entry);
       }
 
-      // Automatically dismiss modal after showing brief confirmation
       setTimeout(() => {
         setIsSubmitting(false);
         onClose();
-      }, 900);
-    } catch (err) {
+      }, 750);
+    } catch {
       setIsSubmitting(false);
-      setErrorMessage("Could not save to journal. Please try again.");
+      setErrorMessage("Belum bisa menyimpan ke jurnal. Silakan coba lagi.");
     }
   };
 
@@ -145,54 +186,40 @@ export const MealLogModal: React.FC<MealLogModalProps> = ({
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         className="flex-1 justify-end sm:justify-center items-center p-0 sm:p-4"
       >
-        {/* Backdrop as a separate full-screen layer with Apple Frosted Glass Dimming Scrim */}
         <Pressable
           onPress={onClose}
           style={[
             StyleSheet.absoluteFill,
-            Platform.OS === "web"
-              ? ({
-                  backgroundColor: "rgba(15, 23, 18, 0.45)",
-                  backdropFilter: "blur(12px) saturate(160%)",
-                  WebkitBackdropFilter: "blur(12px) saturate(160%)",
-                } as any)
-              : { backgroundColor: "rgba(0, 0, 0, 0.55)" },
+            { backgroundColor: "rgba(18, 24, 20, 0.45)" },
           ]}
           accessibilityRole="button"
-          accessibilityLabel="Dismiss modal backdrop"
+          accessibilityLabel="Tutup jendela pencatatan"
         />
 
-        {/* Sheet Container: Sibling to backdrop with concentric radii and subtle light catching edge */}
-        <View
-          className="w-full max-w-lg bg-white rounded-t-[32px] sm:rounded-[32px] p-5 sm:p-6 border-t sm:border border-[#e5ece7] max-h-[92%] z-10"
-          style={
-            Platform.OS === "web"
-              ? ({
-                  boxShadow: "0 20px 50px rgba(10, 30, 18, 0.16), 0 4px 12px rgba(0, 0, 0, 0.04)",
-                } as any)
-              : undefined
-          }
+        <Animated.View
+          style={sheetAnimatedStyle}
+          className="w-full max-w-lg bg-white rounded-t-[28px] sm:rounded-[28px] p-5 sm:p-6 border-t sm:border border-[#ebe9e2] max-h-[92%] z-10"
         >
-          {/* Header Bar */}
-          <View className="flex-row justify-between items-center pb-3 border-b border-neutral-border-light">
-            <View>
-              <AppText weight="black" className="text-xl text-neutral-dark">
-                Log to Daily Journal
+          {/* Header */}
+          <View className="flex-row justify-between items-center pb-3.5 border-b border-[#f0eee8]">
+            <View className="flex-1 pr-3">
+              <AppText weight="black" className="text-xl text-neutral-dark" style={{ letterSpacing: -0.4 }}>
+                Catat ke jurnal
               </AppText>
-              <AppText weight="medium" className="text-xs text-neutral-muted">
-                Track portion and live nutritional balance
+              <AppText weight="medium" className="text-xs text-neutral-muted mt-0.5">
+                Atur jumlah porsi dan waktu makan
               </AppText>
             </View>
 
-            <TouchableOpacity
+            <PressableScale
               onPress={onClose}
-              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-              className="w-9 h-9 rounded-full bg-neutral-surface items-center justify-center border border-neutral-border active:scale-95 transition-all"
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              className="w-10 h-10 rounded-full bg-[#f4f3ee] items-center justify-center"
               accessibilityRole="button"
-              accessibilityLabel="Close meal log modal"
+              accessibilityLabel="Tutup jendela"
             >
-              <CloseIconSvg size={16} color="#6b7280" />
-            </TouchableOpacity>
+              <CloseIconSvg size={16} color="#5a625b" />
+            </PressableScale>
           </View>
 
           <ScrollView
@@ -200,24 +227,24 @@ export const MealLogModal: React.FC<MealLogModalProps> = ({
             keyboardShouldPersistTaps="handled"
             className="flex-shrink"
           >
-            {/* Success Banner Confirmation */}
             {confirmation ? (
-              <View
-                className="my-5 p-5 rounded-2xl bg-[#daf2e5] border border-primary/30 items-center justify-center"
-              >
-                <View className="w-12 h-12 rounded-full bg-primary items-center justify-center mb-2 shadow-xs">
+              <View className="my-6 p-6 rounded-2xl bg-primary-light items-center justify-center">
+                <View className="w-12 h-12 rounded-full bg-primary items-center justify-center mb-3">
                   <CheckIconSvg size={22} color="#ffffff" strokeWidth={2.8} />
                 </View>
                 <AppText weight="black" className="text-base text-primary">
-                  Added to {confirmation.mealType}
+                  Tercatat di {mealLabel(confirmation.mealType)}
                 </AppText>
-                <AppText weight="semibold" className="text-xs text-neutral-dark mt-1 text-center">
-                  {meal.title} • {confirmation.entry.calories} kcal logged
+                <AppText
+                  weight="semibold"
+                  className="text-xs text-neutral-dark mt-1 text-center"
+                  style={{ fontVariant: ["tabular-nums"] }}
+                >
+                  {meal.title} · +{confirmation.entry.calories} kcal
                 </AppText>
               </View>
             ) : (
               <View>
-                {/* Error Message if any */}
                 {errorMessage && (
                   <View className="mt-3 p-3 bg-status-error/10 border border-status-error/20 rounded-xl">
                     <AppText weight="semibold" className="text-xs text-status-error text-center">
@@ -227,8 +254,8 @@ export const MealLogModal: React.FC<MealLogModalProps> = ({
                 )}
 
                 {/* Meal Summary Row */}
-                <View className="flex-row items-center py-3.5 border-b border-[#e5ece7]">
-                  <View className="w-14 h-14 rounded-2xl bg-[#f2f8f4] items-center justify-center mr-3 border border-black/[0.08] overflow-hidden flex-shrink-0">
+                <View className="flex-row items-center py-4 border-b border-[#f0eee8]">
+                  <View className="w-14 h-14 rounded-2xl bg-[#f2f1ec] items-center justify-center mr-3 border border-black/[0.05] overflow-hidden flex-shrink-0">
                     {meal.imageUrl ? (
                       <Image
                         source={{ uri: meal.imageUrl }}
@@ -236,12 +263,12 @@ export const MealLogModal: React.FC<MealLogModalProps> = ({
                         resizeMode="cover"
                       />
                     ) : (
-                      <IconRenderer name={meal.svgIcon} size={40} />
+                      <IconRenderer name={meal.svgIcon} size={34} />
                     )}
                   </View>
 
                   <View className="flex-1 mr-2 min-w-0">
-                    <AppText weight="extrabold" numberOfLines={1} className="text-base text-neutral-dark">
+                    <AppText weight="bold" numberOfLines={1} className="text-base text-neutral-dark">
                       {meal.title}
                     </AppText>
                     <AppText
@@ -249,7 +276,7 @@ export const MealLogModal: React.FC<MealLogModalProps> = ({
                       className="text-xs text-neutral-muted mt-0.5"
                       style={{ fontVariant: ["tabular-nums"] }}
                     >
-                      {baseCalories} kcal per base serving
+                      {baseCalories} kcal per porsi standar
                     </AppText>
                   </View>
 
@@ -269,73 +296,87 @@ export const MealLogModal: React.FC<MealLogModalProps> = ({
                   </View>
                 </View>
 
-                {/* Live Macronutrient Breakdown Strip */}
-                <View className="py-2.5 px-3 bg-[#f8faf8] rounded-xl border border-[#e5ece7] my-3 flex-row items-center justify-around">
+                {/* Live Macronutrient Strip */}
+                <View className="py-3 px-3 bg-[#f7f6f1] rounded-2xl my-3 flex-row items-center justify-around">
                   <View className="items-center">
-                    <AppText weight="extrabold" className="text-[10px] text-emerald-800 uppercase">
+                    <AppText weight="medium" className="text-[11px] text-neutral-muted">
                       Protein
                     </AppText>
-                    <AppText weight="black" className="text-xs text-neutral-dark mt-0.5">
-                      {scaledProtein}g
+                    <AppText
+                      weight="bold"
+                      className="text-sm text-primary mt-0.5"
+                      style={{ fontVariant: ["tabular-nums"] }}
+                    >
+                      {scaledProtein} g
                     </AppText>
                   </View>
-                  <View className="w-px h-6 bg-[#e5ece7]" />
+                  <View className="w-px h-6 bg-[#e5e3dc]" />
                   <View className="items-center">
-                    <AppText weight="extrabold" className="text-[10px] text-amber-800 uppercase">
-                      Carbs
+                    <AppText weight="medium" className="text-[11px] text-neutral-muted">
+                      Karbo
                     </AppText>
-                    <AppText weight="black" className="text-xs text-neutral-dark mt-0.5">
-                      {scaledCarbs}g
+                    <AppText
+                      weight="bold"
+                      className="text-sm text-[#52796f] mt-0.5"
+                      style={{ fontVariant: ["tabular-nums"] }}
+                    >
+                      {scaledCarbs} g
                     </AppText>
                   </View>
-                  <View className="w-px h-6 bg-[#e5ece7]" />
+                  <View className="w-px h-6 bg-[#e5e3dc]" />
                   <View className="items-center">
-                    <AppText weight="extrabold" className="text-[10px] text-sky-800 uppercase">
-                      Fats
+                    <AppText weight="medium" className="text-[11px] text-neutral-muted">
+                      Lemak
                     </AppText>
-                    <AppText weight="black" className="text-xs text-neutral-dark mt-0.5">
-                      {scaledFat}g
+                    <AppText
+                      weight="bold"
+                      className="text-sm text-[#b45309] mt-0.5"
+                      style={{ fontVariant: ["tabular-nums"] }}
+                    >
+                      {scaledFat} g
                     </AppText>
                   </View>
                   {scaledFiber > 0 && (
                     <>
-                      <View className="w-px h-6 bg-[#e5ece7]" />
+                      <View className="w-px h-6 bg-[#e5e3dc]" />
                       <View className="items-center">
-                        <AppText weight="extrabold" className="text-[10px] text-teal-800 uppercase">
-                          Fiber
+                        <AppText weight="medium" className="text-[11px] text-neutral-muted">
+                          Serat
                         </AppText>
-                        <AppText weight="black" className="text-xs text-neutral-dark mt-0.5">
-                          {scaledFiber}g
+                        <AppText
+                          weight="bold"
+                          className="text-sm text-neutral-dark mt-0.5"
+                          style={{ fontVariant: ["tabular-nums"] }}
+                        >
+                          {scaledFiber} g
                         </AppText>
                       </View>
                     </>
                   )}
                 </View>
 
-                {/* Servings Stepper & Quick Pills */}
-                <View className="py-3 border-b border-[#e5ece7]">
+                {/* Portion Stepper */}
+                <View className="py-3 border-b border-[#f0eee8]">
                   <View className="flex-row justify-between items-center mb-2.5">
                     <View>
-                      <AppText weight="extrabold" className="text-xs text-neutral-dark uppercase tracking-wide">
-                        Portion / Quantity
+                      <AppText weight="bold" className="text-sm text-neutral-dark">
+                        Jumlah porsi
                       </AppText>
-                      <AppText weight="medium" className="text-[11px] text-neutral-muted">
-                        Select portions consumed
+                      <AppText weight="medium" className="text-xs text-neutral-muted">
+                        Sesuaikan dengan porsi makan Anda
                       </AppText>
                     </View>
 
-                    <View className="flex-row items-center bg-[#f2f8f4] rounded-2xl p-1 border border-[#e5ece7]">
-                      <TouchableOpacity
+                    <View className="flex-row items-center bg-[#f4f3ee] rounded-2xl p-1">
+                      <PressableScale
                         onPress={handleDecrement}
                         disabled={quantity <= 0.5 || isSubmitting}
-                        className={`w-11 h-11 rounded-xl items-center justify-center transition-all duration-150 ${
-                          quantity <= 0.5 ? "opacity-30 bg-transparent" : "bg-white border border-[#e5ece7] shadow-2xs active:scale-[0.96]"
-                        }`}
+                        className="w-11 h-11 rounded-xl bg-white items-center justify-center"
                         accessibilityRole="button"
-                        accessibilityLabel="Decrease servings"
+                        accessibilityLabel="Kurangi porsi"
                       >
-                        <MinusIconSvg size={16} color={quantity <= 0.5 ? "#9ca3af" : "#1f2937"} strokeWidth={2.4} />
-                      </TouchableOpacity>
+                        <MinusIconSvg size={16} color="#1c201d" strokeWidth={2.4} />
+                      </PressableScale>
 
                       <View className="w-14 items-center justify-center">
                         <AppText
@@ -345,122 +386,122 @@ export const MealLogModal: React.FC<MealLogModalProps> = ({
                         >
                           {quantity}x
                         </AppText>
-                        <AppText weight="medium" className="text-[9px] text-neutral-muted -mt-0.5">
-                          {quantity === 1 ? "portion" : "portions"}
+                        <AppText weight="medium" className="text-[10px] text-neutral-muted -mt-0.5">
+                          porsi
                         </AppText>
                       </View>
 
-                      <TouchableOpacity
+                      <PressableScale
                         onPress={handleIncrement}
                         disabled={quantity >= 10 || isSubmitting}
-                        className={`w-11 h-11 rounded-xl items-center justify-center transition-all duration-150 ${
-                          quantity >= 10 ? "opacity-30 bg-transparent" : "bg-white border border-[#e5ece7] shadow-2xs active:scale-[0.96]"
-                        }`}
+                        className="w-11 h-11 rounded-xl bg-white items-center justify-center"
                         accessibilityRole="button"
-                        accessibilityLabel="Increase servings"
+                        accessibilityLabel="Tambah porsi"
                       >
-                        <PlusIconSvg size={16} color={quantity >= 10 ? "#9ca3af" : "#1f2937"} strokeWidth={2.4} />
-                      </TouchableOpacity>
+                        <PlusIconSvg size={16} color="#1c201d" strokeWidth={2.4} />
+                      </PressableScale>
                     </View>
                   </View>
 
-                  {/* Quick Portion Selector Chips */}
                   <View className="flex-row gap-1.5 pt-1">
                     {QUICK_PORTIONS.map((p) => {
                       const isSelected = quantity === p;
                       return (
-                        <TouchableOpacity
+                        <PressableScale
                           key={p}
                           onPress={() => setQuantity(p)}
-                          className={`flex-1 py-1.5 rounded-lg items-center justify-center border transition-all ${
+                          pressedScale={0.95}
+                          className={`flex-1 h-9 rounded-xl items-center justify-center border ${
                             isSelected
-                              ? "bg-primary border-primary text-white"
-                              : "bg-white border-[#e5ece7] hover:bg-emerald-50/50"
+                              ? "bg-primary border-primary"
+                              : "bg-white border-[#e3e1da]"
                           }`}
                           accessibilityRole="button"
-                          accessibilityLabel={`Set portion to ${p}`}
+                          accessibilityLabel={`Pilih ${p} porsi`}
                         >
                           <AppText
-                            weight={isSelected ? "black" : "bold"}
+                            weight={isSelected ? "bold" : "medium"}
                             className={`text-xs ${isSelected ? "text-white" : "text-neutral-dark"}`}
+                            style={{ fontVariant: ["tabular-nums"] }}
                           >
                             {p}x
                           </AppText>
-                        </TouchableOpacity>
+                        </PressableScale>
                       );
                     })}
                   </View>
                 </View>
 
-                {/* Meal Type Selection (Breakfast, Lunch, Dinner, Snack) */}
-                <View className="py-3">
-                  <AppText weight="extrabold" className="text-xs text-neutral-dark uppercase tracking-wide mb-2">
-                    Meal Category
+                {/* Meal Time Selection */}
+                <View className="py-3.5">
+                  <AppText weight="bold" className="text-sm text-neutral-dark mb-2">
+                    Waktu makan
                   </AppText>
 
-                  <View className={`flex-row flex-wrap gap-2 ${isNarrow ? "" : ""}`}>
+                  <View className="flex-row flex-wrap gap-2">
                     {MEAL_TYPES.map((type) => {
                       const isSelected = selectedMealType === type;
                       return (
-                        <TouchableOpacity
+                        <PressableScale
                           key={type}
                           onPress={() => setSelectedMealType(type)}
                           disabled={isSubmitting}
-                          className={`min-h-[44px] rounded-xl items-center justify-center border transition-all duration-150 active:scale-[0.98] ${
+                          pressedScale={0.96}
+                          className={`min-h-[44px] rounded-xl items-center justify-center border ${
                             isNarrow ? "w-[48%]" : "flex-1"
                           } ${
                             isSelected
-                              ? "bg-primary border-primary shadow-xs"
-                              : "bg-neutral-surface border-neutral-border hover:bg-neutral-surface/80"
+                              ? "bg-primary border-primary"
+                              : "bg-white border-[#e3e1da]"
                           }`}
                           accessibilityRole="button"
                           accessibilityState={{ selected: isSelected }}
-                          accessibilityLabel={`Log as ${type}`}
+                          accessibilityLabel={`Catat sebagai ${mealLabel(type)}`}
                         >
                           <AppText
-                            weight={isSelected ? "black" : "bold"}
+                            weight={isSelected ? "bold" : "medium"}
                             className={`text-xs ${isSelected ? "text-white" : "text-neutral-dark"}`}
                           >
-                            {type}
+                            {mealLabel(type)}
                           </AppText>
-                        </TouchableOpacity>
+                        </PressableScale>
                       );
                     })}
                   </View>
                 </View>
 
-                {/* Submit and Cancel Actions */}
-                <View className="pt-2 pb-2 gap-2">
+                {/* Submit & Cancel */}
+                <View className="pt-2 pb-1 gap-2">
                   <Button
                     title={
                       isSubmitting
-                        ? "Saving to Journal..."
-                        : `Log ${totalCalories} kcal to ${selectedMealType || "Journal"}`
+                        ? "Menyimpan..."
+                        : `Catat ${totalCalories} kcal ke ${mealLabel(selectedMealType || "Breakfast")}`
                     }
                     variant="primary"
                     loading={isSubmitting}
                     disabled={!isFormValid}
                     onPress={handleLog}
-                    accessibilityLabel="Confirm log meal to journal"
+                    accessibilityLabel="Konfirmasi catat makanan ke jurnal"
                     className="w-full min-h-[48px]"
                   />
 
-                  <TouchableOpacity
+                  <PressableScale
                     onPress={onClose}
                     disabled={isSubmitting}
-                    className="w-full min-h-[44px] rounded-full items-center justify-center bg-transparent active:bg-neutral-100"
+                    className="w-full min-h-[44px] rounded-full items-center justify-center"
                     accessibilityRole="button"
-                    accessibilityLabel="Cancel logging"
+                    accessibilityLabel="Batal mencatat"
                   >
                     <AppText weight="bold" className="text-xs text-neutral-muted">
-                      Cancel
+                      Batal
                     </AppText>
-                  </TouchableOpacity>
+                  </PressableScale>
                 </View>
               </View>
             )}
           </ScrollView>
-        </View>
+        </Animated.View>
       </KeyboardAvoidingView>
     </Modal>
   );
