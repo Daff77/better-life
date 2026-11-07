@@ -54,6 +54,8 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
     };
   });
 
+  const isCompact = size <= 84;
+
   return (
     <View style={{ width: size, height: size }} className="items-center justify-center">
       <Svg width={size} height={size} style={{ transform: [{ rotate: "-90deg" }] }}>
@@ -85,7 +87,7 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
         {showPercent && (
           <AppText
             weight="black"
-            className={`text-2xl ${textColor ? "" : "text-neutral-dark"}`}
+            className={isCompact ? "text-base sm:text-lg" : "text-2xl"}
             style={[
               { fontVariant: ["tabular-nums"] },
               textColor ? { color: textColor } : undefined,
@@ -97,7 +99,7 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
         {Boolean(label) && (
           <AppText
             weight="medium"
-            className={`text-[11px] ${labelColor ? "" : "text-neutral-muted"} mt-0.5`}
+            className={isCompact ? "text-[9px]" : "text-xs mt-0.5"}
             style={labelColor ? { color: labelColor } : undefined}
           >
             {label}

@@ -201,12 +201,12 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({
           bottom: 0,
           left: 0,
           right: 0,
-          backgroundColor: Platform.OS === "web" ? "rgba(14, 23, 19, 0.94)" : "#0e1713",
+          backgroundColor: Platform.OS === "web" ? "rgba(12, 22, 17, 0.94)" : "#0c1611",
           backdropFilter: Platform.OS === "web" ? "blur(20px) saturate(180%)" : undefined,
           WebkitBackdropFilter: Platform.OS === "web" ? "blur(20px) saturate(180%)" : undefined,
           borderTopWidth: 1,
-          borderTopColor: "rgba(30, 51, 39, 0.85)",
-          boxShadow: "0 -4px 20px rgba(0, 0, 0, 0.3)",
+          borderTopColor: "rgba(29, 51, 38, 0.85)",
+          boxShadow: "0 -4px 20px rgba(0, 0, 0, 0.4)",
           paddingBottom: Math.max(insets.bottom, 10),
           paddingTop: 8,
         } as any
@@ -237,7 +237,7 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({
               activeOpacity={0.75}
               className={`items-center justify-center py-1.5 px-3.5 rounded-2xl min-h-[46px] transition-all active:scale-[0.96] ${
                 isFocused
-                  ? "bg-[#1a3325] border border-[#2b543c] shadow-2xs"
+                  ? "bg-[#182e22] border border-[#2b543c] shadow-2xs"
                   : Platform.OS === "web"
                   ? "hover:bg-white/5"
                   : ""
