@@ -7,12 +7,14 @@ interface ScreenWrapperProps extends SafeAreaViewProps {
   className?: string;
   maxWidth?: "narrow" | "default" | "wide" | "full";
   noPadding?: boolean;
+  statusBarStyle?: "dark" | "light" | "auto";
 }
 
 export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
   className,
   maxWidth = "default",
   noPadding = false,
+  statusBarStyle,
   children,
   style,
   edges = ["top", "left", "right"],
@@ -32,6 +34,12 @@ export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
     }
   };
 
+  const isDarkBg =
+    className?.includes("bg-[#0") ||
+    className?.includes("bg-[#1") ||
+    className?.includes("bg-neutral-dark") ||
+    className?.includes("bg-black");
+
   return (
     <SafeAreaView
       className={`flex-1 ${className || "bg-neutral-bg"}`}
@@ -39,7 +47,7 @@ export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
       edges={edges}
       {...props}
     >
-      <StatusBar style="dark" />
+      <StatusBar style={statusBarStyle || (isDarkBg ? "light" : "dark")} />
       <View
         className={`flex-1 w-full ${getMaxWidthClass()} self-center ${
           noPadding ? "px-0" : "px-4 sm:px-6 lg:px-8"

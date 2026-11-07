@@ -20,6 +20,8 @@ export interface ProgressRingProps {
   backgroundColor?: string;
   label?: string;
   showPercent?: boolean;
+  textColor?: string;
+  labelColor?: string;
 }
 
 export const ProgressRing: React.FC<ProgressRingProps> = ({
@@ -30,6 +32,8 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
   backgroundColor = Colors.secondary.DEFAULT,
   label = "Progress",
   showPercent = true,
+  textColor,
+  labelColor,
 }) => {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -79,12 +83,23 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
       {/* Center Value & Label */}
       <View pointerEvents="none" className="absolute items-center justify-center">
         {showPercent && (
-          <AppText weight="black" className="text-2xl text-neutral-dark">
+          <AppText
+            weight="black"
+            className={`text-2xl ${textColor ? "" : "text-neutral-dark"}`}
+            style={[
+              { fontVariant: ["tabular-nums"] },
+              textColor ? { color: textColor } : undefined,
+            ]}
+          >
             {Math.round(clampedProgress)}%
           </AppText>
         )}
         {Boolean(label) && (
-          <AppText weight="bold" className="text-xs text-neutral-muted mt-0.5">
+          <AppText
+            weight="medium"
+            className={`text-[11px] ${labelColor ? "" : "text-neutral-muted"} mt-0.5`}
+            style={labelColor ? { color: labelColor } : undefined}
+          >
             {label}
           </AppText>
         )}
