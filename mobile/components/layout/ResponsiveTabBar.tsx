@@ -191,7 +191,7 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({
     );
   }
 
-  // 2. MOBILE BOTTOM NAVIGATION (Apple Translucent Frosted Glass Bar - Dark Forest)
+  // 2. MOBILE BOTTOM NAVIGATION (Apple Translucent Frosted Glass Bar)
   return (
     <View
       className="w-full z-50"
@@ -201,12 +201,12 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({
           bottom: 0,
           left: 0,
           right: 0,
-          backgroundColor: Platform.OS === "web" ? "rgba(12, 22, 17, 0.94)" : "#0c1611",
+          backgroundColor: Platform.OS === "web" ? "rgba(255, 255, 255, 0.88)" : "#ffffff",
           backdropFilter: Platform.OS === "web" ? "blur(20px) saturate(180%)" : undefined,
           WebkitBackdropFilter: Platform.OS === "web" ? "blur(20px) saturate(180%)" : undefined,
           borderTopWidth: 1,
-          borderTopColor: "rgba(29, 51, 38, 0.85)",
-          boxShadow: "0 -4px 20px rgba(0, 0, 0, 0.4)",
+          borderTopColor: "rgba(229, 236, 231, 0.85)",
+          boxShadow: "0 -4px 20px rgba(20, 50, 25, 0.03)",
           paddingBottom: Math.max(insets.bottom, 10),
           paddingTop: 8,
         } as any
@@ -237,9 +237,9 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({
               activeOpacity={0.75}
               className={`items-center justify-center py-1.5 px-3.5 rounded-2xl min-h-[46px] transition-all active:scale-[0.96] ${
                 isFocused
-                  ? "bg-[#182e22] border border-[#2b543c] shadow-2xs"
+                  ? "bg-[#eaf4ed] border border-[#d2e7d7]/80 shadow-2xs"
                   : Platform.OS === "web"
-                  ? "hover:bg-white/5"
+                  ? "hover:bg-neutral-100/50"
                   : ""
               }`}
               accessibilityRole="tab"
@@ -250,12 +250,12 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({
                 name={displayLabel}
                 focused={isFocused}
                 size={20}
-                color={isFocused ? "#34d399" : "#60776b"}
+                color={isFocused ? "#1b5e37" : "#7d8c82"}
               />
               <AppText
                 weight={isFocused ? "bold" : "medium"}
                 className={`text-[11px] mt-0.5 tracking-tight ${
-                  isFocused ? "text-[#34d399]" : "text-[#60776b]"
+                  isFocused ? "text-[#1b5e37]" : "text-neutral-muted"
                 }`}
               >
                 {displayLabel}
