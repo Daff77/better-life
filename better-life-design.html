@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Better Life — Interactive UI Design Preview</title>
+  <!-- Google Fonts: Akatab -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Akatab:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Akatab', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+          },
+          colors: {
+            primary: {
+              DEFAULT: '#153e28',
+              forest: '#1b5e37',
+              dark: '#0f2e1e',
+              light: '#eaf4ed',
+              border: '#d2e7d7',
+            },
+            neutral: {
+              bg: '#faf9f5',
+              canvas: '#f7faf7',
+              dark: '#14261c',
+              ink: '#1c2a20',
+              muted: '#5a625b',
+              subtle: '#7d8c82',
+              border: '#e5ece7',
+              divider: '#f2f6f3',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * {
+      font-family: 'Akatab', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #eef2ee;
+      color: #14261c;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+
+    .tabular-nums {
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Hide scrollbar for horizontal carousels */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Custom subtle scrollbars */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(27, 94, 55, 0.18);
+      border-radius: 9999px;
+    }
+
+    /* Spring-like button & card tactile interaction */
+    .tactile-btn {
+      transition: transform 160ms cubic-bezier(0.22, 1, 0.36, 1), background-color 150ms ease, border-color 150ms ease, opacity 150ms ease;
+    }
+    .tactile-btn:active {
+      transform: scale(0.97);
+    }
+
+    .tactile-card {
+      transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 180ms ease;
+    }
+    .tactile-card:active {
+      transform: scale(0.99);
+    }
+
+    /* Phone mockup frame styling when in Mobile Frame mode */
+    .phone-frame {
+      width: 392px;
+      height: 844px;
+      border-radius: 46px;
+      border: 10px solid #1c241f;
+      box-shadow: 0 24px 60px rgba(15, 35, 22, 0.14), 0 4px 16px rgba(15, 35, 22, 0.06);
+      position: relative;
+      overflow: hidden;
+      background: #f7faf7;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Progress ring animation */
+    .progress-ring-circle {
+      transition: stroke-dashoffset 450ms cubic-bezier(0.22, 1, 0.36, 1);
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- TOP STUDIO CONTROL BAR -->
+  <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-[#e5ece7] px-4 py-2.5">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <!-- Brand Identity -->
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-xl bg-[#eaf4ed] border border-[#d2e7d7] flex items-center justify-center">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#1b5e37" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
+            <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-black text-sm text-[#14261c] tracking-tight">Better Life</span>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#eaf4ed] text-[#165b33] border border-[#d2e7d7]">DESIGN.md Live Preview</span>
+          </div>
+          <p class="text-[11px] text-[#5a625b] font-medium">Scandinavian Organic Minimalist UI · Interactive HTML Prototype</p>
+        </div>
+      </div>
+
+      <!-- Viewport Mode Switcher & Quick Reset -->
+      <div class="flex items-center gap-2">
+        <div class="bg-[#f2f6f3] p-1 rounded-xl border border-[#e5ece7] flex items-center gap-1">
+          <button id="btn-mode-mobile" onclick="setViewportMode('mobile')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-white text-[#1b5e37] shadow-sm flex items-center gap-1.5">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+            Mobile Frame (390px)
+          </button>
+          <button id="btn-mode-responsive" onclick="setViewportMode('responsive')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-[#5a625b] hover:text-[#14261c] flex items-center gap-1.5">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
+            Full Responsive Web
+          </button>
+        </div>
+
+        <button onclick="openDesignTokensModal()" class="tactile-btn px-3 py-2 rounded-xl bg-[#eaf4ed] border border-[#d2e7d7] text-xs font-bold text-[#165b33] flex items-center gap-1.5">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
+          Design Tokens
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE CONTAINER -->
+  <main id="workspace-root" class="flex-1 flex items-center justify-center p-4 sm:p-6 transition-all">
+
+    <!-- PHONE / APP SHELL -->
+    <div id="app-shell" class="phone-frame">
+
+      <!-- iOS / Android Simulated Status Bar (Visible in Mobile Frame) -->
+      <div id="mobile-status-bar" class="px-6 pt-3 pb-1.5 flex items-center justify-between text-[#14261c] text-xs font-bold select-none flex-shrink-0 bg-[#f7faf7]">
+        <span class="tabular-nums">09:41</span>
+        <div class="w-20 h-4 rounded-full bg-[#14261c]/90"></div>
+        <div class="flex items-center gap-1.5">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M2 20h20V4L2 20z"/></svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="2" y="7" width="16" height="10" rx="2"/><line x1="22" y1="11" x2="22" y2="13"/></svg>
+        </div>
+      </div>
+
+      <!-- DESKTOP SIDEBAR + CONTENT WRAPPER -->
+      <div class="flex-1 flex overflow-hidden relative">
+
+        <!-- Desktop Sidebar (Hidden in Mobile Frame, Visible in Responsive Desktop) -->
+        <aside id="desktop-sidebar" class="hidden w-[230px] bg-white border-r border-[#e5ece7] px-4 py-6 flex-col justify-between flex-shrink-0">
+          <div>
+            <div class="flex items-center gap-2.5 px-2 mb-8">
+              <div class="w-8 h-8 rounded-xl bg-[#eaf4ed] border border-[#d2e7d7] flex items-center justify-center">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1b5e37" stroke-width="2.2"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+              </div>
+              <div>
+                <div class="font-black text-base text-[#14261c] leading-none">Better Life</div>
+                <div class="font-bold text-[9px] text-[#1b5e37] tracking-wider uppercase mt-1">Nutrisi & Vitalitas</div>
+              </div>
+            </div>
+
+            <nav class="flex flex-col gap-1.5">
+              <button onclick="switchTab('home')" data-nav="home" class="sidebar-nav-btn px-3.5 py-2.5 rounded-xl flex items-center gap-3 text-sm font-bold bg-[#eaf4ed] border border-[#d2e7d7] text-[#1b5e37]">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                Home
+              </button>
+              <button onclick="switchTab('meals')" data-nav="meals" class="sidebar-nav-btn px-3.5 py-2.5 rounded-xl flex items-center gap-3 text-sm font-medium text-[#5a625b] hover:bg-[#f6f9f7]">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
+                Meals
+              </button>
+              <button onclick="switchTab('recipes')" data-nav="recipes" class="sidebar-nav-btn px-3.5 py-2.5 rounded-xl flex items-center gap-3 text-sm font-medium text-[#5a625b] hover:bg-[#f6f9f7]">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+                Recipes
+              </button>
+              <button onclick="switchTab('profile')" data-nav="profile" class="sidebar-nav-btn px-3.5 py-2.5 rounded-xl flex items-center gap-3 text-sm font-medium text-[#5a625b] hover:bg-[#f6f9f7]">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                Profile
+              </button>
+            </nav>
+          </div>
+
+          <div class="bg-[#f7faf8] border border-[#e5ece7] rounded-2xl p-3.5">
+            <div class="flex items-center gap-1.5">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="2.2"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/></svg>
+              <span class="font-bold text-xs text-[#14261c]">Premium Aktif</span>
+            </div>
+            <p class="text-[11px] text-[#5a625b] mt-0.5 mb-2.5">Meal plan 7H & analitik 30D terbuka</p>
+            <button onclick="switchTab('profile')" class="tactile-btn w-full py-1.5 px-3 rounded-xl bg-white border border-[#dce8e0] text-xs font-bold text-[#1b5e37]">
+              Kelola Status
+            </button>
+          </div>
+        </aside>
+
+        <!-- SCROLLABLE SCREEN VIEWPORT -->
+        <div id="screen-scroll" class="flex-1 overflow-y-auto bg-[#f7faf7] px-4 pt-3 pb-24">
+          <div class="max-w-5xl mx-auto">
+
+            <!-- ==========================================
+                 SCREEN 1: HOME DASHBOARD
+                 ========================================== -->
+            <section id="tab-home" class="space-y-3.5">
+
+              <!-- TOP HEADER: Greeting + Date + Search + Bell + Avatar -->
+              <div class="flex flex-col gap-3 mb-1">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <h1 class="font-black text-xl sm:text-2xl text-[#14261c] tracking-tight leading-tight">
+                      Selamat pagi, Daffa
+                    </h1>
+                    <div class="flex items-center gap-1.5 mt-0.5">
+                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                      <span class="text-xs font-medium text-[#5a625b] tabular-nums">
+                        Sabtu, 7 Nov · Target <span id="header-target-cal">2.253</span> kcal
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Action Icons -->
+                  <div class="flex items-center gap-2">
+                    <button onclick="alert('Semua pengingat nutrisi hari ini sudah mutakhir!')" class="tactile-btn w-9 h-9 rounded-full bg-white border border-[#e2eae4] flex items-center justify-center relative shadow-2xs" aria-label="Notifikasi">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#35483b" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+                      <span class="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                    </button>
+                    <button onclick="switchTab('profile')" class="tactile-btn w-9 h-9 rounded-full bg-[#d6eade] border border-[#b2d3bf] flex items-center justify-center text-xs font-bold text-[#165b33]">
+                      DP
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Search Input Pill -->
+                <div class="flex items-center bg-white border border-[#e2eae4] rounded-full px-3.5 py-2 shadow-2xs">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#607065" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                  <input
+                    id="home-search-input"
+                    type="text"
+                    placeholder="Cari makanan atau resep sehat..."
+                    class="ml-2 flex-1 text-xs text-[#14261c] font-medium bg-transparent focus:outline-none placeholder-[#8a9a8f]"
+                    onkeydown="if(event.key==='Enter'){ switchTab('meals'); }"
+                  />
+                </div>
+              </div>
+
+              <!-- RESPONSIVE GRID CONTAINER -->
+              <div id="home-grid" class="flex flex-col gap-3.5">
+
+                <!-- LEFT / PRIMARY COLUMN -->
+                <div class="flex-1 flex flex-col gap-3.5 min-w-0">
+
+                  <!-- 1. HERO: Minimalist Energy & Calorie Equilibrium Hub (NO NESTED CARDS) -->
+                  <div class="bg-white rounded-2xl border border-[#e5ece7] p-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                    <!-- Top Meta Row -->
+                    <div class="flex items-center justify-between pb-2.5 mb-2.5 border-b border-[#f2f6f3]">
+                      <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+                        <span class="font-bold text-xs text-[#1c2a20]">Sisa Budget Kalori</span>
+                      </div>
+                      <div class="px-2.5 py-0.5 rounded-full bg-[#eaf4ed] border border-[#d2e7d7] flex items-center gap-1">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#165b33" stroke-width="2.4"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+                        <span id="pacing-badge-text" class="font-bold text-[10px] text-[#165b33]">Pacing optimal</span>
+                      </div>
+                    </div>
+
+                    <!-- Main Stat Row: Remaining Calories + Compact 68px Ring -->
+                    <div class="flex items-center justify-between py-1">
+                      <div class="flex-1 pr-3">
+                        <div class="flex items-baseline gap-1.5">
+                          <span id="remaining-calories" class="font-black text-3xl sm:text-4xl text-[#14261c] leading-tight tabular-nums tracking-tight">
+                            2.253
+                          </span>
+                          <span class="font-bold text-xs text-[#5a625b]">kcal</span>
+                        </div>
+                        <p class="font-medium text-[11px] text-[#5a625b] mt-1 tabular-nums">
+                          <span id="consumed-calories">0</span> dari <span id="target-calories">2.253</span> kcal tercatat
+                        </p>
+                      </div>
+
+                      <!-- Compact 68px Progress Ring -->
+                      <div class="relative w-[68px] h-[68px] flex items-center justify-center flex-shrink-0">
+                        <svg width="68" height="68" viewBox="0 0 68 68">
+                          <circle cx="34" cy="34" r="28" stroke="#edf4ee" stroke-width="7" fill="none" />
+                          <circle
+                            id="calorie-ring-circle"
+                            class="progress-ring-circle"
+                            cx="34"
+                            cy="34"
+                            r="28"
+                            stroke="#1b5e37"
+                            stroke-width="7"
+                            stroke-dasharray="175.93 175.93"
+                            stroke-dashoffset="175.93"
+                            stroke-linecap="round"
+                            fill="none"
+                          />
+                        </svg>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                          <span id="calorie-ring-pct" class="font-black text-base text-[#14261c] tabular-nums leading-none">0%</span>
+                          <span class="font-medium text-[9px] text-[#7d8c82] mt-0.5">tercatat</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Single Slim Hairline Progress Track -->
+                    <div class="h-1.5 rounded-full bg-[#edf4ee] overflow-hidden my-3">
+                      <div id="calorie-bar-fill" style="width: 0%" class="h-full bg-emerald-600 rounded-full transition-all duration-300"></div>
+                    </div>
+
+                    <!-- Flat 3-Column Macro Strip (Zero Nested Boxes) -->
+                    <div class="flex items-center justify-between pt-2.5 border-t border-[#f2f6f3]">
+                      <!-- Protein -->
+                      <div class="flex-1">
+                        <div class="flex items-center gap-1.5 mb-0.5">
+                          <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                          <span class="font-bold text-[11px] text-[#5a625b]">Protein</span>
+                        </div>
+                        <div class="font-black text-xs sm:text-sm text-[#14261c] tabular-nums">
+                          <span id="macro-protein-val">0</span>
+                          <span class="font-normal text-[10px] text-neutral-400">/ 141g</span>
+                        </div>
+                        <div class="h-1 rounded-full bg-[#ebf2ec] overflow-hidden mt-1.5">
+                          <div id="macro-protein-bar" style="width: 0%" class="h-full bg-emerald-600 rounded-full transition-all duration-300"></div>
+                        </div>
+                      </div>
+
+                      <div class="w-px h-7 bg-[#f0f4f0] mx-2.5"></div>
+
+                      <!-- Karbo -->
+                      <div class="flex-1">
+                        <div class="flex items-center gap-1.5 mb-0.5">
+                          <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                          <span class="font-bold text-[11px] text-[#5a625b]">Karbo</span>
+                        </div>
+                        <div class="font-black text-xs sm:text-sm text-[#14261c] tabular-nums">
+                          <span id="macro-carbs-val">0</span>
+                          <span class="font-normal text-[10px] text-neutral-400">/ 282g</span>
+                        </div>
+                        <div class="h-1 rounded-full bg-[#ebf2ec] overflow-hidden mt-1.5">
+                          <div id="macro-carbs-bar" style="width: 0%" class="h-full bg-amber-500 rounded-full transition-all duration-300"></div>
+                        </div>
+                      </div>
+
+                      <div class="w-px h-7 bg-[#f0f4f0] mx-2.5"></div>
+
+                      <!-- Lemak -->
+                      <div class="flex-1">
+                        <div class="flex items-center gap-1.5 mb-0.5">
+                          <span class="w-1.5 h-1.5 rounded-full bg-sky-500"></span>
+                          <span class="font-bold text-[11px] text-[#5a625b]">Lemak</span>
+                        </div>
+                        <div class="font-black text-xs sm:text-sm text-[#14261c] tabular-nums">
+                          <span id="macro-fat-val">0</span>
+                          <span class="font-normal text-[10px] text-neutral-400">/ 63g</span>
+                        </div>
+                        <div class="h-1 rounded-full bg-[#ebf2ec] overflow-hidden mt-1.5">
+                          <div id="macro-fat-bar" style="width: 0%" class="h-full bg-sky-500 rounded-full transition-all duration-300"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 2. QUICK ACTION DOCK (Ergonomic 44px Height) -->
+                  <div class="flex items-center gap-2">
+                    <button onclick="openQuickLogModal('Breakfast')" class="tactile-btn flex-[1.3] h-11 px-3 rounded-xl bg-[#1b5e37] hover:bg-[#154a2b] text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-2xs">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
+                      + Catat Makan
+                    </button>
+
+                    <button onclick="switchTab('recipes')" class="tactile-btn flex-1 h-11 px-3 rounded-xl bg-white border border-[#e5ece7] hover:bg-[#f6f9f7] text-[#1c2a20] font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-2xs">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1b5e37" stroke-width="2.2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+                      Resep
+                    </button>
+
+                    <button onclick="openMealPlannerModal()" class="tactile-btn flex-1 h-11 px-3 rounded-xl bg-white border border-[#e5ece7] hover:bg-[#f6f9f7] text-[#1c2a20] font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-2xs">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1b5e37" stroke-width="2.2"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/></svg>
+                      Plan 7H
+                    </button>
+                  </div>
+
+                  <!-- 3. DAILY MEAL JOURNEY (Minimalist Slot List) -->
+                  <div class="bg-white rounded-2xl border border-[#e5ece7] p-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                    <div class="flex items-center justify-between pb-2.5 mb-1.5 border-b border-[#f2f6f3]">
+                      <div>
+                        <h2 class="font-bold text-sm sm:text-base text-[#14261c]">Jurnal Hari Ini</h2>
+                        <p id="journal-count-label" class="font-medium text-[11px] text-[#5a625b] tabular-nums">0 makanan tercatat</p>
+                      </div>
+                      <button onclick="switchTab('meals')" class="tactile-btn flex items-center gap-1 py-1 px-2.5 rounded-full bg-[#f4f7f4] hover:bg-[#eaf2ec] text-xs font-bold text-[#1b5e37]">
+                        Semua
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m9 18 6-6-6-6"/></svg>
+                      </button>
+                    </div>
+
+                    <!-- Dynamic Meal Slots Container -->
+                    <div id="journal-slots-container" class="divide-y divide-[#f4f7f4]">
+                      <!-- Rendered by JS -->
+                    </div>
+                  </div>
+
+                </div>
+
+                <!-- RIGHT / SECONDARY COLUMN -->
+                <div class="flex-1 flex flex-col gap-3.5 min-w-0">
+
+                  <!-- 4. PHYSICAL ACTIVITY & VITALITY TILE -->
+                  <div class="bg-white rounded-2xl border border-[#e5ece7] p-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                    <div class="flex items-center justify-between pb-2.5 mb-2.5 border-b border-[#f2f6f3]">
+                      <div class="flex items-center gap-2">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1b5e37" stroke-width="2.2"><path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z"/><path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z"/></svg>
+                        <h2 class="font-bold text-sm text-[#14261c]">Aktivitas Hari Ini</h2>
+                      </div>
+                      <span id="steps-pct-badge" class="font-bold text-[11px] text-[#1b5e37] tabular-nums">57% Target</span>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-4">
+                      <!-- Steps Col -->
+                      <div class="flex-1">
+                        <span class="font-medium text-[11px] text-[#5a625b] block mb-0.5">Langkah</span>
+                        <div class="flex items-baseline gap-1">
+                          <span id="steps-count" class="font-black text-xl sm:text-2xl text-[#14261c] tracking-tight tabular-nums">3.420</span>
+                          <span class="font-medium text-[10px] text-neutral-400 tabular-nums">/ 6.000</span>
+                        </div>
+                        <div class="h-1 rounded-full bg-[#ebf2ec] overflow-hidden mt-1.5 mb-2.5">
+                          <div id="steps-progress-bar" style="width: 57%" class="h-full bg-emerald-600 rounded-full transition-all duration-300"></div>
+                        </div>
+                        <button onclick="addSteps(500)" class="tactile-btn py-1 px-2.5 rounded-lg bg-[#f0f6f2] border border-[#dcebe1] hover:bg-[#e2efe6] font-bold text-[11px] text-[#1b5e37]">
+                          +500 Langkah
+                        </button>
+                      </div>
+
+                      <div class="w-px h-14 bg-[#f0f4f0]"></div>
+
+                      <!-- Active Burn Col -->
+                      <div class="flex-1">
+                        <span class="font-medium text-[11px] text-[#5a625b] block mb-0.5">Kalori Aktif</span>
+                        <div class="flex items-baseline gap-1">
+                          <span id="active-calories-val" class="font-black text-xl sm:text-2xl text-[#14261c] tracking-tight tabular-nums">240</span>
+                          <span class="font-bold text-xs text-[#5a625b]">kcal</span>
+                        </div>
+                        <p id="active-minutes-label" class="font-medium text-[11px] text-[#5a625b] mt-2 tabular-nums">
+                          35 menit latihan aktif
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 5. PERENCANAAN & ANALITIK -->
+                  <div class="bg-white rounded-2xl border border-[#e5ece7] p-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                    <div class="flex items-center justify-between pb-2.5 mb-2.5 border-b border-[#f2f6f3]">
+                      <div class="flex items-center gap-2">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1b5e37" stroke-width="2.2"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/></svg>
+                        <h2 class="font-bold text-sm text-[#14261c]">Perencanaan & Analitik</h2>
+                      </div>
+                      <span class="px-2.5 py-0.5 rounded-full bg-[#eaf4ed] border border-[#d2e7d7] font-bold text-[10px] text-[#165b33]">Aktif</span>
+                    </div>
+
+                    <div class="flex flex-col gap-2">
+                      <button onclick="openMealPlannerModal()" class="tactile-card w-full p-3 rounded-xl bg-[#fafcfa] border border-[#e8f0ea] hover:bg-[#f0f6f2] flex items-center justify-between text-left">
+                        <div class="pr-2">
+                          <div class="font-bold text-xs sm:text-sm text-[#14261c]">Meal Planner 7 Hari</div>
+                          <div class="font-medium text-[11px] text-[#5a625b] mt-0.5">Jadwal menu bergizi sesuai budget pasar</div>
+                        </div>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1b5e37" stroke-width="2.2"><path d="m9 18 6-6-6-6"/></svg>
+                      </button>
+
+                      <button onclick="openAnalyticsModal()" class="tactile-card w-full p-3 rounded-xl bg-[#fafcfa] border border-[#e8f0ea] hover:bg-[#f0f6f2] flex items-center justify-between text-left">
+                        <div class="pr-2">
+                          <div class="font-bold text-xs sm:text-sm text-[#14261c]">Tren & Analitik Nutrisi</div>
+                          <div class="font-medium text-[11px] text-[#5a625b] mt-0.5">Grafik kalori 7D & 30D, makro, dan serat</div>
+                        </div>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1b5e37" stroke-width="2.2"><path d="m9 18 6-6-6-6"/></svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- 6. INSPIRASI MENU SEHAT (Horizontal Carousel) -->
+                  <div class="bg-white rounded-2xl border border-[#e5ece7] p-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                    <div class="flex items-center justify-between pb-2.5 mb-2.5 border-b border-[#f2f6f3]">
+                      <div class="flex items-center gap-2">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1b5e37" stroke-width="2.2"><path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"/><line x1="6" x2="18" y1="17" y2="17"/></svg>
+                        <h2 class="font-bold text-sm text-[#14261c]">Inspirasi Menu Sehat</h2>
+                      </div>
+                      <button onclick="switchTab('recipes')" class="tactile-btn flex items-center gap-1 py-1 px-2.5 rounded-full bg-[#f4f7f4] hover:bg-[#eaf2ec] text-xs font-bold text-[#1b5e37]">
+                        Semua
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m9 18 6-6-6-6"/></svg>
+                      </button>
+                    </div>
+
+                    <div id="home-recipes-carousel" class="flex gap-2.5 overflow-x-auto no-scrollbar pb-1">
+                      <!-- Populated by JS -->
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </section>
+
+            <!-- ==========================================
+                 SCREEN 2: MEALS & LOGGING CATALOG
+                 ========================================== -->
+            <section id="tab-meals" class="hidden space-y-3.5">
+              <div class="bg-white rounded-2xl border border-[#e5ece7] p-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                <div class="flex items-center justify-between mb-3">
+                  <div>
+                    <h1 class="font-black text-xl text-[#14261c] tracking-tight">Katalog & Jurnal Makanan</h1>
+                    <p class="text-xs text-[#5a625b] font-medium">Pilih menu harian untuk dicatat ke jurnal</p>
+                  </div>
+                  <span id="meals-tab-remaining" class="px-3 py-1 rounded-full bg-[#eaf4ed] border border-[#d2e7d7] font-bold text-xs text-[#165b33] tabular-nums">
+                    Sisa 2.253 kcal
+                  </span>
+                </div>
+
+                <!-- Category Filter Chips -->
+                <div class="flex gap-1.5 overflow-x-auto no-scrollbar pb-1" id="meals-filter-bar">
+                  <button onclick="filterMealsCatalog('Semua')" class="meal-filter-chip px-3 py-1.5 rounded-full text-xs font-bold bg-[#1b5e37] text-white">Semua</button>
+                  <button onclick="filterMealsCatalog('Breakfast')" class="meal-filter-chip px-3 py-1.5 rounded-full text-xs font-bold bg-[#f4f7f4] text-[#5a625b]">Sarapan</button>
+                  <button onclick="filterMealsCatalog('Lunch')" class="meal-filter-chip px-3 py-1.5 rounded-full text-xs font-bold bg-[#f4f7f4] text-[#5a625b]">Makan Siang</button>
+                  <button onclick="filterMealsCatalog('Dinner')" class="meal-filter-chip px-3 py-1.5 rounded-full text-xs font-bold bg-[#f4f7f4] text-[#5a625b]">Makan Malam</button>
+                  <button onclick="filterMealsCatalog('Snack')" class="meal-filter-chip px-3 py-1.5 rounded-full text-xs font-bold bg-[#f4f7f4] text-[#5a625b]">Camilan</button>
+                </div>
+              </div>
+
+              <div id="meals-catalog-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <!-- Populated by JS -->
+              </div>
+            </section>
+
+            <!-- ==========================================
+                 SCREEN 3: RECIPES EXPLORER
+                 ========================================== -->
+            <section id="tab-recipes" class="hidden space-y-3.5">
+              <div class="bg-white rounded-2xl border border-[#e5ece7] p-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                <h1 class="font-black text-xl text-[#14261c] tracking-tight">Resep Nusantara & Wellness</h1>
+                <p class="text-xs text-[#5a625b] font-medium mt-0.5">Terukur klinis dengan takaran gizi & estimasi biaya bahan</p>
+              </div>
+
+              <div id="recipes-full-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <!-- Populated by JS -->
+              </div>
+            </section>
+
+            <!-- ==========================================
+                 SCREEN 4: PROFILE & PERSONALIZATION
+                 ========================================== -->
+            <section id="tab-profile" class="hidden space-y-3.5">
+              <div class="bg-white rounded-2xl border border-[#e5ece7] p-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex items-center gap-3.5">
+                <div class="w-14 h-14 rounded-2xl bg-[#eaf4ed] border border-[#d2e7d7] flex items-center justify-center font-black text-lg text-[#165b33]">
+                  DP
+                </div>
+                <div class="flex-1">
+                  <div class="flex items-center gap-2">
+                    <h1 class="font-black text-lg text-[#14261c]">Daffa Pratama</h1>
+                    <span class="px-2 py-0.5 rounded-full bg-[#eaf4ed] border border-[#d2e7d7] text-[10px] font-bold text-[#165b33]">Plus Member</span>
+                  </div>
+                  <p class="text-xs text-[#5a625b]">daffa@gmail.com · Mifflin-St Jeor Active Profile</p>
+                </div>
+              </div>
+
+              <!-- Biometric & Target Summary -->
+              <div class="bg-white rounded-2xl border border-[#e5ece7] p-4 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                <h2 class="font-bold text-sm text-[#14261c] pb-2.5 mb-3 border-b border-[#f2f6f3]">Parameter Nutrisi & Biometrik</h2>
+                <div class="grid grid-cols-2 gap-2.5">
+                  <div class="p-3 rounded-xl bg-[#fafcfa] border border-[#e8f0ea]">
+                    <span class="text-[11px] text-[#5a625b] font-medium">Target Kalori Harian</span>
+                    <div class="font-black text-base text-[#14261c] tabular-nums mt-0.5">2.253 kcal</div>
+                  </div>
+                  <div class="p-3 rounded-xl bg-[#fafcfa] border border-[#e8f0ea]">
+                    <span class="text-[11px] text-[#5a625b] font-medium">Tujuan Utama</span>
+                    <div class="font-black text-base text-[#1b5e37] mt-0.5">Optimal Maintenance</div>
+                  </div>
+                  <div class="p-3 rounded-xl bg-[#fafcfa] border border-[#e8f0ea]">
+                    <span class="text-[11px] text-[#5a625b] font-medium">Rasio Makro (P/C/F)</span>
+                    <div class="font-bold text-xs text-[#14261c] tabular-nums mt-1">141g / 282g / 63g</div>
+                  </div>
+                  <div class="p-3 rounded-xl bg-[#fafcfa] border border-[#e8f0ea]">
+                    <span class="text-[11px] text-[#5a625b] font-medium">Target Langkah</span>
+                    <div class="font-bold text-xs text-[#14261c] tabular-nums mt-1">6.000 langkah / hari</div>
+                  </div>
+                </div>
+              </div>
+
+              <button onclick="openDesignTokensModal()" class="tactile-btn w-full py-3 rounded-xl bg-[#1b5e37] text-white font-bold text-xs flex items-center justify-center gap-2">
+                Lihat Dokumentasi Sistem Desain (DESIGN.md)
+              </button>
+            </section>
+
+          </div>
+        </div>
+
+        <!-- MOBILE BOTTOM NAVIGATION BAR (Apple Translucent Frosted Glass) -->
+        <nav id="mobile-bottom-nav" class="absolute bottom-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-xl border-t border-[#e5ece7] px-3 py-2 flex items-center justify-around shadow-[0_-4px_20px_rgba(20,50,25,0.03)]">
+          <button onclick="switchTab('home')" data-mnav="home" class="mobile-nav-btn flex flex-col items-center justify-center py-1 px-3.5 rounded-2xl min-h-[44px] bg-[#eaf4ed] border border-[#d2e7d7]/80 text-[#1b5e37]">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            <span class="text-[10px] font-bold mt-0.5">Home</span>
+          </button>
+
+          <button onclick="switchTab('meals')" data-mnav="meals" class="mobile-nav-btn flex flex-col items-center justify-center py-1 px-3.5 rounded-2xl min-h-[44px] text-[#7d8c82]">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
+            <span class="text-[10px] font-medium mt-0.5">Meals</span>
+          </button>
+
+          <button onclick="switchTab('recipes')" data-mnav="recipes" class="mobile-nav-btn flex flex-col items-center justify-center py-1 px-3.5 rounded-2xl min-h-[44px] text-[#7d8c82]">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+            <span class="text-[10px] font-medium mt-0.5">Recipes</span>
+          </button>
+
+          <button onclick="switchTab('profile')" data-mnav="profile" class="mobile-nav-btn flex flex-col items-center justify-center py-1 px-3.5 rounded-2xl min-h-[44px] text-[#7d8c82]">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span class="text-[10px] font-medium mt-0.5">Profile</span>
+          </button>
+        </nav>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- ==========================================
+       MODAL: QUICK MEAL LOGGING
+       ========================================== -->
+  <div id="modal-log-meal" class="fixed inset-0 z-50 hidden bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl border border-[#e5ece7] max-w-sm w-full p-5 shadow-xl">
+      <div class="flex items-center justify-between pb-3 mb-3 border-b border-[#f2f6f3]">
+        <div>
+          <h3 id="modal-log-title" class="font-black text-base text-[#14261c]">Catat Makanan</h3>
+          <p id="modal-log-subtitle" class="text-xs text-[#5a625b]">Pilih hidangan untuk ditambahkan ke jurnal</p>
+        </div>
+        <button onclick="closeModal('modal-log-meal')" class="w-8 h-8 rounded-full bg-[#f4f7f4] flex items-center justify-center text-[#5a625b] hover:text-[#14261c]">
+          ✕
+        </button>
+      </div>
+
+      <div id="modal-log-options" class="space-y-2 max-h-[320px] overflow-y-auto pr-1">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL: 7-DAY MEAL PLANNER PREVIEW
+       ========================================== -->
+  <div id="modal-planner" class="fixed inset-0 z-50 hidden bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl border border-[#e5ece7] max-w-md w-full p-5 shadow-xl">
+      <div class="flex items-center justify-between pb-3 mb-3 border-b border-[#f2f6f3]">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+          <h3 class="font-black text-base text-[#14261c]">Meal Planner 7 Hari</h3>
+        </div>
+        <button onclick="closeModal('modal-planner')" class="w-8 h-8 rounded-full bg-[#f4f7f4] flex items-center justify-center text-[#5a625b]">✕</button>
+      </div>
+      <p class="text-xs text-[#5a625b] mb-3">Rencana makan otomatis berbasis target 2.253 kcal & estimasi pasar lokal:</p>
+      <div class="space-y-2 text-xs">
+        <div class="p-3 rounded-xl bg-[#fafcfa] border border-[#e8f0ea] flex justify-between items-center">
+          <div>
+            <span class="font-bold text-[#14261c] block">Hari 1 · Senin</span>
+            <span class="text-[11px] text-[#5a625b]">Oatmeal Pisang · Dada Ayam Bakar · Salmon Quinoa</span>
+          </div>
+          <span class="font-bold text-[#1b5e37] tabular-nums">2.190 kcal</span>
+        </div>
+        <div class="p-3 rounded-xl bg-[#fafcfa] border border-[#e8f0ea] flex justify-between items-center">
+          <div>
+            <span class="font-bold text-[#14261c] block">Hari 2 · Selasa</span>
+            <span class="text-[11px] text-[#5a625b]">Telur Orak-Arik Alpukat · Gado-Gado · Pepes Ikan</span>
+          </div>
+          <span class="font-bold text-[#1b5e37] tabular-nums">2.240 kcal</span>
+        </div>
+        <div class="p-3 rounded-xl bg-[#fafcfa] border border-[#e8f0ea] flex justify-between items-center">
+          <div>
+            <span class="font-bold text-[#14261c] block">Hari 3 · Rabu</span>
+            <span class="text-[11px] text-[#5a625b]">Smoothie Bowl · Nasi Merah Empal · Sup Tahu Sutra</span>
+          </div>
+          <span class="font-bold text-[#1b5e37] tabular-nums">2.215 kcal</span>
+        </div>
+      </div>
+      <button onclick="closeModal('modal-planner')" class="tactile-btn w-full mt-4 py-2.5 rounded-xl bg-[#1b5e37] text-white font-bold text-xs">
+        Tutup Pratinjau
+      </button>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL: NUTRITION ANALYTICS PREVIEW
+       ========================================== -->
+  <div id="modal-analytics" class="fixed inset-0 z-50 hidden bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl border border-[#e5ece7] max-w-md w-full p-5 shadow-xl">
+      <div class="flex items-center justify-between pb-3 mb-3 border-b border-[#f2f6f3]">
+        <h3 class="font-black text-base text-[#14261c]">Tren & Analitik Nutrisi (7 Hari)</h3>
+        <button onclick="closeModal('modal-analytics')" class="w-8 h-8 rounded-full bg-[#f4f7f4] flex items-center justify-center text-[#5a625b]">✕</button>
+      </div>
+      <div class="p-3.5 rounded-xl bg-[#fafcfa] border border-[#e8f0ea] mb-3">
+        <div class="flex items-end justify-between h-28 gap-2 pt-4 px-2">
+          <div class="flex-1 flex flex-col items-center gap-1"><div class="w-full bg-emerald-600/80 rounded-t-md h-16"></div><span class="text-[10px] text-[#5a625b]">Sen</span></div>
+          <div class="flex-1 flex flex-col items-center gap-1"><div class="w-full bg-emerald-600/80 rounded-t-md h-20"></div><span class="text-[10px] text-[#5a625b]">Sel</span></div>
+          <div class="flex-1 flex flex-col items-center gap-1"><div class="w-full bg-emerald-600/80 rounded-t-md h-14"></div><span class="text-[10px] text-[#5a625b]">Rab</span></div>
+          <div class="flex-1 flex flex-col items-center gap-1"><div class="w-full bg-emerald-600/80 rounded-t-md h-22"></div><span class="text-[10px] text-[#5a625b]">Kam</span></div>
+          <div class="flex-1 flex flex-col items-center gap-1"><div class="w-full bg-emerald-600/80 rounded-t-md h-18"></div><span class="text-[10px] text-[#5a625b]">Jum</span></div>
+          <div class="flex-1 flex flex-col items-center gap-1"><div class="w-full bg-emerald-600 rounded-t-md h-20"></div><span class="text-[10px] font-bold text-[#1b5e37]">Sab</span></div>
+          <div class="flex-1 flex flex-col items-center gap-1"><div class="w-full bg-[#e5ece7] rounded-t-md h-8"></div><span class="text-[10px] text-[#5a625b]">Min</span></div>
+        </div>
+      </div>
+      <div class="grid grid-cols-3 gap-2 text-center">
+        <div class="p-2.5 rounded-xl bg-[#f4f7f4]">
+          <span class="text-[10px] text-[#5a625b] block">Rata-rata Kalori</span>
+          <span class="font-black text-xs text-[#14261c] tabular-nums">2.180 kcal</span>
+        </div>
+        <div class="p-2.5 rounded-xl bg-[#f4f7f4]">
+          <span class="text-[10px] text-[#5a625b] block">Kepatuhan</span>
+          <span class="font-black text-xs text-[#1b5e37] tabular-nums">94% Optimal</span>
+        </div>
+        <div class="p-2.5 rounded-xl bg-[#f4f7f4]">
+          <span class="text-[10px] text-[#5a625b] block">Serat Harian</span>
+          <span class="font-black text-xs text-[#14261c] tabular-nums">28g / hari</span>
+        </div>
+      </div>
+      <button onclick="closeModal('modal-analytics')" class="tactile-btn w-full mt-4 py-2.5 rounded-xl bg-[#1b5e37] text-white font-bold text-xs">
+        Selesai
+      </button>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL: DESIGN SYSTEM TOKENS (DESIGN.md)
+       ========================================== -->
+  <div id="modal-tokens" class="fixed inset-0 z-50 hidden bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl border border-[#e5ece7] max-w-lg w-full p-5 shadow-xl max-h-[85vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-3 mb-3 border-b border-[#f2f6f3]">
+        <div>
+          <h3 class="font-black text-base text-[#14261c]">Better Life — Design System Tokens</h3>
+          <p class="text-xs text-[#5a625b]">Sumber kebenaran visual dari DESIGN.md</p>
+        </div>
+        <button onclick="closeModal('modal-tokens')" class="w-8 h-8 rounded-full bg-[#f4f7f4] flex items-center justify-center text-[#5a625b]">✕</button>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <div>
+          <h4 class="font-bold text-[#14261c] mb-2">1. Palet Warna (Scandinavian Organic)</h4>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <div class="p-2.5 rounded-xl border border-[#e5ece7] flex items-center gap-2.5">
+              <span class="w-7 h-7 rounded-lg bg-[#153e28] flex-shrink-0"></span>
+              <div><div class="font-bold">Primary</div><div class="text-[10px] text-[#5a625b]">#153e28</div></div>
+            </div>
+            <div class="p-2.5 rounded-xl border border-[#e5ece7] flex items-center gap-2.5">
+              <span class="w-7 h-7 rounded-lg bg-[#1b5e37] flex-shrink-0"></span>
+              <div><div class="font-bold">Forest</div><div class="text-[10px] text-[#5a625b]">#1b5e37</div></div>
+            </div>
+            <div class="p-2.5 rounded-xl border border-[#e5ece7] flex items-center gap-2.5">
+              <span class="w-7 h-7 rounded-lg bg-[#eaf4ed] border border-[#d2e7d7] flex-shrink-0"></span>
+              <div><div class="font-bold">Soft Sage</div><div class="text-[10px] text-[#5a625b]">#eaf4ed</div></div>
+            </div>
+            <div class="p-2.5 rounded-xl border border-[#e5ece7] flex items-center gap-2.5">
+              <span class="w-7 h-7 rounded-lg bg-[#faf9f5] border border-[#e5ece7] flex-shrink-0"></span>
+              <div><div class="font-bold">Canvas Bg</div><div class="text-[10px] text-[#5a625b]">#faf9f5</div></div>
+            </div>
+            <div class="p-2.5 rounded-xl border border-[#e5ece7] flex items-center gap-2.5">
+              <span class="w-7 h-7 rounded-lg bg-[#14261c] flex-shrink-0"></span>
+              <div><div class="font-bold">Neutral Dark</div><div class="text-[10px] text-[#5a625b]">#14261c</div></div>
+            </div>
+            <div class="p-2.5 rounded-xl border border-[#e5ece7] flex items-center gap-2.5">
+              <span class="w-7 h-7 rounded-lg bg-[#5a625b] flex-shrink-0"></span>
+              <div><div class="font-bold">Muted</div><div class="text-[10px] text-[#5a625b]">#5a625b</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="font-bold text-[#14261c] mb-1.5">2. Prinsip Arsitektur Card Minimalis</h4>
+          <ul class="list-disc list-inside space-y-1 text-[#5a625b]">
+            <li><strong>Tanpa Nested Cards:</strong> Metrik makronutrien ditampilkan dalam 3 kolom flat berbatas garis tipis (hairline divider).</li>
+            <li><strong>Tabular Numerals:</strong> Seluruh metrik angka menggunakan <code>tabular-nums</code> agar tidak bergeser saat dianimasikan.</li>
+            <li><strong>Zero Redundancy:</strong> Slot makan kosong menggunakan chip <code>+ Catat</code> tanpa teks "0 kcal" berulang.</li>
+          </ul>
+        </div>
+      </div>
+
+      <button onclick="closeModal('modal-tokens')" class="tactile-btn w-full mt-4 py-2.5 rounded-xl bg-[#1b5e37] text-white font-bold text-xs">
+        Tutup
+      </button>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       APPLICATION LOGIC & INTERACTIVE STATE
+       ========================================== -->
+  <script>
+    const TARGET_CALORIES = 2253;
+    const TARGET_PROTEIN = 141;
+    const TARGET_CARBS = 282;
+    const TARGET_FAT = 63;
+
+    let currentSteps = 3420;
+    const STEP_GOAL = 6000;
+    let activeCalories = 240;
+    let activeMinutes = 35;
+
+    const MEAL_SLOTS = [
+      { id: 'Breakfast', label: 'Sarapan', dotColor: '#eab308' },
+      { id: 'Lunch', label: 'Makan Siang', dotColor: '#10b981' },
+      { id: 'Dinner', label: 'Makan Malam', dotColor: '#6366f1' },
+      { id: 'Snack', label: 'Camilan & Minum', dotColor: '#ec4899' },
+    ];
+
+    const RECIPES_CATALOG = [
+      {
+        id: 'meal-1',
+        title: 'Nasi Merah Ayam Bakar Taliwang',
+        category: 'Lunch',
+        categoryLabel: 'Makan Siang',
+        calories: 520,
+        protein: 42,
+        carbs: 54,
+        fat: 14,
+        prepTime: 25,
+        costIdr: 'Rp 28.000',
+        image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80'
+      },
+      {
+        id: 'meal-2',
+        title: 'Oatmeal Pisang & Chia Seeds',
+        category: 'Breakfast',
+        categoryLabel: 'Sarapan',
+        calories: 340,
+        protein: 14,
+        carbs: 52,
+        fat: 8,
+        prepTime: 10,
+        costIdr: 'Rp 15.000',
+        image: 'https://images.unsplash.com/photo-1517673132405-a56a62b18caf?auto=format&fit=crop&w=500&q=80'
+      },
+      {
+        id: 'meal-3',
+        title: 'Pepes Ikan Kemangi & Sayur Asem',
+        category: 'Dinner',
+        categoryLabel: 'Makan Malam',
+        calories: 430,
+        protein: 38,
+        carbs: 36,
+        fat: 12,
+        prepTime: 30,
+        costIdr: 'Rp 24.000',
+        image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=500&q=80'
+      },
+      {
+        id: 'meal-4',
+        title: 'Greek Yogurt & Berry Granola',
+        category: 'Snack',
+        categoryLabel: 'Camilan',
+        calories: 210,
+        protein: 16,
+        carbs: 24,
+        fat: 5,
+        prepTime: 5,
+        costIdr: 'Rp 18.000',
+        image: 'https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=500&q=80'
+      },
+      {
+        id: 'meal-5',
+        title: 'Telur Orak-Arik Roti Gandum Alpukat',
+        category: 'Breakfast',
+        categoryLabel: 'Sarapan',
+        calories: 390,
+        protein: 22,
+        carbs: 34,
+        fat: 18,
+        prepTime: 12,
+        costIdr: 'Rp 19.000',
+        image: 'https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=500&q=80'
+      },
+      {
+        id: 'meal-6',
+        title: 'Gado-Gado Siram Bumbu Kacang Sangrai',
+        category: 'Lunch',
+        categoryLabel: 'Makan Siang',
+        calories: 460,
+        protein: 24,
+        carbs: 48,
+        fat: 19,
+        prepTime: 20,
+        costIdr: 'Rp 20.000',
+        image: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=500&q=80'
+      }
+    ];
+
+    // Journal entries state
+    let journalEntries = [];
+    let currentMealFilter = 'Semua';
+
+    function formatIdNumber(num) {
+      return Math.max(0, Math.round(num)).toLocaleString('id-ID');
+    }
+
+    function updateDashboardMetrics() {
+      const totalConsumed = journalEntries.reduce((s, e) => s + e.calories, 0);
+      const totalProtein = journalEntries.reduce((s, e) => s + e.protein, 0);
+      const totalCarbs = journalEntries.reduce((s, e) => s + e.carbs, 0);
+      const totalFat = journalEntries.reduce((s, e) => s + e.fat, 0);
+
+      const remaining = Math.max(0, TARGET_CALORIES - totalConsumed);
+      const pct = Math.min(100, Math.round((totalConsumed / TARGET_CALORIES) * 100));
+
+      document.getElementById('remaining-calories').textContent = formatIdNumber(remaining);
+      document.getElementById('consumed-calories').textContent = formatIdNumber(totalConsumed);
+      document.getElementById('meals-tab-remaining').textContent = `Sisa ${formatIdNumber(remaining)} kcal`;
+      document.getElementById('calorie-ring-pct').textContent = `${pct}%`;
+      document.getElementById('calorie-bar-fill').style.width = `${pct}%`;
+
+      // SVG Circle circumference = 2 * PI * 28 = 175.93
+      const circumference = 175.93;
+      const offset = circumference - (pct / 100) * circumference;
+      document.getElementById('calorie-ring-circle').style.strokeDashoffset = offset;
+
+      document.getElementById('pacing-badge-text').textContent =
+        remaining > 0 ? 'Pacing optimal' : 'Target tercapai';
+
+      // Macros
+      document.getElementById('macro-protein-val').textContent = totalProtein;
+      document.getElementById('macro-carbs-val').textContent = totalCarbs;
+      document.getElementById('macro-fat-val').textContent = totalFat;
+
+      document.getElementById('macro-protein-bar').style.width = `${Math.min(100, Math.round((totalProtein / TARGET_PROTEIN) * 100))}%`;
+      document.getElementById('macro-carbs-bar').style.width = `${Math.min(100, Math.round((totalCarbs / TARGET_CARBS) * 100))}%`;
+      document.getElementById('macro-fat-bar').style.width = `${Math.min(100, Math.round((totalFat / TARGET_FAT) * 100))}%`;
+
+      document.getElementById('journal-count-label').textContent = `${journalEntries.length} makanan tercatat`;
+
+      renderJournalSlots();
+    }
+
+    function renderJournalSlots() {
+      const container = document.getElementById('journal-slots-container');
+      container.innerHTML = MEAL_SLOTS.map(slot => {
+        const slotItems = journalEntries.filter(e => e.slot === slot.id);
+        const hasEntries = slotItems.length > 0;
+        const slotCals = slotItems.reduce((s, e) => s + e.calories, 0);
+
+        const entriesMarkup = hasEntries ? `
+          <div class="space-y-1.5 mt-2 pt-1">
+            ${slotItems.map(item => `
+              <div class="p-2 rounded-xl bg-[#fafcfa] border border-[#e8f0ea] flex items-center justify-between">
+                <div class="flex items-center gap-2 min-w-0 pr-2">
+                  <img src="${item.image}" alt="${item.title}" class="w-8 h-8 rounded-lg object-cover border border-black/5 flex-shrink-0" />
+                  <div class="min-w-0">
+                    <div class="font-bold text-xs text-[#1c2a20] truncate">${item.title}</div>
+                    <div class="font-medium text-[10px] text-[#5a625b] tabular-nums">P: ${item.protein}g · C: ${item.carbs}g · F: ${item.fat}g</div>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 flex-shrink-0">
+                  <span class="font-black text-xs text-[#1b5e37] tabular-nums">+${item.calories} kcal</span>
+                  <button onclick="removeJournalEntry('${item.entryId}')" class="w-6 h-6 rounded-md bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center text-xs font-bold" title="Hapus">
+                    ✕
+                  </button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        ` : '';
+
+        return `
+          <div class="py-2.5">
+            <div onclick="openQuickLogModal('${slot.id}')" class="flex items-center justify-between min-h-[34px] cursor-pointer group">
+              <div class="flex items-center gap-2 min-w-0 pr-2">
+                <span style="background-color: ${slot.dotColor}" class="w-2 h-2 rounded-full flex-shrink-0"></span>
+                <span class="font-bold text-xs sm:text-sm text-[#1c2a20] group-hover:text-[#1b5e37] transition-colors">${slot.label}</span>
+                ${!hasEntries ? `<span class="font-medium text-[11px] text-neutral-400 truncate">· Belum ada menu</span>` : ''}
+              </div>
+              ${hasEntries ? `
+                <div class="flex items-center gap-2 flex-shrink-0">
+                  <span class="font-bold text-xs text-[#1b5e37] tabular-nums">${slotCals} kcal</span>
+                  <span class="py-1 px-2.5 rounded-lg bg-[#f0f6f2] border border-[#dcebe1] font-bold text-[11px] text-[#1b5e37]">+ Tambah</span>
+                </div>
+              ` : `
+                <span class="py-1 px-2.5 rounded-lg bg-[#f0f6f2] border border-[#dcebe1] group-hover:bg-[#e3f0e7] font-bold text-[11px] text-[#1b5e37] transition-colors">+ Catat</span>
+              `}
+            </div>
+            ${entriesMarkup}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderRecipesSections() {
+      // Home horizontal deck
+      const carousel = document.getElementById('home-recipes-carousel');
+      carousel.innerHTML = RECIPES_CATALOG.slice(0, 4).map(meal => `
+        <div onclick="openQuickLogDirect('${meal.id}')" class="tactile-card w-[168px] flex-shrink-0 rounded-xl bg-[#fafcfa] border border-[#e8f0ea] overflow-hidden cursor-pointer">
+          <div class="h-24 w-full bg-neutral-100 relative">
+            <img src="${meal.image}" alt="${meal.title}" class="w-full h-full object-cover" />
+            <span class="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-white/90 backdrop-blur-xs font-black text-[10px] text-[#1b5e37] tabular-nums">
+              ${meal.calories} kcal
+            </span>
+          </div>
+          <div class="p-2.5">
+            <span class="text-[10px] font-bold text-[#1b5e37] uppercase tracking-wider">${meal.categoryLabel}</span>
+            <h3 class="font-bold text-xs text-[#14261c] line-clamp-1 mt-0.5">${meal.title}</h3>
+            <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-[#f0f4f0] text-[10px] text-[#5a625b] font-medium tabular-nums">
+              <span>${meal.prepTime} mnt</span>
+              <span class="font-bold text-[#14261c]">${meal.costIdr}</span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      // Full Recipes tab
+      const fullGrid = document.getElementById('recipes-full-grid');
+      fullGrid.innerHTML = RECIPES_CATALOG.map(meal => `
+        <div class="bg-white rounded-2xl border border-[#e5ece7] overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col justify-between">
+          <div>
+            <div class="h-36 w-full relative">
+              <img src="${meal.image}" alt="${meal.title}" class="w-full h-full object-cover" />
+              <span class="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full bg-white/90 backdrop-blur-xs font-bold text-[10px] text-[#14261c]">
+                ${meal.categoryLabel}
+              </span>
+              <span class="absolute top-2.5 right-2.5 px-2.5 py-0.5 rounded-full bg-[#1b5e37] text-white font-bold text-[10px] tabular-nums">
+                ${meal.calories} kcal
+              </span>
+            </div>
+            <div class="p-3.5">
+              <h3 class="font-bold text-sm text-[#14261c]">${meal.title}</h3>
+              <p class="text-[11px] text-[#5a625b] mt-1 tabular-nums">
+                Protein ${meal.protein}g · Karbo ${meal.carbs}g · Lemak ${meal.fat}g
+              </p>
+            </div>
+          </div>
+          <div class="px-3.5 pb-3.5 pt-2 border-t border-[#f2f6f3] flex items-center justify-between">
+            <span class="text-xs font-bold text-[#14261c] tabular-nums">${meal.costIdr} <span class="font-normal text-[#5a625b]">· ${meal.prepTime}m</span></span>
+            <button onclick="openQuickLogDirect('${meal.id}')" class="tactile-btn py-1.5 px-3 rounded-lg bg-[#eaf4ed] border border-[#d2e7d7] font-bold text-xs text-[#165b33]">
+              + Catat ke Jurnal
+            </button>
+          </div>
+        </div>
+      `).join('');
+
+      renderMealsCatalog();
+    }
+
+    function renderMealsCatalog() {
+      const grid = document.getElementById('meals-catalog-grid');
+      const filtered = currentMealFilter === 'Semua'
+        ? RECIPES_CATALOG
+        : RECIPES_CATALOG.filter(r => r.category === currentMealFilter);
+
+      grid.innerHTML = filtered.map(meal => `
+        <div class="bg-white rounded-2xl border border-[#e5ece7] p-3 flex items-center justify-between gap-3 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+          <div class="flex items-center gap-3 min-w-0">
+            <img src="${meal.image}" alt="${meal.title}" class="w-14 h-14 rounded-xl object-cover border border-black/5 flex-shrink-0" />
+            <div class="min-w-0">
+              <span class="text-[10px] font-bold text-[#1b5e37]">${meal.categoryLabel}</span>
+              <h3 class="font-bold text-xs sm:text-sm text-[#14261c] truncate">${meal.title}</h3>
+              <p class="text-[11px] text-[#5a625b] tabular-nums mt-0.5">${meal.calories} kcal · P:${meal.protein}g C:${meal.carbs}g F:${meal.fat}g</p>
+            </div>
+          </div>
+          <button onclick="openQuickLogDirect('${meal.id}')" class="tactile-btn py-1.5 px-3 rounded-xl bg-[#1b5e37] text-white font-bold text-xs flex-shrink-0">
+            + Catat
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function filterMealsCatalog(category) {
+      currentMealFilter = category;
+      document.querySelectorAll('.meal-filter-chip').forEach(btn => {
+        const isMatch = (category === 'Semua' && btn.textContent === 'Semua') ||
+                        (category === 'Breakfast' && btn.textContent === 'Sarapan') ||
+                        (category === 'Lunch' && btn.textContent === 'Makan Siang') ||
+                        (category === 'Dinner' && btn.textContent === 'Makan Malam') ||
+                        (category === 'Snack' && btn.textContent === 'Camilan');
+        btn.className = isMatch
+          ? 'meal-filter-chip px-3 py-1.5 rounded-full text-xs font-bold bg-[#1b5e37] text-white'
+          : 'meal-filter-chip px-3 py-1.5 rounded-full text-xs font-bold bg-[#f4f7f4] text-[#5a625b]';
+      });
+      renderMealsCatalog();
+    }
+
+    function openQuickLogModal(slotId) {
+      const slotObj = MEAL_SLOTS.find(s => s.id === slotId) || MEAL_SLOTS[0];
+      document.getElementById('modal-log-title').textContent = `Catat ${slotObj.label}`;
+      document.getElementById('modal-log-subtitle').textContent = `Pilih menu untuk ditambahkan ke slot ${slotObj.label}`;
+
+      const optionsContainer = document.getElementById('modal-log-options');
+      optionsContainer.innerHTML = RECIPES_CATALOG.map(meal => `
+        <div class="p-2.5 rounded-xl bg-[#fafcfa] border border-[#e8f0ea] flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <img src="${meal.image}" alt="${meal.title}" class="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
+            <div class="min-w-0">
+              <div class="font-bold text-xs text-[#14261c] truncate">${meal.title}</div>
+              <div class="text-[10px] text-[#5a625b] tabular-nums">${meal.calories} kcal · P:${meal.protein}g · C:${meal.carbs}g · F:${meal.fat}g</div>
+            </div>
+          </div>
+          <button onclick="logMealToSlot('${meal.id}', '${slotObj.id}')" class="tactile-btn py-1.5 px-2.5 rounded-lg bg-[#1b5e37] text-white font-bold text-[11px] flex-shrink-0">
+            + Tambah
+          </button>
+        </div>
+      `).join('');
+
+      document.getElementById('modal-log-meal').classList.remove('hidden');
+    }
+
+    function openQuickLogDirect(mealId) {
+      const meal = RECIPES_CATALOG.find(m => m.id === mealId);
+      if (!meal) return;
+      logMealToSlot(meal.id, meal.category);
+      switchTab('home');
+    }
+
+    function logMealToSlot(mealId, slotId) {
+      const meal = RECIPES_CATALOG.find(m => m.id === mealId);
+      if (!meal) return;
+      journalEntries.push({
+        entryId: 'entry-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+        slot: slotId,
+        title: meal.title,
+        calories: meal.calories,
+        protein: meal.protein,
+        carbs: meal.carbs,
+        fat: meal.fat,
+        image: meal.image
+      });
+      closeModal('modal-log-meal');
+      updateDashboardMetrics();
+    }
+
+    function removeJournalEntry(entryId) {
+      journalEntries = journalEntries.filter(e => e.entryId !== entryId);
+      updateDashboardMetrics();
+    }
+
+    function addSteps(amount) {
+      currentSteps = Math.min(STEP_GOAL + 4000, currentSteps + amount);
+      activeCalories += Math.round(amount * 0.04);
+      activeMinutes += 4;
+
+      const pct = Math.min(100, Math.round((currentSteps / STEP_GOAL) * 100));
+      document.getElementById('steps-count').textContent = formatIdNumber(currentSteps);
+      document.getElementById('steps-pct-badge').textContent = `${pct}% Target`;
+      document.getElementById('steps-progress-bar').style.width = `${pct}%`;
+      document.getElementById('active-calories-val').textContent = formatIdNumber(activeCalories);
+      document.getElementById('active-minutes-label').textContent = `${activeMinutes} menit latihan aktif`;
+    }
+
+    function switchTab(tabName) {
+      ['home', 'meals', 'recipes', 'profile'].forEach(t => {
+        document.getElementById('tab-' + t).classList.toggle('hidden', t !== tabName);
+      });
+
+      // Update mobile bottom nav
+      document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
+        const isSelected = btn.getAttribute('data-mnav') === tabName;
+        btn.className = isSelected
+          ? 'mobile-nav-btn flex flex-col items-center justify-center py-1 px-3.5 rounded-2xl min-h-[44px] bg-[#eaf4ed] border border-[#d2e7d7]/80 text-[#1b5e37]'
+          : 'mobile-nav-btn flex flex-col items-center justify-center py-1 px-3.5 rounded-2xl min-h-[44px] text-[#7d8c82]';
+      });
+
+      // Update desktop sidebar nav
+      document.querySelectorAll('.sidebar-nav-btn').forEach(btn => {
+        const isSelected = btn.getAttribute('data-nav') === tabName;
+        btn.className = isSelected
+          ? 'sidebar-nav-btn px-3.5 py-2.5 rounded-xl flex items-center gap-3 text-sm font-bold bg-[#eaf4ed] border border-[#d2e7d7] text-[#1b5e37]'
+          : 'sidebar-nav-btn px-3.5 py-2.5 rounded-xl flex items-center gap-3 text-sm font-medium text-[#5a625b] hover:bg-[#f6f9f7]';
+      });
+
+      document.getElementById('screen-scroll').scrollTop = 0;
+    }
+
+    function setViewportMode(mode) {
+      const shell = document.getElementById('app-shell');
+      const statusBar = document.getElementById('mobile-status-bar');
+      const sidebar = document.getElementById('desktop-sidebar');
+      const bottomNav = document.getElementById('mobile-bottom-nav');
+      const homeGrid = document.getElementById('home-grid');
+      const workspace = document.getElementById('workspace-root');
+
+      const btnMobile = document.getElementById('btn-mode-mobile');
+      const btnResp = document.getElementById('btn-mode-responsive');
+
+      if (mode === 'mobile') {
+        shell.className = 'phone-frame';
+        statusBar.classList.remove('hidden');
+        sidebar.classList.add('hidden');
+        sidebar.classList.remove('md:flex');
+        bottomNav.classList.remove('hidden');
+        homeGrid.className = 'flex flex-col gap-3.5';
+        workspace.className = 'flex-1 flex items-center justify-center p-4 sm:p-6';
+
+        btnMobile.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-white text-[#1b5e37] shadow-sm flex items-center gap-1.5';
+        btnResp.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-[#5a625b] hover:text-[#14261c] flex items-center gap-1.5';
+      } else {
+        shell.className = 'w-full h-[calc(100vh-57px)] flex flex-col bg-[#f7faf7] overflow-hidden';
+        statusBar.classList.add('hidden');
+        sidebar.classList.remove('hidden');
+        sidebar.classList.add('md:flex');
+        bottomNav.classList.add('md:hidden');
+        homeGrid.className = 'flex flex-col lg:flex-row gap-5 items-start';
+        workspace.className = 'flex-1 flex p-0';
+
+        btnResp.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-white text-[#1b5e37] shadow-sm flex items-center gap-1.5';
+        btnMobile.className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-[#5a625b] hover:text-[#14261c] flex items-center gap-1.5';
+      }
+    }
+
+    function openMealPlannerModal() {
+      document.getElementById('modal-planner').classList.remove('hidden');
+    }
+
+    function openAnalyticsModal() {
+      document.getElementById('modal-analytics').classList.remove('hidden');
+    }
+
+    function openDesignTokensModal() {
+      document.getElementById('modal-tokens').classList.remove('hidden');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    // Initialize on load
+    window.addEventListener('DOMContentLoaded', () => {
+      renderRecipesSections();
+      updateDashboardMetrics();
+    });
+  </script>
+</body>
+</html>
