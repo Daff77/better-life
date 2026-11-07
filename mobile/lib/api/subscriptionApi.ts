@@ -57,8 +57,8 @@ export const subscriptionApi = {
           localSubscriptionState = data;
           return data;
         }
-      } catch (err) {
-        console.warn("[subscriptionApi] Network error fetching status, using cached state:", err);
+      } catch {
+        // Fallback silently to cached state
       }
     }
     return localSubscriptionState;
@@ -147,8 +147,8 @@ export const subscriptionApi = {
           localSubscriptionState = data.subscription;
           return data;
         }
-      } catch (err) {
-        console.warn("[subscriptionApi] Verify network failed:", err);
+      } catch {
+        // Fallback silently
       }
     }
 
@@ -224,8 +224,8 @@ export const subscriptionApi = {
           }
           return data;
         }
-      } catch (err) {
-        console.warn("[subscriptionApi] Restore network failed:", err);
+      } catch {
+        // Fallback silently
       }
     }
 

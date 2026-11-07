@@ -68,8 +68,7 @@ async function getStorageItem(key: string): Promise<string | null> {
     }
 
     return memoryStore[key] ?? null;
-  } catch (err) {
-    console.warn(`[sessionStorage] Failed to get item for key "${key}":`, err);
+  } catch {
     return memoryStore[key] ?? null;
   }
 }
@@ -89,8 +88,7 @@ async function setStorageItem(key: string, value: string): Promise<void> {
       window.localStorage.setItem(key, value);
     }
     memoryStore[key] = value;
-  } catch (err) {
-    console.warn(`[sessionStorage] Failed to set item for key "${key}":`, err);
+  } catch {
     memoryStore[key] = value;
   }
 }
@@ -110,8 +108,7 @@ async function deleteStorageItem(key: string): Promise<void> {
       window.localStorage.removeItem(key);
     }
     delete memoryStore[key];
-  } catch (err) {
-    console.warn(`[sessionStorage] Failed to delete item for key "${key}":`, err);
+  } catch {
     delete memoryStore[key];
   }
 }

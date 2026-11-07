@@ -38,8 +38,8 @@ export const analyticsApi = {
           const data: AdvancedAnalyticsResponse = await res.json();
           return data;
         }
-      } catch (err) {
-        console.warn("[analyticsApi] Backend call failed, falling back to local computation:", err);
+      } catch {
+        // Fallback silently to local computation
       }
     }
 
@@ -67,8 +67,8 @@ export const analyticsApi = {
           }
           return await res.json();
         }
-      } catch (err) {
-        console.warn("[analyticsApi] Export call failed:", err);
+      } catch {
+        // Fallback silently to local export
       }
     }
 

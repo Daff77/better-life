@@ -12,15 +12,8 @@ import { useOnboardingStore } from "@/stores/useOnboardingStore";
 import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
 import "../styles/global.css";
 
-// Ignore benign dev-mode warnings in Expo Go (e.g. web-only CSS properties, reanimated worklets notices)
-LogBox.ignoreLogs([
-  "css-to-react-native",
-  "hover:",
-  "backdrop-blur",
-  "[Reanimated]",
-  "Route deprecated",
-  "Cloning a style with",
-]);
+// Completely suppress all on-screen YellowBox/LogBox warnings in development
+LogBox.ignoreAllLogs(true);
 
 // Prevent auto-hiding the splash screen until assets are loaded
 SplashScreen.preventAutoHideAsync().catch(() => {});

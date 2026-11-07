@@ -61,7 +61,6 @@ export const useAnalyticsStore = create<AnalyticsState>((set, get) => ({
         isLoading: false,
       });
     } catch (err: any) {
-      console.warn("[useAnalyticsStore] fetchAnalytics error:", err);
       set({
         error: err.message || "Failed to load nutrition analytics.",
         isLoading: false,

@@ -210,8 +210,8 @@ export const mealPlannerApi = {
           cachedLocalPlan = plan;
           return plan;
         }
-      } catch (err) {
-        console.warn("[mealPlannerApi] Backend unreachable, loading cached plan:", err);
+      } catch {
+        // Fallback silently to cached plan
       }
     }
 
@@ -241,8 +241,8 @@ export const mealPlannerApi = {
           cachedLocalPlan = plan;
           return plan;
         }
-      } catch (err) {
-        console.warn("[mealPlannerApi] Backend offline, falling back to local planner engine:", err);
+      } catch {
+        // Fallback silently to local planner engine
       }
     }
 
@@ -274,8 +274,8 @@ export const mealPlannerApi = {
           const data = await res.json();
           return data.plan || plan;
         }
-      } catch (err) {
-        console.warn("[mealPlannerApi] Backend save failed, plan retained in local cache:", err);
+      } catch {
+        // Fallback silently
       }
     }
 
@@ -310,8 +310,8 @@ export const mealPlannerApi = {
           const data = await res.json();
           return data.substitutions || [];
         }
-      } catch (err) {
-        console.warn("[mealPlannerApi] Backend substitutions failed, using local catalog:", err);
+      } catch {
+        // Fallback silently to local substitutions
       }
     }
 
@@ -365,8 +365,8 @@ export const mealPlannerApi = {
           cachedLocalPlan = plan;
           return plan;
         }
-      } catch (err) {
-        console.warn("[mealPlannerApi] Backend replace failed, computing locally:", err);
+      } catch {
+        // Fallback silently to local replacement calculation
       }
     }
 

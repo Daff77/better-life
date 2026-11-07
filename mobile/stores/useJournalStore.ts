@@ -161,8 +161,7 @@ export const useJournalStore = create<JournalState>((set, get) => ({
         activeDate: today,
         isHydrated: true,
       });
-    } catch (err) {
-      console.warn("[useJournalStore] Hydration failed:", err);
+    } catch {
       const today = getTodayDateKey();
       set({
         journals: {

@@ -111,8 +111,7 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
       } else {
         set({ personalization: DEFAULT_PERSONALIZATION, isHydrated: true });
       }
-    } catch (err) {
-      console.warn("[useOnboardingStore] Hydration failed:", err);
+    } catch {
       set({ personalization: DEFAULT_PERSONALIZATION, isHydrated: true });
     }
   },
@@ -217,8 +216,8 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
       const journalStore = useJournalStore.getState();
       const today = getTodayDateKey();
       await journalStore.setTargetCalories(updatedMetrics.targetCalories, today);
-    } catch (err) {
-      console.warn("[useOnboardingStore] Could not sync active journal target:", err);
+    } catch {
+      // Non-fatal if journal store is not yet ready
     }
 
     return { success: true, metrics: updatedMetrics };
