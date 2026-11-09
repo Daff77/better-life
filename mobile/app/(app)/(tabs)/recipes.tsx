@@ -9,19 +9,23 @@ import {
   FilterChip,
   SearchField,
   PageHead,
-  StatusPill,
   Surface,
   PillButton,
   LineIcon,
   PressableScale,
+  CreateRecipeModal,
+  RingButton,
 } from "@/components/ui";
 import { useRecipes } from "@/hooks/useRecipesQuery";
 import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
+import { useCustomRecipesStore } from "@/stores/useCustomRecipesStore";
 import { Entitlement } from "@/lib/subscriptionDomain";
 import { NAV_DESKTOP_BREAKPOINT } from "@/components/layout/ResponsiveTabBar";
 import { mealLabel } from "@/constants/MealLabels";
 import { MealIllustrations } from "@/constants/Assets";
 import { horizontalScrollTouchProps } from "@/lib/tabSwipeGuard";
+import { FoodItem } from "@/data/mockRecipes";
+import { confirmDestructive } from "@/lib/confirm";
 
 const ILLUSTRATED_CATEGORIES = [
   { id: "Breakfast", label: "Sarapan", image: MealIllustrations.Breakfast },
@@ -36,10 +40,14 @@ export default function RecipesScreen() {
   const { width } = useWindowDimensions();
   const hasDesktopNav = width >= NAV_DESKTOP_BREAKPOINT;
   const isMobileStack = width < 640;
+
   const { data: recipes = [], isLoading, isError, refetch } = useRecipes();
+  const removeCustomRecipe = useCustomRecipesStore((state) => state.removeCustomRecipe);
   const hasEntitlement = useSubscriptionStore((state) => state.hasEntitlement);
+
   const [selectedCategory, setSelectedCategory] = useState<string>("Semua");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
 
   const filteredRecipes = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -50,7 +58,8 @@ export default function RecipesScreen() {
         !q ||
         r.title.toLowerCase().includes(q) ||
         mealLabel(r.category).toLowerCase().includes(q) ||
-        r.category.toLowerCase().includes(q);
+        r.category.toLowerCase().includes(q) ||
+        r.ingredients?.some((ing) => ing.name.toLowerCase().includes(q));
       return matchCat && matchSearch;
     });
   }, [recipes, selectedCategory, searchQuery]);
@@ -58,6 +67,17 @@ export default function RecipesScreen() {
   const resetFilters = () => {
     setSearchQuery("");
     setSelectedCategory("Semua");
+  };
+
+  const handleDeleteCustomRecipe = (recipe: FoodItem) => {
+    confirmDestructive(
+      "Hapus Resep Saya",
+      `Hapus resep "${recipe.title}" dari koleksi Anda?`,
+      "Hapus",
+      () => {
+        removeCustomRecipe(recipe.id);
+      }
+    );
   };
 
   return (
@@ -73,9 +93,14 @@ export default function RecipesScreen() {
             title="Resep sehat"
             caption="Takaran bahan jelas dan kalori terhitung per porsi"
             right={
-              !isLoading ? (
-                <StatusPill label={`${recipes.length} resep`} tone="accent" />
-              ) : undefined
+              <PillButton
+                label="Tambah resep"
+                icon="plus"
+                variant="primary"
+                size="sm"
+                onPress={() => setIsCreateModalVisible(true)}
+                accessibilityLabel="Tambah resep baru"
+              />
             }
           />
         </FadeInView>
@@ -175,14 +200,24 @@ export default function RecipesScreen() {
               </AppText>
               <AppText weight="medium" className="text-[13px] text-muted text-center max-w-xs mt-1 mb-4">
                 {searchQuery
-                  ? `Tidak ada resep untuk "${searchQuery}". Coba kata kunci lain atau hapus filter.`
+                  ? `Tidak ada resep untuk "${searchQuery}". Coba kata kunci lain atau buat resep baru.`
                   : `Belum ada resep pada kategori "${mealLabel(selectedCategory)}".`}
               </AppText>
-              <PillButton label="Tampilkan semua resep" size="sm" onPress={resetFilters} />
+              <View className="flex-row items-center gap-2">
+                <PillButton label="Tampilkan semua" size="sm" onPress={resetFilters} />
+                <PillButton
+                  label="Tambah resep"
+                  size="sm"
+                  variant="primary"
+                  icon="plus"
+                  onPress={() => setIsCreateModalVisible(true)}
+                />
+              </View>
             </Surface>
           ) : (
             <View className={isMobileStack ? "gap-3.5" : "flex-row flex-wrap -mx-2"}>
               {filteredRecipes.map((recipe, i) => {
+                const isCustom = recipe.id.startsWith("custom-recipe-");
                 const isPremiumRecipe = Boolean((recipe as any).isPremium);
                 const isLocked = isPremiumRecipe && !hasEntitlement(Entitlement.PREMIUM_RECIPES);
 
@@ -213,7 +248,7 @@ export default function RecipesScreen() {
                   <FadeInView
                     key={recipe.id}
                     index={Math.min(i, 8)}
-                    className={isMobileStack ? "w-full" : "w-1/2 md:w-1/3 lg:w-1/4 px-2 mb-4"}
+                    className={isMobileStack ? "w-full relative" : "w-1/2 md:w-1/3 lg:w-1/4 px-2 mb-4 relative"}
                   >
                     <RecipeCard
                       title={recipe.title}
@@ -227,6 +262,22 @@ export default function RecipesScreen() {
                       isLocked={isLocked}
                       onPress={handlePress}
                     />
+                    {isCustom && (
+                      <View className="absolute top-3 left-4 flex-row items-center gap-1.5">
+                        <View className="px-2.5 py-1 rounded-full bg-primary">
+                          <AppText weight="bold" className="text-[10.5px] text-white">
+                            Resep Saya
+                          </AppText>
+                        </View>
+                        <RingButton
+                          icon="trash"
+                          size="sm"
+                          variant="solid"
+                          accessibilityLabel={`Hapus ${recipe.title}`}
+                          onPress={() => handleDeleteCustomRecipe(recipe as FoodItem)}
+                        />
+                      </View>
+                    )}
                   </FadeInView>
                 );
               })}
@@ -234,6 +285,14 @@ export default function RecipesScreen() {
           )}
         </View>
       </ScrollView>
+
+      <CreateRecipeModal
+        visible={isCreateModalVisible}
+        onClose={() => setIsCreateModalVisible(false)}
+        onRecipeCreated={(newRecipe) => {
+          router.push({ pathname: "/(app)/recipe-detail", params: { id: newRecipe.id } });
+        }}
+      />
     </ScreenWrapper>
   );
 }

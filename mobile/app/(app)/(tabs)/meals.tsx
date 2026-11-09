@@ -6,6 +6,7 @@ import {
   AppText,
   MealCard,
   MealLogModal,
+  CreateRecipeModal,
   FadeInView,
   FilterChip,
   SearchField,
@@ -25,6 +26,7 @@ import { NAV_DESKTOP_BREAKPOINT } from "@/components/layout/ResponsiveTabBar";
 import { mealLabel } from "@/constants/MealLabels";
 import { MealIllustrations, getMealIllustration } from "@/constants/Assets";
 import { FoodItem } from "@/data/mockRecipes";
+import { INGREDIENTS_DATABASE, calculateIngredientNutrition } from "@/data/ingredientsDatabase";
 import { horizontalScrollTouchProps } from "@/lib/tabSwipeGuard";
 
 const ILLUSTRATED_SLOTS = [
@@ -55,16 +57,48 @@ export default function MealsScreen() {
 
   const [selectedMealForLog, setSelectedMealForLog] = useState<FoodItem | null>(null);
   const [isLogModalVisible, setIsLogModalVisible] = useState(false);
+  const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
 
   const todayDate = getTodayDateKey();
   const todayJournal = useJournalStore((state) => state.journals[todayDate]);
   const aggregates = useMemo(() => computeJournalAggregates(todayJournal), [todayJournal]);
   const target = aggregates.targetCalories || 2253;
 
+  const ingredientAsMeals = useMemo<FoodItem[]>(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return [];
+    return INGREDIENTS_DATABASE.filter(
+      (ing) => ing.name.toLowerCase().includes(q) || ing.category.toLowerCase().includes(q)
+    )
+      .slice(0, 12)
+      .map((ing) => {
+        const calc = calculateIngredientNutrition(ing, ing.defaultServingGrams);
+        return {
+          id: `ing-meal-${ing.id}`,
+          title: `${ing.name} (${ing.defaultServingGrams}g)`,
+          category: ing.category === "Minuman" ? "Drink" : ing.category === "Buah" ? "Snack" : "Lunch",
+          calories: calc.calories,
+          prepTimeMinutes: 5,
+          difficulty: "Easy",
+          description: `${ing.servingLabel} · P ${calc.proteinGrams}g · K ${calc.carbsGrams}g · L ${calc.fatGrams}g`,
+          svgIcon: ing.category === "Minuman" ? "Drinks" : ing.category === "Buah" ? "Snacks" : "Lunch",
+          estimatedCostIdr: calc.estimatedCostIdr,
+          nutrition: {
+            proteinGrams: Math.round(calc.proteinGrams),
+            carbsGrams: Math.round(calc.carbsGrams),
+            fatGrams: Math.round(calc.fatGrams),
+            fiberGrams: Math.round(calc.fiberGrams),
+          },
+          ingredients: [{ name: ing.name, amount: `${ing.defaultServingGrams} g` }],
+          instructions: [{ step: 1, text: "Siapkan bahan sesuai takaran saji." }],
+        };
+      });
+  }, [searchQuery]);
+
   const filteredMeals = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     const budget = BUDGETS.find((b) => b.id === budgetId) ?? BUDGETS[0];
-    return recipes.filter((m) => {
+    const baseMatches = recipes.filter((m) => {
       const matchSearch =
         !q ||
         m.title.toLowerCase().includes(q) ||
@@ -75,7 +109,8 @@ export default function MealsScreen() {
       const matchBudget = budget.max === Infinity || (cost > 0 && cost <= budget.max);
       return matchSearch && matchSlot && matchBudget;
     });
-  }, [recipes, searchQuery, selectedSlot, budgetId]);
+    return [...baseMatches, ...ingredientAsMeals];
+  }, [recipes, searchQuery, selectedSlot, budgetId, ingredientAsMeals]);
 
   const resetFilters = () => {
     setSearchQuery("");
@@ -192,10 +227,19 @@ export default function MealsScreen() {
             title="Catat makan"
             caption={`${aggregates.totalConsumed.toLocaleString("id-ID")} dari ${target.toLocaleString("id-ID")} kcal hari ini`}
             right={
-              <StatusPill
-                label={`${Math.max(0, target - aggregates.totalConsumed).toLocaleString("id-ID")} kcal tersisa`}
-                tone="accent"
-              />
+              <View className="flex-row items-center gap-2">
+                <PillButton
+                  label="Tambah resep"
+                  icon="plus"
+                  size="sm"
+                  onPress={() => setIsCreateModalVisible(true)}
+                  accessibilityLabel="Buat resep baru"
+                />
+                <StatusPill
+                  label={`${Math.max(0, target - aggregates.totalConsumed).toLocaleString("id-ID")} kcal tersisa`}
+                  tone="accent"
+                />
+              </View>
             }
           />
         </FadeInView>
@@ -347,6 +391,14 @@ export default function MealsScreen() {
       </ScrollView>
 
       <MealLogModal visible={isLogModalVisible} meal={selectedMealForLog} onClose={() => setIsLogModalVisible(false)} />
+      <CreateRecipeModal
+        visible={isCreateModalVisible}
+        onClose={() => setIsCreateModalVisible(false)}
+        onRecipeCreated={(newRecipe) => {
+          setSelectedMealForLog(newRecipe);
+          setIsLogModalVisible(true);
+        }}
+      />
     </ScreenWrapper>
   );
 }

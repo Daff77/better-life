@@ -26,19 +26,23 @@ import { getMealIllustration } from "@/constants/Assets";
 import { mealLabel, DIFFICULTY_LABELS } from "@/constants/MealLabels";
 import { useRecipe } from "@/hooks/useRecipesQuery";
 import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
+import { useCustomRecipesStore } from "@/stores/useCustomRecipesStore";
 import { Entitlement } from "@/lib/subscriptionDomain";
+import { confirmDestructive } from "@/lib/confirm";
 
 export default function RecipeDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: queriedRecipe, isLoading } = useRecipe(id || "");
+  const removeCustomRecipe = useCustomRecipesStore((state) => state.removeCustomRecipe);
 
   const hasEntitlement = useSubscriptionStore((state) => state.hasEntitlement);
   const [activeTab, setActiveTab] = useState<"instructions" | "ingredients">("instructions");
   const [isLogModalVisible, setIsLogModalVisible] = useState<boolean>(false);
 
   const recipe = queriedRecipe || MOCK_RECIPES.find((r) => r.id === id) || (id ? null : MOCK_RECIPES[0]);
+  const isCustomRecipe = Boolean(recipe?.id.startsWith("custom-recipe-"));
   const isLocked = Boolean((recipe as any)?.isPremium && !hasEntitlement(Entitlement.PREMIUM_RECIPES));
 
   if (isLoading && !recipe) {
@@ -88,10 +92,36 @@ export default function RecipeDetailScreen() {
         title={recipe.title}
         subtitle={`${mealLabel(recipe.category)} · ${recipe.prepTimeMinutes} mnt · ${diffLabel}`}
         rightComponent={
-          <StatusPill
-            tone={(recipe as any)?.isPremium ? "warn" : "ok"}
-            label={(recipe as any)?.isPremium ? "Koleksi Chef" : mealLabel(recipe.category)}
-          />
+          <View className="flex-row items-center gap-2">
+            <StatusPill
+              tone={isCustomRecipe ? "good" : (recipe as any)?.isPremium ? "warn" : "ok"}
+              label={
+                isCustomRecipe
+                  ? "Resep Saya"
+                  : (recipe as any)?.isPremium
+                  ? "Koleksi Chef"
+                  : mealLabel(recipe.category)
+              }
+            />
+            {isCustomRecipe && (
+              <PillButton
+                label="Hapus"
+                icon="trash"
+                size="sm"
+                onPress={() => {
+                  confirmDestructive(
+                    "Hapus Resep Saya",
+                    `Hapus resep "${recipe.title}" dari koleksi Anda?`,
+                    "Hapus",
+                    async () => {
+                      await removeCustomRecipe(recipe.id);
+                      router.replace("/(app)/(tabs)/recipes");
+                    }
+                  );
+                }}
+              />
+            )}
+          </View>
         }
       />
 
