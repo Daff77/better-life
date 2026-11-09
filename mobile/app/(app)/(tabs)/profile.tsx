@@ -300,6 +300,7 @@ export default function ProfileScreen() {
                 accessibilityLabel={isPremium ? "Kelola langganan Premium" : "Lihat paket Premium"}
                 leading={<RowIcon icon="crown" tone="amber" />}
                 title={isPremium ? "Better Life Premium" : "Upgrade ke Premium"}
+                subtitle={isPremium ? "Semua fitur & resep terbuka" : "Rencana makan 7 hari & analitik penuh"}
                 trailing={
                   <View className="flex-row items-center gap-2">
                     <StatusPill
@@ -317,6 +318,7 @@ export default function ProfileScreen() {
                 accessibilityLabel="Lihat tren nutrisi"
                 leading={<RowIcon icon="chart" tone="accent" />}
                 title="Tren & analitik nutrisi"
+                subtitle="Progres kalori & makro 7–30 hari"
                 trailing={<LineIcon name="chevronRight" size={18} color="#7d8781" />}
               />
 
@@ -325,6 +327,7 @@ export default function ProfileScreen() {
                 accessibilityLabel="Kalibrasi ulang personalisasi"
                 leading={<RowIcon icon="refresh" tone="plain" />}
                 title="Kalibrasi ulang personalisasi"
+                subtitle="Hitung ulang target berdasarkan tujuan baru"
                 trailing={<LineIcon name="chevronRight" size={18} color="#7d8781" />}
               />
 

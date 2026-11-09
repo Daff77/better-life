@@ -8,6 +8,7 @@ export * from './Avatar';
 export * from './Divider';
 export * from './ProgressBar';
 export * from './ProgressRing';
+export * from './DonutChart';
 export * from './AnimatedNumber';
 export * from './Header';
 export * from './BottomNavigation';

@@ -28,11 +28,11 @@ import { FoodItem } from "@/data/mockRecipes";
 import { confirmDestructive } from "@/lib/confirm";
 
 const ILLUSTRATED_CATEGORIES = [
-  { id: "Breakfast", label: "Sarapan", image: MealIllustrations.Breakfast },
-  { id: "Lunch", label: "Makan Siang", image: MealIllustrations.Lunch },
-  { id: "Dinner", label: "Makan Malam", image: MealIllustrations.Dinner },
-  { id: "Snack", label: "Camilan", image: MealIllustrations.Snacks },
-  { id: "Drink", label: "Minuman", image: MealIllustrations.Drinks },
+  { id: "Breakfast", label: "Sarapan", subtitle: "Menu pagi", image: MealIllustrations.Breakfast },
+  { id: "Lunch", label: "Makan Siang", subtitle: "Menu utama", image: MealIllustrations.Lunch },
+  { id: "Dinner", label: "Makan Malam", subtitle: "Menu hangat", image: MealIllustrations.Dinner },
+  { id: "Snack", label: "Camilan", subtitle: "Kudapan sehat", image: MealIllustrations.Snacks },
+  { id: "Drink", label: "Minuman", subtitle: "Segar & hidrasi", image: MealIllustrations.Drinks },
 ] as const;
 
 export default function RecipesScreen() {
@@ -142,13 +142,20 @@ export default function RecipesScreen() {
                       resizeMode="cover"
                     />
                   </View>
-                  <View className="px-2.5 py-2 items-center">
+                  <View className="px-2.5 py-2">
                     <AppText
                       weight="semibold"
                       numberOfLines={1}
                       className={`text-[12.5px] ${isSelected ? "text-white" : "text-ink"}`}
                     >
                       {cat.label}
+                    </AppText>
+                    <AppText
+                      weight="medium"
+                      numberOfLines={1}
+                      className={`text-[10.5px] mt-0.5 ${isSelected ? "text-white/75" : "text-muted"}`}
+                    >
+                      {cat.subtitle}
                     </AppText>
                   </View>
                 </PressableScale>
@@ -256,6 +263,10 @@ export default function RecipesScreen() {
                       calories={recipe.calories}
                       prepTimeMinutes={recipe.prepTimeMinutes}
                       difficulty={recipe.difficulty}
+                      description={recipe.description}
+                      proteinGrams={recipe.nutrition?.proteinGrams}
+                      carbsGrams={recipe.nutrition?.carbsGrams}
+                      fatGrams={recipe.nutrition?.fatGrams}
                       imageUrl={recipe.imageUrl}
                       svgName={recipe.svgIcon}
                       isPremium={isPremiumRecipe}

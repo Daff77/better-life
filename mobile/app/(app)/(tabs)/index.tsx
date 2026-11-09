@@ -7,6 +7,7 @@ import {
   AppText,
   ProgressBar,
   ProgressRing,
+  DonutChart,
   AnimatedNumber,
   MealLogModal,
   MealCard,
@@ -18,7 +19,6 @@ import {
   CardHead,
   RingButton,
   StatusPill,
-  MixBar,
   BlockTone,
   ListRow,
   RowIcon,
@@ -41,6 +41,7 @@ const MACRO = Colors.macros;
 const MEAL_SLOTS: ReadonlyArray<{
   id: "Breakfast" | "Lunch" | "Dinner" | "Snack";
   label: string;
+  subtitle: string;
   icon: LineIconName;
   tone: BlockTone;
   legacyIcon: string;
@@ -51,6 +52,7 @@ const MEAL_SLOTS: ReadonlyArray<{
   {
     id: "Breakfast",
     label: "Sarapan",
+    subtitle: "Energi pagi",
     icon: "sunrise",
     tone: "amber",
     legacyIcon: "Breakfast",
@@ -61,6 +63,7 @@ const MEAL_SLOTS: ReadonlyArray<{
   {
     id: "Lunch",
     label: "Makan siang",
+    subtitle: "Nutrisi utama",
     icon: "sun",
     tone: "green",
     legacyIcon: "Lunch",
@@ -71,6 +74,7 @@ const MEAL_SLOTS: ReadonlyArray<{
   {
     id: "Dinner",
     label: "Makan malam",
+    subtitle: "Menu hangat",
     icon: "moon",
     tone: "ink",
     legacyIcon: "Dinner",
@@ -81,7 +85,8 @@ const MEAL_SLOTS: ReadonlyArray<{
   {
     id: "Snack",
     label: "Camilan",
-    icon: "sparkle",
+    subtitle: "Selingan sehat",
+    icon: "apple",
     tone: "mist",
     legacyIcon: "Snacks",
     illustration: MealIllustrations.Snacks,
@@ -139,11 +144,6 @@ export default function HomeScreen() {
     []
   );
 
-  const currentHour = new Date().getHours();
-  const greetingTime =
-    currentHour < 11 ? "Selamat pagi" : currentHour < 15 ? "Selamat siang" : currentHour < 18 ? "Selamat sore" : "Selamat malam";
-  const firstName = user?.name?.split(" ")[0];
-
   const groupedJournal = useMemo(() => {
     const entries = todayJournal?.entries || [];
     return MEAL_SLOTS.map((slot) => {
@@ -157,6 +157,11 @@ export default function HomeScreen() {
       };
     });
   }, [todayJournal?.entries]);
+
+  const filledSlotsCount = useMemo(
+    () => groupedJournal.filter((s) => s.entries.length > 0).length,
+    [groupedJournal]
+  );
 
   const allEntries = useMemo(
     () =>
@@ -218,28 +223,31 @@ export default function HomeScreen() {
     {
       key: "kcal",
       title: isOver ? "Kcal lewat" : "Kcal tersisa",
+      caption: `Target ${fmt(targetCalories)} kcal`,
       numericValue: Math.abs(aggregates.remainingCalories),
       unit: "kcal",
       progress: clampedCaloriePct,
-      color: isOver ? "#c23b2a" : "#0e7a52",
-      trackColor: isOver ? "#f9e3de" : "#dfece5",
+      color: isOver ? "#b91c1c" : "#e04f38",
+      trackColor: isOver ? "#fde2e2" : "#fde8e3",
       icon: "flame" as LineIconName,
       onPress: () => router.push("/(app)/analytics"),
     },
     {
       key: "meals",
       title: "Makanan tercatat",
+      caption: `${filledSlotsCount}/4 waktu makan`,
       numericValue: aggregates.entryCount,
       unit: "menu",
       progress: mealsPct,
       color: "#d98218",
-      trackColor: "#f5ead8",
+      trackColor: "#f7ecd8",
       icon: "utensils" as LineIconName,
       onPress: () => router.push("/(app)/(tabs)/meals"),
     },
     {
       key: "steps",
       title: "Langkah",
+      caption: `Target ${fmt(stepGoal)}`,
       numericValue: steps,
       unit: "",
       progress: stepsPct,
@@ -252,12 +260,13 @@ export default function HomeScreen() {
     {
       key: "protein",
       title: "Protein",
+      caption: `Target ${targetProtein} g`,
       numericValue: Math.round(aggregates.totalProteinGrams),
       unit: "g",
       progress: proteinPct,
-      color: "#15803d",
-      trackColor: "#dff0e5",
-      icon: "target" as LineIconName,
+      color: "#0e7a52",
+      trackColor: "#dfece5",
+      icon: "dumbbell" as LineIconName,
       onPress: () => router.push("/(app)/analytics"),
     },
   ];
@@ -270,30 +279,18 @@ export default function HomeScreen() {
       className="flex-1 min-w-0 bg-card border border-line rounded-[20px] p-3.5"
       style={{ boxShadow: SURFACE_SHADOW } as ViewStyle}
       accessibilityRole="button"
-      accessibilityLabel={`${item.title}: ${item.numericValue} ${item.unit}, ${item.progress}%`}
+      accessibilityLabel={`${item.title}: ${item.numericValue} ${item.unit}, ${item.caption}`}
     >
-      <View className="flex-row items-center justify-between mb-2.5">
-        <ProgressRing
-          progress={item.progress}
-          size={50}
-          strokeWidth={5.5}
-          color={item.color}
-          backgroundColor={item.trackColor}
-          showPercent={false}
-          label=""
+      <View className="flex-row items-center gap-2">
+        <View
+          className="w-[26px] h-[26px] rounded-full items-center justify-center flex-shrink-0"
+          style={{ backgroundColor: item.trackColor }}
         >
-          <View className="items-center justify-center">
-            <LineIcon name={item.icon} size={13} color={item.color} strokeWidth={2} />
-            <AppText
-              weight="bold"
-              className="text-[9.5px] mt-0.5"
-              style={[tnum, { color: item.color }]}
-            >
-              {item.progress}%
-            </AppText>
-          </View>
-        </ProgressRing>
-
+          <LineIcon name={item.icon} size={14} color={item.color} strokeWidth={1.85} />
+        </View>
+        <AppText weight="semibold" numberOfLines={1} className="text-[12.5px] text-muted flex-1">
+          {item.title}
+        </AppText>
         {item.hasAddAction && (
           <PressableScale
             onPress={(e) => {
@@ -301,34 +298,53 @@ export default function HomeScreen() {
               item.onActionPress?.();
             }}
             pressedScale={0.9}
-            className="w-8 h-8 rounded-full bg-card-2 border border-line items-center justify-center"
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            className="w-[24px] h-[24px] rounded-full items-center justify-center flex-shrink-0"
+            style={{ backgroundColor: item.color }}
             accessibilityRole="button"
-            accessibilityLabel="Tambah langkah"
+            accessibilityLabel="Tambah 500 langkah"
           >
-            <LineIcon name="plus" size={14} color="#121a16" strokeWidth={2.2} />
+            <LineIcon name="plus" size={12} color="#ffffff" strokeWidth={2.5} />
           </PressableScale>
         )}
       </View>
 
-      <View className="flex-row items-baseline gap-1">
-        <AnimatedNumber
-          value={item.numericValue}
-          formatter={fmt}
-          animateOnMount
-          weight="bold"
-          className="text-[21px] text-ink"
-          style={[tnum, { letterSpacing: -0.5, lineHeight: 25 }]}
-        />
-        {Boolean(item.unit) && (
-          <AppText weight="semibold" className="text-[11.5px] text-muted">
-            {item.unit}
+      <View className="flex-row items-end justify-between gap-2 mt-3">
+        <View className="flex-1 min-w-0">
+          <View className="flex-row items-baseline gap-1">
+            <AnimatedNumber
+              value={item.numericValue}
+              formatter={fmt}
+              animateOnMount
+              weight="bold"
+              className="text-[21px] sm:text-[23px] text-ink"
+              style={[tnum, { letterSpacing: -0.6, lineHeight: 25 }]}
+            />
+            {Boolean(item.unit) && (
+              <AppText weight="semibold" className="text-[11px] text-muted">
+                {item.unit}
+              </AppText>
+            )}
+          </View>
+          <AppText weight="medium" numberOfLines={1} className="text-[11px] text-muted mt-0.5" style={tnum}>
+            {item.caption}
           </AppText>
-        )}
-      </View>
+        </View>
 
-      <AppText weight="medium" numberOfLines={1} className="text-[12px] text-muted mt-0.5">
-        {item.title}
-      </AppText>
+        <ProgressRing
+          progress={item.progress}
+          size={48}
+          strokeWidth={5}
+          color={item.color}
+          backgroundColor={item.trackColor}
+          showPercent={false}
+          label=""
+        >
+          <AppText weight="bold" className="text-[11px]" style={[tnum, { color: item.color }]}>
+            {item.progress}%
+          </AppText>
+        </ProgressRing>
+      </View>
     </PressableScale>
   );
 
@@ -347,7 +363,7 @@ export default function HomeScreen() {
             style={{ letterSpacing: -0.6, lineHeight: 31 }}
             accessibilityRole="header"
           >
-            {firstName ? `${greetingTime}, ${firstName}` : greetingTime}
+            Hari ini
           </AppText>
         </View>
 
@@ -403,114 +419,85 @@ export default function HomeScreen() {
   const kcalFat = aggregates.totalFatGrams * 9;
   const remaining = Math.max(0, targetCalories - aggregates.totalConsumed);
 
-  const renderEnergy = () => (
-    <Surface>
-      <CardHead
-        title="Energi & makro"
-        right={
-          <RingButton accessibilityLabel="Buka tren nutrisi" onPress={() => router.push("/(app)/analytics")} />
-        }
-      />
+  const renderEnergy = () => {
+    const macroRows = [
+      { key: "p", label: "Protein", value: aggregates.totalProteinGrams, target: targetProtein, pct: proteinPct, color: MACRO.protein },
+      { key: "c", label: "Karbo", value: aggregates.totalCarbsGrams, target: targetCarbs, pct: carbsPct, color: MACRO.carbs },
+      { key: "f", label: "Lemak", value: aggregates.totalFatGrams, target: targetFat, pct: fatPct, color: MACRO.fat },
+    ];
 
-      <View className="flex-row items-center gap-3.5 mb-3.5">
-        <ProgressRing
-          progress={clampedCaloriePct}
-          size={76}
-          strokeWidth={7.5}
-          color={isOver ? "#c23b2a" : Colors.primary.DEFAULT}
-          backgroundColor={MACRO.track}
-          showPercent={false}
-          label=""
-        >
-          <View className="items-center justify-center">
-            <AppText weight="bold" className="text-[14px] text-ink" style={tnum}>
-              {progressPercent}%
-            </AppText>
-          </View>
-        </ProgressRing>
+    return (
+      <Surface>
+        <CardHead
+          title="Energi & makro"
+          caption="Komposisi kalori dari makanan hari ini"
+          right={
+            <RingButton accessibilityLabel="Buka tren nutrisi" onPress={() => router.push("/(app)/analytics")} />
+          }
+        />
 
-        <View className="flex-1 min-w-0">
-          <View className="flex-row items-baseline justify-between mb-1.5">
-            <View className="flex-row items-baseline gap-1">
-              <AnimatedNumber
-                value={aggregates.totalConsumed}
-                formatter={fmt}
-                animateOnMount
-                weight="bold"
-                className="text-[22px] text-ink"
-                style={[tnum, { letterSpacing: -0.5, lineHeight: 26 }]}
-              />
-              <AppText weight="medium" className="text-[11.5px] text-muted" style={tnum}>
-                / {fmt(targetCalories)} kcal
-              </AppText>
-            </View>
-          </View>
-
-          <MixBar
-            height={22}
-            accessibilityLabel="Distribusi kalori"
+        <View className="flex-row items-center gap-4">
+          <DonutChart
+            size={128}
+            strokeWidth={13}
+            total={targetCalories}
+            trackColor={MACRO.track}
+            accessibilityLabel={`${fmt(aggregates.totalConsumed)} dari ${fmt(targetCalories)} kalori`}
             segments={[
               { key: "p", value: kcalProtein, color: MACRO.protein },
               { key: "c", value: kcalCarbs, color: MACRO.carbs },
               { key: "f", value: kcalFat, color: MACRO.fat },
-              { key: "r", value: remaining, color: MACRO.track, outlined: true },
             ]}
+          >
+            <AnimatedNumber
+              value={aggregates.totalConsumed}
+              formatter={fmt}
+              animateOnMount
+              weight="bold"
+              className="text-[22px] text-ink"
+              style={[tnum, { letterSpacing: -0.6, lineHeight: 26 }]}
+            />
+            <AppText weight="medium" className="text-[10.5px] text-muted" style={tnum}>
+              dari {fmt(targetCalories)} kcal
+            </AppText>
+          </DonutChart>
+
+          <View className="flex-1 min-w-0 gap-3">
+            {macroRows.map((m) => (
+              <View key={m.key}>
+                <View className="flex-row items-center justify-between mb-1.5 gap-2">
+                  <View className="flex-row items-center gap-1.5 flex-shrink">
+                    <View className="w-2 h-2 rounded-full" style={{ backgroundColor: m.color }} />
+                    <AppText weight="semibold" numberOfLines={1} className="text-[12.5px] text-ink">
+                      {m.label}
+                    </AppText>
+                  </View>
+                  <AppText weight="semibold" numberOfLines={1} className="text-[12px] text-ink" style={tnum}>
+                    {Math.round(m.value)}
+                    <AppText weight="medium" className="text-[11px] text-muted">
+                      /{m.target}g
+                    </AppText>
+                  </AppText>
+                </View>
+                <ProgressBar progress={m.pct} color={m.color} backgroundColor={MACRO.track} height={5} />
+              </View>
+            ))}
+          </View>
+        </View>
+
+        <View className="flex-row items-center justify-between mt-4 pt-3 border-t border-line">
+          <AppText weight="medium" className="text-[12.5px] text-muted" style={tnum}>
+            {progressPercent}% target tercapai
+          </AppText>
+          <StatusPill
+            label={isOver ? `Lewat ${fmt(Math.abs(aggregates.remainingCalories))} kcal` : `Sisa ${fmt(remaining)} kcal`}
+            tone={isOver ? "warn" : "accent"}
+            dot={false}
           />
         </View>
-      </View>
-
-      {/* Compact 3-Column Macro Strip */}
-      <View className="flex-row gap-2">
-        {[
-          {
-            label: "Protein",
-            value: aggregates.totalProteinGrams,
-            target: targetProtein,
-            pct: proteinPct,
-            color: MACRO.protein,
-          },
-          {
-            label: "Karbo",
-            value: aggregates.totalCarbsGrams,
-            target: targetCarbs,
-            pct: carbsPct,
-            color: MACRO.carbs,
-          },
-          {
-            label: "Lemak",
-            value: aggregates.totalFatGrams,
-            target: targetFat,
-            pct: fatPct,
-            color: MACRO.fat,
-          },
-        ].map((m) => (
-          <View
-            key={m.label}
-            className="flex-1 min-w-0 bg-card-2 rounded-[14px] px-2.5 py-2 border border-line"
-          >
-            <View className="flex-row items-center gap-1.5 mb-1">
-              <View className="w-2 h-2 rounded-full" style={{ backgroundColor: m.color }} />
-              <AppText weight="medium" numberOfLines={1} className="text-[11px] text-muted">
-                {m.label}
-              </AppText>
-            </View>
-            <AppText weight="bold" numberOfLines={1} className="text-[13.5px] text-ink mb-1.5" style={tnum}>
-              {Math.round(m.value)}
-              <AppText weight="medium" className="text-[11px] text-muted">
-                /{m.target}g
-              </AppText>
-            </AppText>
-            <ProgressBar
-              progress={m.pct}
-              color={m.color}
-              backgroundColor={MACRO.track}
-              height={4}
-            />
-          </View>
-        ))}
-      </View>
-    </Surface>
-  );
+      </Surface>
+    );
+  };
 
   /* ------------------------------------------------------------- Journal */
   const renderJournal = () => {
@@ -526,7 +513,10 @@ export default function HomeScreen() {
     return (
       <Surface>
         <CardHead
-          title="Jurnal makan"
+          title="Jurnal hari ini"
+          caption={
+            aggregates.entryCount === 0 ? "Pilih waktu makan untuk mulai mencatat" : `${aggregates.entryCount} menu tercatat hari ini`
+          }
           right={<RingButton accessibilityLabel="Lihat semua menu" onPress={() => router.push("/(app)/(tabs)/meals")} />}
         />
         <View className="gap-2.5">
@@ -571,7 +561,7 @@ export default function HomeScreen() {
                               className="text-[10px] text-white"
                               style={tnum}
                             >
-                              {slot.entries.length}
+                              {slot.entries.length} menu
                             </AppText>
                           </View>
                         )}
@@ -587,11 +577,12 @@ export default function HomeScreen() {
                             {slot.label}
                           </AppText>
                           <AppText
-                            weight="bold"
-                            className="text-[14px] text-muted mt-0.5"
+                            weight="medium"
+                            numberOfLines={1}
+                            className="text-[11.5px] text-muted mt-0.5"
                             style={tnum}
                           >
-                            {fmt(slot.totalCalories)} kcal
+                            {slot.totalCalories > 0 ? `${fmt(slot.totalCalories)} kcal` : slot.subtitle}
                           </AppText>
                         </View>
 
@@ -636,14 +627,17 @@ export default function HomeScreen() {
                 weight="semibold"
                 className="text-[14px] text-ink leading-[18px]"
               >
-                Minuman
+                Minuman & Smoothies
               </AppText>
               <AppText
-                weight="bold"
-                className="text-[13px] text-muted mt-0.5"
+                weight="medium"
+                numberOfLines={1}
+                className="text-[12px] text-muted mt-0.5"
                 style={tnum}
               >
-                {fmt(drinkCalories)} kcal
+                {drinkCalories > 0
+                  ? `${fmt(drinkCalories)} kcal tercatat (${drinkEntries.length} gelas)`
+                  : "Jus buah, kopi, teh, atau smoothie"}
               </AppText>
             </View>
 
@@ -659,7 +653,7 @@ export default function HomeScreen() {
         {allEntries.length > 0 && (
           <View className="mt-4">
             <AppText weight="semibold" className="text-[12.5px] text-muted mb-0.5">
-              Tercatat
+              Tercatat hari ini
             </AppText>
             {allEntries.map(({ entry: item, slot }, i) => {
               const matchedRecipe = MOCK_RECIPES.find(
@@ -691,7 +685,7 @@ export default function HomeScreen() {
                       </View>
                     }
                     title={`${item.quantity > 1 ? `${item.quantity}x ` : ""}${item.title}`}
-                    caption={`${slot.label} · ${item.calories} kcal`}
+                    caption={`${slot.label} · ${item.calories} kcal · P ${item.proteinGrams}g · K ${item.carbsGrams}g · L ${item.fatGrams}g`}
                     trailing={
                       <RingButton
                         icon="close"
@@ -716,11 +710,13 @@ export default function HomeScreen() {
       {[
         {
           title: "Rencana makan 7 hari",
+          caption: "Menu sesuai target kalori dan budget",
           icon: "calendar" as const,
           onPress: () => router.push("/(app)/meal-planner"),
         },
         {
           title: "Tren nutrisi",
+          caption: "Kalori dan makro 7 sampai 30 hari",
           icon: "chart" as const,
           onPress: () => router.push("/(app)/analytics"),
         },
@@ -731,6 +727,7 @@ export default function HomeScreen() {
           onPress={row.onPress}
           leading={<RowIcon icon={row.icon} tone="accent" />}
           title={row.title}
+          caption={row.caption}
           trailing={
             <View className="flex-row items-center gap-2">
               {!isPremium && <StatusPill label="Premium" tone="warn" dot={false} />}

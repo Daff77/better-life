@@ -36,6 +36,7 @@ export const MealCard: React.FC<MealCardProps> = ({
   title,
   mealType,
   calories,
+  description,
   prepTimeMinutes,
   estimatedCostIdr,
   imageUrl,
@@ -149,11 +150,20 @@ export const MealCard: React.FC<MealCardProps> = ({
           </AppText>
           <AppText
             weight="semibold"
-            numberOfLines={2}
-            className="text-[14.5px] text-ink leading-[19px] mt-0.5 min-h-[38px]"
+            numberOfLines={1}
+            className="text-[14.5px] text-ink leading-[19px] mt-0.5"
           >
             {displayTitle}
           </AppText>
+          {Boolean(description) && (
+            <AppText
+              weight="regular"
+              numberOfLines={1}
+              className="text-[11.5px] text-muted mt-0.5"
+            >
+              {description}
+            </AppText>
+          )}
         </View>
       </PressableScale>
       <View className="px-3 pb-2.5 pt-2 flex-row items-center justify-between">

@@ -19,6 +19,10 @@ export interface RecipeCardProps extends Omit<TouchableOpacityProps, "children">
   calories: number;
   prepTimeMinutes: number;
   difficulty?: "Easy" | "Medium" | "Hard";
+  description?: string;
+  proteinGrams?: number;
+  carbsGrams?: number;
+  fatGrams?: number;
   svgName?: AppIconName;
   imageUrl?: string;
   imageSource?: ImageSourcePropType;
@@ -37,6 +41,10 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
   calories,
   prepTimeMinutes,
   difficulty = "Easy",
+  description,
+  proteinGrams,
+  carbsGrams,
+  fatGrams,
   svgName,
   imageUrl,
   imageSource,
@@ -47,6 +55,9 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
 }) => {
   const effectiveImageSource =
     imageSource || (imageUrl ? { uri: imageUrl } : getMealIllustration(category || svgName));
+
+  const hasMacros =
+    proteinGrams !== undefined && carbsGrams !== undefined && fatGrams !== undefined;
 
   return (
     <PressableScale
@@ -78,20 +89,41 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
         </AppText>
         <AppText
           weight="semibold"
-          numberOfLines={2}
-          className="text-[16px] text-ink leading-5 mt-1 min-h-[40px]"
+          numberOfLines={1}
+          className="text-[16px] text-ink leading-5 mt-1"
         >
           {title}
         </AppText>
-        <View className="flex-row items-center justify-between mt-2">
+        {Boolean(description) && (
           <AppText
-            weight="bold"
-            className="text-[14px] text-primary-text"
-            style={{ fontVariant: ["tabular-nums"] }}
+            weight="regular"
+            numberOfLines={1}
+            className="text-[12.5px] text-muted mt-0.5"
           >
-            {calories} kcal
+            {description}
           </AppText>
-          <View className="w-7 h-7 rounded-full border border-line-2 items-center justify-center">
+        )}
+        <View className="flex-row items-center justify-between mt-2.5 pt-2 border-t border-line">
+          <View className="flex-row items-center gap-2 flex-1 mr-2">
+            <AppText
+              weight="bold"
+              className="text-[14px] text-primary-text"
+              style={{ fontVariant: ["tabular-nums"] }}
+            >
+              {calories} kcal
+            </AppText>
+            <AppText
+              weight="medium"
+              numberOfLines={1}
+              className="text-[12px] text-muted"
+              style={{ fontVariant: ["tabular-nums"] }}
+            >
+              {hasMacros
+                ? `· P ${proteinGrams}g · K ${carbsGrams}g · L ${fatGrams}g`
+                : "· Per porsi"}
+            </AppText>
+          </View>
+          <View className="w-7 h-7 rounded-full border border-line-2 items-center justify-center flex-shrink-0">
             <LineIcon name={isLocked ? "lock" : "arrowUpRight"} size={14} color="#2e3a33" />
           </View>
         </View>

@@ -61,6 +61,8 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
     const strokeDashoffset = circumference - (animatedProgress.value / 100) * circumference;
     return {
       strokeDashoffset,
+      // A round linecap paints a stray dot at 0%; hide the arc until it has length.
+      strokeOpacity: animatedProgress.value > 0.4 ? 1 : 0,
     };
   });
 
