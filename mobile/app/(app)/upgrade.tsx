@@ -2,49 +2,43 @@ import React, { useState, useEffect } from "react";
 import {
   View,
   ScrollView,
-  TouchableOpacity,
-  ActivityIndicator,
   Alert,
   Platform,
-  useWindowDimensions,
-  Image,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
-import { AppText, Card, Badge, Button } from "@/components/ui";
+import {
+  AppText,
+  Header,
+  PressableScale,
+  Surface,
+  CardHead,
+  StatusPill,
+  ColorBlock,
+  ListRow,
+  RowIcon,
+  PillButton,
+  RingButton,
+  LineIcon,
+  SURFACE_SHADOW,
+} from "@/components/ui";
 import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
-import { useAuthStore } from "@/stores/useAuthStore";
 import {
   PlanId,
   SUBSCRIPTION_PLANS,
   getStatusDisplayLabel,
 } from "@/lib/subscriptionDomain";
-import {
-  IconRenderer,
-  CrownIconSvg,
-  CheckIconSvg,
-  CloseIconSvg,
-  ChevronLeftIconSvg,
-  LeafIconSvg,
-  BrandImages,
-} from "@/constants/Assets";
 
 export default function UpgradeScreen() {
   const router = useRouter();
-  const { width } = useWindowDimensions();
-  const isDesktop = width >= 768;
 
-  const user = useAuthStore((state) => state.user);
   const {
-    tier,
     status,
     isPremium,
-    planId: activePlanId,
     currentPeriodEnd,
     cancelAtPeriodEnd,
     isLoading,
     isUpgrading,
-    error,
     fetchStatus,
     upgradePlan,
     cancelSubscription,
@@ -69,10 +63,10 @@ export default function UpgradeScreen() {
     const result = await upgradePlan(selectedPlan, "mock_sandbox");
     if (result.success) {
       setSuccessMessage(
-        `Your membership has been upgraded to ${SUBSCRIPTION_PLANS[selectedPlan].name}.`
+        `Keanggotaan Anda telah ditingkatkan ke ${SUBSCRIPTION_PLANS[selectedPlan].name}.`
       );
     } else {
-      setErrorMessage(result.error || "Unable to complete upgrade. Please try again.");
+      setErrorMessage(result.error || "Tidak dapat menyelesaikan peningkatan paket. Silakan coba lagi.");
     }
   };
 
@@ -81,9 +75,11 @@ export default function UpgradeScreen() {
     setErrorMessage(null);
     const result = await cancelSubscription("User requested cancellation via settings");
     if (result.success) {
-      setSuccessMessage("Auto-renewal has been canceled. Your access remains active until your current period ends.");
+      setSuccessMessage(
+        "Perpanjangan otomatis telah dibatalkan. Akses Premium Anda tetap aktif hingga akhir periode berjalan."
+      );
     } else {
-      setErrorMessage(result.error || "Could not cancel subscription.");
+      setErrorMessage(result.error || "Tidak dapat membatalkan langganan.");
     }
   };
 
@@ -94,142 +90,116 @@ export default function UpgradeScreen() {
     if (result.restored) {
       setSuccessMessage(result.message);
     } else {
-      Alert.alert("Restore Purchases", result.message);
+      Alert.alert("Pulihkan Pembelian", result.message);
     }
   };
 
-  // Feature comparison matrix
   const COMPARISON_ROWS = [
     {
-      feature: "Daily food and calorie logging",
-      free: "Included",
-      premium: "Included",
+      feature: "Pencatatan makanan & kalori harian",
+      free: "Termasuk",
+      premium: "Termasuk",
     },
     {
-      feature: "Macronutrient target tracking",
-      free: "Basic",
-      premium: "Advanced",
+      feature: "Pemantauan target makronutrisi",
+      free: "Dasar",
+      premium: "Lengkap + Serat",
     },
     {
-      feature: "Healthy recipe catalog",
-      free: "Standard recipes",
-      premium: "Full + Chef collections",
+      feature: "Katalog resep sehat kurasi",
+      free: "Resep standar",
+      premium: "Penuh + Koleksi Chef",
     },
     {
-      feature: "Macro distribution & adherence analysis",
+      feature: "Analitik tren 7 & 30 hari serta skor kepatuhan",
       free: false,
       premium: true,
     },
     {
-      feature: "Weekly and monthly nutrition reports",
+      feature: "Perencana menu 7 hari otomatis & daftar belanja",
       free: false,
       premium: true,
     },
     {
-      feature: "Personalized daily meal schedule generator",
+      feature: "Rekomendasi menu sesuai anggaran pasar lokal",
       free: false,
       premium: true,
     },
     {
-      feature: "Budget-aware meal recommendations",
-      free: false,
-      premium: true,
-    },
-    {
-      feature: "Exportable nutrition report data (CSV/JSON)",
+      feature: "Ekspor laporan nutrisi lengkap (CSV/JSON)",
       free: false,
       premium: true,
     },
   ];
 
   return (
-    <ScreenWrapper maxWidth="full" noPadding className="flex-1 bg-[#faf9f5]">
-      {/* Top Header */}
-      <View className="w-full bg-[#faf9f5] border-b border-[#eae8e1] px-4 sm:px-6 lg:px-8 pt-3 pb-3.5 flex-row justify-between items-center">
-        <View className="flex-row items-center gap-3">
-          <TouchableOpacity
-            onPress={() => router.back()}
-            className="w-10 h-10 rounded-full bg-[#eef4f0] border border-[#d6e4db] items-center justify-center transition-transform active:scale-95"
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-          >
-            <ChevronLeftIconSvg size={18} color="#153e28" />
-          </TouchableOpacity>
-          <Image
-            source={BrandImages.logoPng}
-            style={{ width: 34, height: 34 }}
-            resizeMode="contain"
-            accessibilityLabel="Better Life Logo"
+    <ScreenWrapper maxWidth="wide" className="flex-1 bg-[#edf1ee]">
+      <Header
+        onBack={() => router.back()}
+        title="Better Life Premium"
+        subtitle="Perangkat nutrisi terkalibrasi untuk kebiasaan sehat berkelanjutan"
+        rightComponent={
+          <PillButton
+            label="Pulihkan"
+            size="sm"
+            variant="ghost"
+            onPress={handleRestore}
+            disabled={isLoading || isUpgrading}
+            accessibilityLabel="Restore purchases"
           />
-          <View>
-            <AppText weight="bold" className="text-xl sm:text-2xl text-neutral-dark tracking-tight">
-              Better Life Premium
-            </AppText>
-            <AppText weight="medium" className="text-xs text-neutral-muted">
-              Clinical nutrition tools calibrated for mindful wellness
-            </AppText>
-          </View>
-        </View>
-
-        <TouchableOpacity
-          onPress={handleRestore}
-          disabled={isLoading || isUpgrading}
-          className="px-3 py-1.5 rounded-full bg-white border border-[#eae8e1] active:bg-[#f2f1eb]"
-          accessibilityRole="button"
-          accessibilityLabel="Restore purchases"
-        >
-          <AppText weight="semibold" className="text-xs text-neutral-dark">
-            Restore Purchases
-          </AppText>
-        </TouchableOpacity>
-      </View>
+        }
+      />
 
       <ScrollView
-        className="flex-1 px-4 sm:px-6 lg:px-8 pt-4 bg-[#faf9f5]"
+        className="flex-1 pt-1"
         contentContainerStyle={{ paddingBottom: Platform.OS === "web" ? 64 : 112 }}
         showsVerticalScrollIndicator={false}
       >
-        <View className="max-w-[960px] mx-auto w-full">
-          {/* Current Membership Status Banner */}
-          <View className="mb-5 bg-white p-4 sm:p-5 rounded-2xl border border-[#eae8e1] shadow-xs">
-            <View className="flex-row items-center justify-between">
-              <View className="flex-row items-center gap-3">
-                <View className="w-11 h-11 rounded-xl bg-[#eaf5ef] border border-[#d6e4db] items-center justify-center">
-                  <CrownIconSvg size={22} color={isPremium ? "#b45309" : "#1b7a53"} />
-                </View>
-                <View>
-                  <View className="flex-row items-center gap-2">
-                    <AppText weight="bold" className="text-base text-neutral-dark">
-                      Current Membership:
+        <View className="max-w-3xl mx-auto w-full gap-4">
+          {/* Current Membership Status Card */}
+          <Surface>
+            <View className="flex-row items-center justify-between flex-wrap gap-3">
+              <View className="flex-row items-center gap-3 flex-1 min-w-[200px]">
+                <RowIcon tone={isPremium ? "amber" : "green"}>
+                  <LineIcon
+                    name="crown"
+                    size={18}
+                    color={isPremium ? "#946000" : "#0e7a52"}
+                  />
+                </RowIcon>
+                <View className="flex-1 min-w-0">
+                  <View className="flex-row items-center gap-2 flex-wrap">
+                    <AppText weight="semibold" className="text-[15px] text-[#121a16]">
+                      Status Keanggotaan
                     </AppText>
-                    <Badge
-                      label={statusInfo.label}
-                      variant={
+                    <StatusPill
+                      tone={
                         statusInfo.badgeVariant === "success"
-                          ? "primary"
+                          ? "ok"
                           : statusInfo.badgeVariant === "warning"
-                          ? "secondary"
-                          : "outline"
+                          ? "warn"
+                          : "neutral"
                       }
+                      label={statusInfo.label}
                     />
                   </View>
-                  <AppText weight="medium" className="text-xs text-neutral-muted mt-0.5">
+                  <AppText weight="regular" className="text-xs text-[#56605a] mt-0.5">
                     {statusInfo.description}
                   </AppText>
                 </View>
               </View>
 
               {currentPeriodEnd && (
-                <View className="hidden sm:flex items-end">
-                  <AppText weight="bold" className="text-[11px] text-neutral-muted uppercase">
-                    {cancelAtPeriodEnd ? "Access Ends" : "Renews"}
+                <View className="items-end">
+                  <AppText weight="medium" className="text-[11px] text-[#56605a]">
+                    {cancelAtPeriodEnd ? "Akses berakhir" : "Perpanjangan berikutnya"}
                   </AppText>
                   <AppText
-                    weight="bold"
-                    className="text-xs text-neutral-dark"
+                    weight="semibold"
+                    className="text-xs text-[#121a16] mt-0.5"
                     style={{ fontVariant: ["tabular-nums"] }}
                   >
-                    {new Date(currentPeriodEnd).toLocaleDateString(undefined, {
+                    {new Date(currentPeriodEnd).toLocaleDateString("id-ID", {
                       month: "short",
                       day: "numeric",
                       year: "numeric",
@@ -239,309 +209,342 @@ export default function UpgradeScreen() {
               )}
             </View>
 
-            {/* Cancel Auto-Renew Notice if already active */}
             {isPremium && !cancelAtPeriodEnd && (
-              <View className="mt-3 pt-3 border-t border-[#f4f2ec] flex-row justify-between items-center">
-                <AppText weight="medium" className="text-xs text-neutral-muted">
-                  Auto-renewal is active. You can cancel anytime without losing paid days.
+              <View className="mt-3.5 pt-3.5 border-t border-[#e6eae7] flex-row items-center justify-between flex-wrap gap-2">
+                <AppText weight="regular" className="text-xs text-[#56605a] flex-1">
+                  Perpanjangan otomatis aktif. Anda dapat membatalkan kapan saja tanpa kehilangan sisa hari berbayar.
                 </AppText>
-                <TouchableOpacity
+                <PillButton
+                  label="Kelola Langganan"
+                  size="sm"
+                  variant="soft"
                   onPress={() => setCancelModalVisible(true)}
-                  className="px-3 py-1 rounded-lg bg-[#f9fafb] border border-[#e5e7eb] active:bg-[#f3f4f6]"
-                  accessibilityRole="button"
                   accessibilityLabel="Cancel auto-renewal"
-                >
-                  <AppText weight="bold" className="text-xs text-neutral-dark">
-                    Manage Plan
-                  </AppText>
-                </TouchableOpacity>
+                />
               </View>
             )}
-          </View>
+          </Surface>
 
           {/* Feedback Banners */}
           {successMessage && (
-            <View className="mb-4 p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex-row items-center justify-between">
-              <View className="flex-row items-center gap-2 flex-1">
-                <CheckIconSvg size={16} color="#059669" />
-                <AppText weight="bold" className="text-xs text-emerald-800 flex-1">
-                  {successMessage}
-                </AppText>
+            <Surface className="py-3.5 px-4 bg-[#e2f2ec] border-[#bfe0d2]">
+              <View className="flex-row items-center justify-between gap-2">
+                <View className="flex-row items-center gap-2 flex-1">
+                  <LineIcon name="check" size={16} color="#0e7a52" />
+                  <AppText weight="semibold" className="text-xs text-[#0e7a52] flex-1">
+                    {successMessage}
+                  </AppText>
+                </View>
+                <RingButton onPress={() => setSuccessMessage(null)} accessibilityLabel="Tutup pesan">
+                  <LineIcon name="close" size={14} color="#0e7a52" />
+                </RingButton>
               </View>
-              <TouchableOpacity
-                onPress={() => setSuccessMessage(null)}
-                className="w-6 h-6 items-center justify-center rounded-full"
-              >
-                <CloseIconSvg size={12} color="#059669" />
-              </TouchableOpacity>
-            </View>
+            </Surface>
           )}
 
           {errorMessage && (
-            <View className="mb-4 p-4 rounded-xl bg-rose-50 border border-rose-200 flex-row items-center justify-between">
-              <View className="flex-row items-center gap-2 flex-1">
-                <CloseIconSvg size={16} color="#e11d48" />
-                <AppText weight="bold" className="text-xs text-rose-800 flex-1">
-                  {errorMessage}
-                </AppText>
+            <Surface className="py-3.5 px-4 bg-[#fde9e7] border-[#f5c2be]">
+              <View className="flex-row items-center justify-between gap-2">
+                <View className="flex-row items-center gap-2 flex-1">
+                  <LineIcon name="alert" size={16} color="#b92d26" />
+                  <AppText weight="semibold" className="text-xs text-[#b92d26] flex-1">
+                    {errorMessage}
+                  </AppText>
+                </View>
+                <RingButton onPress={() => setErrorMessage(null)} accessibilityLabel="Tutup pesan">
+                  <LineIcon name="close" size={14} color="#b92d26" />
+                </RingButton>
               </View>
-              <TouchableOpacity
-                onPress={() => setErrorMessage(null)}
-                className="w-6 h-6 items-center justify-center rounded-full"
-              >
-                <CloseIconSvg size={12} color="#e11d48" />
-              </TouchableOpacity>
-            </View>
+            </Surface>
           )}
 
-          {/* Value Proposition Header */}
-          <View className="text-center mb-6 items-center">
-            <View className="w-12 h-12 rounded-2xl bg-[#eaf5ef] border border-[#d6e4db] items-center justify-center mb-3">
-              <LeafIconSvg size={24} color="#1b7a53" />
+          {/* Plan Selector Cards — Vialo Filled ColorBlocks */}
+          <View className="flex-col sm:flex-row gap-3.5">
+            {/* Annual Plan */}
+            <View className="flex-1">
+              <ColorBlock
+                tone={selectedPlan === "annual" ? "green" : "mist"}
+                onPress={() => setSelectedPlan("annual")}
+                accessibilityLabel="Select Annual Membership"
+              >
+                <View className="flex-row items-center justify-between mb-2">
+                  <AppText
+                    weight="semibold"
+                    className={`text-xs uppercase tracking-wider ${
+                      selectedPlan === "annual" ? "text-white/80" : "text-[#56605a]"
+                    }`}
+                  >
+                    Tahunan · Hemat 32%
+                  </AppText>
+                  <View
+                    className={`w-5 h-5 rounded-full items-center justify-center ${
+                      selectedPlan === "annual"
+                        ? "bg-white"
+                        : "border border-[#56605a]"
+                    }`}
+                  >
+                    {selectedPlan === "annual" && (
+                      <LineIcon name="check" size={12} color="#0e7a52" />
+                    )}
+                  </View>
+                </View>
+
+                <AppText
+                  weight="semibold"
+                  className={`text-3xl ${
+                    selectedPlan === "annual" ? "text-white" : "text-[#121a16]"
+                  }`}
+                  style={{ fontVariant: ["tabular-nums"], letterSpacing: -0.9 }}
+                >
+                  Rp 399.000
+                  <AppText
+                    weight="regular"
+                    className={`text-xs ${
+                      selectedPlan === "annual" ? "text-white/75" : "text-[#56605a]"
+                    }`}
+                  >
+                    {" "}/ tahun
+                  </AppText>
+                </AppText>
+
+                <AppText
+                  weight="regular"
+                  className={`text-xs mt-1 ${
+                    selectedPlan === "annual" ? "text-white/85" : "text-[#56605a]"
+                  }`}
+                  style={{ fontVariant: ["tabular-nums"] }}
+                >
+                  Setara Rp 33.250 / bulan · Ditagih sekali setahun
+                </AppText>
+
+                <View
+                  className={`mt-4 pt-3 border-t gap-1.5 ${
+                    selectedPlan === "annual" ? "border-white/20" : "border-[#121a16]/10"
+                  }`}
+                >
+                  <AppText
+                    weight="medium"
+                    className={`text-xs ${
+                      selectedPlan === "annual" ? "text-white" : "text-[#121a16]"
+                    }`}
+                  >
+                    • Akses penuh seluruh fitur Premium & Koleksi Chef
+                  </AppText>
+                  <AppText
+                    weight="medium"
+                    className={`text-xs ${
+                      selectedPlan === "annual" ? "text-white" : "text-[#121a16]"
+                    }`}
+                  >
+                    • Nilai terbaik untuk konsistensi nutrisi jangka panjang
+                  </AppText>
+                </View>
+              </ColorBlock>
             </View>
-            <AppText weight="bold" className="text-2xl sm:text-3xl text-neutral-dark text-center tracking-tight">
-              Invest in Mindful Wellness
-            </AppText>
-            <AppText weight="medium" className="text-sm text-neutral-muted text-center max-w-lg mt-1 leading-relaxed">
-              Unlock deep macro partitioning, weekly consistency reports, personalized meal planning, and exclusive chef collections.
-            </AppText>
-          </View>
-
-          {/* Plan Selector Cards */}
-          <View className="flex-col sm:flex-row gap-4 mb-6">
-            {/* Annual Plan (Highlighted) */}
-            <TouchableOpacity
-              onPress={() => setSelectedPlan("annual")}
-              activeOpacity={0.9}
-              className={`flex-1 p-5 rounded-2xl border transition-all ${
-                selectedPlan === "annual"
-                  ? "bg-[#f4f9f6] border-primary shadow-xs"
-                  : "bg-white border-[#eae8e1]"
-              }`}
-              accessibilityRole="radio"
-              accessibilityState={{ selected: selectedPlan === "annual" }}
-              accessibilityLabel="Select Annual Membership"
-            >
-              <View className="flex-row justify-between items-center mb-2">
-                <AppText weight="bold" className="text-sm text-neutral-dark">
-                  Annual Membership
-                </AppText>
-                <View className="px-2 py-0.5 rounded-full bg-[#1b7a53]/15 border border-[#1b7a53]/30">
-                  <AppText weight="bold" className="text-[10px] text-primary">
-                    Save 32%
-                  </AppText>
-                </View>
-              </View>
-
-              <AppText
-                weight="black"
-                className="text-2xl text-primary"
-                style={{ fontVariant: ["tabular-nums"] }}
-              >
-                Rp 399.000
-                <AppText weight="medium" className="text-xs text-neutral-muted">
-                  {" "}/ year
-                </AppText>
-              </AppText>
-
-              <AppText
-                weight="medium"
-                className="text-xs text-neutral-muted mt-1"
-                style={{ fontVariant: ["tabular-nums"] }}
-              >
-                Equivalent to Rp 33.250 / month. Billed once annually.
-              </AppText>
-
-              <View className="mt-4 pt-3 border-t border-[#e2ece5] gap-1.5">
-                <View className="flex-row items-center gap-2">
-                  <CheckIconSvg size={14} color="#1b7a53" />
-                  <AppText weight="medium" className="text-xs text-neutral-dark">
-                    Full access to all premium features
-                  </AppText>
-                </View>
-                <View className="flex-row items-center gap-2">
-                  <CheckIconSvg size={14} color="#1b7a53" />
-                  <AppText weight="medium" className="text-xs text-neutral-dark">
-                    Best value for continuous health habits
-                  </AppText>
-                </View>
-              </View>
-            </TouchableOpacity>
 
             {/* Monthly Plan */}
-            <TouchableOpacity
-              onPress={() => setSelectedPlan("monthly")}
-              activeOpacity={0.9}
-              className={`flex-1 p-5 rounded-2xl border transition-all ${
-                selectedPlan === "monthly"
-                  ? "bg-[#f4f9f6] border-primary shadow-xs"
-                  : "bg-white border-[#eae8e1]"
-              }`}
-              accessibilityRole="radio"
-              accessibilityState={{ selected: selectedPlan === "monthly" }}
-              accessibilityLabel="Select Monthly Membership"
-            >
-              <View className="flex-row justify-between items-center mb-2">
-                <AppText weight="bold" className="text-sm text-neutral-dark">
-                  Monthly Membership
-                </AppText>
-                <View className="px-2 py-0.5 rounded-full bg-[#f3f4f6] border border-[#e5e7eb]">
-                  <AppText weight="bold" className="text-[10px] text-neutral-muted">
-                    Flexible
-                  </AppText>
-                </View>
-              </View>
-
-              <AppText
-                weight="black"
-                className="text-2xl text-neutral-dark"
-                style={{ fontVariant: ["tabular-nums"] }}
+            <View className="flex-1">
+              <ColorBlock
+                tone={selectedPlan === "monthly" ? "green" : "mist"}
+                onPress={() => setSelectedPlan("monthly")}
+                accessibilityLabel="Select Monthly Membership"
               >
-                Rp 49.000
-                <AppText weight="medium" className="text-xs text-neutral-muted">
-                  {" "}/ month
+                <View className="flex-row items-center justify-between mb-2">
+                  <AppText
+                    weight="semibold"
+                    className={`text-xs uppercase tracking-wider ${
+                      selectedPlan === "monthly" ? "text-white/80" : "text-[#56605a]"
+                    }`}
+                  >
+                    Bulanan · Fleksibel
+                  </AppText>
+                  <View
+                    className={`w-5 h-5 rounded-full items-center justify-center ${
+                      selectedPlan === "monthly"
+                        ? "bg-white"
+                        : "border border-[#56605a]"
+                    }`}
+                  >
+                    {selectedPlan === "monthly" && (
+                      <LineIcon name="check" size={12} color="#0e7a52" />
+                    )}
+                  </View>
+                </View>
+
+                <AppText
+                  weight="semibold"
+                  className={`text-3xl ${
+                    selectedPlan === "monthly" ? "text-white" : "text-[#121a16]"
+                  }`}
+                  style={{ fontVariant: ["tabular-nums"], letterSpacing: -0.9 }}
+                >
+                  Rp 49.000
+                  <AppText
+                    weight="regular"
+                    className={`text-xs ${
+                      selectedPlan === "monthly" ? "text-white/75" : "text-[#56605a]"
+                    }`}
+                  >
+                    {" "}/ bulan
+                  </AppText>
                 </AppText>
-              </AppText>
 
-              <AppText weight="medium" className="text-xs text-neutral-muted mt-1">
-                Month-to-month flexibility. Cancel anytime.
-              </AppText>
+                <AppText
+                  weight="regular"
+                  className={`text-xs mt-1 ${
+                    selectedPlan === "monthly" ? "text-white/85" : "text-[#56605a]"
+                  }`}
+                >
+                  Fleksibilitas bulanan · Batalkan kapan saja
+                </AppText>
 
-              <View className="mt-4 pt-3 border-t border-[#e2ece5] gap-1.5">
-                <View className="flex-row items-center gap-2">
-                  <CheckIconSvg size={14} color="#1b7a53" />
-                  <AppText weight="medium" className="text-xs text-neutral-dark">
-                    Full access to all premium features
+                <View
+                  className={`mt-4 pt-3 border-t gap-1.5 ${
+                    selectedPlan === "monthly" ? "border-white/20" : "border-[#121a16]/10"
+                  }`}
+                >
+                  <AppText
+                    weight="medium"
+                    className={`text-xs ${
+                      selectedPlan === "monthly" ? "text-white" : "text-[#121a16]"
+                    }`}
+                  >
+                    • Akses penuh seluruh fitur Premium & Koleksi Chef
+                  </AppText>
+                  <AppText
+                    weight="medium"
+                    className={`text-xs ${
+                      selectedPlan === "monthly" ? "text-white" : "text-[#121a16]"
+                    }`}
+                  >
+                    • Tanpa komitmen tahunan di awal
                   </AppText>
                 </View>
-                <View className="flex-row items-center gap-2">
-                  <CheckIconSvg size={14} color="#1b7a53" />
-                  <AppText weight="medium" className="text-xs text-neutral-dark">
-                    No long-term commitment required
-                  </AppText>
-                </View>
-              </View>
-            </TouchableOpacity>
+              </ColorBlock>
+            </View>
           </View>
 
           {/* Primary Action Button */}
-          <View className="mb-8">
-            <Button
+          <Surface className="py-4 px-5 flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <View className="flex-1">
+              <AppText weight="semibold" className="text-sm text-[#121a16]">
+                {SUBSCRIPTION_PLANS[selectedPlan].name}
+              </AppText>
+              <AppText weight="regular" className="text-xs text-[#56605a] mt-0.5">
+                Pembayaran diverifikasi secara aman. Dapat dibatalkan kapan saja melalui pengaturan akun.
+              </AppText>
+            </View>
+            <PillButton
+              label={
+                isUpgrading
+                  ? "Memproses..."
+                  : isPremium
+                  ? `Beralih ke ${SUBSCRIPTION_PLANS[selectedPlan].name}`
+                  : `Aktifkan ${SUBSCRIPTION_PLANS[selectedPlan].name}`
+              }
               variant="primary"
-              size="lg"
-              loading={isUpgrading}
+              icon={<LineIcon name="crown" size={15} color="#ffffff" />}
               onPress={handleUpgrade}
-              className="w-full min-h-[52px] rounded-xl"
+              disabled={isUpgrading}
               accessibilityLabel={`Upgrade to ${SUBSCRIPTION_PLANS[selectedPlan].name}`}
-              title={
-                isPremium
-                  ? `Switch Plan to ${SUBSCRIPTION_PLANS[selectedPlan].name}`
-                  : `Upgrade to ${SUBSCRIPTION_PLANS[selectedPlan].name}`
+            />
+          </Surface>
+
+          {/* Feature Comparison Matrix */}
+          <Surface>
+            <CardHead
+              title="Perbandingan fitur"
+              subtitle="Fitur dasar tetap gratis selamanya"
+              right={
+                <View className="flex-row items-center gap-2 sm:gap-6">
+                  <AppText weight="semibold" className="text-[11px] sm:text-xs text-[#56605a] w-14 sm:w-16 text-center">
+                    Gratis
+                  </AppText>
+                  <AppText weight="bold" className="text-[11px] sm:text-xs text-[#0e7a52] w-16 sm:w-20 text-center">
+                    Premium
+                  </AppText>
+                </View>
               }
             />
-            <AppText weight="medium" className="text-center text-[11px] text-neutral-muted mt-2">
-              Payment is verified securely on the backend. Cancel anytime in account settings.
-            </AppText>
-          </View>
 
-          {/* Feature Comparison Table */}
-          <View className="bg-white rounded-2xl border border-[#eae8e1] overflow-hidden mb-6 shadow-xs">
-            <View className="px-5 py-4 bg-[#faf9f5] border-b border-[#eae8e1] flex-row justify-between items-center">
-              <AppText weight="bold" className="text-sm text-neutral-dark">
-                Membership Entitlements
-              </AppText>
-              <View className="flex-row gap-6 sm:gap-12">
-                <AppText weight="bold" className="text-xs text-neutral-muted w-16 text-center">
-                  Free
-                </AppText>
-                <AppText weight="bold" className="text-xs text-primary w-20 text-center">
-                  Premium
-                </AppText>
-              </View>
-            </View>
-
-            <View className="divide-y divide-[#f4f2ec]">
-              {COMPARISON_ROWS.map((row, index) => (
-                <View
-                  key={index}
-                  className="px-5 py-3.5 flex-row justify-between items-center hover:bg-[#fbfbf9]"
-                >
-                  <AppText weight="medium" className="text-xs text-neutral-dark flex-1 pr-4">
-                    {row.feature}
-                  </AppText>
-                  <View className="flex-row gap-6 sm:gap-12 items-center">
-                    <View className="w-16 items-center justify-center">
+            {COMPARISON_ROWS.map((row, index) => (
+              <ListRow
+                key={index}
+                first={index === 0}
+                last={index === COMPARISON_ROWS.length - 1}
+                title={row.feature}
+                right={
+                  <View className="flex-row items-center gap-2 sm:gap-6 flex-shrink-0">
+                    <View className="w-14 sm:w-16 items-center justify-center">
                       {typeof row.free === "string" ? (
-                        <AppText weight="medium" className="text-xs text-neutral-muted text-center">
+                        <AppText weight="regular" className="text-[11px] sm:text-xs text-[#56605a] text-center">
                           {row.free}
                         </AppText>
                       ) : row.free ? (
-                        <CheckIconSvg size={15} color="#1b7a53" />
+                        <LineIcon name="check" size={15} color="#0e7a52" />
                       ) : (
-                        <CloseIconSvg size={14} color="#9ca3af" />
+                        <LineIcon name="close" size={14} color="#8a938d" />
                       )}
                     </View>
 
-                    <View className="w-20 items-center justify-center">
+                    <View className="w-16 sm:w-20 items-center justify-center">
                       {typeof row.premium === "string" ? (
-                        <AppText weight="bold" className="text-xs text-primary text-center">
+                        <AppText weight="semibold" className="text-[11px] sm:text-xs text-[#0e7a52] text-center">
                           {row.premium}
                         </AppText>
                       ) : row.premium ? (
-                        <CheckIconSvg size={16} color="#1b7a53" />
+                        <LineIcon name="check" size={16} color="#0e7a52" />
                       ) : (
-                        <CloseIconSvg size={14} color="#9ca3af" />
+                        <LineIcon name="close" size={14} color="#8a938d" />
                       )}
                     </View>
                   </View>
-                </View>
-              ))}
-            </View>
-          </View>
+                }
+              />
+            ))}
+          </Surface>
 
-          {/* Honest Subscription Terms */}
-          <View className="p-4 bg-[#f4f3ed] rounded-xl border border-[#eae8e1] mb-8">
-            <AppText weight="bold" className="text-xs text-neutral-dark mb-1">
-              Transparent Subscription Policy:
+          {/* Transparent Subscription Policy */}
+          <Surface className="bg-[#f0f4f1]">
+            <AppText weight="semibold" className="text-xs text-[#121a16] mb-1">
+              Kebijakan Langganan Transparan
             </AppText>
-            <AppText weight="medium" className="text-[11px] text-neutral-muted leading-relaxed">
-              Better Life does not use artificial countdowns, fabricated discounts, or hidden renewal charges. Your subscription renews automatically unless canceled at least 24 hours prior to the end of the current billing cycle. When canceled, your entitlement remains active through the end of the paid period without immediate data removal.
+            <AppText weight="regular" className="text-[11px] text-[#56605a] leading-relaxed">
+              Better Life tidak menggunakan hitung mundur palsu atau biaya perpanjangan tersembunyi. Langganan diperpanjang otomatis kecuali dibatalkan minimal 24 jam sebelum akhir periode berjalan. Saat dibatalkan, akses Premium Anda tetap aktif hingga masa aktif berakhir dan seluruh catatan jurnal Anda tetap tersimpan utuh.
             </AppText>
-          </View>
+          </Surface>
         </View>
       </ScrollView>
 
       {/* Cancellation Confirmation Dialog */}
       {cancelModalVisible && (
-        <View className="absolute inset-0 bg-black/50 items-center justify-center px-6 z-50">
-          <View className="w-full max-w-[360px] bg-white rounded-3xl p-6 shadow-xl">
-            <AppText weight="black" className="text-lg text-neutral-dark mb-2">
-              Cancel Auto-Renewal?
+        <View className="absolute inset-0 bg-[#121a16]/50 items-center justify-center px-6 z-50">
+          <View
+            style={{ boxShadow: SURFACE_SHADOW } as any}
+            className="w-full max-w-[380px] bg-[#fbfdfc] rounded-[24px] border border-[#e6eae7] p-5"
+          >
+            <AppText weight="semibold" className="text-lg text-[#121a16] mb-1.5">
+              Batalkan perpanjangan otomatis?
             </AppText>
-            <AppText weight="medium" className="text-xs text-neutral-muted leading-relaxed mb-5">
-              You will continue to have full Premium access until your current billing period ends. Your logged meals, custom lists, and profile data will never be deleted.
+            <AppText weight="regular" className="text-xs text-[#56605a] leading-relaxed mb-5">
+              Anda tetap memiliki akses penuh ke fitur Premium hingga akhir periode penagihan saat ini. Riwayat makanan dan data profil Anda tidak akan pernah dihapus.
             </AppText>
 
-            <View className="flex-row gap-3">
-              <TouchableOpacity
+            <View className="flex-row justify-end gap-2.5">
+              <PillButton
+                label="Pertahankan"
+                variant="soft"
                 onPress={() => setCancelModalVisible(false)}
-                className="flex-1 py-3 rounded-xl bg-neutral-surface border border-neutral-border items-center justify-center"
-                accessibilityRole="button"
-              >
-                <AppText weight="bold" className="text-xs text-neutral-dark">
-                  Keep Plan
-                </AppText>
-              </TouchableOpacity>
-
-              <TouchableOpacity
+              />
+              <PressableScale
                 onPress={handleCancelAutoRenew}
-                className="flex-1 py-3 rounded-xl bg-status-error items-center justify-center"
+                className="px-4 py-2 rounded-full bg-[#b92d26] items-center justify-center"
                 accessibilityRole="button"
               >
-                <AppText weight="bold" className="text-xs text-white">
-                  Confirm Cancel
+                <AppText weight="semibold" className="text-xs text-white">
+                  Ya, batalkan
                 </AppText>
-              </TouchableOpacity>
+              </PressableScale>
             </View>
           </View>
         </View>

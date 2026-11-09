@@ -4,12 +4,6 @@ import {
   PressableProps,
   View,
 } from "react-native";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-} from "react-native-reanimated";
-import { AnimationEasings } from "@/constants/AnimationTokens";
 
 export interface IconButtonProps extends Omit<PressableProps, "children"> {
   icon: React.ReactNode;
@@ -29,22 +23,6 @@ export const IconButton: React.FC<IconButtonProps> = ({
   accessibilityLabel = "Button",
   ...props
 }) => {
-  const scale = useSharedValue(1);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
-  const handlePressIn = () => {
-    if (disabled) return;
-    scale.value = withSpring(0.92, AnimationEasings.pressSpringConfig);
-  };
-
-  const handlePressOut = () => {
-    if (disabled) return;
-    scale.value = withSpring(1, AnimationEasings.pressSpringConfig);
-  };
-
   const getVariantStyles = () => {
     switch (variant) {
       case "filled":
@@ -58,14 +36,13 @@ export const IconButton: React.FC<IconButtonProps> = ({
 
   return (
     <Pressable
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
       className={`items-center justify-center ${getVariantStyles()} ${
         disabled ? "opacity-45" : ""
       } ${className || ""}`}
-      style={[
+      style={({ pressed }) => [
         { width: size, height: size, minWidth: 44, minHeight: 44 },
-        style as any,
+        pressed && !disabled ? { opacity: 0.85, transform: [{ scale: 0.94 }] } : undefined,
+        typeof style === "function" ? style({ pressed }) : (style as any),
       ]}
       disabled={disabled}
       accessibilityRole="button"
@@ -74,16 +51,15 @@ export const IconButton: React.FC<IconButtonProps> = ({
       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       {...props}
     >
-      <Animated.View
-        pointerEvents="none"
-        style={[
-          { alignItems: "center", justifyContent: "center" },
-          animatedStyle,
-        ]}
+      <View
+        style={{
+          alignItems: "center",
+          justifyContent: "center",
+          pointerEvents: "none",
+        }}
       >
         {icon}
-      </Animated.View>
+      </View>
     </Pressable>
   );
 };
-

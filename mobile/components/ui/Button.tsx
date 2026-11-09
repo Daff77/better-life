@@ -7,19 +7,9 @@ import {
   Platform,
   GestureResponderEvent,
 } from "react-native";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withTiming,
-} from "react-native-reanimated";
 import { AppText } from "./AppText";
 import { Colors, Shadows } from "@/constants/DesignTokens";
-import {
-  AnimationTimings,
-  AnimationEasings,
-  AnimationScales,
-} from "@/constants/AnimationTokens";
+import { AnimationScales } from "@/constants/AnimationTokens";
 import { CheckIconSvg } from "@/constants/Assets";
 
 export interface ButtonProps extends Omit<PressableProps, "children"> {
@@ -48,26 +38,6 @@ export const Button: React.FC<ButtonProps> = ({
   onPress,
   ...props
 }) => {
-  const scale = useSharedValue(1);
-  const opacity = useSharedValue(1);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-    opacity: opacity.value,
-  }));
-
-  const handlePressIn = () => {
-    if (disabled || loading) return;
-    scale.value = withSpring(AnimationScales.pressButton, AnimationEasings.pressSpringConfig);
-    opacity.value = withTiming(0.92, { duration: AnimationTimings.microFast });
-  };
-
-  const handlePressOut = () => {
-    if (disabled || loading) return;
-    scale.value = withSpring(1, AnimationEasings.pressSpringConfig);
-    opacity.value = withTiming(1, { duration: AnimationTimings.microFast });
-  };
-
   const getContainerStyle = () => {
     switch (variant) {
       case "primary":
@@ -121,8 +91,6 @@ export const Button: React.FC<ButtonProps> = ({
   return (
     <Pressable
       onPress={handlePress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
       className={`flex-row items-center justify-center min-h-[44px] ${
         Platform.OS === "web"
           ? "transition-colors duration-150 cursor-pointer"
@@ -130,25 +98,25 @@ export const Button: React.FC<ButtonProps> = ({
       } ${getSizeStyle()} ${getContainerStyle()} ${
         disabled ? "opacity-45" : ""
       } ${className || ""}`}
-      style={[
+      style={({ pressed }) => [
         variant === "primary" ? Shadows.button : undefined,
-        style as any,
+        pressed && !disabled && !loading
+          ? { opacity: 0.9, transform: [{ scale: AnimationScales.pressButton }] }
+          : undefined,
+        typeof style === "function" ? style({ pressed }) : (style as any),
       ]}
       disabled={disabled || loading}
       accessibilityRole="button"
       accessibilityState={{ disabled: !!(disabled || loading), busy: loading }}
       {...props}
     >
-      <Animated.View
-        pointerEvents="none"
-        style={[
-          {
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-          },
-          animatedStyle,
-        ]}
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "center",
+          pointerEvents: "none",
+        }}
       >
         {loading ? (
           <ActivityIndicator
@@ -175,9 +143,7 @@ export const Button: React.FC<ButtonProps> = ({
             {icon && iconPosition === "right" && icon}
           </View>
         )}
-      </Animated.View>
+      </View>
     </Pressable>
   );
 };
-
-

@@ -1,316 +1,10 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
-import {
-  View,
-  ViewProps,
-  Pressable,
-  useWindowDimensions,
-  Modal,
-} from "react-native";
-import Svg, { Path, Circle } from "react-native-svg";
+import React, { useState } from "react";
+import { View, ViewProps, Modal, Pressable, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { AppText } from "./AppText";
+import { Surface, CardHead, MixBar, ListRow, RingButton, PillButton, StatusPill } from "./Surface";
+import { Colors } from "@/constants/DesignTokens";
 import { useOnboardingStore } from "@/stores/useOnboardingStore";
-
-// ==========================================
-// Vector Icons for Crisp, Emoji-free Design
-// ==========================================
-
-const LeafBadgeIcon: React.FC<{ size?: number; color?: string }> = ({
-  size = 13,
-  color = "#059669",
-}) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"
-      stroke={color}
-      strokeWidth={2.2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <Path
-      d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"
-      stroke={color}
-      strokeWidth={2.2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
-);
-
-const DumbbellIcon: React.FC<{ size?: number; color?: string }> = ({
-  size = 18,
-  color = "#059669",
-}) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path d="M6 5v14" stroke={color} strokeWidth={2.4} strokeLinecap="round" />
-    <Path d="M3 8v8" stroke={color} strokeWidth={2.4} strokeLinecap="round" />
-    <Path d="M6 12h12" stroke={color} strokeWidth={2.4} strokeLinecap="round" />
-    <Path d="M18 5v14" stroke={color} strokeWidth={2.4} strokeLinecap="round" />
-    <Path d="M21 8v8" stroke={color} strokeWidth={2.4} strokeLinecap="round" />
-  </Svg>
-);
-
-const WheatIcon: React.FC<{ size?: number; color?: string }> = ({
-  size = 18,
-  color = "#d97706",
-}) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path d="M12 2v20" stroke={color} strokeWidth={2.2} strokeLinecap="round" />
-    <Path
-      d="M12 5.5a3.5 3.5 0 0 1 4 3.5c0 1.8-3.5 3.5-4 3.5"
-      stroke={color}
-      strokeWidth={2.2}
-      strokeLinecap="round"
-    />
-    <Path
-      d="M12 5.5a3.5 3.5 0 0 0-4 3.5c0 1.8 3.5 3.5 4 3.5"
-      stroke={color}
-      strokeWidth={2.2}
-      strokeLinecap="round"
-    />
-    <Path
-      d="M12 11.5a3.5 3.5 0 0 1 4 3.5c0 1.8-3.5 3.5-4 3.5"
-      stroke={color}
-      strokeWidth={2.2}
-      strokeLinecap="round"
-    />
-    <Path
-      d="M12 11.5a3.5 3.5 0 0 0-4 3.5c0 1.8 3.5 3.5 4 3.5"
-      stroke={color}
-      strokeWidth={2.2}
-      strokeLinecap="round"
-    />
-  </Svg>
-);
-
-const DropletIcon: React.FC<{ size?: number; color?: string }> = ({
-  size = 18,
-  color = "#0284c7",
-}) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"
-      stroke={color}
-      strokeWidth={2.2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
-);
-
-const FlameIcon: React.FC<{ size?: number; color?: string }> = ({
-  size = 13,
-  color = "#059669",
-}) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"
-      stroke={color}
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
-);
-
-const BarChartIcon: React.FC<{ size?: number; color?: string }> = ({
-  size = 14,
-  color = "#2d523f",
-}) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path d="M18 20V10" stroke={color} strokeWidth={2.4} strokeLinecap="round" />
-    <Path d="M12 20V4" stroke={color} strokeWidth={2.4} strokeLinecap="round" />
-    <Path d="M6 20v-6" stroke={color} strokeWidth={2.4} strokeLinecap="round" />
-  </Svg>
-);
-
-const ChevronRightIcon: React.FC<{ size?: number; color?: string }> = ({
-  size = 14,
-  color = "#64748b",
-}) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M9 18l6-6-6-6"
-      stroke={color}
-      strokeWidth={2.2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
-);
-
-const CloseModalIcon: React.FC<{ size?: number; color?: string }> = ({
-  size = 18,
-  color = "#64748b",
-}) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Path d="M18 6L6 18M6 6l12 12" stroke={color} strokeWidth={2.2} strokeLinecap="round" />
-  </Svg>
-);
-
-// ==========================================
-// Fluid Animation Hook for Numbers & Progress
-// ==========================================
-
-function useAnimatedNumber(target: number, duration: number = 850, animTrigger: number = 0): number {
-  const [displayValue, setDisplayValue] = useState<number>(0);
-  const startRef = useRef<number>(0);
-
-  useEffect(() => {
-    const startVal = startRef.current;
-    const diff = target - startVal;
-    if (diff === 0) {
-      setDisplayValue(target);
-      return;
-    }
-
-    const startTime = Date.now();
-    let frameId: number;
-
-    const animate = () => {
-      const now = Date.now();
-      const elapsed = now - startTime;
-      const progress = Math.min(1, elapsed / duration);
-      // Quintic ease-out curve for fluid, responsive motion
-      const ease = 1 - Math.pow(1 - progress, 4);
-      const current = Math.round(startVal + diff * ease);
-
-      setDisplayValue(current);
-
-      if (progress < 1) {
-        frameId = requestAnimationFrame(animate);
-      } else {
-        startRef.current = target;
-        setDisplayValue(target);
-      }
-    };
-
-    frameId = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(frameId);
-  }, [target, duration, animTrigger]);
-
-  return displayValue;
-}
-
-// ==========================================
-// Circular Ring with Animated Tip Dot
-// ==========================================
-
-interface MacroCircularRingProps {
-  percentage: number; // 0 to 100
-  color: string;
-  trackColor: string;
-  size?: number;
-  strokeWidth?: number;
-  animTrigger?: number;
-}
-
-const MacroCircularRing: React.FC<MacroCircularRingProps> = ({
-  percentage,
-  color,
-  trackColor,
-  size = 46,
-  strokeWidth = 3.6,
-  animTrigger = 0,
-}) => {
-  const animatedPercent = useAnimatedNumber(percentage, 950, animTrigger);
-  const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const clamped = Math.min(100, Math.max(0, animatedPercent));
-  const progressRatio = clamped / 100;
-  const strokeDashoffset = circumference - progressRatio * circumference;
-
-  // Compute exact coordinate for indicator dot
-  const center = size / 2;
-  const angle = -Math.PI / 2 + progressRatio * 2 * Math.PI;
-  const dotX = center + radius * Math.cos(angle);
-  const dotY = center + radius * Math.sin(angle);
-
-  return (
-    <View style={{ width: size, height: size }} className="items-center justify-center">
-      <Svg width={size} height={size}>
-        {/* Background track circle */}
-        <Circle
-          cx={center}
-          cy={center}
-          r={radius}
-          stroke={trackColor}
-          strokeWidth={strokeWidth}
-          fill="none"
-        />
-        {/* Animated active progress arc */}
-        {clamped > 0 && (
-          <Circle
-            cx={center}
-            cy={center}
-            r={radius}
-            stroke={color}
-            strokeWidth={strokeWidth}
-            strokeDasharray={`${circumference} ${circumference}`}
-            strokeDashoffset={strokeDashoffset}
-            strokeLinecap="round"
-            fill="none"
-            transform={`rotate(-90 ${center} ${center})`}
-          />
-        )}
-        {/* Glowing tip indicator dot (matches design in image 2) */}
-        <Circle
-          cx={dotX}
-          cy={dotY}
-          r={3}
-          fill={color}
-          stroke="#ffffff"
-          strokeWidth={1.5}
-        />
-      </Svg>
-
-      {/* Center Percentage Display */}
-      <View pointerEvents="none" className="absolute items-center justify-center">
-        <AppText
-          weight="black"
-          className="text-[11px] text-slate-800"
-          style={{ fontVariant: ["tabular-nums"] }}
-        >
-          {animatedPercent}%
-        </AppText>
-      </View>
-    </View>
-  );
-};
-
-// ==========================================
-// Animated Horizontal Progress Bar
-// ==========================================
-
-const AnimatedMacroBar: React.FC<{
-  ratio: number; // 0 to 1
-  color: string;
-  trackBg: string;
-  animTrigger?: number;
-}> = ({ ratio, color, trackBg, animTrigger = 0 }) => {
-  const animatedPct = useAnimatedNumber(Math.round(ratio * 100), 900, animTrigger);
-  const clamped = Math.min(100, Math.max(0, animatedPct));
-
-  return (
-    <View
-      style={{ backgroundColor: trackBg, height: 7, borderRadius: 4 }}
-      className="w-full overflow-hidden my-2.5"
-    >
-      <View
-        style={{
-          width: `${clamped}%`,
-          backgroundColor: color,
-          height: "100%",
-          borderRadius: 4,
-        }}
-      />
-    </View>
-  );
-};
-
-// ==========================================
-// Main NutritionCard Component
-// ==========================================
 
 export interface NutritionCardProps extends ViewProps {
   proteinGrams: number;
@@ -321,8 +15,16 @@ export interface NutritionCardProps extends ViewProps {
   targetProteinGrams?: number;
   targetCarbsGrams?: number;
   targetFatGrams?: number;
+  className?: string;
 }
 
+const MACRO = Colors.macros;
+const tnum = { fontVariant: ["tabular-nums" as const] };
+
+/**
+ * Nutrition breakdown surface used on recipe detail and onboarding summary.
+ * Shows the calorie figure, a proportional MixBar of macro calories, and ruled rows per macro.
+ */
 export const NutritionCard: React.FC<NutritionCardProps> = ({
   proteinGrams = 0,
   carbsGrams = 0,
@@ -337,382 +39,188 @@ export const NutritionCard: React.FC<NutritionCardProps> = ({
   ...props
 }) => {
   const router = useRouter();
-  const { width } = useWindowDimensions();
-  const isNarrow = width < 375;
-
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState<boolean>(false);
-
-  // Active values from actual journal state or recipe props
-  const activeProtein = proteinGrams;
-  const activeCarbs = carbsGrams;
-  const activeFat = fatGrams;
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
   const profile = useOnboardingStore.getState().personalization;
   const activeTargetProtein = targetProteinGrams ?? profile?.targetProteinGrams ?? 161;
   const activeTargetCarbs = targetCarbsGrams ?? profile?.targetCarbGrams ?? 323;
   const activeTargetFat = targetFatGrams ?? profile?.targetFatGrams ?? 72;
 
-  // Calculate ratios & percentages
-  const proteinRatio = activeTargetProtein > 0 ? Math.min(1.0, activeProtein / activeTargetProtein) : 0;
-  const carbsRatio = activeTargetCarbs > 0 ? Math.min(1.0, activeCarbs / activeTargetCarbs) : 0;
-  const fatRatio = activeTargetFat > 0 ? Math.min(1.0, activeFat / activeTargetFat) : 0;
-
-  const proteinPct = Math.round(proteinRatio * 100);
-  const carbsPct = Math.round(carbsRatio * 100);
-  const fatPct = Math.round(fatRatio * 100);
-
-  // Animated values for display
-  const animatedProteinVal = useAnimatedNumber(activeProtein, 850, 0);
-  const animatedCarbsVal = useAnimatedNumber(activeCarbs, 850, 0);
-  const animatedFatVal = useAnimatedNumber(activeFat, 850, 0);
-
-  const proteinCalories = Math.round(activeProtein * 4);
-  const carbsCalories = Math.round(activeCarbs * 4);
-  const fatCalories = Math.round(activeFat * 9);
-
-  const animatedProteinKcal = useAnimatedNumber(proteinCalories, 850, 0);
-  const animatedCarbsKcal = useAnimatedNumber(carbsCalories, 850, 0);
-  const animatedFatKcal = useAnimatedNumber(fatCalories, 850, 0);
-
+  const proteinCalories = Math.round(proteinGrams * 4);
+  const carbsCalories = Math.round(carbsGrams * 4);
+  const fatCalories = Math.round(fatGrams * 9);
   const totalCalculatedKcal = proteinCalories + carbsCalories + fatCalories;
+  const displayCalories = totalCalories || totalCalculatedKcal;
 
-  const macroCards = useMemo(
-    () => [
-      {
-        id: "protein",
-        title: "Protein",
-        subtitle: "Build & repair muscles",
-        consumed: animatedProteinVal,
-        target: activeTargetProtein,
-        ratio: proteinRatio,
-        percent: proteinPct,
-        calories: animatedProteinKcal,
-        accentColor: "#059669",
-        bgTint: "bg-[#f0fbf5]",
-        borderTint: "border-[#d1f0dd]",
-        iconBg: "bg-[#d7f3e4]",
-        trackBg: "#dcf5e7",
-        badgeBg: "bg-white",
-        badgeBorder: "border-[#c4e9d3]",
-        icon: <DumbbellIcon size={18} color="#059669" />,
-        footerIcon: <FlameIcon size={13} color="#059669" />,
-      },
-      {
-        id: "carbs",
-        title: "Carbs",
-        subtitle: "Main source of energy",
-        consumed: animatedCarbsVal,
-        target: activeTargetCarbs,
-        ratio: carbsRatio,
-        percent: carbsPct,
-        calories: animatedCarbsKcal,
-        accentColor: "#d97706",
-        bgTint: "bg-[#fffdf7]",
-        borderTint: "border-[#faedd3]",
-        iconBg: "bg-[#feecd2]",
-        trackBg: "#fef3c7",
-        badgeBg: "bg-white",
-        badgeBorder: "border-[#f6dfba]",
-        icon: <WheatIcon size={18} color="#d97706" />,
-        footerIcon: <FlameIcon size={13} color="#d97706" />,
-      },
-      {
-        id: "fat",
-        title: "Fat",
-        subtitle: "Supports hormone health",
-        consumed: animatedFatVal,
-        target: activeTargetFat,
-        ratio: fatRatio,
-        percent: fatPct,
-        calories: animatedFatKcal,
-        accentColor: "#0284c7",
-        bgTint: "bg-[#f4f9fd]",
-        borderTint: "border-[#d8ecfc]",
-        iconBg: "bg-[#dbedfc]",
-        trackBg: "#e0f2fe",
-        badgeBg: "bg-white",
-        badgeBorder: "border-[#cae4fa]",
-        icon: <DropletIcon size={18} color="#0284c7" />,
-        footerIcon: <DropletIcon size={13} color="#0284c7" />,
-      },
-    ],
-    [
-      animatedProteinVal,
-      animatedCarbsVal,
-      animatedFatVal,
-      activeTargetProtein,
-      activeTargetCarbs,
-      activeTargetFat,
-      proteinRatio,
-      carbsRatio,
-      fatRatio,
-      proteinPct,
-      carbsPct,
-      fatPct,
-      animatedProteinKcal,
-      animatedCarbsKcal,
-      animatedFatKcal,
-    ]
-  );
+  const proteinPct = Math.round(((proteinCalories) / (totalCalculatedKcal || 1)) * 100);
+  const carbsPct = Math.round(((carbsCalories) / (totalCalculatedKcal || 1)) * 100);
+  const fatPct = Math.max(0, 100 - proteinPct - carbsPct);
+
+  const rows = [
+    {
+      key: "protein",
+      label: "Protein",
+      caption: `${proteinCalories} kcal · ${proteinPct}% energi`,
+      grams: proteinGrams,
+      target: activeTargetProtein,
+      color: MACRO.protein,
+    },
+    {
+      key: "carbs",
+      label: "Karbohidrat",
+      caption: `${carbsCalories} kcal · ${carbsPct}% energi`,
+      grams: carbsGrams,
+      target: activeTargetCarbs,
+      color: MACRO.carbs,
+    },
+    {
+      key: "fat",
+      label: "Lemak sehat",
+      caption: `${fatCalories} kcal · ${fatPct}% energi`,
+      grams: fatGrams,
+      target: activeTargetFat,
+      color: MACRO.fat,
+    },
+    ...(fiberGrams !== undefined
+      ? [
+          {
+            key: "fiber",
+            label: "Serat pangan",
+            caption: "Mendukung pencernaan & kenyang lebih lama",
+            grams: fiberGrams,
+            target: 25,
+            color: MACRO.fiber,
+          },
+        ]
+      : []),
+  ];
 
   return (
-    <View
-      className={`bg-white rounded-2xl border border-[#eae8e1] p-5 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.03)] ${
-        className || ""
-      }`}
-      style={style}
-      {...props}
-    >
-      {/* 1. Header Section */}
-      <View className="flex-row items-center justify-between mb-4 pb-3 border-b border-[#f4f2ec]">
-        <View className="flex-row items-center gap-3 flex-1 mr-3">
-          <View className="w-9 h-9 rounded-xl bg-[#eaf2ec] border border-[#d6e4db] items-center justify-center flex-shrink-0">
-            <BarChartIcon size={17} color="#153e28" />
-          </View>
-          <View className="flex-1">
-            <AppText weight="bold" className="text-base sm:text-lg text-neutral-dark tracking-tight leading-tight">
-              Macronutrient Balance
-            </AppText>
-            <AppText weight="medium" className="text-xs text-neutral-muted mt-0.5 leading-tight">
-              Protein, carbs & fats calibrated to your daily target
-            </AppText>
-          </View>
-        </View>
+    <Surface className={className} style={style} {...props}>
+      <CardHead
+        title="Komposisi nutrisi"
+        caption="Rincian makronutrisi per porsi"
+        right={
+          <RingButton
+            icon="arrowUpRight"
+            accessibilityLabel="Lihat detail nutrisi"
+            onPress={() => setIsDetailsModalOpen(true)}
+          />
+        }
+      />
 
-        {/* Right: View Nutrition Details Pill Link */}
-        <Pressable
-          onPress={() => setIsDetailsModalOpen(true)}
-          className="bg-[#f0f5f2] hover:bg-[#e4ede7] active:scale-95 border border-[#d6e4db] px-3 py-1.5 rounded-full flex-row items-center gap-1.5 flex-shrink-0 transition-transform"
-          accessibilityRole="button"
-          accessibilityLabel="View comprehensive nutrition details"
+      <View className="flex-row items-baseline gap-2 mb-3">
+        <AppText
+          weight="semibold"
+          className="text-[32px] text-ink"
+          style={[tnum, { letterSpacing: -0.8, lineHeight: 36 }]}
         >
-          <BarChartIcon size={13} color="#153e28" />
-          <AppText weight="bold" className="text-xs text-[#153e28]">
-            View Nutrition Details
-          </AppText>
-          <ChevronRightIcon size={12} color="#153e28" />
-        </Pressable>
+          {displayCalories.toLocaleString("id-ID")}
+        </AppText>
+        <AppText weight="medium" className="text-[13px] text-muted" style={tnum}>
+          kcal per porsi · P {proteinPct}% · K {carbsPct}% · L {fatPct}%
+        </AppText>
       </View>
 
-      {/* 2. Three Macro Cards (Protein, Carbs, Fat) */}
-      <View className={isNarrow ? "flex-col gap-3" : "flex-row gap-3 sm:gap-4"}>
-        {macroCards.map((card) => (
-          <View
-            key={card.id}
-            className={`flex-1 ${card.bgTint} ${card.borderTint} border rounded-2xl p-3.5 sm:p-4 justify-between`}
-          >
-            {/* Top Row: Icon + Name + Subtitle + Top-Right Percentage Pill Badge */}
-            <View className="flex-row items-start justify-between mb-2">
-              <View className="flex-row items-center gap-2.5 flex-1 mr-2">
-                <View
-                  className={`w-9 h-9 ${card.iconBg} rounded-xl items-center justify-center flex-shrink-0`}
-                >
-                  {card.icon}
-                </View>
-                <View className="flex-1 min-w-0">
-                  <AppText
-                    weight="extrabold"
-                    numberOfLines={1}
-                    className="text-sm sm:text-base text-neutral-dark leading-tight"
-                  >
-                    {card.title}
-                  </AppText>
-                  <AppText
-                    weight="medium"
-                    numberOfLines={1}
-                    className="text-[10px] sm:text-[11px] text-neutral-muted mt-0.5 leading-tight"
-                  >
-                    {card.subtitle}
-                  </AppText>
-                </View>
-              </View>
+      <MixBar
+        height={38}
+        accessibilityLabel={`Protein ${proteinCalories} kcal, karbohidrat ${carbsCalories} kcal, lemak ${fatCalories} kcal`}
+        segments={[
+          { key: "p", value: Math.max(1, proteinCalories), color: MACRO.protein },
+          { key: "c", value: Math.max(1, carbsCalories), color: MACRO.carbs },
+          { key: "f", value: Math.max(1, fatCalories), color: MACRO.fat },
+        ]}
+      />
 
-              {/* Percentage Pill Badge */}
-              <View
-                className={`${card.badgeBg} ${card.badgeBorder} border px-2 py-0.5 rounded-full flex-shrink-0`}
-              >
-                <AppText
-                  weight="bold"
-                  className="text-xs text-neutral-dark"
-                  style={{ fontVariant: ["tabular-nums"] }}
-                >
-                  {card.percent}%
-                </AppText>
-              </View>
-            </View>
-
-            {/* Middle Row: Consumed / Target Metrics */}
-            <View className="my-1">
-              <View className="flex-row items-baseline">
-                <AppText
-                  weight="black"
-                  className="text-2xl sm:text-3xl text-neutral-dark tracking-tight leading-none"
-                  style={{ fontVariant: ["tabular-nums"] }}
-                >
-                  {card.consumed}
-                </AppText>
-                <AppText
-                  weight="bold"
-                  className="text-xs sm:text-sm text-neutral-muted ml-1"
-                  style={{ fontVariant: ["tabular-nums"] }}
-                >
-                  / {card.target}g
-                </AppText>
-              </View>
-            </View>
-
-            {/* Progress Bar */}
-            <AnimatedMacroBar
-              ratio={card.ratio}
-              color={card.accentColor}
-              trackBg={card.trackBg}
-            />
-
-            {/* Bottom Row: Calories & Calibrated Target */}
-            <View className="flex-row items-center justify-between pt-1">
-              <View className="flex-row items-center gap-1.5">
-                {card.footerIcon}
-                <AppText
-                  weight="bold"
-                  className="text-[11px] sm:text-xs text-neutral-dark"
-                  style={{ fontVariant: ["tabular-nums"] }}
-                >
-                  {card.calories} kcal
-                </AppText>
-              </View>
-
-              <AppText
-                weight="bold"
-                className="text-[11px] sm:text-xs text-neutral-muted"
-                style={{ fontVariant: ["tabular-nums"] }}
-              >
-                Target {card.target}g
+      <View className="mt-2">
+        {rows.map((r, i) => (
+          <ListRow
+            key={r.key}
+            last={i === rows.length - 1}
+            leading={<View className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: r.color }} />}
+            title={r.label}
+            caption={r.caption}
+            trailing={
+              <AppText weight="bold" className="text-[15px] text-ink" style={tnum}>
+                {r.grams} g
               </AppText>
-            </View>
-          </View>
+            }
+          />
         ))}
       </View>
 
-      {/* ==================================================== */}
-      {/* 3. Nutrition Details Breakdown Modal */}
-      {/* ==================================================== */}
       <Modal
         visible={isDetailsModalOpen}
         transparent
         animationType="fade"
         onRequestClose={() => setIsDetailsModalOpen(false)}
       >
-        <View className="flex-1 bg-black/50 items-center justify-center p-4">
-          <View className="bg-white w-full max-w-md rounded-3xl p-5 sm:p-6 shadow-2xl border border-neutral-100">
-            {/* Modal Header */}
-            <View className="flex-row items-center justify-between pb-3 border-b border-neutral-100">
-              <View>
-                <View className="flex-row items-center gap-2">
-                  <LeafBadgeIcon size={14} color="#059669" />
-                  <AppText weight="black" className="text-lg text-slate-900">
-                    Nutrition Breakdown
-                  </AppText>
-                </View>
-                <AppText weight="medium" className="text-xs text-neutral-muted mt-0.5">
-                  Current Daily Progress
-                </AppText>
-              </View>
-              <Pressable
-                onPress={() => setIsDetailsModalOpen(false)}
-                className="w-8 h-8 rounded-full bg-slate-100 items-center justify-center active:scale-95"
-              >
-                <CloseModalIcon size={18} color="#475569" />
-              </Pressable>
-            </View>
+        <View className="flex-1 items-center justify-center p-4">
+          <Pressable
+            onPress={() => setIsDetailsModalOpen(false)}
+            style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(18, 24, 20, 0.45)" }]}
+          />
+          <Surface className="w-full max-w-md z-10">
+            <CardHead
+              title="Detail makronutrisi"
+              caption="Kontribusi terhadap target harian Anda"
+              right={
+                <RingButton
+                  icon="close"
+                  accessibilityLabel="Tutup detail nutrisi"
+                  onPress={() => setIsDetailsModalOpen(false)}
+                />
+              }
+            />
 
-            {/* Summary Statistics */}
-            <View className="my-4 bg-emerald-50/60 p-4 rounded-2xl border border-emerald-200/50 flex-row items-center justify-between">
+            <View className="flex-row items-center justify-between py-2.5 px-3.5 rounded-2xl bg-card-2 mb-3">
               <View>
-                <AppText weight="bold" className="text-xs text-emerald-800">
-                  Total Energy Calibrated
+                <AppText weight="medium" className="text-[12px] text-muted">
+                  Energi per porsi
                 </AppText>
-                <AppText weight="black" className="text-2xl text-emerald-950 mt-0.5">
-                  {totalCalories || totalCalculatedKcal} kcal
+                <AppText weight="bold" className="text-[22px] text-ink" style={tnum}>
+                  {displayCalories} kcal
                 </AppText>
               </View>
               {fiberGrams !== undefined && (
-                <View className="bg-white px-3 py-1.5 rounded-xl border border-emerald-200">
-                  <AppText weight="bold" className="text-[11px] text-emerald-800">
-                    Dietary Fiber: {fiberGrams ?? 0}g
-                  </AppText>
-                </View>
+                <StatusPill label={`Serat ${fiberGrams} g`} tone="accent" />
               )}
             </View>
 
-            {/* Macro Ratio Rows */}
-            <View className="gap-3">
-              <View className="p-3 bg-[#f0fbf5] rounded-xl border border-[#d1f0dd] flex-row items-center justify-between">
-                <View className="flex-row items-center gap-2">
-                  <DumbbellIcon size={16} color="#059669" />
-                  <View>
-                    <AppText weight="bold" className="text-xs text-slate-800">
-                      Protein ({Math.round(((activeProtein * 4) / (totalCalculatedKcal || 1)) * 100)}%)
-                    </AppText>
-                    <AppText weight="medium" className="text-[11px] text-slate-500">
-                      {activeProtein}g of {activeTargetProtein}g ({proteinPct}% goal)
-                    </AppText>
-                  </View>
-                </View>
-                <AppText weight="extrabold" className="text-xs text-emerald-700">
-                  {activeProtein * 4} kcal
-                </AppText>
-              </View>
-
-              <View className="p-3 bg-[#fffdf7] rounded-xl border border-[#faedd3] flex-row items-center justify-between">
-                <View className="flex-row items-center gap-2">
-                  <WheatIcon size={16} color="#d97706" />
-                  <View>
-                    <AppText weight="bold" className="text-xs text-slate-800">
-                      Carbohydrates ({Math.round(((activeCarbs * 4) / (totalCalculatedKcal || 1)) * 100)}%)
-                    </AppText>
-                    <AppText weight="medium" className="text-[11px] text-slate-500">
-                      {activeCarbs}g of {activeTargetCarbs}g ({carbsPct}% goal)
-                    </AppText>
-                  </View>
-                </View>
-                <AppText weight="extrabold" className="text-xs text-amber-700">
-                  {activeCarbs * 4} kcal
-                </AppText>
-              </View>
-
-              <View className="p-3 bg-[#f4f9fd] rounded-xl border border-[#d8ecfc] flex-row items-center justify-between">
-                <View className="flex-row items-center gap-2">
-                  <DropletIcon size={16} color="#0284c7" />
-                  <View>
-                    <AppText weight="bold" className="text-xs text-slate-800">
-                      Healthy Fats ({Math.round(((activeFat * 9) / (totalCalculatedKcal || 1)) * 100)}%)
-                    </AppText>
-                    <AppText weight="medium" className="text-[11px] text-slate-500">
-                      {activeFat}g of {activeTargetFat}g ({fatPct}% goal)
-                    </AppText>
-                  </View>
-                </View>
-                <AppText weight="extrabold" className="text-xs text-sky-700">
-                  {activeFat * 9} kcal
-                </AppText>
-              </View>
+            <View>
+              {rows.map((r, idx) => {
+                const goalPct = r.target > 0 ? Math.round((r.grams / r.target) * 100) : 0;
+                return (
+                  <ListRow
+                    key={r.key}
+                    last={idx === rows.length - 1}
+                    leading={<View className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: r.color }} />}
+                    title={r.label}
+                    caption={`${goalPct}% dari target harian (${r.target} g)`}
+                    trailing={
+                      <AppText weight="bold" className="text-[14px] text-ink" style={tnum}>
+                        {r.grams} g
+                      </AppText>
+                    }
+                  />
+                );
+              })}
             </View>
 
-            {/* Navigation Button to Meal Log */}
-            <Pressable
-              onPress={() => {
-                setIsDetailsModalOpen(false);
-                router.push("/(app)/(tabs)/meals");
-              }}
-              className="mt-5 bg-emerald-600 hover:bg-emerald-700 py-3 rounded-2xl items-center justify-center active:scale-95"
-            >
-              <AppText weight="black" className="text-sm text-white">
-                Go to Meal Journal →
-              </AppText>
-            </Pressable>
-          </View>
+            <View className="mt-4">
+              <PillButton
+                label="Buka katalog makan"
+                variant="primary"
+                icon="utensils"
+                onPress={() => {
+                  setIsDetailsModalOpen(false);
+                  router.push("/(app)/(tabs)/meals");
+                }}
+              />
+            </View>
+          </Surface>
         </View>
       </Modal>
-    </View>
+    </Surface>
   );
 };

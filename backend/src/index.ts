@@ -88,8 +88,8 @@ const isRunningTest =
   Boolean(process.env.NODE_TEST_CONTEXT);
 
 if (!isRunningTest) {
-  app.listen(PORT, () => {
-    console.log(`🚀 Better Life Backend running on http://localhost:${PORT}`);
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`🚀 Better Life Backend running on http://0.0.0.0:${PORT}`);
     console.log(`📡 Health check: http://localhost:${PORT}/health`);
   });
 }

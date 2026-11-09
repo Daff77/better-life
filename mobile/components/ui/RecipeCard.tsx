@@ -4,10 +4,13 @@ import {
   TouchableOpacityProps,
   ImageSourcePropType,
   Image,
+  ViewStyle,
 } from "react-native";
 import { AppText } from "./AppText";
 import { PressableScale } from "./PressableScale";
-import { IconRenderer, AppIconName, CrownIconSvg } from "@/constants/Assets";
+import { LineIcon } from "./LineIcon";
+import { SURFACE_SHADOW, StatusPill } from "./Surface";
+import { AppIconName, getMealIllustration } from "@/constants/Assets";
 import { mealLabel, DIFFICULTY_LABELS } from "@/constants/MealLabels";
 
 export interface RecipeCardProps extends Omit<TouchableOpacityProps, "children"> {
@@ -26,8 +29,7 @@ export interface RecipeCardProps extends Omit<TouchableOpacityProps, "children">
 }
 
 /**
- * Recipe tile. The photo carries the card; text below is meta, title, kcal.
- * The only overlay is the Premium lock, because it changes what a tap does.
+ * Recipe tile. Uses the shared surface elevation and a clean status pill for Premium recipes.
  */
 export const RecipeCard: React.FC<RecipeCardProps> = ({
   title,
@@ -43,45 +45,56 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
   onPress,
   className,
 }) => {
-  const effectiveImageSource = imageSource || (imageUrl ? { uri: imageUrl } : null);
+  const effectiveImageSource =
+    imageSource || (imageUrl ? { uri: imageUrl } : getMealIllustration(category || svgName));
 
   return (
     <PressableScale
       onPress={onPress}
       pressedScale={0.985}
-      className={`bg-white rounded-2xl border border-[#ebe9e2] overflow-hidden ${className || ""}`}
+      className={`bg-card rounded-[20px] border border-line overflow-hidden ${className || ""}`}
+      style={{ boxShadow: SURFACE_SHADOW } as ViewStyle}
       accessibilityRole="button"
-      accessibilityLabel={`${title}, ${calories} kalori, ${prepTimeMinutes} menit${isLocked ? ", resep premium terkunci" : ""}`}
+      accessibilityLabel={`${title}, ${calories} kalori, ${prepTimeMinutes} menit${
+        isLocked ? ", resep premium terkunci" : ""
+      }`}
     >
-      <View className="h-[150px] w-full bg-[#f2f1ec] items-center justify-center">
-        {effectiveImageSource ? (
-          <Image source={effectiveImageSource} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
-        ) : svgName ? (
-          <IconRenderer name={svgName} size={64} />
-        ) : (
-          <IconRenderer name="Cook" size={26} color="#153e28" />
-        )}
+      <View className="h-[154px] w-full bg-card-2 items-center justify-center">
+        <Image source={effectiveImageSource} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
 
         {isPremium && (
-          <View className="absolute top-2.5 left-2.5 bg-white px-2 py-1 rounded-md flex-row items-center gap-1">
-            <CrownIconSvg size={11} color="#b45309" />
-            <AppText weight="bold" className="text-[10px] text-[#8a4106]">
-              {isLocked ? "Premium" : "Premium terbuka"}
-            </AppText>
+          <View className="absolute top-3 left-3">
+            <StatusPill
+              label={isLocked ? "Premium" : "Premium terbuka"}
+              tone={isLocked ? "warn" : "good"}
+            />
           </View>
         )}
       </View>
 
-      <View className="px-3.5 pt-3 pb-3.5">
-        <AppText weight="medium" numberOfLines={1} className="text-[11px] text-neutral-muted">
+      <View className="px-4 pt-3 pb-3.5">
+        <AppText weight="semibold" numberOfLines={1} className="text-[12px] text-muted">
           {mealLabel(category)} · {prepTimeMinutes} mnt · {DIFFICULTY_LABELS[difficulty] ?? difficulty}
         </AppText>
-        <AppText weight="bold" numberOfLines={2} className="text-[15px] text-neutral-dark leading-snug mt-0.5 min-h-[40px]">
+        <AppText
+          weight="semibold"
+          numberOfLines={2}
+          className="text-[16px] text-ink leading-5 mt-1 min-h-[40px]"
+        >
           {title}
         </AppText>
-        <AppText weight="bold" className="text-[13px] text-primary mt-1.5" style={{ fontVariant: ["tabular-nums"] }}>
-          {calories} kcal
-        </AppText>
+        <View className="flex-row items-center justify-between mt-2">
+          <AppText
+            weight="bold"
+            className="text-[14px] text-primary-text"
+            style={{ fontVariant: ["tabular-nums"] }}
+          >
+            {calories} kcal
+          </AppText>
+          <View className="w-7 h-7 rounded-full border border-line-2 items-center justify-center">
+            <LineIcon name={isLocked ? "lock" : "arrowUpRight"} size={14} color="#2e3a33" />
+          </View>
+        </View>
       </View>
     </PressableScale>
   );

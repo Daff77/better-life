@@ -1,323 +1,295 @@
-import React from "react";
-import { View, ScrollView, useWindowDimensions, Image } from "react-native";
+import React, { useState } from "react";
+import { View } from "react-native";
 import { useRouter } from "expo-router";
-import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
-import { AppText, Button, Card, Badge } from "@/components/ui";
+import {
+  AppText,
+  Button,
+  FlowScreen,
+  FlowTitle,
+  Surface,
+  CardHead,
+  StatusPill,
+  ColorBlock,
+  MixBar,
+  ListRow,
+  RowIcon,
+  LineIcon,
+} from "@/components/ui";
 import { useOnboardingStore } from "@/stores/useOnboardingStore";
-import { BrandImages } from "@/constants/Assets";
+
+const GOAL_LABELS: Record<string, string> = {
+  "Eat balanced": "Makan Seimbang",
+  "Lose weight": "Turunkan Berat Badan",
+  "Gain muscle": "Bentuk Otot",
+};
+
+const SKILL_LABELS: Record<string, string> = {
+  Low: "Pemula (≤ 15 mnt)",
+  Middle: "Menengah",
+  High: "Mahir",
+};
 
 export default function PersonalizedPlanScreen() {
   const router = useRouter();
-  const { width } = useWindowDimensions();
-  const isCompact = width < 370;
   const personalization = useOnboardingStore((state) => state.personalization);
   const completeOnboarding = useOnboardingStore((state) => state.completeOnboarding);
+  const [isCompleting, setIsCompleting] = useState(false);
 
   const handleStartJourney = async () => {
-    // Complete onboarding state and persist session
-    await completeOnboarding();
-    // Navigate to Main Application Dashboard
-    router.replace("/(app)/(tabs)");
+    if (isCompleting) return;
+    setIsCompleting(true);
+    try {
+      await completeOnboarding();
+      setIsCompleting(false);
+      router.replace("/(app)/(tabs)");
+    } catch {
+      setIsCompleting(false);
+      router.replace("/(app)/(tabs)");
+    }
+  };
+
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace("/(onboarding)");
+    }
   };
 
   const getGoalExplanation = () => {
     switch (personalization.goal) {
       case "Lose weight":
-        return "Calibrated with a safe ~18% caloric deficit to burn body fat while preserving lean muscle.";
+        return "Dikalibrasi dengan defisit kalori aman ~18% untuk membakar lemak tubuh sambil menjaga massa otot.";
       case "Gain muscle":
-        return "Calibrated with a ~15% caloric surplus to support resistance training and muscle protein synthesis.";
+        return "Dikalibrasi dengan surplus kalori ~15% untuk mendukung latihan beban dan sintesis protein otot.";
       case "Eat balanced":
       default:
-        return "Calibrated for metabolic equilibrium and steady daily energy levels.";
+        return "Dikalibrasi untuk keseimbangan metabolisme dan energi harian yang stabil.";
     }
   };
 
+  const targetCalories = personalization.targetCalories || 2000;
+  const bmr = personalization.bmr || Math.round(targetCalories * 0.74);
+  const tdee = personalization.tdee || targetCalories;
+  const proteinGrams = personalization.targetProteinGrams || Math.round((targetCalories * 0.25) / 4);
+  const carbGrams = personalization.targetCarbGrams || Math.round((targetCalories * 0.5) / 4);
+  const fatGrams = personalization.targetFatGrams || Math.round((targetCalories * 0.25) / 9);
+
   return (
-    <ScreenWrapper maxWidth="default" className="flex-1 bg-white">
-      <ScrollView
-        className="flex-1 px-6 pt-6 pb-8"
-        contentContainerStyle={{ flexGrow: 1 }}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Header Section */}
-        <View className="mb-6">
-          <View className="flex-row items-center gap-x-2.5 mb-2">
-            <Image
-              source={BrandImages.logoPng}
-              style={{ width: 28, height: 28 }}
-              resizeMode="contain"
-              accessibilityLabel="Better Life Logo"
+    <FlowScreen
+      onBack={handleBack}
+      step={{ current: 8, total: 8 }}
+      footer={
+        <Button
+          title={isCompleting ? "Menyiapkan Beranda..." : "Mulai Perjalanan Better Life"}
+          size="lg"
+          loading={isCompleting}
+          onPress={handleStartJourney}
+          accessibilityLabel="Mulai perjalanan dan masuk ke beranda"
+        />
+      }
+    >
+      <FlowTitle
+        eyebrow="Langkah 8 dari 8 · Hasil Personalisasi"
+        title="Rencana Nutrisi Harian Anda"
+        caption={getGoalExplanation()}
+      />
+
+      <View className="gap-4">
+        {/* Hero Calorie Target Card */}
+        <ColorBlock tone="green">
+          <View className="flex-row justify-between items-center mb-1.5">
+            <AppText weight="bold" className="text-[11.5px] uppercase tracking-wider text-white/80">
+              Target Kalori Harian
+            </AppText>
+            <View className="px-2.5 py-0.5 rounded-full bg-white/15">
+              <AppText weight="semibold" className="text-[11px] text-white">
+                {GOAL_LABELS[personalization.goal] || personalization.goal}
+              </AppText>
+            </View>
+          </View>
+
+          <View className="my-1.5">
+            <View className="flex-row items-baseline">
+              <AppText
+                weight="bold"
+                className="text-[44px] text-white"
+                style={{ fontVariant: ["tabular-nums"], letterSpacing: -1.2, lineHeight: 48 }}
+              >
+                {targetCalories.toLocaleString("id-ID")}
+              </AppText>
+              <AppText weight="medium" className="text-[15px] text-white/85 ml-2">
+                kcal / hari
+              </AppText>
+            </View>
+            <AppText weight="regular" className="text-[12px] text-white/75 mt-1">
+              Dihitung dengan rumus metabolisme basal Mifflin-St Jeor
+            </AppText>
+          </View>
+
+          <View className="flex-row justify-between pt-3 mt-2.5 border-t border-white/20">
+            <View className="flex-1">
+              <AppText weight="regular" className="text-[11px] text-white/75">
+                Metabolisme Basal (BMR)
+              </AppText>
+              <AppText
+                weight="semibold"
+                className="text-[14px] text-white mt-0.5"
+                style={{ fontVariant: ["tabular-nums"] }}
+              >
+                {bmr.toLocaleString("id-ID")} kcal
+              </AppText>
+            </View>
+            <View className="flex-1">
+              <AppText weight="regular" className="text-[11px] text-white/75">
+                Kebutuhan Total (TDEE)
+              </AppText>
+              <AppText
+                weight="semibold"
+                className="text-[14px] text-white mt-0.5"
+                style={{ fontVariant: ["tabular-nums"] }}
+              >
+                {tdee.toLocaleString("id-ID")} kcal
+              </AppText>
+            </View>
+            <View className="items-end">
+              <AppText weight="regular" className="text-[11px] text-white/75">
+                Tubuh
+              </AppText>
+              <AppText
+                weight="semibold"
+                className="text-[14px] text-[#f3b23c] mt-0.5"
+                style={{ fontVariant: ["tabular-nums"] }}
+              >
+                {personalization.weight}kg · {personalization.height}cm
+              </AppText>
+            </View>
+          </View>
+        </ColorBlock>
+
+        {/* Macronutrient Recommendations */}
+        <Surface>
+          <CardHead
+            title="Rekomendasi makronutrisi"
+            subtitle="Proporsi harian untuk energi dan pemulihan"
+          />
+
+          <MixBar
+            height={12}
+            segments={[
+              { key: "p", value: 25, color: "#0e7a52" },
+              { key: "c", value: 50, color: "#f3b23c" },
+              { key: "f", value: 25, color: "#141c18" },
+            ]}
+          />
+
+          <View className="mt-2">
+            <ListRow
+              first
+              left={
+                <RowIcon tone="green">
+                  <LineIcon name="flame" size={15} color="#0e7a52" />
+                </RowIcon>
+              }
+              title="Protein (25%)"
+              subtitle="Pemulihan jaringan & sintesis otot"
+              right={
+                <AppText
+                  weight="bold"
+                  className="text-[15px] text-primary-text"
+                  style={{ fontVariant: ["tabular-nums"] }}
+                >
+                  {proteinGrams} g
+                </AppText>
+              }
             />
-            <View className="bg-primary/20 px-3 py-1 rounded-full">
-              <AppText weight="bold" className="text-xs text-primary uppercase tracking-wide">
-                Personalized Blueprint
-              </AppText>
-            </View>
+            <ListRow
+              left={
+                <RowIcon tone="amber">
+                  <LineIcon name="sparkle" size={15} color="#8f4e00" />
+                </RowIcon>
+              }
+              title="Karbohidrat (50%)"
+              subtitle="Sumber energi utama aktivitas harian"
+              right={
+                <AppText
+                  weight="bold"
+                  className="text-[15px] text-ink"
+                  style={{ fontVariant: ["tabular-nums"] }}
+                >
+                  {carbGrams} g
+                </AppText>
+              }
+            />
+            <ListRow
+              last
+              left={
+                <RowIcon tone="soft">
+                  <LineIcon name="heart" size={15} color="#121a16" />
+                </RowIcon>
+              }
+              title="Lemak Sehat (25%)"
+              subtitle="Keseimbangan hormon & penyerapan vitamin"
+              right={
+                <AppText
+                  weight="bold"
+                  className="text-[15px] text-ink"
+                  style={{ fontVariant: ["tabular-nums"] }}
+                >
+                  {fatGrams} g
+                </AppText>
+              }
+            />
           </View>
-          <AppText weight="black" className="text-3xl text-neutral-dark mb-1">
-            Your Better Life Plan
-          </AppText>
-          <AppText weight="medium" className="text-sm text-neutral-muted leading-relaxed">
-            {getGoalExplanation()}
-          </AppText>
-        </View>
+        </Surface>
 
-        {/* Main Content Layout: Single column on mobile, 2 columns on desktop */}
-        <View className="md:flex-row md:gap-8 items-start">
-          {/* Left Column on Desktop: Target Calories & Dietary Profile */}
-          <View className="w-full md:flex-1">
-            {/* Hero Target Calories Card (Double-Bezel Architecture) */}
-            <View className="mb-5">
-              <View className="bg-[#f2f8f4] p-1.5 rounded-[28px] border border-[#e5ece7] shadow-xs">
-                <View className="bg-white p-6 rounded-[22px] border border-black/[0.04]">
-                  <View className="flex-row justify-between items-center mb-3">
-                    <AppText weight="extrabold" className="text-xs uppercase tracking-wider text-accent-teal">
-                      Daily Calorie Target
-                    </AppText>
-                    <Badge label="Optimal" variant="primary" size="sm" />
-                  </View>
-
-                  <View className="items-center my-3">
-                    <View className="flex-row items-baseline">
-                      <AppText
-                        weight="black"
-                        className="text-5xl text-primary"
-                        style={{ fontVariant: ["tabular-nums"] }}
-                      >
-                        {personalization.targetCalories}
-                      </AppText>
-                      <AppText weight="bold" className="text-xl text-neutral-muted ml-1.5">
-                        kcal / day
-                      </AppText>
-                    </View>
-                    <AppText weight="medium" className="text-xs text-neutral-muted mt-2 text-center">
-                      Derived via Mifflin-St Jeor metabolic expenditure formula
-                    </AppText>
-                  </View>
-
-                  {/* Metabolic Factors Strip */}
-                  <View className="flex-row justify-between pt-4 mt-2 border-t border-[#f2f8f4]">
-                    <View className="items-center flex-1">
-                      <AppText weight="medium" className="text-xs text-neutral-muted">
-                        Basal (BMR)
-                      </AppText>
-                      <AppText
-                        weight="bold"
-                        className="text-sm text-neutral-dark mt-0.5"
-                        style={{ fontVariant: ["tabular-nums"] }}
-                      >
-                        {personalization.bmr || "-"} kcal
-                      </AppText>
-                    </View>
-                    <View className="w-px h-8 bg-[#e5ece7]" />
-                    <View className="items-center flex-1">
-                      <AppText weight="medium" className="text-xs text-neutral-muted">
-                        Total (TDEE)
-                      </AppText>
-                      <AppText
-                        weight="bold"
-                        className="text-sm text-neutral-dark mt-0.5"
-                        style={{ fontVariant: ["tabular-nums"] }}
-                      >
-                        {personalization.tdee || "-"} kcal
-                      </AppText>
-                    </View>
-                    <View className="w-px h-8 bg-[#e5ece7]" />
-                    <View className="items-center flex-1">
-                      <AppText weight="medium" className="text-xs text-neutral-muted">
-                        Target Goal
-                      </AppText>
-                      <AppText weight="bold" className="text-sm text-primary mt-0.5">
-                        {personalization.goal}
-                      </AppText>
-                    </View>
-                  </View>
-                </View>
-              </View>
-            </View>
-
-            {/* Dietary Preferences & Exclusions Strip */}
-            <View className="mb-6">
-              <AppText weight="bold" className="text-base text-neutral-dark mb-2.5">
-                Dietary Profile
+        {/* Personal Dietary & Skill Profile */}
+        <Surface>
+          <CardHead
+            title="Profil preferensi Anda"
+            subtitle="Digunakan untuk memfilter katalog resep & rencana makan"
+          />
+          <ListRow
+            first
+            left={
+              <RowIcon tone="green">
+                <LineIcon name="leaf" size={15} color="#0e7a52" />
+              </RowIcon>
+            }
+            title="Pola makan"
+            right={<StatusPill tone="ok" label={personalization.dietType || "Omnivore"} />}
+          />
+          <ListRow
+            left={
+              <RowIcon tone="soft">
+                <LineIcon name="utensils" size={15} color="#121a16" />
+              </RowIcon>
+            }
+            title="Keahlian memasak"
+            right={
+              <AppText weight="semibold" className="text-[13px] text-ink">
+                {SKILL_LABELS[personalization.cookingSkill] || personalization.cookingSkill}
               </AppText>
-
-              <View className="p-4 bg-white rounded-2xl border border-neutral-border shadow-xs">
-                <View className="flex-row justify-between items-center pb-2.5 border-b border-neutral-border/60">
-                  <AppText weight="medium" className="text-xs text-neutral-muted">
-                    Dietary Preference
-                  </AppText>
-                  <View className="bg-primary/10 px-2.5 py-0.5 rounded-full">
-                    <AppText weight="bold" className="text-xs text-primary">
-                      {personalization.dietType || "Standard"}
-                    </AppText>
-                  </View>
-                </View>
-
-                <View className="flex-row justify-between items-center pt-2.5">
-                  <AppText weight="medium" className="text-xs text-neutral-muted">
-                    Excluded Allergens
-                  </AppText>
-                  <View className="flex-row flex-wrap gap-1 justify-end max-w-[60%]">
-                    {personalization.allergies && personalization.allergies.length > 0 ? (
-                      personalization.allergies.map((allergy) => (
-                        <View key={allergy} className="bg-status-error/10 px-2 py-0.5 rounded-full">
-                          <AppText weight="bold" className="text-[11px] text-status-error">
-                            {allergy}
-                          </AppText>
-                        </View>
-                      ))
-                    ) : (
-                      <AppText weight="bold" className="text-xs text-neutral-dark">
-                        None declared
-                      </AppText>
-                    )}
-                  </View>
-                </View>
-              </View>
-            </View>
-          </View>
-
-          {/* Right Column on Desktop: Macronutrients & Call to Action */}
-          <View className="w-full md:flex-1 md:bg-white md:p-6 md:rounded-3xl md:border md:border-neutral-border-light md:shadow-sm">
-            {/* Macronutrient Distribution */}
-            <View className="mb-6">
-              <AppText weight="bold" className="text-base text-neutral-dark mb-3">
-                Recommended Daily Macronutrients
+            }
+          />
+          <ListRow
+            last
+            left={
+              <RowIcon tone="amber">
+                <LineIcon name="shield" size={15} color="#8f4e00" />
+              </RowIcon>
+            }
+            title="Alergen yang dikecualikan"
+            right={
+              <AppText weight="semibold" className="text-[13px] text-ink">
+                {personalization.allergies && personalization.allergies.length > 0
+                  ? personalization.allergies.join(", ")
+                  : "Tidak ada"}
               </AppText>
-
-              {isCompact ? (
-                <View className="flex-row flex-wrap gap-2">
-                  {/* Protein Card */}
-                  <View className="w-[48%] bg-neutral-surface p-3 rounded-2xl border border-neutral-border items-center">
-                    <View className="w-2.5 h-2.5 rounded-full bg-emerald-500 mb-1" />
-                    <AppText weight="bold" className="text-xs text-neutral-muted">
-                      Protein (25%)
-                    </AppText>
-                    <AppText
-                      weight="black"
-                      className="text-xl text-neutral-dark mt-0.5"
-                      style={{ fontVariant: ["tabular-nums"] }}
-                    >
-                      {personalization.targetProteinGrams || 120}g
-                    </AppText>
-                    <AppText weight="medium" className="text-[10px] text-neutral-muted mt-0.5">
-                      Muscle recovery
-                    </AppText>
-                  </View>
-
-                  {/* Carbohydrates Card */}
-                  <View className="w-[48%] bg-neutral-surface p-3 rounded-2xl border border-neutral-border items-center">
-                    <View className="w-2.5 h-2.5 rounded-full bg-amber-500 mb-1" />
-                    <AppText weight="bold" className="text-xs text-neutral-muted">
-                      Carbs (50%)
-                    </AppText>
-                    <AppText
-                      weight="black"
-                      className="text-xl text-neutral-dark mt-0.5"
-                      style={{ fontVariant: ["tabular-nums"] }}
-                    >
-                      {personalization.targetCarbGrams || 240}g
-                    </AppText>
-                    <AppText weight="medium" className="text-[10px] text-neutral-muted mt-0.5">
-                      Primary energy
-                    </AppText>
-                  </View>
-
-                  {/* Healthy Fats Card (Spans full width) */}
-                  <View className="w-full bg-neutral-surface p-3 rounded-2xl border border-neutral-border flex-row items-center justify-between px-4">
-                    <View className="flex-row items-center gap-2.5">
-                      <View className="w-2.5 h-2.5 rounded-full bg-blue-500" />
-                      <View>
-                        <AppText weight="bold" className="text-xs text-neutral-muted">
-                          Healthy Fats (25%)
-                        </AppText>
-                        <AppText weight="medium" className="text-[10px] text-neutral-muted">
-                          Hormonal balance
-                        </AppText>
-                      </View>
-                    </View>
-                    <AppText
-                      weight="black"
-                      className="text-xl text-neutral-dark"
-                      style={{ fontVariant: ["tabular-nums"] }}
-                    >
-                      {personalization.targetFatGrams || 54}g
-                    </AppText>
-                  </View>
-                </View>
-              ) : (
-                <View className="flex-row gap-2 sm:gap-3">
-                  {/* Protein Card */}
-                  <View className="flex-1 bg-neutral-surface p-3 sm:p-4 rounded-2xl border border-neutral-border items-center">
-                    <View className="w-2.5 h-2.5 rounded-full bg-emerald-500 mb-1.5" />
-                    <AppText weight="bold" className="text-xs text-neutral-muted">
-                      Protein (25%)
-                    </AppText>
-                    <AppText
-                      weight="black"
-                      className="text-lg sm:text-xl text-neutral-dark mt-1"
-                      style={{ fontVariant: ["tabular-nums"] }}
-                    >
-                      {personalization.targetProteinGrams || 120}g
-                    </AppText>
-                    <AppText weight="medium" className="text-[10px] text-neutral-muted mt-0.5">
-                      Muscle recovery
-                    </AppText>
-                  </View>
-
-                  {/* Carbohydrates Card */}
-                  <View className="flex-1 bg-neutral-surface p-3 sm:p-4 rounded-2xl border border-neutral-border items-center">
-                    <View className="w-2.5 h-2.5 rounded-full bg-amber-500 mb-1.5" />
-                    <AppText weight="bold" className="text-xs text-neutral-muted">
-                      Carbs (50%)
-                    </AppText>
-                    <AppText
-                      weight="black"
-                      className="text-lg sm:text-xl text-neutral-dark mt-1"
-                      style={{ fontVariant: ["tabular-nums"] }}
-                    >
-                      {personalization.targetCarbGrams || 240}g
-                    </AppText>
-                    <AppText weight="medium" className="text-[10px] text-neutral-muted mt-0.5">
-                      Primary energy
-                    </AppText>
-                  </View>
-
-                  {/* Healthy Fats Card */}
-                  <View className="flex-1 bg-neutral-surface p-3 sm:p-4 rounded-2xl border border-neutral-border items-center">
-                    <View className="w-2.5 h-2.5 rounded-full bg-blue-500 mb-1.5" />
-                    <AppText weight="bold" className="text-xs text-neutral-muted">
-                      Fats (25%)
-                    </AppText>
-                    <AppText
-                      weight="black"
-                      className="text-lg sm:text-xl text-neutral-dark mt-1"
-                      style={{ fontVariant: ["tabular-nums"] }}
-                    >
-                      {personalization.targetFatGrams || 54}g
-                    </AppText>
-                    <AppText weight="medium" className="text-[10px] text-neutral-muted mt-0.5">
-                      Hormonal balance
-                    </AppText>
-                  </View>
-                </View>
-              )}
-            </View>
-
-            {/* Bottom CTA Action */}
-            <View className="mt-auto pt-4 pb-2">
-              <Button
-                title="Start My Journey"
-                variant="primary"
-                onPress={handleStartJourney}
-                accessibilityLabel="Start my journey and enter dashboard"
-                className="w-full shadow-md"
-              />
-            </View>
-          </View>
-        </View>
-      </ScrollView>
-    </ScreenWrapper>
+            }
+          />
+        </Surface>
+      </View>
+    </FlowScreen>
   );
 }

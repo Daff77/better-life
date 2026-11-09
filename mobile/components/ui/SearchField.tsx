@@ -1,7 +1,8 @@
 import React from "react";
-import { View, TextInput, Platform } from "react-native";
+import { View, TextInput, Platform, ViewStyle } from "react-native";
 import { PressableScale } from "./PressableScale";
-import { CloseIconSvg, SearchIconSvg } from "@/constants/Assets";
+import { LineIcon } from "./LineIcon";
+import { SURFACE_SHADOW } from "./Surface";
 
 export interface SearchFieldProps {
   value: string;
@@ -12,8 +13,8 @@ export interface SearchFieldProps {
 }
 
 /**
- * Search input at 16px so iOS Safari does not zoom on focus.
- * Focus is shown by the border turning forest, not by removing the outline silently.
+ * Pill search input at 16px so iOS Safari does not zoom on focus.
+ * Uses Vialo's surface elevation and turns its border emerald when focused.
  */
 export const SearchField: React.FC<SearchFieldProps> = ({
   value,
@@ -25,11 +26,12 @@ export const SearchField: React.FC<SearchFieldProps> = ({
   const [focused, setFocused] = React.useState(false);
   return (
     <View
-      className={`flex-row items-center bg-white rounded-2xl px-3.5 h-12 border ${
-        focused ? "border-primary" : "border-[#e3e1da]"
+      className={`flex-row items-center bg-card rounded-full px-4 h-12 border ${
+        focused ? "border-primary" : "border-line"
       }`}
+      style={{ boxShadow: SURFACE_SHADOW } as ViewStyle}
     >
-      <SearchIconSvg size={17} color="#5a625b" />
+      <LineIcon name="search" size={18} color={focused ? "#0e7a52" : "#56605a"} />
       <TextInput
         value={value}
         onChangeText={onChangeText}
@@ -40,9 +42,9 @@ export const SearchField: React.FC<SearchFieldProps> = ({
         onSubmitEditing={onSubmit}
         returnKeyType="search"
         accessibilityLabel={accessibilityLabel}
-        className="flex-1 ml-2.5 text-neutral-dark"
+        className="flex-1 ml-2.5 text-ink"
         style={{
-          fontFamily: "Akatab-Medium",
+          fontFamily: "Urbanist-Medium",
           fontSize: 16,
           includeFontPadding: false,
           ...(Platform.OS === "web" ? ({ outlineStyle: "none" } as any) : {}),
@@ -52,14 +54,13 @@ export const SearchField: React.FC<SearchFieldProps> = ({
         <PressableScale
           onPress={() => onChangeText("")}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          className="w-7 h-7 rounded-full bg-[#efeee8] items-center justify-center ml-1"
+          className="w-7 h-7 rounded-full bg-card-2 items-center justify-center ml-1"
           accessibilityRole="button"
           accessibilityLabel="Hapus pencarian"
         >
-          <CloseIconSvg size={12} color="#5a625b" />
+          <LineIcon name="close" size={13} color="#56605a" />
         </PressableScale>
       )}
     </View>
   );
 };
-

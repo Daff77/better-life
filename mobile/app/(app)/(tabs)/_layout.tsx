@@ -1,11 +1,16 @@
 import React from "react";
 import { useWindowDimensions } from "react-native";
 import { Tabs } from "expo-router";
-import { ResponsiveTabBar } from "@/components/layout/ResponsiveTabBar";
+import {
+  ResponsiveTabBar,
+  NAV_DESKTOP_BREAKPOINT,
+  NAV_TOPBAR_HEIGHT,
+  NAV_DOCK_GUTTER,
+} from "@/components/layout/ResponsiveTabBar";
 
 export default function TabsLayout() {
   const { width } = useWindowDimensions();
-  const isDesktop = width >= 768;
+  const isDesktop = width >= NAV_DESKTOP_BREAKPOINT;
 
   return (
     <Tabs
@@ -13,8 +18,10 @@ export default function TabsLayout() {
       screenOptions={{
         headerShown: false,
         sceneStyle: {
-          marginLeft: isDesktop ? 230 : 0,
-          backgroundColor: "#faf9f5",
+          // Desktop scenes clear the fixed top bar and the left quick-action dock.
+          paddingTop: isDesktop ? NAV_TOPBAR_HEIGHT : 0,
+          paddingLeft: isDesktop ? NAV_DOCK_GUTTER : 0,
+          backgroundColor: "#edf1ee",
         },
       }}
     >

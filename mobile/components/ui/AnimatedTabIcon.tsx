@@ -39,7 +39,7 @@ export const AnimatedTabIcon: React.FC<AnimatedTabIconProps> = ({
     transform: [{ scale: scale.value }],
   }));
 
-  const iconColor = typeof color === "string" ? color : focused ? "#1b7a53" : "#94a3b8";
+  const iconColor = typeof color === "string" ? color : focused ? "#0e7a52" : "#94a3b8";
 
   const renderIconSvg = () => {
     switch (name) {

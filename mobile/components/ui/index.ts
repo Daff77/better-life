@@ -24,3 +24,6 @@ export * from './FadeInView';
 export * from './SectionHeader';
 export * from './FilterChip';
 export * from './SearchField';
+export * from './LineIcon';
+export * from './Surface';
+export * from './Flow';

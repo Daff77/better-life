@@ -48,7 +48,7 @@ export const AppButton: React.FC<AppButtonProps> = ({
       {...props}
     >
       {loading ? (
-        <ActivityIndicator color={variant === "primary" ? "#ffffff" : "#67c090"} />
+        <ActivityIndicator color={variant === "primary" ? "#ffffff" : "#0e7a52"} />
       ) : (
         <AppText weight="bold" className={`text-[17px] ${getTextColor()}`}>
           {title}

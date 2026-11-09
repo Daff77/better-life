@@ -82,7 +82,7 @@ export default function SplashScreen() {
     // Auto transition after entrance completes and session is determined
     const timer = setTimeout(() => {
       navigateNext();
-    }, 1800);
+    }, 950);
 
     return () => clearTimeout(timer);
   }, [isLoading, isAuthenticated, onboardingCompleted]);
@@ -90,18 +90,18 @@ export default function SplashScreen() {
   return (
     <Pressable
       onPress={navigateNext}
-      className="flex-1 bg-white items-center justify-center relative"
+      className="flex-1 bg-canvas items-center justify-center relative"
       accessibilityRole="button"
-      accessibilityLabel="Tap to continue"
+      accessibilityLabel="Ketuk untuk melanjutkan"
     >
       {/* Background Decorative Pattern */}
       <Animated.View
-        pointerEvents="none"
         style={{
           position: "absolute",
           width: "100%",
           height: "100%",
           opacity: bgOpacity,
+          pointerEvents: "none",
         }}
       >
         <IconRenderer
@@ -139,8 +139,8 @@ export default function SplashScreen() {
           zIndex: 3,
         }}
       >
-        <AppText weight="semibold" className="text-sm text-neutral-muted tracking-wide">
-          Tap anywhere to continue
+        <AppText weight="semibold" className="text-sm text-muted tracking-wide">
+          Ketuk di mana saja untuk mulai
         </AppText>
       </Animated.View>
     </Pressable>

@@ -1,181 +1,108 @@
-import React, { useEffect } from "react";
-import { View, Image, ScrollView, Platform } from "react-native";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withSpring,
-  withDelay,
-  withRepeat,
-  withSequence,
-  Easing,
-} from "react-native-reanimated";
+import React from "react";
+import { View, Image, useWindowDimensions } from "react-native";
 import { useRouter } from "expo-router";
-import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
-import { AppText, Button } from "@/components/ui";
-import { BrandImages } from "@/constants/Assets";
-import { Shadows } from "@/constants/DesignTokens";
+import { AppText, Button, FadeInView, FlowScreen, LineIcon, LineIconName } from "@/components/ui";
+import { BrandImages, MealIllustrations } from "@/constants/Assets";
+
+/*
+ * Welcome. One idea per band: brand, a picture of a whole day of eating,
+ * the promise in one line, three concrete facts, then two clear doors.
+ */
+
+const MOSAIC = [
+  MealIllustrations.Breakfast,
+  MealIllustrations.Lunch,
+  MealIllustrations.Dinner,
+  MealIllustrations.Snacks,
+];
+
+const FACTS: Array<{ icon: LineIconName; text: string }> = [
+  { icon: "target", text: "Target kalori dihitung dari data tubuh Anda" },
+  { icon: "utensils", text: "Catat makan harian dalam beberapa ketukan" },
+  { icon: "wallet", text: "Resep dan rencana menu sesuai budget lokal" },
+];
 
 export default function GetStartedScreen() {
   const router = useRouter();
-
-  // Entrance animation values
-  const headerOpacity = useSharedValue(0);
-  const headerTranslateY = useSharedValue(16);
-
-  const illustrationOpacity = useSharedValue(0);
-  const illustrationTranslateY = useSharedValue(24);
-
-  const cardOpacity = useSharedValue(0);
-  const cardTranslateY = useSharedValue(32);
-
-  const floatTranslateY = useSharedValue(0);
-
-  useEffect(() => {
-    // Staggered entrance
-    headerOpacity.value = withTiming(1, { duration: 500 });
-    headerTranslateY.value = withSpring(0, { damping: 18, stiffness: 120 });
-
-    illustrationOpacity.value = withDelay(
-      150,
-      withTiming(1, { duration: 550 })
-    );
-    illustrationTranslateY.value = withDelay(
-      150,
-      withSpring(0, { damping: 18, stiffness: 120 })
-    );
-
-    cardOpacity.value = withDelay(
-      300,
-      withTiming(1, { duration: 550 })
-    );
-    cardTranslateY.value = withDelay(
-      300,
-      withSpring(0, { damping: 18, stiffness: 120 })
-    );
-
-    // Subtle gentle float for illustration
-    floatTranslateY.value = withRepeat(
-      withSequence(
-        withTiming(-6, { duration: 2400, easing: Easing.inOut(Easing.ease) }),
-        withTiming(0, { duration: 2400, easing: Easing.inOut(Easing.ease) })
-      ),
-      -1,
-      true
-    );
-  }, []);
-
-  const headerAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: headerOpacity.value,
-    transform: [{ translateY: headerTranslateY.value }],
-  }));
-
-  const illustrationAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: illustrationOpacity.value,
-    transform: [
-      { translateY: illustrationTranslateY.value },
-      { translateY: floatTranslateY.value },
-    ],
-  }));
-
-  const cardAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: cardOpacity.value,
-    transform: [{ translateY: cardTranslateY.value }],
-  }));
-
-  const handleCreateAccount = () => {
-    router.push("/(auth)/signup");
-  };
-
-  const handleSignIn = () => {
-    router.push("/(auth)/login");
-  };
+  const { height } = useWindowDimensions();
+  const compact = height < 720;
+  const tile = compact ? 92 : 118;
 
   return (
-    <ScreenWrapper maxWidth="wide" className="flex-1 bg-white">
-      {/* Decorative Ellipse in Top Right */}
-      <View
-        pointerEvents="none"
-        className="absolute -top-16 -right-16 w-56 h-56 md:w-80 md:h-80 rounded-full bg-[#f2f8f4] items-center justify-center"
-        style={{ zIndex: 0 }}
-      >
-        <View className="w-36 h-36 md:w-56 md:h-56 rounded-full bg-primary/10" />
-      </View>
-
-      <ScrollView
-        contentContainerStyle={{ flexGrow: 1 }}
-        className="px-6 py-6 md:px-12 lg:px-20"
-        showsVerticalScrollIndicator={false}
-      >
-        <View className="w-full flex-col md:flex-row md:items-center md:justify-between md:gap-x-12 lg:gap-x-20 my-auto py-2">
-          
-          {/* Left Column: Branding and Illustration */}
-          <View className="w-full md:flex-1 items-center md:items-start z-10">
-            <Animated.View style={headerAnimatedStyle} className="items-center md:items-start">
-              <Image
-                source={BrandImages.logoPng}
-                style={{ width: 130, height: 130 }}
-                resizeMode="contain"
-                accessibilityLabel="Better Life logo"
-              />
-              <AppText weight="bold" className="text-3xl md:text-5xl lg:text-6xl text-primary text-center md:text-left mt-2">
-                Welcome!
-              </AppText>
-              <AppText weight="semibold" className="text-base md:text-xl text-neutral-muted text-center md:text-left mt-1.5 md:mt-3">
-                Eat better, feel healthier, live better
-              </AppText>
-            </Animated.View>
-
-            <Animated.View style={illustrationAnimatedStyle} className="items-center md:items-start my-6 md:my-10">
-              <Image
-                source={BrandImages.onboardingPng}
-                style={{
-                  width: 260,
-                  height: 195,
-                  ...(Platform.OS === 'web' ? { maxWidth: '100%', height: 'auto', aspectRatio: '4/3', maxHeight: 340 } : {})
-                }}
-                resizeMode="contain"
-                accessibilityLabel="Better Life health celebration illustration"
-              />
-            </Animated.View>
-          </View>
-
-          {/* Right Column: Action Panel Drawer / Card */}
-          <Animated.View style={cardAnimatedStyle} className="w-full md:w-[380px] lg:w-[440px] z-10">
-            <View
-              style={Platform.OS === "web" ? Shadows.card : Shadows.card}
-              className="bg-white rounded-3xl p-6 md:p-8 lg:p-10 border border-[#e5ece7] shadow-sm md:shadow-md"
-            >
-              <AppText weight="bold" className="text-2xl md:text-3xl text-neutral-dark text-center md:text-left mb-1.5 md:mb-2">
-                Get Started
-              </AppText>
-              <AppText weight="medium" className="text-sm md:text-base text-neutral-muted text-center md:text-left mb-6 md:mb-8">
-                Join thousands tracking their nutrition effortlessly
-              </AppText>
-
-              <View className="gap-y-3.5">
-                <Button
-                  title="Create Account"
-                  variant="primary"
-                  onPress={handleCreateAccount}
-                  accessibilityLabel="Navigate to create account"
-                  className="shadow-sm"
-                />
-
-                <Button
-                  title="Sign In with Email"
-                  variant="social"
-                  onPress={handleSignIn}
-                  accessibilityLabel="Navigate to sign in"
-                />
-              </View>
-            </View>
-          </Animated.View>
-
+    <FlowScreen
+      footer={
+        <View className="gap-2.5">
+          <Button
+            title="Mulai sekarang"
+            size="lg"
+            onPress={() => router.push("/(auth)/signup")}
+            accessibilityLabel="Buat akun baru"
+          />
+          <Button
+            title="Saya sudah punya akun"
+            size="lg"
+            variant="social"
+            onPress={() => router.push("/(auth)/login")}
+            accessibilityLabel="Masuk ke akun"
+          />
         </View>
-      </ScrollView>
-    </ScreenWrapper>
+      }
+    >
+      <FadeInView index={0}>
+        <View className="flex-row items-center justify-between mb-5">
+          <Image
+            source={BrandImages.logoPng}
+            style={{ width: 52, height: 52, marginLeft: -6 }}
+            resizeMode="contain"
+            accessibilityLabel="Better Life"
+          />
+          <AppText weight="semibold" className="text-[13px] text-muted">
+            Nutrisi harian
+          </AppText>
+        </View>
+      </FadeInView>
+
+      <FadeInView index={1}>
+        <View className="flex-row flex-wrap gap-1.5 rounded-[24px] overflow-hidden" accessibilityElementsHidden>
+          {MOSAIC.map((src, i) => (
+            <View key={i} style={{ width: "49%", flexGrow: 1, height: tile }} className="bg-card-2">
+              <Image source={src} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
+            </View>
+          ))}
+        </View>
+      </FadeInView>
+
+      <FadeInView index={2}>
+        <AppText
+          weight="semibold"
+          className="text-ink mt-7"
+          style={{ fontSize: compact ? 28 : 32, lineHeight: compact ? 33 : 37, letterSpacing: -0.9 }}
+          accessibilityRole="header"
+        >
+          Makan lebih baik, satu hari dalam satu waktu.
+        </AppText>
+        <AppText weight="medium" className="text-[15px] text-muted mt-2.5" style={{ lineHeight: 21 }}>
+          Better Life menyusun target, mencatat asupan, dan menyarankan menu yang cocok untuk Anda.
+        </AppText>
+      </FadeInView>
+
+      <FadeInView index={3}>
+        <View className="mt-6">
+          {FACTS.map((f, i) => (
+            <View
+              key={f.icon}
+              className={`flex-row items-center gap-3.5 py-3 ${i < FACTS.length - 1 ? "border-b border-line" : ""}`}
+            >
+              <View className="w-9 h-9 rounded-full bg-primary-light items-center justify-center">
+                <LineIcon name={f.icon} size={18} color="#0b6b47" />
+              </View>
+              <AppText weight="semibold" className="text-[14.5px] text-ink flex-1">
+                {f.text}
+              </AppText>
+            </View>
+          ))}
+        </View>
+      </FadeInView>
+    </FlowScreen>
   );
 }
-
-

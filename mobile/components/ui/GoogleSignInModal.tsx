@@ -206,7 +206,7 @@ export const GoogleSignInModal: React.FC<GoogleSignInModalProps> = ({
                     onPress={() => setViewMode("setup")}
                     className="py-1 self-center mt-1 flex-row items-center gap-x-1.5"
                   >
-                    <SettingsIconSvg size={14} color="#6b7280" />
+                    <SettingsIconSvg size={14} color="#56605a" />
                     <AppText weight="semibold" className="text-[11px] text-neutral-muted">
                       Pengaturan Google Client ID
                     </AppText>
@@ -264,7 +264,7 @@ export const GoogleSignInModal: React.FC<GoogleSignInModalProps> = ({
                 onPress={handleRestoreDefault}
                 className="py-2.5 items-center justify-center rounded-xl bg-secondary-soft border border-secondary mb-3 flex-row items-center gap-x-1.5"
               >
-                <RefreshIconSvg size={15} color="#047857" />
+                <RefreshIconSvg size={15} color="#0b6b47" />
                 <AppText weight="bold" className="text-xs text-primary">
                   Pulihkan ke Web Client ID Bawaan (Aktif)
                 </AppText>
@@ -275,7 +275,7 @@ export const GoogleSignInModal: React.FC<GoogleSignInModalProps> = ({
                   onPress={() => setViewMode("quickTest")}
                   className="py-1 flex-row items-center gap-x-1"
                 >
-                  <ZapIconSvg size={13} color="#6b7280" />
+                  <ZapIconSvg size={13} color="#56605a" />
                   <AppText weight="semibold" className="text-xs text-neutral-muted">
                     Mode Uji Coba Cepat
                   </AppText>
@@ -305,7 +305,8 @@ export const GoogleSignInModal: React.FC<GoogleSignInModalProps> = ({
               <TouchableOpacity
                 disabled={isLoading}
                 onPress={() => handleQuickDemoLogin("daffa@gmail.com", "Daffa Pratama")}
-                className="flex-row items-center p-3 rounded-2xl border border-neutral-border hover:bg-neutral-surface active:bg-neutral-surface/80 mb-2"
+                activeOpacity={0.8}
+                className="flex-row items-center p-3 rounded-2xl border border-neutral-border mb-2"
               >
                 <View className="w-10 h-10 rounded-full bg-blue-600 items-center justify-center mr-3">
                   <AppText weight="bold" className="text-white text-base">D</AppText>
@@ -319,7 +320,8 @@ export const GoogleSignInModal: React.FC<GoogleSignInModalProps> = ({
               <TouchableOpacity
                 disabled={isLoading}
                 onPress={() => handleQuickDemoLogin("johndoe25@gmail.com", "John Doe")}
-                className="flex-row items-center p-3 rounded-2xl border border-neutral-border hover:bg-neutral-surface active:bg-neutral-surface/80 mb-3"
+                activeOpacity={0.8}
+                className="flex-row items-center p-3 rounded-2xl border border-neutral-border mb-3"
               >
                 <View className="w-10 h-10 rounded-full bg-emerald-600 items-center justify-center mr-3">
                   <AppText weight="bold" className="text-white text-base">J</AppText>

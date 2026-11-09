@@ -1,13 +1,6 @@
 import React from "react";
-import { View, Pressable, PressableProps } from "react-native";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-} from "react-native-reanimated";
+import { View, Pressable, PressableProps, Platform } from "react-native";
 import { AppText } from "./AppText";
-import { Colors } from "@/constants/DesignTokens";
-import { AnimationEasings } from "@/constants/AnimationTokens";
 
 export interface OptionCardProps extends Omit<PressableProps, "children"> {
   title: string;
@@ -32,28 +25,12 @@ export const OptionCard: React.FC<OptionCardProps> = ({
   onPress,
   ...props
 }) => {
-  const scale = useSharedValue(1);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
-  const handlePressIn = () => {
-    if (disabled) return;
-    scale.value = withSpring(0.985, AnimationEasings.pressSpringConfig);
-  };
-
-  const handlePressOut = () => {
-    if (disabled) return;
-    scale.value = withSpring(1, AnimationEasings.pressSpringConfig);
-  };
-
   return (
     <Pressable
       onPress={onPress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      className={`w-full min-h-[68px] p-4 rounded-xl border flex-row items-center justify-between mb-3 transition-all duration-150 hover:shadow-xs cursor-pointer ${
+      className={`w-full min-h-[68px] p-4 rounded-xl border flex-row items-center justify-between mb-3 ${
+        Platform.OS === "web" ? "transition-all duration-150 hover:shadow-xs cursor-pointer" : ""
+      } ${
         selected
           ? "border-primary bg-[#edf8f2]"
           : "border-neutral-border bg-white"
@@ -61,23 +38,23 @@ export const OptionCard: React.FC<OptionCardProps> = ({
         disabled ? "opacity-45" : ""
       } ${className || ""}`}
       disabled={disabled}
-      style={style}
+      style={({ pressed }) => [
+        pressed && !disabled ? { opacity: 0.9, transform: [{ scale: 0.985 }] } : undefined,
+        typeof style === "function" ? style({ pressed }) : (style as any),
+      ]}
       accessibilityRole={multiSelect ? "checkbox" : "radio"}
       accessibilityLabel={props.accessibilityLabel || (subtitle ? `${title}, ${subtitle}` : title)}
       accessibilityState={{ checked: selected, disabled: !!disabled }}
       {...props}
     >
-      <Animated.View
-        pointerEvents="none"
-        style={[
-          {
-            flex: 1,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-          },
-          animatedStyle,
-        ]}
+      <View
+        style={{
+          flex: 1,
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          pointerEvents: "none",
+        }}
       >
         <View className="flex-row items-center flex-1 mr-2">
           {/* Selection Indicator */}
@@ -121,8 +98,7 @@ export const OptionCard: React.FC<OptionCardProps> = ({
         </View>
 
         {Boolean(rightElement) && <View className="ml-2">{rightElement}</View>}
-      </Animated.View>
+      </View>
     </Pressable>
   );
 };
-

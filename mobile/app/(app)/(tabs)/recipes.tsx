@@ -1,25 +1,40 @@
 import React, { useState, useMemo } from "react";
-import { View, ScrollView, Platform, Alert } from "react-native";
+import { View, ScrollView, Image, Platform, Alert, useWindowDimensions } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
 import {
   AppText,
   RecipeCard,
-  PressableScale,
   FadeInView,
   FilterChip,
   SearchField,
+  PageHead,
+  StatusPill,
+  Surface,
+  PillButton,
+  LineIcon,
+  PressableScale,
 } from "@/components/ui";
 import { useRecipes } from "@/hooks/useRecipesQuery";
 import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
 import { Entitlement } from "@/lib/subscriptionDomain";
-import { IconRenderer } from "@/constants/Assets";
+import { NAV_DESKTOP_BREAKPOINT } from "@/components/layout/ResponsiveTabBar";
 import { mealLabel } from "@/constants/MealLabels";
+import { MealIllustrations } from "@/constants/Assets";
 
-const CATEGORIES = ["Semua", "Breakfast", "Lunch", "Dinner", "Snack", "Drink"] as const;
+const ILLUSTRATED_CATEGORIES = [
+  { id: "Breakfast", label: "Sarapan", image: MealIllustrations.Breakfast },
+  { id: "Lunch", label: "Makan Siang", image: MealIllustrations.Lunch },
+  { id: "Dinner", label: "Makan Malam", image: MealIllustrations.Dinner },
+  { id: "Snack", label: "Camilan", image: MealIllustrations.Snacks },
+  { id: "Drink", label: "Minuman", image: MealIllustrations.Drinks },
+] as const;
 
 export default function RecipesScreen() {
   const router = useRouter();
+  const { width } = useWindowDimensions();
+  const hasDesktopNav = width >= NAV_DESKTOP_BREAKPOINT;
+  const isMobileStack = width < 640;
   const { data: recipes = [], isLoading, isError, refetch } = useRecipes();
   const hasEntitlement = useSubscriptionStore((state) => state.hasEntitlement);
   const [selectedCategory, setSelectedCategory] = useState<string>("Semua");
@@ -45,27 +60,23 @@ export default function RecipesScreen() {
   };
 
   return (
-    <ScreenWrapper maxWidth="wide" className="flex-1 bg-[#faf9f5]">
+    <ScreenWrapper maxWidth="wide" className="flex-1 bg-canvas">
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ paddingTop: 16, paddingBottom: Platform.OS === "web" ? 64 : 110 }}
+        contentContainerStyle={{ paddingTop: hasDesktopNav ? 8 : 16, paddingBottom: hasDesktopNav ? 56 : 120 }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <FadeInView index={0} className="flex-row items-end justify-between mb-4">
-          <View className="flex-1 min-w-0 mr-3">
-            <AppText weight="black" className="text-[26px] text-neutral-dark" style={{ letterSpacing: -0.6 }}>
-              Resep sehat
-            </AppText>
-            <AppText weight="medium" className="text-[13px] text-neutral-muted mt-0.5">
-              Takaran bahan jelas dan kalori terhitung per porsi
-            </AppText>
-          </View>
-          {!isLoading && (
-            <AppText weight="bold" className="text-xs text-primary" style={{ fontVariant: ["tabular-nums"] }}>
-              {recipes.length} resep
-            </AppText>
-          )}
+        <FadeInView index={0}>
+          <PageHead
+            title="Resep sehat"
+            caption="Takaran bahan jelas dan kalori terhitung per porsi"
+            right={
+              !isLoading ? (
+                <StatusPill label={`${recipes.length} resep`} tone="accent" />
+              ) : undefined
+            }
+          />
         </FadeInView>
 
         <FadeInView index={1}>
@@ -77,66 +88,98 @@ export default function RecipesScreen() {
           />
         </FadeInView>
 
-        <FadeInView index={2} className="mt-3 -mx-4 sm:mx-0">
+        <FadeInView index={2} className="mt-3.5">
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ gap: 8, paddingHorizontal: 16, alignItems: "center" }}
+            contentContainerStyle={{ gap: 10, paddingRight: 16 }}
           >
-            {CATEGORIES.map((cat) => (
-              <FilterChip
-                key={cat}
-                label={mealLabel(cat)}
-                selected={selectedCategory === cat}
-                onPress={() => setSelectedCategory(cat)}
-              />
-            ))}
+            {ILLUSTRATED_CATEGORIES.map((cat) => {
+              const isSelected = selectedCategory === cat.id;
+              return (
+                <PressableScale
+                  key={cat.id}
+                  onPress={() => setSelectedCategory(isSelected ? "Semua" : cat.id)}
+                  pressedScale={0.97}
+                  className={`w-[114px] rounded-[18px] overflow-hidden border ${
+                    isSelected ? "bg-block-ink border-block-ink" : "bg-card border-line"
+                  }`}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: isSelected }}
+                  accessibilityLabel={`Filter resep ${cat.label}`}
+                >
+                  <View className="w-full h-[64px] bg-card-2 overflow-hidden">
+                    <Image
+                      source={cat.image}
+                      style={{ width: "100%", height: "100%" }}
+                      resizeMode="cover"
+                    />
+                  </View>
+                  <View className="px-2.5 py-2 items-center">
+                    <AppText
+                      weight="semibold"
+                      numberOfLines={1}
+                      className={`text-[12.5px] ${isSelected ? "text-white" : "text-ink"}`}
+                    >
+                      {cat.label}
+                    </AppText>
+                  </View>
+                </PressableScale>
+              );
+            })}
           </ScrollView>
+
+          {selectedCategory !== "Semua" && (
+            <View className="flex-row items-center justify-between mt-3 px-0.5">
+              <AppText weight="semibold" className="text-[13px] text-muted">
+                Menampilkan kategori:{" "}
+                <AppText weight="bold" className="text-ink">
+                  {mealLabel(selectedCategory)}
+                </AppText>
+              </AppText>
+              <FilterChip
+                label="Tampilkan semua"
+                selected={false}
+                onPress={() => setSelectedCategory("Semua")}
+              />
+            </View>
+          )}
         </FadeInView>
 
         <View className="mt-5">
           {isLoading ? (
-            <AppText weight="medium" className="text-sm text-neutral-muted py-10 text-center">
-              Memuat koleksi resep...
-            </AppText>
+            <Surface className="items-center py-10">
+              <AppText weight="medium" className="text-sm text-muted">
+                Memuat koleksi resep...
+              </AppText>
+            </Surface>
           ) : isError ? (
-            <View className="items-center py-10">
-              <AppText weight="bold" className="text-base text-neutral-dark">
+            <Surface className="items-center py-10">
+              <AppText weight="semibold" className="text-base text-ink">
                 Resep belum bisa dimuat
               </AppText>
-              <AppText weight="medium" className="text-[13px] text-neutral-muted mt-1 mb-4 text-center">
+              <AppText weight="medium" className="text-[13px] text-muted mt-1 mb-4 text-center">
                 Periksa koneksi Anda, lalu coba muat ulang.
               </AppText>
-              <PressableScale onPress={() => refetch()} className="h-11 px-5 rounded-full bg-primary justify-center">
-                <AppText weight="bold" className="text-sm text-white">
-                  Muat ulang
-                </AppText>
-              </PressableScale>
-            </View>
+              <PillButton label="Muat ulang" variant="primary" icon="refresh" onPress={() => refetch()} />
+            </Surface>
           ) : filteredRecipes.length === 0 ? (
-            <View className="items-center py-10 px-6">
-              <View className="w-12 h-12 rounded-2xl bg-primary-light items-center justify-center mb-3">
-                <IconRenderer name="Cook" size={22} color="#153e28" />
+            <Surface className="items-center py-10 px-6">
+              <View className="w-12 h-12 rounded-full bg-primary-light items-center justify-center mb-3">
+                <LineIcon name="book" size={20} color="#0e7a52" />
               </View>
-              <AppText weight="bold" className="text-base text-neutral-dark text-center">
+              <AppText weight="semibold" className="text-base text-ink text-center">
                 Resep tidak ditemukan
               </AppText>
-              <AppText weight="medium" className="text-[13px] text-neutral-muted text-center max-w-xs mt-1 mb-4">
+              <AppText weight="medium" className="text-[13px] text-muted text-center max-w-xs mt-1 mb-4">
                 {searchQuery
                   ? `Tidak ada resep untuk "${searchQuery}". Coba kata kunci lain atau hapus filter.`
                   : `Belum ada resep pada kategori "${mealLabel(selectedCategory)}".`}
               </AppText>
-              <PressableScale
-                onPress={resetFilters}
-                className="h-11 px-5 rounded-full border border-[#dfe6e0] justify-center"
-              >
-                <AppText weight="bold" className="text-sm text-primary">
-                  Tampilkan semua resep
-                </AppText>
-              </PressableScale>
-            </View>
+              <PillButton label="Tampilkan semua resep" size="sm" onPress={resetFilters} />
+            </Surface>
           ) : (
-            <View className="flex-row flex-wrap -mx-2">
+            <View className={isMobileStack ? "gap-3.5" : "flex-row flex-wrap -mx-2"}>
               {filteredRecipes.map((recipe, i) => {
                 const isPremiumRecipe = Boolean((recipe as any).isPremium);
                 const isLocked = isPremiumRecipe && !hasEntitlement(Entitlement.PREMIUM_RECIPES);
@@ -168,7 +211,7 @@ export default function RecipesScreen() {
                   <FadeInView
                     key={recipe.id}
                     index={Math.min(i, 8)}
-                    className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 px-2 mb-4"
+                    className={isMobileStack ? "w-full" : "w-1/2 md:w-1/3 lg:w-1/4 px-2 mb-4"}
                   >
                     <RecipeCard
                       title={recipe.title}

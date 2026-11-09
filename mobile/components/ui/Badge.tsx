@@ -25,14 +25,14 @@ export const Badge: React.FC<BadgeProps> = ({
   const container = {
     primary: "bg-primary",
     secondary: "bg-primary-light",
-    accent: "bg-[#fdf3e3]",
+    accent: "bg-[#fcefd0]",
     outline: "border border-[#cfdcd3] bg-transparent",
   }[variant];
 
   const text = {
     primary: "text-white",
     secondary: "text-primary",
-    accent: "text-[#8a4106]",
+    accent: "text-[#8f4e00]",
     outline: "text-primary",
   }[variant];
 

@@ -7,7 +7,8 @@ import {
 } from "react-native";
 import { AppText } from "./AppText";
 import { PressableScale } from "./PressableScale";
-import { IconRenderer, PlusIconSvg } from "@/constants/Assets";
+import { PlusIconSvg, getMealIllustration } from "@/constants/Assets";
+import { SURFACE_SHADOW } from "./Surface";
 import { mealLabel } from "@/constants/MealLabels";
 
 export interface MealCardProps {
@@ -24,20 +25,17 @@ export interface MealCardProps {
   onPress?: () => void;
   isLogging?: boolean;
   showLogButton?: boolean;
-  /** "stack": image on top (grids, carousels). "row": thumbnail left (phone lists). */
+  /** "stack": compact vertical card (carousels/grids). "row": horizontal list tile (mobile lists). */
   layout?: "stack" | "row";
   className?: string;
 }
 
-/**
- * Meal tile. One surface, one image, three facts (name, kcal, price) and one action.
- * Category and prep time move into the meta line so the photo stays clean.
- */
+const tnum = { fontVariant: ["tabular-nums" as const] };
+
 export const MealCard: React.FC<MealCardProps> = ({
   title,
   mealType,
   calories,
-  description,
   prepTimeMinutes,
   estimatedCostIdr,
   imageUrl,
@@ -51,7 +49,7 @@ export const MealCard: React.FC<MealCardProps> = ({
   className,
 }) => {
   const displayTitle = title || mealType;
-  const effectiveImageSource = imageSource || (imageUrl ? { uri: imageUrl } : null);
+  const effectiveImageSource = imageSource || (imageUrl ? { uri: imageUrl } : getMealIllustration(mealType));
 
   const meta = [
     mealLabel(mealType),
@@ -60,14 +58,10 @@ export const MealCard: React.FC<MealCardProps> = ({
     .filter(Boolean)
     .join(" · ");
 
-  const artwork = effectiveImageSource ? (
-    <Image source={effectiveImageSource} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
-  ) : svgElement ? (
+  const artwork = svgElement ? (
     <View className="w-full h-full items-center justify-center">{svgElement}</View>
   ) : (
-    <View className="w-full h-full items-center justify-center">
-      <IconRenderer name="Cook" size={26} color="#153e28" />
-    </View>
+    <Image source={effectiveImageSource} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
   );
 
   const logButton = showLogButton ? (
@@ -75,59 +69,56 @@ export const MealCard: React.FC<MealCardProps> = ({
       onPress={onLogMeal}
       disabled={isLogging}
       hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-      className="w-9 h-9 rounded-full bg-primary items-center justify-center"
+      className="h-8 px-3 rounded-full bg-primary flex-row items-center justify-center gap-1 flex-shrink-0"
       accessibilityRole="button"
       accessibilityLabel={`Catat ${displayTitle} ke jurnal`}
     >
       {isLogging ? (
         <ActivityIndicator size="small" color="#ffffff" />
       ) : (
-        <PlusIconSvg size={16} color="#ffffff" strokeWidth={2.4} />
+        <>
+          <PlusIconSvg size={13} color="#ffffff" strokeWidth={2.5} />
+          <AppText weight="bold" className="text-[12px] text-white">
+            Catat
+          </AppText>
+        </>
       )}
     </PressableScale>
   ) : null;
 
-  const priceAndKcal = (
-    <View className="flex-row items-baseline flex-wrap">
-      <AppText weight="bold" className="text-[13px] text-neutral-dark" style={{ fontVariant: ["tabular-nums"] }}>
-        {calories} kcal
-      </AppText>
-      {estimatedCostIdr !== undefined && (
-        <AppText
-          weight="medium"
-          numberOfLines={1}
-          className="text-xs text-neutral-muted ml-1.5"
-          style={{ fontVariant: ["tabular-nums"] }}
-        >
-          Rp {estimatedCostIdr.toLocaleString("id-ID")}
-        </AppText>
-      )}
-    </View>
-  );
-
   if (layout === "row") {
     return (
       <View
-        className={`w-full flex-row items-center bg-white rounded-2xl border border-[#ebe9e2] p-2.5 ${className || ""}`}
+        className={`w-full flex-row items-center bg-card rounded-[18px] border border-line p-2.5 pr-3 ${className || ""}`}
+        style={{ boxShadow: SURFACE_SHADOW } as any}
       >
         <PressableScale
           onPress={onPress}
           pressedScale={0.985}
-          className="flex-1 flex-row items-center min-w-0"
+          className="flex-1 flex-row items-center min-w-0 mr-2.5"
           accessibilityRole="button"
           accessibilityLabel={`${displayTitle}, ${calories} kalori`}
         >
-          <View className="w-[72px] h-[72px] rounded-xl overflow-hidden bg-[#f2f1ec] border border-black/[0.05]">
+          <View className="w-16 h-16 rounded-[13px] overflow-hidden bg-card-2 flex-shrink-0 border border-line">
             {artwork}
           </View>
-          <View className="flex-1 min-w-0 ml-3 mr-2">
-            <AppText weight="medium" numberOfLines={1} className="text-[11px] text-neutral-muted">
+          <View className="flex-1 min-w-0 ml-3">
+            <AppText weight="medium" numberOfLines={1} className="text-[11.5px] text-muted">
               {meta}
             </AppText>
-            <AppText weight="bold" numberOfLines={2} className="text-[15px] text-neutral-dark leading-snug mt-0.5">
+            <AppText weight="semibold" numberOfLines={2} className="text-[14.5px] text-ink leading-[19px] mt-0.5">
               {displayTitle}
             </AppText>
-            <View className="mt-1">{priceAndKcal}</View>
+            <View className="flex-row items-center gap-2 mt-1">
+              <AppText weight="bold" className="text-[13px] text-primary-text" style={tnum}>
+                {calories} kcal
+              </AppText>
+              {estimatedCostIdr !== undefined && (
+                <AppText weight="medium" className="text-[12px] text-muted" style={tnum}>
+                  · Rp {estimatedCostIdr.toLocaleString("id-ID")}
+                </AppText>
+              )}
+            </View>
           </View>
         </PressableScale>
         {logButton}
@@ -137,7 +128,8 @@ export const MealCard: React.FC<MealCardProps> = ({
 
   return (
     <View
-      className={`w-full bg-white rounded-2xl overflow-hidden border border-[#ebe9e2] ${className || ""}`}
+      className={`w-full bg-card rounded-[18px] overflow-hidden border border-line ${className || ""}`}
+      style={{ boxShadow: SURFACE_SHADOW } as any}
     >
       <PressableScale
         onPress={onPress}
@@ -145,21 +137,34 @@ export const MealCard: React.FC<MealCardProps> = ({
         accessibilityRole="button"
         accessibilityLabel={`${displayTitle}, ${calories} kalori`}
       >
-        <View className="h-[136px] w-full bg-[#f2f1ec]">{artwork}</View>
-        <View className="px-3.5 pt-3">
-          <AppText weight="medium" numberOfLines={1} className="text-[11px] text-neutral-muted">
+        <View className="h-[104px] w-full bg-card-2 relative">
+          {artwork}
+          <View
+            className="absolute bottom-2 left-2 px-2 py-0.5 rounded-full"
+            style={{ backgroundColor: "rgba(18, 26, 22, 0.78)" }}
+          >
+            <AppText weight="bold" className="text-[11px] text-white" style={tnum}>
+              {calories} kcal
+            </AppText>
+          </View>
+        </View>
+        <View className="px-3 pt-2.5">
+          <AppText weight="medium" numberOfLines={1} className="text-[11.5px] text-muted">
             {meta}
           </AppText>
-          <AppText weight="bold" numberOfLines={1} className="text-[15px] text-neutral-dark leading-snug mt-0.5">
+          <AppText
+            weight="semibold"
+            numberOfLines={2}
+            className="text-[14.5px] text-ink leading-[19px] mt-0.5 min-h-[38px]"
+          >
             {displayTitle}
-          </AppText>
-          <AppText weight="regular" numberOfLines={2} className="text-xs text-neutral-muted leading-relaxed mt-1 min-h-[34px]">
-            {description}
           </AppText>
         </View>
       </PressableScale>
-      <View className="px-3.5 pb-3 pt-2 flex-row items-center justify-between">
-        <View className="flex-1 min-w-0 mr-2">{priceAndKcal}</View>
+      <View className="px-3 pb-2.5 pt-2 flex-row items-center justify-between">
+        <AppText weight="semibold" numberOfLines={1} className="text-[12px] text-muted flex-1 mr-2" style={tnum}>
+          {estimatedCostIdr !== undefined ? `Rp ${estimatedCostIdr.toLocaleString("id-ID")}` : `${calories} kcal`}
+        </AppText>
         {logButton}
       </View>
     </View>

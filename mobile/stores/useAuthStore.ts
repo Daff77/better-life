@@ -64,22 +64,27 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  login: async (email: string, password?: string) => {
-    const trimmedEmail = email.trim().toLowerCase();
+  login: async (identifier: string, password?: string) => {
+    const trimmed = identifier.trim().toLowerCase();
     const accounts = await sessionStorage.getAccounts();
-    const account = accounts.find((a) => a.email.toLowerCase() === trimmedEmail);
+    const account = accounts.find(
+      (a) =>
+        a.email.toLowerCase() === trimmed ||
+        a.name.toLowerCase() === trimmed ||
+        a.email.split("@")[0].toLowerCase() === trimmed
+    );
 
     if (!account) {
       return {
         success: false,
-        error: "No account found with this email. Please sign up first.",
+        error: "Akun dengan email atau username ini belum terdaftar. Silakan daftar terlebih dahulu.",
       };
     }
 
     if (password && account.password && account.password !== password) {
       return {
         success: false,
-        error: "Incorrect password. Please verify your credentials.",
+        error: "Kata sandi salah. Periksa kembali kata sandi Anda.",
       };
     }
 
@@ -96,7 +101,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const res = await fetch(`${API_BASE_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: trimmedEmail, password: password || "password123" }),
+        body: JSON.stringify({ email: account.email.toLowerCase(), password: password || "password123" }),
       });
       if (res.ok) {
         const authData = await res.json();

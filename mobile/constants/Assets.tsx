@@ -1,9 +1,6 @@
 import React from "react";
 import { SvgProps } from "react-native-svg";
 
-// Brand & Logomark
-import BetterLifeIllustrationSvg from "../assets/images/get started 1.svg";
-
 // Social Auth Icons
 import GoogleIconSvg from "../assets/images/google.svg";
 import AppleIconSvg from "../assets/images/apple.svg";
@@ -19,12 +16,7 @@ import LoginArrowSvg from "../assets/images/panah login.svg";
 import DropdownArrowSvg from "../assets/images/arrowdown.svg";
 import EyeSvg from "../assets/images/eye.svg";
 
-// Nutrition & Meals
-import BreakfastMealSvg from "../assets/images/breakfast.svg";
-import LunchMealSvg from "../assets/images/lunch.svg";
-import DinnerMealSvg from "../assets/images/dinner.svg";
-import SnacksMealSvg from "../assets/images/snacks.svg";
-import DrinksMealSvg from "../assets/images/drinks.svg";
+// Nutrition & Meals (lightweight vector SVG)
 import CookSvg from "../assets/images/cook.svg";
 
 // Dietary Allergies & Ingredients
@@ -55,7 +47,7 @@ export const SearchIconSvg = ({ size = 20, color, stroke, strokeWidth = 2.2, ...
     height={props.height || size}
     viewBox="0 0 24 24"
     fill="none"
-    stroke={stroke || color || "#6b7280"}
+    stroke={stroke || color || "#56605a"}
     strokeWidth={strokeWidth}
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -72,7 +64,7 @@ export const CloseIconSvg = ({ size = 18, color, stroke, strokeWidth = 2.2, ...p
     height={props.height || size}
     viewBox="0 0 24 24"
     fill="none"
-    stroke={stroke || color || "#6b7280"}
+    stroke={stroke || color || "#56605a"}
     strokeWidth={strokeWidth}
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -104,7 +96,7 @@ export const EditIconSvg = ({ size = 18, color, stroke, strokeWidth = 2, ...prop
     height={props.height || size}
     viewBox="0 0 24 24"
     fill="none"
-    stroke={stroke || color || "#0d9488"}
+    stroke={stroke || color || "#0e7a52"}
     strokeWidth={strokeWidth}
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -121,7 +113,7 @@ export const SettingsIconSvg = ({ size = 18, color, stroke, strokeWidth = 2, ...
     height={props.height || size}
     viewBox="0 0 24 24"
     fill="none"
-    stroke={stroke || color || "#0d9488"}
+    stroke={stroke || color || "#0e7a52"}
     strokeWidth={strokeWidth}
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -138,7 +130,7 @@ export const LogoutIconSvg = ({ size = 18, color, stroke, strokeWidth = 2, ...pr
     height={props.height || size}
     viewBox="0 0 24 24"
     fill="none"
-    stroke={stroke || color || "#6b7280"}
+    stroke={stroke || color || "#56605a"}
     strokeWidth={strokeWidth}
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -156,7 +148,7 @@ export const TrashIconSvg = ({ size = 18, color, stroke, strokeWidth = 2, ...pro
     height={props.height || size}
     viewBox="0 0 24 24"
     fill="none"
-    stroke={stroke || color || "#ef4444"}
+    stroke={stroke || color || "#c8402a"}
     strokeWidth={strokeWidth}
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -176,7 +168,7 @@ export const LightbulbIconSvg = ({ size = 20, color, stroke, strokeWidth = 2, ..
     height={props.height || size}
     viewBox="0 0 24 24"
     fill="none"
-    stroke={stroke || color || "#047857"}
+    stroke={stroke || color || "#0b6b47"}
     strokeWidth={strokeWidth}
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -194,14 +186,14 @@ export const TagIconSvg = ({ size = 14, color, stroke, strokeWidth = 2.2, ...pro
     height={props.height || size}
     viewBox="0 0 24 24"
     fill="none"
-    stroke={stroke || color || "#047857"}
+    stroke={stroke || color || "#0b6b47"}
     strokeWidth={strokeWidth}
     strokeLinecap="round"
     strokeLinejoin="round"
     {...props}
   >
     <Path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z" />
-    <Circle cx="7" cy="7" r=".75" fill={stroke || color || "#047857"} />
+    <Circle cx="7" cy="7" r=".75" fill={stroke || color || "#0b6b47"} />
   </Svg>
 );
 
@@ -211,7 +203,7 @@ export const FemaleIconSvg = ({ size = 24, color, stroke, strokeWidth = 2.2, ...
     height={props.height || size}
     viewBox="0 0 24 24"
     fill="none"
-    stroke={stroke || color || "#047857"}
+    stroke={stroke || color || "#0b6b47"}
     strokeWidth={strokeWidth}
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -229,7 +221,7 @@ export const MaleIconSvg = ({ size = 24, color, stroke, strokeWidth = 2.2, ...pr
     height={props.height || size}
     viewBox="0 0 24 24"
     fill="none"
-    stroke={stroke || color || "#047857"}
+    stroke={stroke || color || "#0b6b47"}
     strokeWidth={strokeWidth}
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -248,7 +240,7 @@ export const ChevronRightIconSvg = ({ size = 18, color, stroke, strokeWidth = 2.
     height={props.height || size}
     viewBox="0 0 24 24"
     fill="none"
-    stroke={stroke || color || "#9ca3af"}
+    stroke={stroke || color || "#8a938d"}
     strokeWidth={strokeWidth}
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -264,7 +256,7 @@ export const ChevronLeftIconSvg = ({ size = 20, color, stroke, strokeWidth = 2.2
     height={props.height || size}
     viewBox="0 0 24 24"
     fill="none"
-    stroke={stroke || color || "#1f2937"}
+    stroke={stroke || color || "#121a16"}
     strokeWidth={strokeWidth}
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -280,7 +272,7 @@ export const ChevronDownIconSvg = ({ size = 18, color, stroke, strokeWidth = 2.2
     height={props.height || size}
     viewBox="0 0 24 24"
     fill="none"
-    stroke={stroke || color || "#9ca3af"}
+    stroke={stroke || color || "#8a938d"}
     strokeWidth={strokeWidth}
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -296,7 +288,7 @@ export const MinusIconSvg = ({ size = 18, color, stroke, strokeWidth = 2.4, ...p
     height={props.height || size}
     viewBox="0 0 24 24"
     fill="none"
-    stroke={stroke || color || "#1f2937"}
+    stroke={stroke || color || "#121a16"}
     strokeWidth={strokeWidth}
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -312,7 +304,7 @@ export const PlusIconSvg = ({ size = 18, color, stroke, strokeWidth = 2.4, ...pr
     height={props.height || size}
     viewBox="0 0 24 24"
     fill="none"
-    stroke={stroke || color || "#1f2937"}
+    stroke={stroke || color || "#121a16"}
     strokeWidth={strokeWidth}
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -329,7 +321,7 @@ export const ZapIconSvg = ({ size = 16, color, stroke, strokeWidth = 2, fill = "
     height={props.height || size}
     viewBox="0 0 24 24"
     fill={fill}
-    stroke={stroke || color || "#0d9488"}
+    stroke={stroke || color || "#0e7a52"}
     strokeWidth={strokeWidth}
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -381,7 +373,7 @@ export const BookOpenIconSvg = ({ size = 18, color, stroke, strokeWidth = 2, ...
     height={props.height || size}
     viewBox="0 0 24 24"
     fill="none"
-    stroke={stroke || color || "#166534"}
+    stroke={stroke || color || "#12714f"}
     strokeWidth={strokeWidth}
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -398,7 +390,7 @@ export const CalendarIconSvg = ({ size = 16, color, stroke, strokeWidth = 2, ...
     height={props.height || size}
     viewBox="0 0 24 24"
     fill="none"
-    stroke={stroke || color || "#166534"}
+    stroke={stroke || color || "#12714f"}
     strokeWidth={strokeWidth}
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -432,7 +424,7 @@ export const BowlIconSvg = ({ size = 20, color, stroke, strokeWidth = 2, ...prop
     height={props.height || size}
     viewBox="0 0 24 24"
     fill="none"
-    stroke={stroke || color || "#166534"}
+    stroke={stroke || color || "#12714f"}
     strokeWidth={strokeWidth}
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -451,7 +443,7 @@ export const ChefHatIconSvg = ({ size = 18, color, stroke, strokeWidth = 2, ...p
     height={props.height || size}
     viewBox="0 0 24 24"
     fill="none"
-    stroke={stroke || color || "#166534"}
+    stroke={stroke || color || "#12714f"}
     strokeWidth={strokeWidth}
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -469,7 +461,7 @@ export const LeafIconSvg = ({ size = 18, color, stroke, strokeWidth = 2, ...prop
     height={props.height || size}
     viewBox="0 0 24 24"
     fill="none"
-    stroke={stroke || color || "#166534"}
+    stroke={stroke || color || "#12714f"}
     strokeWidth={strokeWidth}
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -486,7 +478,7 @@ export const BarChartIconSvg = ({ size = 18, color, stroke, strokeWidth = 2.2, .
     height={props.height || size}
     viewBox="0 0 24 24"
     fill="none"
-    stroke={stroke || color || "#166534"}
+    stroke={stroke || color || "#12714f"}
     strokeWidth={strokeWidth}
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -504,7 +496,7 @@ export const RefreshIconSvg = ({ size = 16, color, stroke, strokeWidth = 2, ...p
     height={props.height || size}
     viewBox="0 0 24 24"
     fill="none"
-    stroke={stroke || color || "#047857"}
+    stroke={stroke || color || "#0b6b47"}
     strokeWidth={strokeWidth}
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -523,10 +515,48 @@ export const BrandImages = {
   onboardingPng: require("../assets/images/get started 1.png"),
 };
 
+/**
+ * Clean cropped illustrations extracted from the 5 meal SVG assets
+ * (breakfast.svg, lunch.svg, dinner.svg, snacks.svg, drinks.svg)
+ * with all bottom caption bars and text labels removed.
+ */
+export const MealIllustrations = {
+  Breakfast: require("../assets/images/meals/breakfast.png"),
+  Lunch: require("../assets/images/meals/lunch.png"),
+  Dinner: require("../assets/images/meals/dinner.png"),
+  Snack: require("../assets/images/meals/snacks.png"),
+  Snacks: require("../assets/images/meals/snacks.png"),
+  Drink: require("../assets/images/meals/drinks.jpg"),
+  Drinks: require("../assets/images/meals/drinks.jpg"),
+} as const;
+
+export type MealIllustrationKey = keyof typeof MealIllustrations;
+
+export function getMealIllustration(slotOrCategory?: string) {
+  if (!slotOrCategory) return MealIllustrations.Breakfast;
+  const normalized = slotOrCategory.trim().toLowerCase();
+  if (normalized.includes("breakfast") || normalized.includes("sarapan")) {
+    return MealIllustrations.Breakfast;
+  }
+  if (normalized.includes("lunch") || normalized.includes("siang")) {
+    return MealIllustrations.Lunch;
+  }
+  if (normalized.includes("dinner") || normalized.includes("malam")) {
+    return MealIllustrations.Dinner;
+  }
+  if (normalized.includes("drink") || normalized.includes("minum") || normalized.includes("hidrasi")) {
+    return MealIllustrations.Drinks;
+  }
+  if (normalized.includes("snack") || normalized.includes("camilan")) {
+    return MealIllustrations.Snacks;
+  }
+  return MealIllustrations.Lunch;
+}
+
 export const AppIcons = {
   // Brand
-  LogoSvg: BetterLifeIllustrationSvg,
-  Illustration: BetterLifeIllustrationSvg,
+  LogoSvg: LeafIconSvg,
+  Illustration: LeafIconSvg,
 
   // Social
   Google: GoogleIconSvg,
@@ -543,12 +573,12 @@ export const AppIcons = {
   Dropdown: DropdownArrowSvg,
   Eye: EyeSvg,
 
-  // Meals
-  Breakfast: BreakfastMealSvg,
-  Lunch: LunchMealSvg,
-  Dinner: DinnerMealSvg,
-  Snacks: SnacksMealSvg,
-  Drinks: DrinksMealSvg,
+  // Meals (clean vector icons instead of multi-MB base64 raster SVGs)
+  Breakfast: BowlIconSvg,
+  Lunch: UtensilsIconSvg,
+  Dinner: ChefHatIconSvg,
+  Snacks: LeafIconSvg,
+  Drinks: BowlIconSvg,
   Cook: CookSvg,
 
   // Allergies & Food Groups

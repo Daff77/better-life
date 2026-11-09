@@ -1,58 +1,33 @@
-import React, { useEffect } from "react";
-import { ViewProps } from "react-native";
-import Animated, {
-  Easing,
-  ReduceMotion,
-  useAnimatedStyle,
-  useReducedMotion,
-  useSharedValue,
-  withDelay,
-  withTiming,
-} from "react-native-reanimated";
-import { MotionCurves, MotionDurations } from "@/constants/AnimationTokens";
+import React from "react";
+import { View, ViewProps } from "react-native";
 
 export interface FadeInViewProps extends ViewProps {
-  /** Position in the stagger sequence. Each step adds MotionDurations.stagger ms. */
+  children: React.ReactNode;
+  /** Position in a stagger group (0, 1, 2...). Multiplied by 45ms, capped at 240ms. */
   index?: number;
+  /** Explicit delay in ms (overrides index). */
+  delay?: number;
+  /** Initial downward offset in px; defaults to 8. */
+  distance?: number;
   className?: string;
 }
 
-const easeOut = Easing.bezier(...MotionCurves.out);
-
 /**
- * One-time entrance for screen sections: 8px rise plus fade, staggered.
- * Purpose: on first load the eye follows the order of the content.
- * With reduced motion enabled the rise is dropped and only opacity remains.
+ * Layout-safe container wrapper that preserves all NativeWind v4 className
+ * rules (flex, width, margins, gaps) on both Native Android/iOS and Web.
  */
 export const FadeInView: React.FC<FadeInViewProps> = ({
-  index = 0,
-  style,
   children,
+  index: _index = 0,
+  delay: _delay,
+  distance: _distance = 8,
+  className,
+  style,
   ...props
 }) => {
-  const reduceMotion = useReducedMotion();
-  const progress = useSharedValue(0);
-
-  useEffect(() => {
-    progress.value = withDelay(
-      index * MotionDurations.stagger,
-      withTiming(1, {
-        duration: MotionDurations.enter,
-        easing: easeOut,
-        reduceMotion: ReduceMotion.Never,
-      })
-    );
-  }, []);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    opacity: progress.value,
-    transform: [{ translateY: reduceMotion ? 0 : (1 - progress.value) * 8 }],
-  }));
-
   return (
-    <Animated.View style={[animatedStyle, style]} {...props}>
+    <View className={className} style={style} {...props}>
       {children}
-    </Animated.View>
+    </View>
   );
 };
-

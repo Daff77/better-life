@@ -111,7 +111,7 @@ export const Input = React.forwardRef<TextInput, InputProps>(
               className="flex-1 text-neutral-dark text-[17px] p-0 min-w-0 w-full"
               style={[
                 {
-                  fontFamily: "Akatab-SemiBold",
+                  fontFamily: "Urbanist-SemiBold",
                   includeFontPadding: false,
                   minHeight: 36,
                   width: "100%",

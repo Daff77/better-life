@@ -1,73 +1,118 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { View, ScrollView, Platform, Image, useWindowDimensions } from "react-native";
+import { View, ScrollView, Image, useWindowDimensions, ViewStyle } from "react-native";
 import Animated, { FadeIn, FadeOut, LinearTransition } from "react-native-reanimated";
 import { useRouter } from "expo-router";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
 import {
   AppText,
-  ProgressRing,
   ProgressBar,
   AnimatedNumber,
-  Badge,
   MealLogModal,
   MealCard,
   PressableScale,
   FadeInView,
-  SectionHeader,
+  LineIcon,
+  LineIconName,
+  Surface,
+  CardHead,
+  RingButton,
+  Stat,
+  StatusPill,
+  MixBar,
+  ColorBlock,
+  blockColors,
+  BlockTone,
+  ListRow,
+  RowIcon,
+  PillButton,
 } from "@/components/ui";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useOnboardingStore } from "@/stores/useOnboardingStore";
 import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
-import {
-  useJournalStore,
-  getTodayDateKey,
-  computeJournalAggregates,
-} from "@/stores/useJournalStore";
+import { useJournalStore, getTodayDateKey, computeJournalAggregates } from "@/stores/useJournalStore";
 import { useActivityStats, useAddStepsMutation } from "@/hooks/useActivityQuery";
-import {
-  IconRenderer,
-  CloseIconSvg,
-  PlusIconSvg,
-  UtensilsIconSvg,
-  BookOpenIconSvg,
-  CalendarIconSvg,
-  BarChartIconSvg,
-  ChevronRightIconSvg,
-} from "@/constants/Assets";
+import { Colors } from "@/constants/DesignTokens";
+import { MealIllustrations, getMealIllustration } from "@/constants/Assets";
+import { NAV_DESKTOP_BREAKPOINT } from "@/components/layout/ResponsiveTabBar";
 import { MOCK_RECIPES, FoodItem } from "@/data/mockRecipes";
 import { confirmDestructive } from "@/lib/confirm";
 
 /*
- * Design notes (antislop R-31):
- * - Focal point: remaining kcal. It is the one number that decides the next meal.
- * - Palette: forest #153e28 for progress, sage #52796f and amber #b45309 only as macro hues.
- * - Rhythm: hero and journal are cards; activity and planning sit as flat rows on the canvas,
- *   so the page does not read as a stack of identical boxes.
- * - Motion: sections rise once on mount (stagger 45ms), ring and bars fill with the same
- *   ease-out curve, journal rows fade in and out so logging never jumps.
+ * Home, "Hari ini".
+ * - Focal point: kcal remaining, the number that decides the next meal. It leads the stat row.
+ * - Energy card: one segmented bar shows both progress to target and where the calories came from.
+ * - Meal slots feature custom editorial food illustrations (Breakfast, Lunch, Dinner, Snacks, Drinks)
+ *   framed cleanly inside each card without bottom SVG caption text.
+ * - Entries sit under the blocks as ruled rows with their own delete control.
  */
 
-const MACRO_COLORS = {
-  protein: "#153e28",
-  carbs: "#52796f",
-  fat: "#b45309",
-  track: "#eef1ec",
-};
+const MACRO = Colors.macros;
 
-const MEAL_SLOTS = [
-  { id: "Breakfast", label: "Sarapan", iconName: "Breakfast" as const },
-  { id: "Lunch", label: "Makan siang", iconName: "Lunch" as const },
-  { id: "Dinner", label: "Makan malam", iconName: "Dinner" as const },
-  { id: "Snack", label: "Camilan & minum", iconName: "Snacks" as const },
-] as const;
+const MEAL_SLOTS: ReadonlyArray<{
+  id: "Breakfast" | "Lunch" | "Dinner" | "Snack";
+  label: string;
+  subtitle: string;
+  icon: LineIconName;
+  tone: BlockTone;
+  legacyIcon: string;
+  illustration: any;
+  accentBg: string;
+  accentBorder: string;
+}> = [
+  {
+    id: "Breakfast",
+    label: "Sarapan",
+    subtitle: "Energi pagi",
+    icon: "sunrise",
+    tone: "amber",
+    legacyIcon: "Breakfast",
+    illustration: MealIllustrations.Breakfast,
+    accentBg: "#fdf8ee",
+    accentBorder: "#f3e3be",
+  },
+  {
+    id: "Lunch",
+    label: "Makan siang",
+    subtitle: "Nutrisi utama",
+    icon: "sun",
+    tone: "green",
+    legacyIcon: "Lunch",
+    illustration: MealIllustrations.Lunch,
+    accentBg: "#f2faf5",
+    accentBorder: "#cde8d8",
+  },
+  {
+    id: "Dinner",
+    label: "Makan malam",
+    subtitle: "Menu hangat",
+    icon: "moon",
+    tone: "ink",
+    legacyIcon: "Dinner",
+    illustration: MealIllustrations.Dinner,
+    accentBg: "#f4f6f8",
+    accentBorder: "#dce2e8",
+  },
+  {
+    id: "Snack",
+    label: "Camilan",
+    subtitle: "Selingan sehat",
+    icon: "sparkle",
+    tone: "mist",
+    legacyIcon: "Snacks",
+    illustration: MealIllustrations.Snacks,
+    accentBg: "#f5f8f2",
+    accentBorder: "#dce6d3",
+  },
+];
 
 const fmt = (n: number) => Math.round(n).toLocaleString("id-ID");
+const tnum = { fontVariant: ["tabular-nums" as const] };
 
 export default function HomeScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
-  const isDesktop = width >= 1024;
-  const isNarrowMobile = width < 360;
+  const hasDesktopNav = width >= NAV_DESKTOP_BREAKPOINT;
+  const isWide = width >= 1100;
 
   const user = useAuthStore((state) => state.user);
   const personalization = useOnboardingStore((state) => state.personalization);
@@ -94,7 +139,7 @@ export default function HomeScreen() {
     }
   }, [personalization.targetCalories, todayDate, todayJournal?.targetCalories]);
 
-  const progressPercent = Math.min(100, Math.round(aggregates.progressRatio * 100));
+  const progressPercent = Math.min(999, Math.round(aggregates.progressRatio * 100));
 
   const userInitials = useMemo(() => {
     if (!user?.name) return "BL";
@@ -104,29 +149,20 @@ export default function HomeScreen() {
   }, [user?.name]);
 
   const formattedToday = useMemo(
-    () =>
-      new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long" }),
+    () => new Date().toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long" }),
     []
   );
 
   const currentHour = new Date().getHours();
   const greetingTime =
-    currentHour < 11
-      ? "Selamat pagi"
-      : currentHour < 15
-      ? "Selamat siang"
-      : currentHour < 18
-      ? "Selamat sore"
-      : "Selamat malam";
+    currentHour < 11 ? "Selamat pagi" : currentHour < 15 ? "Selamat siang" : currentHour < 18 ? "Selamat sore" : "Selamat malam";
   const firstName = user?.name?.split(" ")[0];
 
   const groupedJournal = useMemo(() => {
     const entries = todayJournal?.entries || [];
     return MEAL_SLOTS.map((slot) => {
       const slotEntries = entries.filter((e) =>
-        slot.id === "Snack"
-          ? e.category === "Snack" || (e as any).category === "Drink"
-          : e.category === slot.id
+        slot.id === "Snack" ? e.category === "Snack" || (e as any).category === "Drink" : e.category === slot.id
       );
       return {
         ...slot,
@@ -136,29 +172,34 @@ export default function HomeScreen() {
     });
   }, [todayJournal?.entries]);
 
+  const allEntries = useMemo(
+    () =>
+      groupedJournal.flatMap((slot) =>
+        slot.entries.map((entry) => ({ entry, slot }))
+      ),
+    [groupedJournal]
+  );
+
   const handleOpenLogModal = (meal: FoodItem) => {
     setSelectedMealForLog(meal);
     setIsLogModalVisible(true);
   };
 
-  const handleOpenSlotLog = (slotId: string, slotLabel: string) => {
+  const handleOpenSlotLog = (slotId: string, slotLabel: string, legacyIcon: string) => {
+    const isDrink = slotId === "Drink";
     setSelectedMealForLog({
       id: `custom-${slotId.toLowerCase()}`,
-      title: `Menu ${slotLabel.toLowerCase()}`,
-      category: slotId === "Snack" ? "Snack" : (slotId as any),
-      calories: 300,
+      title: isDrink ? "Minuman segar" : `Menu ${slotLabel.toLowerCase()}`,
+      category: slotId === "Snack" || isDrink ? "Snack" : (slotId as any),
+      calories: isDrink ? 120 : 300,
       description: `Catatan menu untuk ${slotLabel.toLowerCase()}`,
-      svgIcon: (slotId === "Breakfast"
-        ? "Breakfast"
-        : slotId === "Lunch"
-        ? "Lunch"
-        : slotId === "Dinner"
-        ? "Dinner"
-        : "Snacks") as any,
+      svgIcon: legacyIcon as any,
       ingredients: [],
       instructions: [],
-      nutrition: { proteinGrams: 20, carbsGrams: 35, fatGrams: 10, fiberGrams: 4 },
-      prepTimeMinutes: 15,
+      nutrition: isDrink
+        ? { proteinGrams: 3, carbsGrams: 24, fatGrams: 1, fiberGrams: 3 }
+        : { proteinGrams: 20, carbsGrams: 35, fatGrams: 10, fiberGrams: 4 },
+      prepTimeMinutes: isDrink ? 5 : 15,
       difficulty: "Easy",
     });
     setIsLogModalVisible(true);
@@ -176,386 +217,522 @@ export default function HomeScreen() {
   const targetFat = aggregates.targetFatGrams || 63;
   const isOver = aggregates.remainingCalories < 0;
 
-  const statusLine =
-    aggregates.totalConsumed === 0
-      ? "Belum ada catatan hari ini"
-      : isOver
-      ? `Lewat ${fmt(Math.abs(aggregates.remainingCalories))} kcal dari target`
-      : `${fmt(aggregates.totalConsumed)} dari ${fmt(targetCalories)} kcal tercatat`;
+  const steps = activityQuery.data?.steps ?? 0;
+  const stepGoal = activityQuery.data?.stepGoal ?? 6000;
+  const stepsPct = Math.min(100, Math.round((steps / stepGoal) * 100));
 
-  /* 1. Hero: remaining budget is the focal point; macros sit under a hairline. */
-  const renderEnergyHub = () => (
-    <View className="bg-white rounded-[22px] border border-[#ebe9e2] p-5">
-      <View className="flex-row items-center justify-between">
-        <View className="flex-1 pr-4 min-w-0">
-          <AppText weight="medium" className="text-[13px] text-neutral-muted">
-            {isOver ? "Kalori berlebih" : "Kalori tersisa"}
+  const statItems = [
+    {
+      icon: "flame" as const,
+      accent: true,
+      value: fmt(Math.abs(aggregates.remainingCalories)),
+      label: isOver ? "kcal di atas target" : "kcal tersisa hari ini",
+      tag: isOver ? <StatusPill label="Lewat" tone="warn" dot={false} /> : undefined,
+    },
+    { icon: "steps" as const, value: fmt(steps), label: `dari ${fmt(stepGoal)} langkah` },
+    {
+      icon: "utensils" as const,
+      value: String(aggregates.entryCount),
+      label: "makanan tercatat",
+    },
+    {
+      icon: "target" as const,
+      value: `${Math.round(aggregates.totalProteinGrams)} g`,
+      label: `protein dari ${targetProtein} g`,
+    },
+  ];
+
+  /* ---------------------------------------------------------------- Head */
+  const head = (
+    <View className={isWide ? "flex-row flex-wrap items-center justify-between gap-y-4 gap-x-8 mb-6" : "mb-5"}>
+      <View className={`flex-row items-start justify-between gap-3 ${isWide ? "flex-shrink-0" : "mb-5"}`}>
+        <View className="min-w-0" style={isWide ? { maxWidth: 320 } : { flex: 1 }}>
+          <AppText weight="medium" className="text-[13.5px] text-muted capitalize mb-1">
+            {formattedToday}
           </AppText>
-          <View className="flex-row items-baseline mt-1">
-            <AnimatedNumber
-              value={Math.abs(aggregates.remainingCalories)}
-              formatter={fmt}
-              animateOnMount={false}
-              weight="black"
-              className={`${isNarrowMobile ? "text-[38px]" : "text-[44px]"} leading-none ${
-                isOver ? "text-[#b45309]" : "text-neutral-dark"
-              }`}
-              style={{ fontVariant: ["tabular-nums"], letterSpacing: -1.2 }}
-            />
-            <AppText weight="bold" className="text-sm text-neutral-muted ml-1.5">
-              kcal
-            </AppText>
-          </View>
           <AppText
-            weight="medium"
-            className={`text-[13px] mt-2 ${isOver ? "text-[#8a4106]" : "text-neutral-muted"}`}
-            style={{ fontVariant: ["tabular-nums"] }}
+            weight="semibold"
+            className="text-[28px] sm:text-[34px] text-ink"
+            style={{ letterSpacing: -0.8, lineHeight: 34 }}
+            accessibilityRole="header"
           >
-            {statusLine}
+            {firstName ? `${greetingTime}, ${firstName}` : greetingTime}
           </AppText>
         </View>
+        {!hasDesktopNav && (
+          <PressableScale
+            onPress={() => router.push("/(app)/(tabs)/profile")}
+            className="w-11 h-11 rounded-full bg-card border border-line items-center justify-center flex-shrink-0"
+            accessibilityRole="button"
+            accessibilityLabel="Buka profil"
+          >
+            <View className="w-[38px] h-[38px] rounded-full bg-primary-light items-center justify-center">
+              <AppText weight="bold" className="text-[12px] text-primary-text">
+                {userInitials}
+              </AppText>
+            </View>
+          </PressableScale>
+        )}
+      </View>
 
-        <ProgressRing
-          progress={progressPercent}
-          size={isNarrowMobile ? 80 : 92}
-          strokeWidth={8}
-          color={isOver ? "#b45309" : MACRO_COLORS.protein}
-          backgroundColor={MACRO_COLORS.track}
-          textColor="#1c201d"
-          label="terpenuhi"
-          labelColor="#5a625b"
+      {isWide ? (
+        <View className="flex-row flex-wrap items-center gap-x-7 gap-y-3">
+          {statItems.slice(0, 3).map((s) => (
+            <View key={s.icon}>
+              <Stat icon={s.icon} value={s.value} label={s.label} accent={s.accent} tag={s.tag} />
+            </View>
+          ))}
+        </View>
+      ) : (
+        <View className="gap-3.5">
+          {[statItems.slice(0, 2), statItems.slice(2, 4)].map((row, rowIdx) => (
+            <View key={rowIdx} className="flex-row gap-3">
+              {row.map((s) => (
+                <View key={s.icon} className="flex-1 min-w-0">
+                  <Stat icon={s.icon} value={s.value} label={s.label} accent={s.accent} tag={s.tag} />
+                </View>
+              ))}
+            </View>
+          ))}
+        </View>
+      )}
+
+      <View className={`flex-row items-center gap-2.5 ${isWide ? "ml-auto" : "mt-5"}`}>
+        <PillButton
+          label="Catat makan"
+          icon="plus"
+          variant="primary"
+          onPress={() => router.push("/(app)/(tabs)/meals")}
+          className={isWide ? "" : "flex-1"}
+          accessibilityLabel="Catat makanan"
+        />
+        <PillButton
+          label="Rencana"
+          icon="calendar"
+          onPress={() => router.push("/(app)/meal-planner")}
+          accessibilityLabel="Buka rencana makan 7 hari"
         />
       </View>
-
-      <View className="h-px bg-[#f0eee8] my-4" />
-
-      <View className="flex-row gap-4">
-        {[
-          { label: "Protein", value: aggregates.totalProteinGrams, target: targetProtein, color: MACRO_COLORS.protein },
-          { label: "Karbo", value: aggregates.totalCarbsGrams, target: targetCarbs, color: MACRO_COLORS.carbs },
-          { label: "Lemak", value: aggregates.totalFatGrams, target: targetFat, color: MACRO_COLORS.fat },
-        ].map((m) => (
-          <View key={m.label} className="flex-1 min-w-0">
-            <AppText weight="medium" className="text-xs text-neutral-muted">
-              {m.label}
-            </AppText>
-            <AppText
-              weight="bold"
-              numberOfLines={1}
-              className="text-[15px] text-neutral-dark mt-0.5"
-              style={{ fontVariant: ["tabular-nums"] }}
-            >
-              {Math.round(m.value)}
-              <AppText weight="medium" className="text-xs text-neutral-muted">
-                {" "}/ {m.target} g
-              </AppText>
-            </AppText>
-            <ProgressBar
-              progress={Math.min(100, (m.value / m.target) * 100)}
-              color={m.color}
-              backgroundColor={MACRO_COLORS.track}
-              height={4}
-              className="mt-2"
-              accessibilityLabel={`${m.label} ${Math.round(m.value)} dari ${m.target} gram`}
-            />
-          </View>
-        ))}
-      </View>
     </View>
   );
 
-  /* 2. Actions: one primary (log), two secondary. Primary is the only filled button on screen. */
-  const renderActions = () => (
-    <View className="flex-row gap-2">
-      <PressableScale
-        onPress={() => router.push("/(app)/(tabs)/meals")}
-        className="flex-[1.4] h-12 rounded-2xl bg-primary flex-row items-center justify-center gap-2"
-        accessibilityRole="button"
-        accessibilityLabel="Catat makanan"
-      >
-        <UtensilsIconSvg size={16} color="#ffffff" />
-        <AppText weight="bold" className="text-white text-sm">
-          Catat makan
-        </AppText>
-      </PressableScale>
-      <PressableScale
-        onPress={() => router.push("/(app)/(tabs)/recipes")}
-        className="flex-1 h-12 rounded-2xl bg-white border border-[#ebe9e2] flex-row items-center justify-center gap-1.5"
-        accessibilityRole="button"
-        accessibilityLabel="Buka resep"
-      >
-        <BookOpenIconSvg size={15} color="#153e28" />
-        <AppText weight="bold" className="text-neutral-dark text-sm">
-          Resep
-        </AppText>
-      </PressableScale>
-      <PressableScale
-        onPress={() => router.push("/(app)/meal-planner")}
-        className="flex-1 h-12 rounded-2xl bg-white border border-[#ebe9e2] flex-row items-center justify-center gap-1.5"
-        accessibilityRole="button"
-        accessibilityLabel="Buka rencana makan 7 hari"
-      >
-        <CalendarIconSvg size={15} color="#153e28" />
-        <AppText weight="bold" className="text-neutral-dark text-sm">
-          Rencana
-        </AppText>
-      </PressableScale>
-    </View>
-  );
+  /* -------------------------------------------------------------- Energy */
+  const kcalProtein = aggregates.totalProteinGrams * 4;
+  const kcalCarbs = aggregates.totalCarbsGrams * 4;
+  const kcalFat = aggregates.totalFatGrams * 9;
+  const remaining = Math.max(0, targetCalories - aggregates.totalConsumed);
 
-  /* 3. Journal: four slots as ruled rows, entries indented beneath their slot. */
-  const renderJournal = () => (
-    <View>
-      <SectionHeader
-        title="Jurnal hari ini"
-        caption={
-          aggregates.entryCount === 0
-            ? "Ketuk + di tiap waktu makan untuk mencatat"
-            : `${aggregates.entryCount} makanan tercatat`
+  const renderEnergy = () => (
+    <Surface>
+      <CardHead
+        title="Energi hari ini"
+        caption={`Target ${fmt(targetCalories)} kcal`}
+        right={
+          <RingButton accessibilityLabel="Buka tren nutrisi" onPress={() => router.push("/(app)/analytics")} />
         }
-        actionLabel="Lihat menu"
-        onAction={() => router.push("/(app)/(tabs)/meals")}
       />
-      <View className="bg-white rounded-[22px] border border-[#ebe9e2] px-4">
-        {groupedJournal.map((slot, slotIndex) => {
-          const hasEntries = slot.entries.length > 0;
-          return (
-            <Animated.View
-              key={slot.id}
-              layout={LinearTransition.duration(220)}
-              className={slotIndex > 0 ? "border-t border-[#f0eee8]" : ""}
-            >
-              <View className="flex-row items-center py-3">
-                <View className="w-10 h-10 rounded-xl bg-[#f3f6f2] items-center justify-center">
-                  <IconRenderer name={slot.iconName} size={18} />
-                </View>
-                <View className="flex-1 min-w-0 ml-3 mr-2">
-                  <AppText weight="bold" className="text-[15px] text-neutral-dark">
-                    {slot.label}
-                  </AppText>
-                  <AppText
-                    weight="medium"
-                    numberOfLines={1}
-                    className="text-xs text-neutral-muted mt-0.5"
-                    style={{ fontVariant: ["tabular-nums"] }}
-                  >
-                    {hasEntries
-                      ? `${slot.entries.length} menu · ${fmt(slot.totalCalories)} kcal`
-                      : "Belum dicatat"}
-                  </AppText>
-                </View>
-                <PressableScale
-                  onPress={() => handleOpenSlotLog(slot.id, slot.label)}
-                  hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
-                  className="w-10 h-10 rounded-full border border-[#dfe6e0] items-center justify-center"
-                  accessibilityRole="button"
-                  accessibilityLabel={`Catat ${slot.label.toLowerCase()}`}
-                >
-                  <PlusIconSvg size={16} color="#153e28" strokeWidth={2.4} />
-                </PressableScale>
-              </View>
+      <View className="flex-row items-baseline flex-wrap gap-x-2.5 mb-3">
+        <AnimatedNumber
+          value={aggregates.totalConsumed}
+          formatter={fmt}
+          animateOnMount={false}
+          weight="semibold"
+          className="text-[32px] sm:text-[34px] text-ink"
+          style={[tnum, { letterSpacing: -0.8, lineHeight: 36 }]}
+        />
+        <AppText weight="medium" className="text-[13px] text-muted" style={tnum}>
+          kcal tercatat · {progressPercent}% dari target
+        </AppText>
+      </View>
 
-              {slot.entries.map((item) => {
-                const matchedRecipe = MOCK_RECIPES.find(
-                  (r) => r.id === item.mealId || r.title.toLowerCase() === item.title.toLowerCase()
-                );
-                const photoUrl = (item as any).imageUrl || matchedRecipe?.imageUrl;
-                return (
-                  <Animated.View
-                    key={item.id}
-                    entering={FadeIn.duration(200)}
-                    exiting={FadeOut.duration(140)}
-                    layout={LinearTransition.duration(220)}
-                    className="flex-row items-center pl-[52px] pb-3"
-                  >
-                    <View className="w-8 h-8 rounded-lg bg-[#f3f6f2] overflow-hidden items-center justify-center">
-                      {photoUrl ? (
-                        <Image source={{ uri: photoUrl }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
-                      ) : (
-                        <IconRenderer name={slot.iconName} size={14} />
-                      )}
-                    </View>
-                    <View className="flex-1 min-w-0 ml-2.5 mr-2">
-                      <AppText weight="semibold" numberOfLines={1} className="text-[13px] text-neutral-dark">
-                        {item.quantity > 1 ? `${item.quantity}x ` : ""}
-                        {item.title}
-                      </AppText>
-                      <AppText
-                        weight="medium"
-                        numberOfLines={1}
-                        className="text-[11px] text-neutral-muted"
-                        style={{ fontVariant: ["tabular-nums"] }}
-                      >
-                        {item.calories} kcal · P {item.proteinGrams} · K {item.carbsGrams} · L {item.fatGrams}
-                      </AppText>
-                    </View>
-                    <PressableScale
-                      onPress={() => handleDeleteEntry(item.id, item.title)}
-                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                      className="w-8 h-8 rounded-full items-center justify-center"
-                      accessibilityRole="button"
-                      accessibilityLabel={`Hapus ${item.title}`}
-                    >
-                      <CloseIconSvg size={13} color="#5a625b" strokeWidth={2.2} />
-                    </PressableScale>
-                  </Animated.View>
-                );
-              })}
-            </Animated.View>
+      <MixBar
+        height={44}
+        accessibilityLabel={`Protein ${fmt(kcalProtein)} kcal, karbohidrat ${fmt(kcalCarbs)} kcal, lemak ${fmt(
+          kcalFat
+        )} kcal, sisa ${fmt(remaining)} kcal`}
+        segments={[
+          { key: "p", value: kcalProtein, color: MACRO.protein },
+          { key: "c", value: kcalCarbs, color: MACRO.carbs },
+          { key: "f", value: kcalFat, color: MACRO.fat },
+          { key: "r", value: remaining, color: MACRO.track, outlined: true },
+        ]}
+      />
+
+      <View className="mt-2">
+        {[
+          { label: "Protein", value: aggregates.totalProteinGrams, target: targetProtein, color: MACRO.protein },
+          { label: "Karbohidrat", value: aggregates.totalCarbsGrams, target: targetCarbs, color: MACRO.carbs },
+          { label: "Lemak", value: aggregates.totalFatGrams, target: targetFat, color: MACRO.fat },
+        ].map((m, i) => {
+          const left = Math.round(m.target - m.value);
+          return (
+            <ListRow
+              key={m.label}
+              last={i === 2}
+              leading={<View className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: m.color }} />}
+              title={m.label}
+              caption={left > 0 ? `${left} g lagi untuk target` : "Target tercapai"}
+              trailing={
+                <AppText weight="bold" className="text-[15px] text-ink" style={tnum}>
+                  {Math.round(m.value)}
+                  <AppText weight="medium" className="text-[13px] text-muted">
+                    {" "}
+                    / {m.target} g
+                  </AppText>
+                </AppText>
+              }
+            />
           );
         })}
       </View>
-    </View>
+      <View className="flex-row items-center gap-1.5 mt-1">
+        <View className="w-2.5 h-2.5 rounded-full border border-line-2" style={{ backgroundColor: MACRO.track }} />
+        <AppText weight="medium" className="text-[12px] text-muted" style={tnum}>
+          {isOver ? `Lewat ${fmt(Math.abs(aggregates.remainingCalories))} kcal dari target` : `Sisa ${fmt(remaining)} kcal`}
+        </AppText>
+      </View>
+    </Surface>
   );
 
-  /* 4. Activity: flat on the canvas. Shows loading and error honestly, never seeded numbers. */
-  const renderActivity = () => {
-    const data = activityQuery.data;
-    const steps = data?.steps ?? 0;
-    const stepGoal = data?.stepGoal ?? 6000;
-    const stepsPct = Math.min(100, Math.round((steps / stepGoal) * 100));
+  /* ------------------------------------------------------------- Journal */
+  const renderJournal = () => {
+    const slotRows = [groupedJournal.slice(0, 2), groupedJournal.slice(2, 4)];
+    const drinkEntries = (todayJournal?.entries || []).filter(
+      (e) =>
+        (e as any).category === "Drink" ||
+        e.mealId === "custom-drink" ||
+        /minum|jus|smoothie|kopi|teh|susu|infused/i.test(e.title)
+    );
+    const drinkCalories = drinkEntries.reduce((sum, item) => sum + item.calories, 0);
 
     return (
-      <View>
-        <SectionHeader title="Aktivitas" />
-        <View className="px-0.5">
-          {activityQuery.isLoading ? (
-            <AppText weight="medium" className="text-[13px] text-neutral-muted py-3">
-              Memuat data langkah...
-            </AppText>
-          ) : activityQuery.isError ? (
-            <View className="flex-row items-center justify-between py-2">
-              <AppText weight="medium" className="text-[13px] text-neutral-muted flex-1 mr-3">
-                Data langkah belum bisa dimuat.
-              </AppText>
-              <PressableScale
-                onPress={() => activityQuery.refetch()}
-                className="h-10 px-4 rounded-full border border-[#dfe6e0] justify-center"
-                accessibilityRole="button"
-              >
-                <AppText weight="bold" className="text-[13px] text-primary">
-                  Coba lagi
-                </AppText>
-              </PressableScale>
+      <Surface>
+        <CardHead
+          title="Jurnal hari ini"
+          caption={
+            aggregates.entryCount === 0 ? "Pilih waktu makan untuk mulai mencatat" : `${aggregates.entryCount} makanan tercatat`
+          }
+          right={<RingButton accessibilityLabel="Lihat semua menu" onPress={() => router.push("/(app)/(tabs)/meals")} />}
+        />
+        <View className="gap-2.5">
+          {slotRows.map((row, rowIdx) => (
+            <View key={rowIdx} className="flex-row gap-2.5">
+              {row.map((slot) => {
+                const has = slot.entries.length > 0;
+                return (
+                  <View key={slot.id} className="flex-1 min-w-0">
+                    <PressableScale
+                      onPress={() => handleOpenSlotLog(slot.id, slot.label, slot.legacyIcon)}
+                      pressedScale={0.98}
+                      className="rounded-[18px] overflow-hidden border"
+                      style={
+                        {
+                          backgroundColor: slot.accentBg,
+                          borderColor: slot.accentBorder,
+                        } as ViewStyle
+                      }
+                      accessibilityRole="button"
+                      accessibilityLabel={`${slot.label}, ${slot.totalCalories} kalori tercatat. Ketuk untuk mencatat`}
+                    >
+                      {/* Compact Panoramic Illustration Header (66px height) */}
+                      <View className="w-full h-[66px] bg-card-2 relative overflow-hidden">
+                        <Image
+                          source={slot.illustration}
+                          style={{ width: "100%", height: "100%" }}
+                          resizeMode="cover"
+                        />
+                        <View
+                          className="absolute top-2 left-2 w-6 h-6 rounded-full items-center justify-center"
+                          style={{ backgroundColor: "rgba(255, 255, 255, 0.92)" }}
+                        >
+                          <LineIcon name={slot.icon} size={13} color="#121a16" />
+                        </View>
+                        {has && (
+                          <View
+                            className="absolute top-2 right-2 px-2 py-0.5 rounded-full"
+                            style={{ backgroundColor: "rgba(18, 26, 22, 0.8)" }}
+                          >
+                            <AppText
+                              weight="semibold"
+                              className="text-[10px] text-white"
+                              style={tnum}
+                            >
+                              {slot.entries.length} menu
+                            </AppText>
+                          </View>
+                        )}
+                      </View>
+
+                      {/* Compact Scannable Card Body */}
+                      <View className="px-3 py-2.5">
+                        <AppText
+                          weight="semibold"
+                          className="text-[14px] text-ink leading-[18px]"
+                        >
+                          {slot.label}
+                        </AppText>
+
+                        <View className="flex-row items-center justify-between mt-1.5 gap-1">
+                          <View className="flex-row items-baseline gap-1 min-w-0 flex-1">
+                            <AppText
+                              weight="bold"
+                              className="text-[17px] text-ink"
+                              style={[{ letterSpacing: -0.3 }, tnum]}
+                            >
+                              {fmt(slot.totalCalories)}
+                            </AppText>
+                            <AppText weight="semibold" className="text-[11px] text-muted">
+                              kcal
+                            </AppText>
+                          </View>
+
+                          <View
+                            className="h-7 px-2.5 rounded-full flex-row items-center gap-1 flex-shrink-0"
+                            style={{
+                              backgroundColor: Colors.primary.DEFAULT,
+                            }}
+                          >
+                            <LineIcon
+                              name="plus"
+                              size={12}
+                              color="#ffffff"
+                              strokeWidth={2.4}
+                            />
+                            <AppText
+                              weight="bold"
+                              className="text-[11px] text-white"
+                            >
+                              Catat
+                            </AppText>
+                          </View>
+                        </View>
+                      </View>
+                    </PressableScale>
+                  </View>
+                );
+              })}
             </View>
-          ) : (
-            <>
-              <View className="flex-row items-end justify-between">
-                <View className="flex-row items-baseline">
-                  <AnimatedNumber
-                    value={steps}
-                    formatter={fmt}
-                    animateOnMount={false}
-                    weight="black"
-                    className="text-[28px] text-neutral-dark leading-none"
-                    style={{ fontVariant: ["tabular-nums"], letterSpacing: -0.6 }}
-                  />
-                  <AppText
-                    weight="medium"
-                    className="text-[13px] text-neutral-muted ml-1.5"
-                    style={{ fontVariant: ["tabular-nums"] }}
-                  >
-                    / {fmt(stepGoal)} langkah
-                  </AppText>
-                </View>
-                <PressableScale
-                  onPress={() => addStepsMutation.mutate(500)}
-                  disabled={addStepsMutation.isPending}
-                  className="h-10 px-4 rounded-full bg-white border border-[#dfe6e0] justify-center"
-                  accessibilityRole="button"
-                  accessibilityLabel="Tambah 500 langkah manual"
-                >
-                  <AppText weight="bold" className="text-[13px] text-primary">
-                    +500
-                  </AppText>
-                </PressableScale>
-              </View>
-              <ProgressBar
-                progress={stepsPct}
-                color={MACRO_COLORS.protein}
-                backgroundColor="#e9ede7"
-                height={6}
-                className="mt-3"
-                accessibilityLabel={`${stepsPct} persen target langkah`}
+          ))}
+
+          {/* Compact 5th Illustrated Card: Minuman & Smoothies */}
+          <PressableScale
+            onPress={() => handleOpenSlotLog("Drink", "Minuman segar", "Drinks")}
+            pressedScale={0.985}
+            className="rounded-[18px] overflow-hidden border flex-row items-center p-2.5 pr-3"
+            style={
+              {
+                backgroundColor: "#fdf7f4",
+                borderColor: "#f1dcd3",
+              } as ViewStyle
+            }
+            accessibilityRole="button"
+            accessibilityLabel="Minuman dan smoothies, ketuk untuk mencatat minuman"
+          >
+            <View className="w-[72px] h-[56px] rounded-[12px] overflow-hidden bg-card-2 relative flex-shrink-0">
+              <Image
+                source={MealIllustrations.Drinks}
+                style={{ width: "100%", height: "100%" }}
+                resizeMode="cover"
               />
-              <AppText weight="medium" className="text-xs text-neutral-muted mt-2">
-                {steps === 0
-                  ? "Belum ada langkah tercatat. Tambah manual dengan +500."
-                  : `${stepsPct}% dari target harian`}
+            </View>
+
+            <View className="flex-1 min-w-0 ml-3 mr-2">
+              <AppText
+                weight="semibold"
+                className="text-[14px] text-ink leading-[18px]"
+              >
+                Minuman & Smoothies
               </AppText>
-            </>
-          )}
+              <AppText
+                weight="medium"
+                className="text-[12px] text-muted mt-0.5"
+                style={tnum}
+              >
+                {drinkCalories > 0
+                  ? `${fmt(drinkCalories)} kcal tercatat (${drinkEntries.length} gelas)`
+                  : "Jus buah, kopi, teh, atau smoothie"}
+              </AppText>
+            </View>
+
+            <View
+              className="h-7 px-2.5 rounded-full flex-row items-center gap-1 flex-shrink-0"
+              style={{ backgroundColor: Colors.primary.DEFAULT }}
+            >
+              <LineIcon name="plus" size={12} color="#ffffff" strokeWidth={2.4} />
+              <AppText weight="bold" className="text-[11px] text-white">
+                Catat
+              </AppText>
+            </View>
+          </PressableScale>
         </View>
-      </View>
+
+        {allEntries.length > 0 && (
+          <View className="mt-4">
+            <AppText weight="semibold" className="text-[13px] text-muted mb-0.5">
+              Tercatat
+            </AppText>
+            {allEntries.map(({ entry: item, slot }, i) => {
+              const matchedRecipe = MOCK_RECIPES.find(
+                (r) => r.id === item.mealId || r.title.toLowerCase() === item.title.toLowerCase()
+              );
+              const photoUrl = (item as any).imageUrl || matchedRecipe?.imageUrl;
+              const isDrinkEntry =
+                item.mealId === "custom-drink" ||
+                /minum|jus|smoothie|kopi|teh|susu|infused/i.test(item.title);
+              const fallbackIllustration = isDrinkEntry
+                ? MealIllustrations.Drinks
+                : getMealIllustration(slot.id);
+              return (
+                <Animated.View
+                  key={item.id}
+                  entering={FadeIn.duration(200)}
+                  exiting={FadeOut.duration(140)}
+                  layout={LinearTransition.duration(220)}
+                >
+                  <ListRow
+                    last={i === allEntries.length - 1}
+                    leading={
+                      <View className="w-11 h-11 rounded-[12px] bg-card-2 overflow-hidden items-center justify-center flex-shrink-0 border border-line">
+                        <Image
+                          source={photoUrl ? { uri: photoUrl } : fallbackIllustration}
+                          style={{ width: "100%", height: "100%" }}
+                          resizeMode="cover"
+                        />
+                      </View>
+                    }
+                    title={`${item.quantity > 1 ? `${item.quantity}x ` : ""}${item.title}`}
+                    caption={`${slot.label} · ${item.calories} kcal · P ${item.proteinGrams} · K ${item.carbsGrams} · L ${item.fatGrams}`}
+                    trailing={
+                      <RingButton
+                        icon="close"
+                        accessibilityLabel={`Hapus ${item.title}`}
+                        onPress={() => handleDeleteEntry(item.id, item.title)}
+                      />
+                    }
+                  />
+                </Animated.View>
+              );
+            })}
+          </View>
+        )}
+      </Surface>
     );
   };
 
-  /* 5. Planning: two navigation rows, no card-in-card. Badge only marks real premium state. */
-  const renderPlanning = () => (
-    <View>
-      <SectionHeader title="Rencanakan" />
-      <View className="border-t border-[#ebe9e2]">
-        {[
-          {
-            title: "Rencana makan 7 hari",
-            caption: "Menu bergizi sesuai target dan budget",
-            icon: <CalendarIconSvg size={17} color="#153e28" />,
-            onPress: () => router.push("/(app)/meal-planner"),
-          },
-          {
-            title: "Tren nutrisi",
-            caption: "Kalori dan makro 7 sampai 30 hari",
-            icon: <BarChartIconSvg size={17} color="#153e28" />,
-            onPress: () => router.push("/(app)/analytics"),
-          },
-        ].map((row) => (
-          <PressableScale
-            key={row.title}
-            onPress={row.onPress}
-            pressedScale={0.985}
-            className="flex-row items-center py-3.5 border-b border-[#ebe9e2]"
-            accessibilityRole="link"
-            accessibilityLabel={row.title}
-          >
-            <View className="w-10 h-10 rounded-xl bg-primary-light items-center justify-center">
-              {row.icon}
-            </View>
-            <View className="flex-1 min-w-0 ml-3 mr-2">
-              <View className="flex-row items-center gap-2">
-                <AppText weight="bold" className="text-[15px] text-neutral-dark">
-                  {row.title}
-                </AppText>
-                {!isPremium && <Badge label="Premium" variant="accent" size="sm" />}
-              </View>
-              <AppText weight="medium" numberOfLines={1} className="text-xs text-neutral-muted mt-0.5">
-                {row.caption}
-              </AppText>
-            </View>
-            <ChevronRightIconSvg size={16} color="#8b938c" />
-          </PressableScale>
-        ))}
-      </View>
-    </View>
+  /* ------------------------------------------------------------ Activity */
+  const renderActivity = () => (
+    <Surface>
+      <CardHead
+        title="Aktivitas"
+        caption="Langkah hari ini"
+        right={
+          !activityQuery.isLoading && !activityQuery.isError ? (
+            <PillButton
+              label="+500"
+              size="sm"
+              icon="steps"
+              disabled={addStepsMutation.isPending}
+              onPress={() => addStepsMutation.mutate(500)}
+              accessibilityLabel="Tambah 500 langkah manual"
+            />
+          ) : undefined
+        }
+      />
+      {activityQuery.isLoading ? (
+        <AppText weight="medium" className="text-[13px] text-muted py-2">
+          Memuat data langkah...
+        </AppText>
+      ) : activityQuery.isError ? (
+        <View className="flex-row items-center justify-between gap-3">
+          <AppText weight="medium" className="text-[13px] text-muted flex-1">
+            Data langkah belum bisa dimuat.
+          </AppText>
+          <PillButton label="Coba lagi" size="sm" icon="refresh" onPress={() => activityQuery.refetch()} />
+        </View>
+      ) : (
+        <>
+          <View className="flex-row items-baseline flex-wrap gap-x-2.5">
+            <AnimatedNumber
+              value={steps}
+              formatter={fmt}
+              animateOnMount={false}
+              weight="semibold"
+              className="text-[32px] sm:text-[34px] text-ink"
+              style={[tnum, { letterSpacing: -0.8, lineHeight: 36 }]}
+            />
+            <AppText weight="medium" className="text-[13px] text-muted" style={tnum}>
+              dari {fmt(stepGoal)} langkah
+            </AppText>
+          </View>
+          <ProgressBar
+            progress={stepsPct}
+            color={Colors.primary.DEFAULT}
+            backgroundColor={MACRO.track}
+            height={10}
+            className="mt-3"
+            accessibilityLabel={`${stepsPct} persen target langkah`}
+          />
+          <AppText weight="medium" className="text-[12.5px] text-muted mt-2.5">
+            {steps === 0 ? "Belum ada langkah tercatat. Tambah manual dengan +500." : `${stepsPct}% dari target harian`}
+          </AppText>
+        </>
+      )}
+    </Surface>
   );
 
-  /* 6. Inspiration: edge-to-edge carousel, the only image-led block on Home. */
+  /* ------------------------------------------------------------ Planning */
+  const renderPlanning = () => (
+    <Surface dense>
+      {[
+        {
+          title: "Rencana makan 7 hari",
+          caption: "Menu sesuai target kalori dan budget",
+          icon: "calendar" as const,
+          onPress: () => router.push("/(app)/meal-planner"),
+        },
+        {
+          title: "Tren nutrisi",
+          caption: "Kalori dan makro 7 sampai 30 hari",
+          icon: "chart" as const,
+          onPress: () => router.push("/(app)/analytics"),
+        },
+      ].map((row, i) => (
+        <ListRow
+          key={row.title}
+          last={i === 1}
+          onPress={row.onPress}
+          leading={<RowIcon icon={row.icon} tone="accent" />}
+          title={row.title}
+          caption={row.caption}
+          trailing={
+            <View className="flex-row items-center gap-2">
+              {!isPremium && <StatusPill label="Premium" tone="warn" dot={false} />}
+              <LineIcon name="chevronRight" size={18} color="#7d8781" />
+            </View>
+          }
+        />
+      ))}
+    </Surface>
+  );
+
+  /* --------------------------------------------------------- Inspiration */
   const renderInspiration = () => (
     <View>
-      <SectionHeader
-        title="Inspirasi menu"
-        actionLabel="Semua resep"
-        onAction={() => router.push("/(app)/(tabs)/recipes")}
-      />
+      <View className="flex-row items-center justify-between mb-3">
+        <AppText weight="semibold" className="text-[18px] text-ink" style={{ letterSpacing: -0.2 }}>
+          Inspirasi menu
+        </AppText>
+        <PillButton label="Semua resep" size="sm" variant="ghost" onPress={() => router.push("/(app)/(tabs)/recipes")} />
+      </View>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ gap: 12, paddingHorizontal: isDesktop ? 0 : 16 }}
-        className={isDesktop ? "" : "-mx-4"}
+        contentContainerStyle={{ gap: 12, paddingBottom: 4 }}
         decelerationRate="fast"
-        snapToInterval={isDesktop ? undefined : 212}
+        snapToInterval={hasDesktopNav ? undefined : 222}
       >
-        {MOCK_RECIPES.slice(0, 6).map((meal) => (
-          <View key={meal.id} className="w-[200px]">
+        {MOCK_RECIPES.slice(0, 8).map((meal) => (
+          <View key={meal.id} className="w-[210px]">
             <MealCard
               title={meal.title}
               mealType={meal.category}
@@ -574,73 +751,45 @@ export default function HomeScreen() {
     </View>
   );
 
-  const header = (
-    <View className="flex-row items-center justify-between mb-5">
-      <View className="flex-1 min-w-0 mr-3">
-        <AppText weight="medium" className="text-[13px] text-neutral-muted capitalize">
-          {formattedToday}
-        </AppText>
-        <AppText
-          weight="black"
-          numberOfLines={1}
-          className="text-[26px] text-neutral-dark mt-0.5"
-          style={{ letterSpacing: -0.6 }}
-        >
-          {firstName ? `${greetingTime}, ${firstName}` : greetingTime}
-        </AppText>
-      </View>
-      <PressableScale
-        onPress={() => router.push("/(app)/(tabs)/profile")}
-        className="w-11 h-11 rounded-full bg-primary-light items-center justify-center"
-        accessibilityRole="button"
-        accessibilityLabel="Buka profil"
-      >
-        <AppText weight="bold" className="text-sm text-primary">
-          {userInitials}
-        </AppText>
-      </PressableScale>
-    </View>
-  );
-
   return (
-    <ScreenWrapper maxWidth="wide" className="flex-1 bg-[#faf9f5]">
+    <ScreenWrapper maxWidth="wide" className="flex-1 bg-canvas">
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: 16, paddingBottom: Platform.OS === "web" ? 64 : 110 }}
+        contentContainerStyle={{ paddingTop: hasDesktopNav ? 8 : 16, paddingBottom: hasDesktopNav ? 56 : 120 }}
       >
-        <FadeInView index={0}>{header}</FadeInView>
+        <FadeInView index={0}>{head}</FadeInView>
 
-        {isDesktop ? (
-          <View className="flex-row gap-6 items-start">
-            <View className="flex-1 gap-6 min-w-0">
-              <FadeInView index={1}>{renderEnergyHub()}</FadeInView>
-              <FadeInView index={2}>{renderActions()}</FadeInView>
-              <FadeInView index={3}>{renderInspiration()}</FadeInView>
-              <FadeInView index={4}>{renderPlanning()}</FadeInView>
+        {isWide ? (
+          <View className="gap-4">
+            <View className="flex-row gap-4 items-start">
+              <View className="flex-[7] gap-4 min-w-0">
+                <FadeInView index={1}>{renderEnergy()}</FadeInView>
+                <FadeInView index={3}>{renderActivity()}</FadeInView>
+              </View>
+              <View className="flex-[5] gap-4 min-w-0">
+                <FadeInView index={2}>{renderJournal()}</FadeInView>
+                <FadeInView index={4}>{renderPlanning()}</FadeInView>
+              </View>
             </View>
-            <View className="w-[380px] gap-6 flex-shrink-0">
-              <FadeInView index={2}>{renderJournal()}</FadeInView>
-              <FadeInView index={3}>{renderActivity()}</FadeInView>
-            </View>
+            <FadeInView index={5} className="mt-4">
+              {renderInspiration()}
+            </FadeInView>
           </View>
         ) : (
-          <View className="gap-3">
-            <FadeInView index={1}>{renderEnergyHub()}</FadeInView>
-            <FadeInView index={2}>{renderActions()}</FadeInView>
-            <FadeInView index={3} className="mt-5">{renderJournal()}</FadeInView>
-            <FadeInView index={4} className="mt-6">{renderActivity()}</FadeInView>
-            <FadeInView index={5} className="mt-6">{renderPlanning()}</FadeInView>
-            <FadeInView index={6} className="mt-6">{renderInspiration()}</FadeInView>
+          <View className="gap-3.5">
+            <FadeInView index={1}>{renderEnergy()}</FadeInView>
+            <FadeInView index={2}>{renderJournal()}</FadeInView>
+            <FadeInView index={3}>{renderActivity()}</FadeInView>
+            <FadeInView index={4}>{renderPlanning()}</FadeInView>
+            <FadeInView index={5} className="mt-4">
+              {renderInspiration()}
+            </FadeInView>
           </View>
         )}
       </ScrollView>
 
-      <MealLogModal
-        visible={isLogModalVisible}
-        meal={selectedMealForLog}
-        onClose={() => setIsLogModalVisible(false)}
-      />
+      <MealLogModal visible={isLogModalVisible} meal={selectedMealForLog} onClose={() => setIsLogModalVisible(false)} />
     </ScreenWrapper>
   );
 }

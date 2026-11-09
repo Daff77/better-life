@@ -1,8 +1,8 @@
 import React from "react";
-import { View, Image, TouchableOpacity } from "react-native";
+import { View } from "react-native";
 import { AppText } from "./AppText";
-import { IconButton } from "./IconButton";
-import { ChevronLeftIconSvg, BrandImages } from "@/constants/Assets";
+import { RingButton, StatusPill } from "./Surface";
+import { LineIcon } from "./LineIcon";
 
 export interface HeaderProps {
   title?: string;
@@ -12,6 +12,7 @@ export interface HeaderProps {
   };
   onBack?: () => void;
   rightElement?: React.ReactNode;
+  rightComponent?: React.ReactNode;
   subtitle?: string;
   centered?: boolean;
   showLogo?: boolean;
@@ -22,65 +23,64 @@ export const Header: React.FC<HeaderProps> = ({
   step,
   onBack,
   rightElement,
+  rightComponent,
   subtitle,
   centered = false,
   showLogo = false,
 }) => {
+  const resolvedRight = rightElement ?? rightComponent;
   return (
-    <View className="w-full pt-3 pb-2 px-1">
-      <View className="flex-row items-center justify-between min-h-[44px]">
-        {/* Left: Back Button or Placeholder */}
-        <View className="w-11 items-start">
-          {onBack ? (
-            <IconButton
-              size={44}
-              onPress={onBack}
-              accessibilityLabel="Go back"
-              icon={<ChevronLeftIconSvg size={22} color="#1f2937" />}
-            />
-          ) : null}
-        </View>
-
-        {/* Center: Title / Content / Logo */}
-        <View className={`flex-1 ${centered ? "items-center" : "items-start px-2"}`}>
-          {showLogo ? (
-            <View className="flex-row items-center gap-2">
-              <Image
-                source={BrandImages.logoPng}
-                style={{ width: 24, height: 24 }}
-                resizeMode="contain"
-                accessibilityLabel="Better Life Logo"
-              />
-              {title ? (
-                <AppText weight="extrabold" className="text-lg text-neutral-dark">
-                  {title}
-                </AppText>
-              ) : null}
+    <View className="w-full pt-3 pb-2.5">
+      <View className="flex-row items-center justify-between min-h-[44px] gap-3">
+        {/* Left: Back Button */}
+        {onBack ? (
+          <RingButton
+            icon="arrowLeft"
+            variant="solid"
+            size="md"
+            onPress={onBack}
+            accessibilityLabel="Kembali"
+          />
+        ) : showLogo ? (
+          <View className="flex-row items-center gap-2.5">
+            <View className="w-9 h-9 rounded-[11px] bg-primary items-center justify-center">
+              <LineIcon name="leaf" size={18} color="#ffffff" strokeWidth={2} />
             </View>
-          ) : title ? (
-            <AppText weight="extrabold" className="text-lg text-neutral-dark">
-              {title}
+            <AppText weight="bold" className="text-[18px] text-ink" style={{ letterSpacing: -0.3 }}>
+              {title || "Better Life"}
             </AppText>
-          ) : null}
-          {subtitle ? (
-            <AppText weight="medium" className="text-xs text-neutral-muted">
-              {subtitle}
-            </AppText>
-          ) : null}
-        </View>
+          </View>
+        ) : (
+          <View className="w-11" />
+        )}
 
-        {/* Right: Step Counter or Action Element */}
-        <View className="w-20 items-end justify-center">
-          {step ? (
-            <AppText weight="extrabold" className="text-sm text-neutral-muted">
-              <AppText weight="extrabold" className="text-primary">
-                Step {step.current}
+        {/* Center: Title & Subtitle */}
+        {!showLogo && (
+          <View className={`flex-1 min-w-0 ${centered ? "items-center" : "items-start"}`}>
+            {title ? (
+              <AppText
+                weight="semibold"
+                numberOfLines={1}
+                className="text-[19px] text-ink"
+                style={{ letterSpacing: -0.3 }}
+              >
+                {title}
               </AppText>
-              {" of "}
-              {step.total}
-            </AppText>
+            ) : null}
+            {subtitle ? (
+              <AppText weight="medium" numberOfLines={1} className="text-[12.5px] text-muted mt-0.5">
+                {subtitle}
+              </AppText>
+            ) : null}
+          </View>
+        )}
+
+        {/* Right: Step Counter or Custom Action */}
+        <View className="items-end justify-center">
+          {step ? (
+            <StatusPill label={`Langkah ${step.current} / ${step.total}`} tone="accent" dot={false} />
           ) : (
-            rightElement || null
+            resolvedRight || (centered ? <View className="w-11" /> : null)
           )}
         </View>
       </View>

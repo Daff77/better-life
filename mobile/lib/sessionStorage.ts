@@ -23,7 +23,7 @@ export interface SessionData {
   token?: string;
 }
 
-const SESSION_KEY = "betterlife_session_v1";
+const SESSION_KEY = "betterlife_session_v2";
 const USERS_KEY = "betterlife_registered_accounts_v1";
 const PERSONALIZATION_KEY = "betterlife_personalization_v1";
 

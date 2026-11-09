@@ -1,16 +1,18 @@
-import React, { useState } from "react";
-import {
-  View,
-  ScrollView,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-  Alert,
-  Image,
-} from "react-native";
+import React, { useState, useRef } from "react";
+import { View, TextInput, Pressable, Alert, Image } from "react-native";
 import { useRouter } from "expo-router";
-import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
-import { AppText, Button, Input, Header, Divider, GoogleSignInModal } from "@/components/ui";
+import {
+  AppText,
+  Button,
+  Divider,
+  GoogleSignInModal,
+  FlowScreen,
+  FlowTitle,
+  TextField,
+  FormAlert,
+  TextLink,
+  LineIcon,
+} from "@/components/ui";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { DEFAULT_DEMO_ACCOUNT } from "@/lib/sessionStorage";
 import { BrandImages, IconRenderer } from "@/constants/Assets";
@@ -18,37 +20,39 @@ import { BrandImages, IconRenderer } from "@/constants/Assets";
 export default function LoginScreen() {
   const router = useRouter();
   const login = useAuthStore((state) => state.login);
+  const passwordRef = useRef<any>(null);
 
-  // Form states
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
-  const [emailError, setEmailError] = useState("");
+  const [identifierError, setIdentifierError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [generalError, setGeneralError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showGoogleModal, setShowGoogleModal] = useState(false);
 
-  // Validation
   const validateForm = () => {
     let isValid = true;
-    setEmailError("");
+    setIdentifierError("");
     setPasswordError("");
     setGeneralError("");
 
-    const trimmedEmail = email.trim();
-    if (!trimmedEmail) {
-      setEmailError("Email address is required.");
+    const trimmed = identifier.trim();
+    if (!trimmed) {
+      setIdentifierError("Masukkan email atau username Anda.");
       isValid = false;
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
-      setEmailError("Please enter a valid email format.");
+    } else if (trimmed.includes("@") && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      setIdentifierError("Format alamat email belum valid.");
+      isValid = false;
+    } else if (trimmed.length < 2) {
+      setIdentifierError("Masukkan minimal 2 karakter.");
       isValid = false;
     }
 
     if (!password) {
-      setPasswordError("Password is required.");
+      setPasswordError("Kata sandi wajib diisi.");
       isValid = false;
     } else if (password.length < 6) {
-      setPasswordError("Password must be at least 6 characters.");
+      setPasswordError("Kata sandi minimal 6 karakter.");
       isValid = false;
     }
 
@@ -56,203 +60,183 @@ export default function LoginScreen() {
   };
 
   const handleLogin = async () => {
+    if (isLoading) return;
     if (!validateForm()) return;
 
     setIsLoading(true);
     setGeneralError("");
 
     try {
-      const result = await login(email.trim(), password);
+      const result = await login(identifier.trim(), password);
       setIsLoading(false);
 
       if (!result.success) {
-        setGeneralError(result.error || "Invalid email or password.");
+        setGeneralError(result.error || "Email/username atau kata sandi tidak sesuai.");
         return;
       }
 
-      // Check onboarding state from current auth store
       const onboardingCompleted = useAuthStore.getState().onboardingCompleted;
       if (!onboardingCompleted) {
         router.replace("/(onboarding)");
       } else {
         router.replace("/(app)/(tabs)");
       }
-    } catch (err) {
+    } catch {
       setIsLoading(false);
-      setGeneralError("An unexpected error occurred. Please try again.");
+      setGeneralError("Terjadi kendala saat masuk. Silakan coba kembali.");
+    }
+  };
+
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace("/(auth)/get-started");
     }
   };
 
   return (
-    <ScreenWrapper maxWidth="narrow" className="flex-1 bg-white">
-      <Header
-        onBack={() => router.back()}
-        title=""
+    <FlowScreen
+      onBack={handleBack}
+      topRight={
+        <TextLink
+          label="Buat akun"
+          onPress={() => router.push("/(auth)/signup")}
+        />
+      }
+      footer={
+        <View className="gap-2.5">
+          <Button
+            title={isLoading ? "Memverifikasi..." : "Masuk ke Akun"}
+            size="lg"
+            loading={isLoading}
+            onPress={handleLogin}
+            accessibilityLabel="Masuk ke akun Better Life"
+          />
+          <View className="flex-row items-center justify-center gap-1.5 pt-1">
+            <AppText weight="medium" className="text-[14px] text-muted">
+              Belum punya akun?
+            </AppText>
+            <TextLink
+              label="Daftar sekarang"
+              onPress={() => router.push("/(auth)/signup")}
+            />
+          </View>
+        </View>
+      }
+    >
+      <View className="flex-row items-center gap-2.5 mb-4">
+        <Image
+          source={BrandImages.logoPng}
+          style={{ width: 42, height: 42, marginLeft: -4 }}
+          resizeMode="contain"
+          accessibilityLabel="Better Life Logo"
+        />
+      </View>
+
+      <FlowTitle
+        eyebrow="Selamat datang kembali"
+        title="Masuk ke akun Anda"
+        caption="Lanjutkan catatan kalori, rencana menu mingguan, dan progres kesehatan Anda."
       />
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        className="flex-1"
-      >
-        <ScrollView
-          className="flex-1 px-6 pt-2 pb-10"
-          contentContainerStyle={{ flexGrow: 1 }}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
+      <FormAlert message={generalError} />
+
+      <View className="gap-4">
+        <TextField
+          label="Email atau Username"
+          icon="user"
+          placeholder="contoh: daffa@gmail.com"
+          value={identifier}
+          onChangeText={(text) => {
+            setIdentifier(text);
+            if (identifierError) setIdentifierError("");
+            if (generalError) setGeneralError("");
+          }}
+          error={identifierError}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          autoCorrect={false}
+          returnKeyType="next"
+          onSubmitEditing={() => passwordRef.current?.focus()}
+          accessibilityLabel="Input email atau username"
+        />
+
+        <TextField
+          ref={passwordRef}
+          label="Kata Sandi"
+          icon="lock"
+          password
+          placeholder="Masukkan kata sandi"
+          value={password}
+          onChangeText={(text) => {
+            setPassword(text);
+            if (passwordError) setPasswordError("");
+            if (generalError) setGeneralError("");
+          }}
+          error={passwordError}
+          returnKeyType="done"
+          onSubmitEditing={handleLogin}
+          accessibilityLabel="Input kata sandi"
+        />
+      </View>
+
+      <View className="flex-row items-center justify-between mt-3 mb-5">
+        <Pressable
+          onPress={() => {
+            setIdentifier(DEFAULT_DEMO_ACCOUNT.email);
+            setPassword(DEFAULT_DEMO_ACCOUNT.password);
+            setIdentifierError("");
+            setPasswordError("");
+            setGeneralError("");
+          }}
+          className="flex-row items-center gap-1.5 py-1.5 px-3 rounded-full bg-primary-light"
+          accessibilityRole="button"
+          accessibilityLabel="Isi cepat akun contoh"
         >
-          <View className="w-full my-auto md:bg-white md:p-8 md:rounded-3xl md:border md:border-[#e5ece7] md:shadow-md">
-            {/* Brand Logo */}
-            <View className="items-center mb-5">
-              <Image
-                source={BrandImages.logoPng}
-                style={{ width: 84, height: 84 }}
-                resizeMode="contain"
-                accessibilityLabel="Better Life Logo"
-              />
-            </View>
+          <LineIcon name="sparkle" size={14} color="#0b6b47" />
+          <AppText weight="semibold" className="text-[12.5px] text-primary-text">
+            Isi Akun Demo
+          </AppText>
+        </Pressable>
 
-            {/* Header Typography */}
-            <View className="mb-6">
-              <AppText weight="bold" className="text-3xl text-primary mb-1">
-                Welcome!
-              </AppText>
-              <AppText weight="semibold" className="text-base text-neutral-muted">
-                Login to your Account
-              </AppText>
-            </View>
+        <TextLink
+          label="Lupa kata sandi?"
+          onPress={() =>
+            Alert.alert(
+              "Pemulihan Kata Sandi",
+              "Untuk akun demo gunakan email 'daffa@gmail.com' dan kata sandi 'password123', atau gunakan kata sandi yang Anda buat saat pendaftaran."
+            )
+          }
+        />
+      </View>
 
-            {/* General Form Error Alert */}
-            {!!generalError && (
-              <View className="mb-4 p-3.5 bg-status-error/10 border border-status-error/20 rounded-xl">
-                <AppText weight="semibold" className="text-sm text-status-error">
-                  {generalError}
-                </AppText>
-              </View>
-            )}
+      <Divider label="ATAU" className="my-3" />
 
-            {/* Input Fields */}
-            <View className="gap-y-4 mb-3">
-              <Input
-                label="EMAIL ADDRESS"
-                placeholder="e.g. yourname@gmail.com"
-                value={email}
-                onChangeText={(text) => {
-                  setEmail(text);
-                  if (emailError) setEmailError("");
-                  if (generalError) setGeneralError("");
-                }}
-                error={emailError}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-                returnKeyType="next"
-                accessibilityLabel="Email address input"
-              />
+      <Pressable
+        onPress={() => setShowGoogleModal(true)}
+        style={({ pressed }) => [
+          {
+            backgroundColor: "#fbfdfc",
+            borderWidth: 1,
+            borderColor: "#d5dbd7",
+          },
+          pressed ? { opacity: 0.88, transform: [{ scale: 0.985 }] } : null,
+        ]}
+        className="w-full h-[52px] flex-row items-center justify-center rounded-full gap-x-3 mt-1"
+        accessibilityRole="button"
+        accessibilityLabel="Masuk dengan Google"
+      >
+        <IconRenderer name="Google" size={20} />
+        <AppText weight="bold" className="text-[15px] text-ink">
+          Lanjutkan dengan Google
+        </AppText>
+      </Pressable>
 
-              <Input
-                label="PASSWORD"
-                placeholder="Enter your password"
-                value={password}
-                onChangeText={(text) => {
-                  setPassword(text);
-                  if (passwordError) setPasswordError("");
-                  if (generalError) setGeneralError("");
-                }}
-                error={passwordError}
-                secureTextEntry
-                returnKeyType="done"
-                onSubmitEditing={handleLogin}
-                accessibilityLabel="Password input"
-              />
-            </View>
-
-            {/* Forgot Password */}
-            <TouchableOpacity
-              className="self-end mb-6 py-1"
-              onPress={() =>
-                Alert.alert(
-                  "Reset Password",
-                  "Use password: 'password123' or the password you entered during Sign Up."
-                )
-              }
-              accessibilityRole="button"
-              accessibilityLabel="Forgot password"
-            >
-              <AppText weight="semibold" className="text-sm text-primary">
-                Forgot Password?
-              </AppText>
-            </TouchableOpacity>
-
-            {/* Submit Action */}
-            <Button
-              title="Login"
-              variant="primary"
-              loading={isLoading}
-              onPress={handleLogin}
-              accessibilityLabel="Submit login"
-              className="mb-2"
-            />
-
-            {/* Social Divider */}
-            <Divider label="OR" className="my-2" />
-
-            {/* Google Sign In Button */}
-            <TouchableOpacity
-              onPress={() => setShowGoogleModal(true)}
-              className="w-full min-h-[48px] flex-row items-center justify-center py-3 px-4 rounded-full border border-[#e5ece7] bg-white active:bg-[#f2f8f4] shadow-2xs mb-4 gap-x-3 active:scale-[0.96]"
-              accessibilityRole="button"
-              accessibilityLabel="Login with Google"
-            >
-              <IconRenderer name="Google" size={20} />
-              <AppText weight="bold" className="text-base text-neutral-dark">
-                Login with Google
-              </AppText>
-            </TouchableOpacity>
-
-            {/* Autofill Helper */}
-            {__DEV__ && (
-              <TouchableOpacity
-                onPress={() => {
-                  setEmail(DEFAULT_DEMO_ACCOUNT.email);
-                  setPassword(DEFAULT_DEMO_ACCOUNT.password);
-                  setEmailError("");
-                  setPasswordError("");
-                  setGeneralError("");
-                }}
-                className="self-center py-2.5 px-5 mb-4 bg-[#f2f8f4] rounded-full border border-[#cbe5d6] items-center justify-center min-h-[44px] active:scale-[0.96]"
-                accessibilityRole="button"
-                accessibilityLabel="Quick fill account"
-              >
-                <AppText weight="bold" className="text-xs text-primary text-center">
-                  Quick Fill Account
-                </AppText>
-              </TouchableOpacity>
-            )}
-
-            {/* Footer Navigation */}
-            <View className="flex-row justify-center items-center pt-2">
-              <AppText weight="semibold" className="text-sm text-neutral-muted">
-                Don't have an account?{" "}
-              </AppText>
-              <TouchableOpacity
-                onPress={() => router.push("/(auth)/signup")}
-                accessibilityRole="link"
-                accessibilityLabel="Go to register page"
-              >
-                <AppText weight="extrabold" className="text-sm text-primary">
-                  Register Now
-                </AppText>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-
-      {/* Google Sign In Modal */}
       <GoogleSignInModal
         visible={showGoogleModal}
         onClose={() => setShowGoogleModal(false)}
       />
-    </ScreenWrapper>
+    </FlowScreen>
   );
 }

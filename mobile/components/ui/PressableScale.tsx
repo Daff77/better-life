@@ -1,61 +1,65 @@
-import React from "react";
-import { Pressable, PressableProps, Platform, StyleProp, ViewStyle } from "react-native";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-} from "react-native-reanimated";
-import { AnimationEasings } from "@/constants/AnimationTokens";
+import React, { useState } from "react";
+import {
+  Pressable,
+  PressableProps,
+  StyleProp,
+  ViewStyle,
+  GestureResponderEvent,
+} from "react-native";
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
-
-export interface PressableScaleProps extends Omit<PressableProps, "style"> {
-  /** Scale on press. 0.97 for buttons, 0.985 for large surfaces. */
-  pressedScale?: number;
+export interface PressableScaleProps extends PressableProps {
+  children: React.ReactNode;
   className?: string;
   style?: StyleProp<ViewStyle>;
-  children?: React.ReactNode;
+  /** Scale target when pressed; defaults to 0.98 for cards/rows, use 0.96 for small pills. */
+  pressedScale?: number;
 }
 
 /**
- * Pressable that scales down while held. The scale is the press confirmation,
- * so it runs on every tappable surface instead of opacity flicker.
+ * Tactile press wrapper using core React Native Pressable so NativeWind v4
+ * className layout styles (flex, width, padding, border, background) resolve
+ * deterministically on both Native Android/iOS and Web without colliding with
+ * Reanimated style descriptors.
  */
 export const PressableScale: React.FC<PressableScaleProps> = ({
-  pressedScale = 0.97,
+  children,
   className,
   style,
+  pressedScale = 0.98,
   disabled,
   onPressIn,
   onPressOut,
-  children,
   ...props
 }) => {
-  const scale = useSharedValue(1);
+  const [pressed, setPressed] = useState(false);
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
+  const handlePressIn = (e: GestureResponderEvent) => {
+    if (!disabled) {
+      setPressed(true);
+    }
+    onPressIn?.(e);
+  };
+
+  const handlePressOut = (e: GestureResponderEvent) => {
+    setPressed(false);
+    onPressOut?.(e);
+  };
 
   return (
-    <AnimatedPressable
-      {...props}
+    <Pressable
       disabled={disabled}
-      onPressIn={(e) => {
-        if (!disabled) scale.value = withSpring(pressedScale, AnimationEasings.pressSpringConfig);
-        onPressIn?.(e);
-      }}
-      onPressOut={(e) => {
-        scale.value = withSpring(1, AnimationEasings.pressSpringConfig);
-        onPressOut?.(e);
-      }}
-      className={`${Platform.OS === "web" ? "cursor-pointer select-none" : ""} ${
-        disabled ? "opacity-45" : ""
-      } ${className || ""}`}
-      style={[animatedStyle, style]}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      className={className}
+      style={[
+        style,
+        pressed && !disabled
+          ? { transform: [{ scale: pressedScale }], opacity: 0.92 }
+          : null,
+      ]}
+      {...props}
     >
       {children}
-    </AnimatedPressable>
+    </Pressable>
   );
 };
-

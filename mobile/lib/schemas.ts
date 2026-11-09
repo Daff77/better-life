@@ -56,7 +56,7 @@ export const PersonalizationSchema = z.object({
   birthDate: z.object({
     day: z.number().min(1).max(31),
     month: z.string(),
-    year: z.number().min(1920).max(2025),
+    year: z.number().min(1920).max(2026),
   }),
   cookingSkill: z.enum(["Low", "Middle", "High"]),
   dietType: z.string(),
