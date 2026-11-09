@@ -93,7 +93,6 @@ export const DonutChart: React.FC<DonutChartProps> = ({
   const signature = visible.map((s) => `${s.key}:${Math.round(s.value)}`).join("|") + `/${denom}`;
 
   useEffect(() => {
-    progress.value = 0;
     progress.value = withTiming(1, {
       duration: MotionDurations.fill,
       easing: Easing.bezier(...MotionCurves.out),

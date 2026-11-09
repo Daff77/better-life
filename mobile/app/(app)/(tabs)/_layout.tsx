@@ -3,6 +3,7 @@ import { View, PanResponder, useWindowDimensions } from "react-native";
 import { Tabs, useRouter } from "expo-router";
 import {
   Easing,
+  cancelAnimation,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
@@ -17,6 +18,13 @@ import {
 import { isHorizontalScrollActive, TabSwipeSceneContext } from "@/lib/tabSwipeGuard";
 
 const TAB_ROUTES = ["index", "meals", "recipes", "profile"] as const;
+
+const SETTLE_SPRING = {
+  damping: 28,
+  stiffness: 270,
+  mass: 0.6,
+  overshootClamping: true,
+};
 
 export default function TabsLayout() {
   const router = useRouter();
@@ -33,13 +41,40 @@ export default function TabsLayout() {
     routes: TAB_ROUTES.map((name) => ({ key: name, name })),
   });
 
+  // Prevents double-triggering the entrance animation when a swipe already started it
+  const swipeHandledIndexRef = useRef<number | null>(null);
+  const dragStartDxRef = useRef<number>(0);
+
   const translateX = useSharedValue(0);
   const sceneOpacity = useSharedValue(1);
+  const sceneScale = useSharedValue(1);
 
-  const navigateByIndex = (targetIdx: number, direction: "next" | "prev") => {
+  const animateSceneArrival = (direction: "next" | "prev", distance: number, velocity = 0) => {
+    cancelAnimation(translateX);
+    cancelAnimation(sceneOpacity);
+    cancelAnimation(sceneScale);
+
+    translateX.value = direction === "next" ? distance : -distance;
+    sceneOpacity.value = 0.86;
+    sceneScale.value = 0.992;
+
+    translateX.value = withSpring(0, {
+      ...SETTLE_SPRING,
+      velocity,
+    });
+    sceneOpacity.value = withTiming(1, {
+      duration: 210,
+      easing: Easing.out(Easing.cubic),
+    });
+    sceneScale.value = withSpring(1, SETTLE_SPRING);
+  };
+
+  const navigateByIndex = (targetIdx: number, direction: "next" | "prev", velocityPx = 0) => {
     const { routes, navigation, navigateToTab } = navStateRef.current;
     const targetRoute = routes[targetIdx];
     if (!targetRoute) return;
+
+    swipeHandledIndexRef.current = targetIdx;
 
     if (navigateToTab) {
       navigateToTab(targetRoute.key);
@@ -53,27 +88,20 @@ export default function TabsLayout() {
       );
     }
 
-    // Directional entrance slide for the newly focused tab while keeping bottom tab bar fixed
-    translateX.value = direction === "next" ? 28 : -28;
-    sceneOpacity.value = 0.88;
-    translateX.value = withSpring(0, {
-      damping: 24,
-      stiffness: 290,
-      mass: 0.75,
-    });
+    animateSceneArrival(direction, Math.min(44, Math.round(width * 0.1)), velocityPx);
+  };
+
+  const resetPosition = () => {
+    cancelAnimation(translateX);
+    cancelAnimation(sceneOpacity);
+    cancelAnimation(sceneScale);
+
+    translateX.value = withSpring(0, SETTLE_SPRING);
     sceneOpacity.value = withTiming(1, {
       duration: 180,
       easing: Easing.out(Easing.cubic),
     });
-  };
-
-  const resetPosition = () => {
-    translateX.value = withSpring(0, {
-      damping: 22,
-      stiffness: 300,
-      mass: 0.7,
-    });
-    sceneOpacity.value = withTiming(1, { duration: 150 });
+    sceneScale.value = withSpring(1, SETTLE_SPRING);
   };
 
   const panResponder = useMemo(
@@ -83,33 +111,48 @@ export default function TabsLayout() {
           if (isDesktop || isHorizontalScrollActive()) return false;
           const absDx = Math.abs(gestureState.dx);
           const absDy = Math.abs(gestureState.dy);
-          // Capture deliberate horizontal swipes while allowing vertical scroll and taps
-          return absDx > 26 && absDx > absDy * 1.85;
+          // Smooth early capture for horizontal gestures while preserving vertical scroll
+          return absDx > 14 && absDx > absDy * 1.45;
+        },
+        onPanResponderGrant: (_evt, gestureState) => {
+          dragStartDxRef.current = gestureState.dx;
+          cancelAnimation(translateX);
+          cancelAnimation(sceneOpacity);
+          cancelAnimation(sceneScale);
         },
         onPanResponderMove: (_evt, gestureState) => {
           const { index, routes } = navStateRef.current;
-          const dx = gestureState.dx;
+          // Subtract initial capture offset so the screen starts moving from 0px without jumping
+          const effectiveDx = gestureState.dx - dragStartDxRef.current;
           const isEdgeSwipe =
-            (index === 0 && dx > 0) || (index === routes.length - 1 && dx < 0);
+            (index === 0 && effectiveDx > 0) ||
+            (index === routes.length - 1 && effectiveDx < 0);
 
           if (isEdgeSwipe) {
-            translateX.value = Math.max(-24, Math.min(24, dx * 0.1));
+            // Soft hyperbolic rubber-band resistance at the first and last tab edges
+            translateX.value = 22 * Math.tanh(effectiveDx / 180);
+            sceneOpacity.value = 1;
+            sceneScale.value = 1;
           } else {
-            translateX.value = Math.max(-68, Math.min(68, dx * 0.28));
-            sceneOpacity.value = Math.max(0.9, 1 - Math.abs(dx) / 900);
+            // Smooth continuous damping that follows the finger without hitting a hard wall
+            const maxDrag = Math.min(110, width * 0.26);
+            translateX.value = maxDrag * Math.tanh(effectiveDx / (width * 0.52));
+            sceneOpacity.value = Math.max(0.88, 1 - Math.abs(effectiveDx) / 1400);
+            sceneScale.value = Math.max(0.988, 1 - Math.abs(effectiveDx) / 4200);
           }
         },
         onPanResponderRelease: (_evt, gestureState) => {
           const { index, routes } = navStateRef.current;
-          const { dx, vx } = gestureState;
+          const effectiveDx = gestureState.dx - dragStartDxRef.current;
+          const { vx } = gestureState;
 
-          const swipeLeftNext = dx < -50 || (dx < -22 && vx < -0.32);
-          const swipeRightPrev = dx > 50 || (dx > 22 && vx > 0.32);
+          const swipeLeftNext = effectiveDx < -42 || (effectiveDx < -16 && vx < -0.26);
+          const swipeRightPrev = effectiveDx > 42 || (effectiveDx > 16 && vx > 0.26);
 
           if (swipeLeftNext && index < routes.length - 1) {
-            navigateByIndex(index + 1, "next");
+            navigateByIndex(index + 1, "next", vx * 90);
           } else if (swipeRightPrev && index > 0) {
-            navigateByIndex(index - 1, "prev");
+            navigateByIndex(index - 1, "prev", vx * 90);
           } else {
             resetPosition();
           }
@@ -118,12 +161,15 @@ export default function TabsLayout() {
           resetPosition();
         },
       }),
-    [isDesktop]
+    [isDesktop, width]
   );
 
   const animatedSceneStyle = useAnimatedStyle(() => ({
     opacity: sceneOpacity.value,
-    transform: [{ translateX: translateX.value }],
+    transform: [
+      { translateX: translateX.value },
+      { scale: sceneScale.value },
+    ],
   }));
 
   return (
@@ -140,19 +186,20 @@ export default function TabsLayout() {
               navigation: anyProps.navigation,
               navigateToTab: anyProps.navigateToTab,
             };
-            // Subtle directional slide when user taps a different tab on the bottom pill
+            // Only trigger tap-slide when the tab change was NOT already animated by a finger swipe
             if (prevIdx !== nextIdx) {
-              translateX.value = nextIdx > prevIdx ? 18 : -18;
-              sceneOpacity.value = 0.92;
-              translateX.value = withSpring(0, { damping: 24, stiffness: 310, mass: 0.7 });
-              sceneOpacity.value = withTiming(1, { duration: 160 });
+              if (swipeHandledIndexRef.current === nextIdx) {
+                swipeHandledIndexRef.current = null;
+              } else {
+                swipeHandledIndexRef.current = null;
+                animateSceneArrival(nextIdx > prevIdx ? "next" : "prev", 20);
+              }
             }
             return <ResponsiveTabBar {...props} />;
           }}
           screenOptions={{
             headerShown: false,
             sceneStyle: {
-              // Desktop scenes clear the fixed top bar and the left quick-action dock.
               paddingTop: isDesktop ? NAV_TOPBAR_HEIGHT : 0,
               paddingLeft: isDesktop ? NAV_DOCK_GUTTER : 0,
               backgroundColor: "#edf1ee",

@@ -30,33 +30,44 @@ export const AnimatedNumber: React.FC<AnimatedNumberProps> = ({
 }) => {
   const [displayValue, setDisplayValue] = useState(animateOnMount ? 0 : value);
   const prevValueRef = useRef(animateOnMount ? 0 : value);
+  const hasMountedRef = useRef(false);
   const pulse = useSharedValue(1);
 
   useEffect(() => {
     const startValue = prevValueRef.current;
     const endValue = value;
-    if (startValue === endValue) return;
+    if (startValue === endValue) {
+      hasMountedRef.current = true;
+      return;
+    }
 
-    pulse.value = withSequence(
-      withTiming(1.04, { duration: 110 }),
-      withTiming(1, { duration: 180 })
-    );
+    // Only pulse when the value changes interactively after initial mount
+    if (hasMountedRef.current) {
+      pulse.value = withSequence(
+        withTiming(1.035, { duration: 100 }),
+        withTiming(1, { duration: 170 })
+      );
+    }
+    hasMountedRef.current = true;
 
     let startTime: number | null = null;
     let lastRenderTime = 0;
+    let lastRounded = Math.round(startValue);
     let animationFrameId: number;
 
     const step = (timestamp: number) => {
       if (startTime === null) startTime = timestamp;
       const elapsed = timestamp - startTime;
       const progress = Math.min(1, elapsed / duration);
-      // Cubic ease-out for organic number count
-      const easedProgress = 1 - Math.pow(1 - progress, 3);
+      // Smooth quartic ease-out for organic number count
+      const easedProgress = 1 - Math.pow(1 - progress, 4);
       const current = startValue + (endValue - startValue) * easedProgress;
 
       if (progress < 1) {
-        if (timestamp - lastRenderTime >= 30) {
+        const rounded = decimals > 0 ? Number(current.toFixed(decimals)) : Math.round(current);
+        if (timestamp - lastRenderTime >= 16 && rounded !== lastRounded) {
           lastRenderTime = timestamp;
+          lastRounded = rounded;
           setDisplayValue(current);
         }
         animationFrameId = requestAnimationFrame(step);

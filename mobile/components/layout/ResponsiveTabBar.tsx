@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { View, useWindowDimensions, Platform, ViewStyle } from "react-native";
 import { useRouter } from "expo-router";
 import Animated, {
+  LinearTransition,
   cancelAnimation,
   useAnimatedStyle,
   useSharedValue,
@@ -287,9 +288,10 @@ const PhoneTabItem: React.FC<{
 
   useEffect(() => {
     focusProgress.value = withSpring(isFocused ? 1 : 0, {
-      damping: 22,
-      stiffness: 320,
-      mass: 0.7,
+      damping: 26,
+      stiffness: 290,
+      mass: 0.6,
+      overshootClamping: true,
     });
     return () => {
       cancelAnimation(focusProgress);
@@ -304,37 +306,39 @@ const PhoneTabItem: React.FC<{
     opacity: focusProgress.value,
     transform: [
       { translateX: (1 - focusProgress.value) * -6 },
-      { scale: 0.94 + focusProgress.value * 0.06 },
+      { scale: 0.95 + focusProgress.value * 0.05 },
     ],
   }));
 
   return (
-    <PressableScale
-      onPress={onPress}
-      pressedScale={0.93}
-      className={`h-12 rounded-full flex-row items-center justify-center ${
-        isFocused ? "bg-white pl-3.5 pr-4 gap-2" : "w-12"
-      }`}
-      accessibilityRole="tab"
-      accessibilityState={{ selected: isFocused }}
-      accessibilityLabel={label}
-    >
-      <Animated.View style={iconAnimatedStyle}>
-        <LineIcon
-          name={icon}
-          size={20}
-          color={isFocused ? "#0e7a52" : "rgba(255,255,255,0.86)"}
-          strokeWidth={isFocused ? 2 : 1.7}
-        />
-      </Animated.View>
-      {isFocused ? (
-        <Animated.View style={labelAnimatedStyle}>
-          <AppText weight="semibold" className="text-[14px] text-ink">
-            {label}
-          </AppText>
+    <Animated.View layout={LinearTransition.springify().damping(26).stiffness(280).mass(0.6)}>
+      <PressableScale
+        onPress={onPress}
+        pressedScale={0.94}
+        className={`h-12 rounded-full flex-row items-center justify-center ${
+          isFocused ? "bg-white pl-3.5 pr-4 gap-2" : "w-12"
+        }`}
+        accessibilityRole="tab"
+        accessibilityState={{ selected: isFocused }}
+        accessibilityLabel={label}
+      >
+        <Animated.View style={iconAnimatedStyle}>
+          <LineIcon
+            name={icon}
+            size={20}
+            color={isFocused ? "#0e7a52" : "rgba(255,255,255,0.86)"}
+            strokeWidth={isFocused ? 2 : 1.7}
+          />
         </Animated.View>
-      ) : null}
-    </PressableScale>
+        {isFocused ? (
+          <Animated.View style={labelAnimatedStyle}>
+            <AppText weight="semibold" className="text-[14px] text-ink">
+              {label}
+            </AppText>
+          </Animated.View>
+        ) : null}
+      </PressableScale>
+    </Animated.View>
   );
 };
 

@@ -8,6 +8,7 @@ import {
   useReducedMotion,
   useSharedValue,
   withDelay,
+  withSpring,
   withTiming,
 } from "react-native-reanimated";
 import { AnimatedView } from "@/lib/nativewindInterop";
@@ -29,9 +30,16 @@ export interface FadeInViewProps extends ViewProps {
 }
 
 const easeOut = Easing.bezier(...MotionCurves.out);
+const ENTRANCE_SPRING = {
+  damping: 26,
+  stiffness: 250,
+  mass: 0.62,
+  overshootClamping: true,
+  reduceMotion: ReduceMotion.Never,
+};
 
 /**
- * Staggered entrance animation (fade + subtle upward slide) running on the
+ * Staggered entrance animation (fade + physical spring upward slide) running on the
  * Reanimated UI thread on both Expo Go (Android/iOS) and Web, while preserving
  * all NativeWind v4 `className` layout rules via `AnimatedView`.
  */
@@ -47,37 +55,44 @@ export const FadeInView: React.FC<FadeInViewProps> = ({
   ...props
 }) => {
   const reduceMotion = useReducedMotion();
-  const progress = useSharedValue(0);
+  const opacity = useSharedValue(0);
+  const offset = useSharedValue(1);
   const resolvedDistance = translateY !== undefined ? translateY : distance;
 
   useEffect(() => {
     const startDelay =
       delay !== undefined
         ? delay
-        : Math.min(240, Math.max(0, index) * MotionDurations.stagger);
+        : Math.min(200, Math.max(0, index) * 36);
 
-    const timingConfig = {
+    const fadeConfig = {
       duration: reduceMotion ? 120 : duration,
       easing: easeOut,
       reduceMotion: ReduceMotion.Never,
     };
 
-    progress.value = 0;
-    progress.value =
-      startDelay > 0
-        ? withDelay(startDelay, withTiming(1, timingConfig))
-        : withTiming(1, timingConfig);
+    opacity.value = 0;
+    offset.value = 1;
+
+    if (startDelay > 0) {
+      opacity.value = withDelay(startDelay, withTiming(1, fadeConfig));
+      offset.value = withDelay(startDelay, withSpring(0, ENTRANCE_SPRING));
+    } else {
+      opacity.value = withTiming(1, fadeConfig);
+      offset.value = withSpring(0, ENTRANCE_SPRING);
+    }
 
     return () => {
-      cancelAnimation(progress);
+      cancelAnimation(opacity);
+      cancelAnimation(offset);
     };
-  }, [index, delay, duration, reduceMotion, progress]);
+  }, [index, delay, duration, reduceMotion, opacity, offset]);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    opacity: progress.value,
+    opacity: opacity.value,
     transform: [
       {
-        translateY: reduceMotion ? 0 : (1 - progress.value) * resolvedDistance,
+        translateY: reduceMotion ? 0 : offset.value * resolvedDistance,
       },
     ],
   }));
