@@ -11,6 +11,7 @@ import { useRouter } from "expo-router";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
 import {
   AppText,
+  FadeInView,
   Header,
   PressableScale,
   Surface,
@@ -432,162 +433,166 @@ export default function MealPlannerScreen() {
 
                 {/* Day Nutrition & Budget Summary Card */}
                 {currentDay && (
-                  <Surface>
-                    <CardHead
-                      title={`Ringkasan ${currentDay.day}`}
-                      subtitle={`Target ${preferences.dailyCalorieTarget} kcal · Anggaran ${formatIdr(preferences.dailyBudgetIdr)}`}
-                      right={
-                        <View className="items-end">
-                          <AppText
-                            weight="bold"
-                            className="text-base text-[#0e7a52]"
-                            style={{ fontVariant: ["tabular-nums"] }}
-                          >
-                            {currentDay.totals.calories} kcal
-                          </AppText>
-                          <AppText
-                            weight="medium"
-                            className="text-xs text-[#56605a]"
-                            style={{ fontVariant: ["tabular-nums"] }}
-                          >
-                            {formatIdr(currentDay.totals.estimatedCostIdr)}
-                          </AppText>
-                        </View>
-                      }
-                    />
-
-                    <MixBar
-                      height={10}
-                      segments={[
-                        { value: currentDay.totals.proteinGrams * 4, color: "#0e7a52" },
-                        { value: currentDay.totals.carbsGrams * 4, color: "#f3b23c" },
-                        { value: currentDay.totals.fatGrams * 9, color: "#141c18" },
-                      ]}
-                    />
-
-                    {/* 2x2 macro grid on mobile */}
-                    <View className="gap-2.5 mt-3.5">
-                      {[
-                        [
-                          { label: "Protein", val: `${currentDay.totals.proteinGrams}g`, color: "#0e7a52" },
-                          { label: "Karbohidrat", val: `${currentDay.totals.carbsGrams}g`, color: "#f3b23c" },
-                        ],
-                        [
-                          { label: "Lemak sehat", val: `${currentDay.totals.fatGrams}g`, color: "#141c18" },
-                          { label: "Serat pangan", val: `${currentDay.totals.fiberGrams}g`, color: "#285c9c" },
-                        ],
-                      ].map((row, rowIdx) => (
-                        <View key={rowIdx} className="flex-row gap-2.5">
-                          {row.map((m) => (
-                            <View
-                              key={m.label}
-                              className="flex-1 min-w-0 p-3 rounded-[14px] bg-[#f0f4f1] border border-[#e6eae7]"
+                  <FadeInView key={`day-summary-${selectedDayIndex}`} index={0}>
+                    <Surface>
+                      <CardHead
+                        title={`Ringkasan ${currentDay.day}`}
+                        subtitle={`Target ${preferences.dailyCalorieTarget} kcal · Anggaran ${formatIdr(preferences.dailyBudgetIdr)}`}
+                        right={
+                          <View className="items-end">
+                            <AppText
+                              weight="bold"
+                              className="text-base text-[#0e7a52]"
+                              style={{ fontVariant: ["tabular-nums"] }}
                             >
-                              <View className="flex-row items-center gap-1.5 mb-0.5">
-                                <View
-                                  style={{ backgroundColor: m.color }}
-                                  className="w-2 h-2 rounded-[2px]"
-                                />
-                                <AppText weight="medium" className="text-[11px] text-[#56605a]">
-                                  {m.label}
+                              {currentDay.totals.calories} kcal
+                            </AppText>
+                            <AppText
+                              weight="medium"
+                              className="text-xs text-[#56605a]"
+                              style={{ fontVariant: ["tabular-nums"] }}
+                            >
+                              {formatIdr(currentDay.totals.estimatedCostIdr)}
+                            </AppText>
+                          </View>
+                        }
+                      />
+
+                      <MixBar
+                        height={10}
+                        segments={[
+                          { value: currentDay.totals.proteinGrams * 4, color: "#0e7a52" },
+                          { value: currentDay.totals.carbsGrams * 4, color: "#f3b23c" },
+                          { value: currentDay.totals.fatGrams * 9, color: "#141c18" },
+                        ]}
+                      />
+
+                      {/* 2x2 macro grid on mobile */}
+                      <View className="gap-2.5 mt-3.5">
+                        {[
+                          [
+                            { label: "Protein", val: `${currentDay.totals.proteinGrams}g`, color: "#0e7a52" },
+                            { label: "Karbohidrat", val: `${currentDay.totals.carbsGrams}g`, color: "#f3b23c" },
+                          ],
+                          [
+                            { label: "Lemak sehat", val: `${currentDay.totals.fatGrams}g`, color: "#141c18" },
+                            { label: "Serat pangan", val: `${currentDay.totals.fiberGrams}g`, color: "#285c9c" },
+                          ],
+                        ].map((row, rowIdx) => (
+                          <View key={rowIdx} className="flex-row gap-2.5">
+                            {row.map((m) => (
+                              <View
+                                key={m.label}
+                                className="flex-1 min-w-0 p-3 rounded-[14px] bg-[#f0f4f1] border border-[#e6eae7]"
+                              >
+                                <View className="flex-row items-center gap-1.5 mb-0.5">
+                                  <View
+                                    style={{ backgroundColor: m.color }}
+                                    className="w-2 h-2 rounded-[2px]"
+                                  />
+                                  <AppText weight="medium" className="text-[11px] text-[#56605a]">
+                                    {m.label}
+                                  </AppText>
+                                </View>
+                                <AppText
+                                  weight="semibold"
+                                  className="text-sm text-[#121a16]"
+                                  style={{ fontVariant: ["tabular-nums"] }}
+                                >
+                                  {m.val}
                                 </AppText>
                               </View>
-                              <AppText
-                                weight="semibold"
-                                className="text-sm text-[#121a16]"
-                                style={{ fontVariant: ["tabular-nums"] }}
-                              >
-                                {m.val}
-                              </AppText>
-                            </View>
-                          ))}
-                        </View>
-                      ))}
-                    </View>
-                  </Surface>
+                            ))}
+                          </View>
+                        ))}
+                      </View>
+                    </Surface>
+                  </FadeInView>
                 )}
 
                 {/* Meal Slots for Active Day */}
                 {currentDay && (
-                  <Surface>
-                    <CardHead
-                      title={`Susunan menu ${currentDay.day}`}
-                      subtitle="Ketuk hidangan untuk melihat resep atau ganti sesuai selera"
-                    />
+                  <FadeInView key={`day-meals-${selectedDayIndex}`} index={1}>
+                    <Surface>
+                      <CardHead
+                        title={`Susunan menu ${currentDay.day}`}
+                        subtitle="Ketuk hidangan untuk melihat resep atau ganti sesuai selera"
+                      />
 
-                    <View className="gap-3">
-                      {currentDay.meals.map((item, idx) => (
-                        <View
-                          key={idx}
-                          className="p-3.5 rounded-[18px] bg-[#f0f4f1] border border-[#e6eae7] flex-col sm:flex-row sm:items-center justify-between gap-3"
-                        >
-                          <PressableScale
-                            onPress={() =>
-                              router.push({
-                                pathname: "/(app)/recipe-detail",
-                                params: { id: item.recipe.id },
-                              })
-                            }
-                            pressedScale={0.99}
-                            className="flex-row items-center gap-3.5 flex-1 min-w-0"
-                            accessibilityRole="button"
-                            accessibilityLabel={`View recipe ${item.recipe.title}`}
+                      <View className="gap-3">
+                        {currentDay.meals.map((item, idx) => (
+                          <View
+                            key={idx}
+                            className="p-3.5 rounded-[18px] bg-[#f0f4f1] border border-[#e6eae7] flex-col sm:flex-row sm:items-center justify-between gap-3"
                           >
-                            <Image
-                              source={
-                                item.recipe.imageUrl
-                                  ? { uri: item.recipe.imageUrl }
-                                  : getMealIllustration(item.slot)
-                              }
-                              className="w-16 h-16 rounded-[14px] bg-[#dfe6e1] flex-shrink-0"
-                              resizeMode="cover"
-                            />
-
-                            <View className="flex-1 min-w-0">
-                              <View className="flex-row items-center gap-1.5 flex-wrap">
-                                <StatusPill tone="neutral" label={item.slot} />
-                                {item.recipe.isPremium && (
-                                  <StatusPill tone="warn" label="Koleksi Chef" />
-                                )}
-                              </View>
-                              <AppText
-                                weight="semibold"
-                                className="text-[14px] text-[#121a16] mt-1"
-                                numberOfLines={1}
-                              >
-                                {item.recipe.title}
-                              </AppText>
-                              <AppText
-                                weight="regular"
-                                className="text-xs text-[#56605a] mt-0.5"
-                                style={{ fontVariant: ["tabular-nums"] }}
-                              >
-                                {item.recipe.calories} kcal · {item.recipe.prepTimeMinutes} mnt ·{" "}
-                                {formatIdr(item.recipe.estimatedCostIdr || 0)}
-                              </AppText>
-                            </View>
-                          </PressableScale>
-
-                          <View className="self-end sm:self-center">
-                            <PillButton
-                              label="Ganti menu"
-                              size="sm"
-                              variant="ghost"
-                              icon={<LineIcon name="swap" size={13} color="#121a16" />}
+                            <PressableScale
                               onPress={() =>
-                                openSubstitutionModal(
-                                  selectedDayIndex,
-                                  item.slot,
-                                  item.recipe.id
-                                )
+                                router.push({
+                                  pathname: "/(app)/recipe-detail",
+                                  params: { id: item.recipe.id },
+                                })
                               }
-                              accessibilityLabel={`Replace ${item.slot}`}
-                            />
+                              pressedScale={0.99}
+                              className="flex-row items-center gap-3.5 flex-1 min-w-0"
+                              accessibilityRole="button"
+                              accessibilityLabel={`View recipe ${item.recipe.title}`}
+                            >
+                              <Image
+                                source={
+                                  item.recipe.imageUrl
+                                    ? { uri: item.recipe.imageUrl }
+                                    : getMealIllustration(item.slot)
+                                }
+                                className="w-16 h-16 rounded-[14px] bg-[#dfe6e1] flex-shrink-0"
+                                resizeMode="cover"
+                              />
+
+                              <View className="flex-1 min-w-0">
+                                <View className="flex-row items-center gap-1.5 flex-wrap">
+                                  <StatusPill tone="neutral" label={item.slot} />
+                                  {item.recipe.isPremium && (
+                                    <StatusPill tone="warn" label="Koleksi Chef" />
+                                  )}
+                                </View>
+                                <AppText
+                                  weight="semibold"
+                                  className="text-[14px] text-[#121a16] mt-1"
+                                  numberOfLines={1}
+                                >
+                                  {item.recipe.title}
+                                </AppText>
+                                <AppText
+                                  weight="regular"
+                                  className="text-xs text-[#56605a] mt-0.5"
+                                  style={{ fontVariant: ["tabular-nums"] }}
+                                >
+                                  {item.recipe.calories} kcal · {item.recipe.prepTimeMinutes} mnt ·{" "}
+                                  {formatIdr(item.recipe.estimatedCostIdr || 0)}
+                                </AppText>
+                              </View>
+                            </PressableScale>
+
+                            <View className="self-end sm:self-center">
+                              <PillButton
+                                label="Ganti menu"
+                                size="sm"
+                                variant="ghost"
+                                icon={<LineIcon name="swap" size={13} color="#121a16" />}
+                                onPress={() =>
+                                  openSubstitutionModal(
+                                    selectedDayIndex,
+                                    item.slot,
+                                    item.recipe.id
+                                  )
+                                }
+                                accessibilityLabel={`Replace ${item.slot}`}
+                              />
+                            </View>
                           </View>
-                        </View>
-                      ))}
-                    </View>
-                  </Surface>
+                        ))}
+                      </View>
+                    </Surface>
+                  </FadeInView>
                 )}
 
                 {/* Solver Notes & Wellness Disclaimer */}
@@ -712,7 +717,9 @@ export default function MealPlannerScreen() {
       {/* Preferences Configuration Modal */}
       {preferenceModalOpen && (
         <View className="absolute inset-0 bg-[#121a16]/50 items-center justify-center px-4 py-8 z-50">
-          <View
+          <FadeInView
+            duration={220}
+            translateY={12}
             style={{ boxShadow: SURFACE_SHADOW } as any}
             className="w-full max-w-[500px] bg-[#fbfdfc] rounded-[24px] border border-[#e6eae7] p-5 max-h-[90%] flex-col"
           >
@@ -868,14 +875,16 @@ export default function MealPlannerScreen() {
                 disabled={isGenerating}
               />
             </View>
-          </View>
+          </FadeInView>
         </View>
       )}
 
       {/* Substitution Modal */}
       {substitutionModal.isOpen && (
         <View className="absolute inset-0 bg-[#121a16]/50 items-center justify-center px-4 py-8 z-50">
-          <View
+          <FadeInView
+            duration={220}
+            translateY={12}
             style={{ boxShadow: SURFACE_SHADOW } as any}
             className="w-full max-w-[480px] bg-[#fbfdfc] rounded-[24px] border border-[#e6eae7] p-5 max-h-[85%] flex-col"
           >
@@ -930,7 +939,7 @@ export default function MealPlannerScreen() {
                 ))}
               </ScrollView>
             )}
-          </View>
+          </FadeInView>
         </View>
       )}
     </ScreenWrapper>

@@ -3,14 +3,15 @@ import {
   View,
   Modal,
   Pressable,
-  TouchableOpacity,
   ActivityIndicator,
   Linking,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { AppText } from "./AppText";
+import { FadeInView } from "./FadeInView";
 import { Input } from "./Input";
 import { Button } from "./Button";
+import { PressableScale } from "./PressableScale";
 import { IconRenderer, SettingsIconSvg, RefreshIconSvg, ZapIconSvg } from "@/constants/Assets";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { googleAuthService } from "@/lib/googleAuth";
@@ -138,219 +139,229 @@ export const GoogleSignInModal: React.FC<GoogleSignInModalProps> = ({
         className="flex-1 bg-black/50 justify-center items-center p-4"
         onPress={handleModalClose}
       >
-        <Pressable
-          className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl border border-neutral-border"
-          onPress={(e) => e.stopPropagation()}
-        >
-          {/* Header */}
-          <View className="items-center mb-4">
-            <View className="w-14 h-14 rounded-full bg-white shadow-sm border border-neutral-border items-center justify-center mb-2.5">
-              <IconRenderer name="Google" size={28} />
-            </View>
-            <AppText weight="bold" className="text-xl text-neutral-dark text-center">
-              Google Authentication
-            </AppText>
-            <AppText weight="medium" className="text-xs text-neutral-muted text-center mt-0.5">
-              Login resmi menggunakan akun Google Anda
-            </AppText>
-          </View>
-
-          {/* Error Message */}
-          {!!errorMessage && (
-            <View className="mb-4 p-3 bg-status-error/10 border border-status-error/20 rounded-xl">
-              <AppText weight="medium" className="text-xs text-status-error text-center">
-                {errorMessage}
-              </AppText>
-            </View>
-          )}
-
-          {/* Mode 1: Options & Manual trigger */}
-          {viewMode === "connecting" && (
-            <View className="py-2 items-center w-full">
-              {isLoading ? (
-                <View className="items-center py-4">
-                  <ActivityIndicator size="large" color="#4285F4" className="mb-3" />
-                  <AppText weight="bold" className="text-sm text-neutral-dark text-center mb-1">
-                    Menghubungkan ke Google...
-                  </AppText>
-                  <AppText weight="medium" className="text-xs text-neutral-muted text-center max-w-xs">
-                    Silakan selesaikan login di jendela yang terbuka.
-                  </AppText>
-                </View>
-              ) : (
-                <View className="w-full gap-y-3">
-                  <Button
-                    title="Masuk dengan Akun Google (Resmi)"
-                    variant="primary"
-                    onPress={launchRealGoogleLogin}
-                    className="w-full"
-                  />
-
-                  <Button
-                    title="Masuk Cepat Akun Google"
-                    variant="social"
-                    onPress={() => handleQuickDemoLogin("daffa.google@gmail.com", "Daffa (Google)")}
-                    className="w-full"
-                  />
-
-                  <TouchableOpacity
-                    onPress={handleModalClose}
-                    className="py-2.5 items-center justify-center rounded-xl bg-neutral-surface border border-neutral-border mt-1"
-                  >
-                    <AppText weight="bold" className="text-xs text-neutral-dark">
-                      Batal / Kembali ke Form Login
-                    </AppText>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    onPress={() => setViewMode("setup")}
-                    className="py-1 self-center mt-1 flex-row items-center gap-x-1.5"
-                  >
-                    <SettingsIconSvg size={14} color="#56605a" />
-                    <AppText weight="semibold" className="text-[11px] text-neutral-muted">
-                      Pengaturan Google Client ID
-                    </AppText>
-                  </TouchableOpacity>
-                </View>
-              )}
-            </View>
-          )}
-
-          {/* Mode 2: Client ID Setup Guide & Input */}
-          {viewMode === "setup" && (
-            <View className="mb-2">
-              <View className="bg-neutral-surface border border-neutral-border rounded-2xl p-3.5 mb-4">
-                <AppText weight="bold" className="text-xs text-neutral-dark mb-1">
-                  Petunjuk Google OAuth Web Client ID:
-                </AppText>
-                <AppText weight="medium" className="text-[11px] text-neutral-muted leading-4">
-                  Google mewajibkan Client ID bertipe <AppText weight="bold" className="text-neutral-dark">Web Application</AppText>. Client ID bertipe Android/Desktop ditolak Google dengan error <AppText weight="bold" className="text-status-error">invalid_request</AppText>.
-                </AppText>
-                <View className="mt-2 bg-white rounded-lg p-2 border border-neutral-border-light">
-                  <AppText weight="semibold" className="text-[10px] text-neutral-dark">
-                    1. Buka <AppText weight="bold" className="text-primary" onPress={() => Linking.openURL("https://console.cloud.google.com/apis/credentials")}>console.cloud.google.com/apis/credentials</AppText>
-                  </AppText>
-                  <AppText weight="medium" className="text-[10px] text-neutral-muted mt-0.5">
-                    2. Buat OAuth Client ID (Pilih: <AppText weight="bold" className="text-neutral-dark">Web application</AppText>)
-                  </AppText>
-                  <AppText weight="medium" className="text-[10px] text-neutral-muted mt-0.5">
-                    3. Tambahkan Authorized Redirect URI: <AppText weight="bold" className="text-neutral-dark">{googleAuthService.getRedirectUri()}</AppText>
-                  </AppText>
-                </View>
-              </View>
-
-              <Input
-                label="GOOGLE CLIENT ID (WEB APPLICATION)"
-                placeholder="xxxxxx-xxxxxxxx.apps.googleusercontent.com"
-                value={clientIdInput}
-                onChangeText={(val) => {
-                  setClientIdInput(val);
-                  if (errorMessage) setErrorMessage(null);
-                }}
-                autoCapitalize="none"
-                returnKeyType="done"
-                onSubmitEditing={handleSaveAndConnect}
-              />
-
-              <Button
-                title="Simpan Client ID"
-                variant="primary"
-                loading={isLoading}
-                onPress={handleSaveAndConnect}
-                className="w-full mb-2"
-              />
-
-              <TouchableOpacity
-                onPress={handleRestoreDefault}
-                className="py-2.5 items-center justify-center rounded-xl bg-secondary-soft border border-secondary mb-3 flex-row items-center gap-x-1.5"
-              >
-                <RefreshIconSvg size={15} color="#0b6b47" />
-                <AppText weight="bold" className="text-xs text-primary">
-                  Pulihkan ke Web Client ID Bawaan (Aktif)
-                </AppText>
-              </TouchableOpacity>
-
-              <View className="flex-row items-center justify-between pt-1">
-                <TouchableOpacity
-                  onPress={() => setViewMode("quickTest")}
-                  className="py-1 flex-row items-center gap-x-1"
-                >
-                  <ZapIconSvg size={13} color="#56605a" />
-                  <AppText weight="semibold" className="text-xs text-neutral-muted">
-                    Mode Uji Coba Cepat
-                  </AppText>
-                </TouchableOpacity>
-
-                {hasConfiguredId && (
-                  <TouchableOpacity
-                    onPress={() => setViewMode("connecting")}
-                    className="py-1"
-                  >
-                    <AppText weight="bold" className="text-xs text-primary">
-                      Kembali
-                    </AppText>
-                  </TouchableOpacity>
-                )}
-              </View>
-            </View>
-          )}
-
-          {/* Mode 3: Quick Test Account (for immediate testing without waiting for Cloud Console) */}
-          {viewMode === "quickTest" && (
-            <View className="mb-2">
-              <AppText weight="semibold" className="text-xs text-neutral-muted mb-3 text-center">
-                Pilih akun instan untuk mencoba alur aplikasi sebelum Google Client ID dibuat:
-              </AppText>
-
-              <TouchableOpacity
-                disabled={isLoading}
-                onPress={() => handleQuickDemoLogin("daffa@gmail.com", "Daffa Pratama")}
-                activeOpacity={0.8}
-                className="flex-row items-center p-3 rounded-2xl border border-neutral-border mb-2"
-              >
-                <View className="w-10 h-10 rounded-full bg-blue-600 items-center justify-center mr-3">
-                  <AppText weight="bold" className="text-white text-base">D</AppText>
-                </View>
-                <View className="flex-1">
-                  <AppText weight="bold" className="text-sm text-neutral-dark">Daffa Pratama</AppText>
-                  <AppText weight="medium" className="text-xs text-neutral-muted">daffa@gmail.com</AppText>
-                </View>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                disabled={isLoading}
-                onPress={() => handleQuickDemoLogin("johndoe25@gmail.com", "John Doe")}
-                activeOpacity={0.8}
-                className="flex-row items-center p-3 rounded-2xl border border-neutral-border mb-3"
-              >
-                <View className="w-10 h-10 rounded-full bg-emerald-600 items-center justify-center mr-3">
-                  <AppText weight="bold" className="text-white text-base">J</AppText>
-                </View>
-                <View className="flex-1">
-                  <AppText weight="bold" className="text-sm text-neutral-dark">John Doe</AppText>
-                  <AppText weight="medium" className="text-xs text-neutral-muted">johndoe25@gmail.com</AppText>
-                </View>
-              </TouchableOpacity>
-
-              <Button
-                title="Kembali ke Setup Client ID"
-                variant="outline"
-                onPress={() => setViewMode("setup")}
-                className="w-full"
-              />
-            </View>
-          )}
-
-          {/* Footer Close */}
-          <TouchableOpacity
-            onPress={handleModalClose}
-            className="pt-3 items-center"
+        <FadeInView duration={220} translateY={12} className="w-full max-w-md">
+          <Pressable
+            className="bg-white rounded-3xl p-6 w-full shadow-2xl border border-neutral-border"
+            onPress={(e) => e.stopPropagation()}
           >
-            <AppText weight="bold" className="text-xs text-neutral-muted">
-              Tutup
-            </AppText>
-          </TouchableOpacity>
-        </Pressable>
+            {/* Header */}
+            <View className="items-center mb-4">
+              <View className="w-14 h-14 rounded-full bg-white shadow-sm border border-neutral-border items-center justify-center mb-2.5">
+                <IconRenderer name="Google" size={28} />
+              </View>
+              <AppText weight="bold" className="text-xl text-neutral-dark text-center">
+                Google Authentication
+              </AppText>
+              <AppText weight="medium" className="text-xs text-neutral-muted text-center mt-0.5">
+                Login resmi menggunakan akun Google Anda
+              </AppText>
+            </View>
+
+            {/* Error Message */}
+            {!!errorMessage && (
+              <FadeInView duration={180} translateY={4}>
+                <View className="mb-4 p-3 bg-status-error/10 border border-status-error/20 rounded-xl">
+                  <AppText weight="medium" className="text-xs text-status-error text-center">
+                    {errorMessage}
+                  </AppText>
+                </View>
+              </FadeInView>
+            )}
+
+            {/* Mode 1: Options & Manual trigger */}
+            {viewMode === "connecting" && (
+              <FadeInView key="mode-connecting" duration={180} translateY={4} className="py-2 items-center w-full">
+                {isLoading ? (
+                  <View className="items-center py-4">
+                    <ActivityIndicator size="large" color="#4285F4" className="mb-3" />
+                    <AppText weight="bold" className="text-sm text-neutral-dark text-center mb-1">
+                      Menghubungkan ke Google...
+                    </AppText>
+                    <AppText weight="medium" className="text-xs text-neutral-muted text-center max-w-xs">
+                      Silakan selesaikan login di jendela yang terbuka.
+                    </AppText>
+                  </View>
+                ) : (
+                  <View className="w-full gap-y-3">
+                    <Button
+                      title="Masuk dengan Akun Google (Resmi)"
+                      variant="primary"
+                      onPress={launchRealGoogleLogin}
+                      className="w-full"
+                    />
+
+                    <Button
+                      title="Masuk Cepat Akun Google"
+                      variant="social"
+                      onPress={() => handleQuickDemoLogin("daffa.google@gmail.com", "Daffa (Google)")}
+                      className="w-full"
+                    />
+
+                    <PressableScale
+                      onPress={handleModalClose}
+                      pressedScale={0.97}
+                      className="py-2.5 items-center justify-center rounded-xl bg-neutral-surface border border-neutral-border mt-1"
+                    >
+                      <AppText weight="bold" className="text-xs text-neutral-dark">
+                        Batal / Kembali ke Form Login
+                      </AppText>
+                    </PressableScale>
+
+                    <PressableScale
+                      onPress={() => setViewMode("setup")}
+                      pressedScale={0.96}
+                      className="py-1 self-center mt-1 flex-row items-center gap-x-1.5"
+                    >
+                      <SettingsIconSvg size={14} color="#56605a" />
+                      <AppText weight="semibold" className="text-[11px] text-neutral-muted">
+                        Pengaturan Google Client ID
+                      </AppText>
+                    </PressableScale>
+                  </View>
+                )}
+              </FadeInView>
+            )}
+
+            {/* Mode 2: Client ID Setup Guide & Input */}
+            {viewMode === "setup" && (
+              <FadeInView key="mode-setup" duration={180} translateY={4} className="mb-2">
+                <View className="bg-neutral-surface border border-neutral-border rounded-2xl p-3.5 mb-4">
+                  <AppText weight="bold" className="text-xs text-neutral-dark mb-1">
+                    Petunjuk Google OAuth Web Client ID:
+                  </AppText>
+                  <AppText weight="medium" className="text-[11px] text-neutral-muted leading-4">
+                    Google mewajibkan Client ID bertipe <AppText weight="bold" className="text-neutral-dark">Web Application</AppText>. Client ID bertipe Android/Desktop ditolak Google dengan error <AppText weight="bold" className="text-status-error">invalid_request</AppText>.
+                  </AppText>
+                  <View className="mt-2 bg-white rounded-lg p-2 border border-neutral-border-light">
+                    <AppText weight="semibold" className="text-[10px] text-neutral-dark">
+                      1. Buka <AppText weight="bold" className="text-primary" onPress={() => Linking.openURL("https://console.cloud.google.com/apis/credentials")}>console.cloud.google.com/apis/credentials</AppText>
+                    </AppText>
+                    <AppText weight="medium" className="text-[10px] text-neutral-muted mt-0.5">
+                      2. Buat OAuth Client ID (Pilih: <AppText weight="bold" className="text-neutral-dark">Web application</AppText>)
+                    </AppText>
+                    <AppText weight="medium" className="text-[10px] text-neutral-muted mt-0.5">
+                      3. Tambahkan Authorized Redirect URI: <AppText weight="bold" className="text-neutral-dark">{googleAuthService.getRedirectUri()}</AppText>
+                    </AppText>
+                  </View>
+                </View>
+
+                <Input
+                  label="GOOGLE CLIENT ID (WEB APPLICATION)"
+                  placeholder="xxxxxx-xxxxxxxx.apps.googleusercontent.com"
+                  value={clientIdInput}
+                  onChangeText={(val) => {
+                    setClientIdInput(val);
+                    if (errorMessage) setErrorMessage(null);
+                  }}
+                  autoCapitalize="none"
+                  returnKeyType="done"
+                  onSubmitEditing={handleSaveAndConnect}
+                />
+
+                <Button
+                  title="Simpan Client ID"
+                  variant="primary"
+                  loading={isLoading}
+                  onPress={handleSaveAndConnect}
+                  className="w-full mb-2"
+                />
+
+                <PressableScale
+                  onPress={handleRestoreDefault}
+                  pressedScale={0.97}
+                  className="py-2.5 items-center justify-center rounded-xl bg-secondary-soft border border-secondary mb-3 flex-row items-center gap-x-1.5"
+                >
+                  <RefreshIconSvg size={15} color="#0b6b47" />
+                  <AppText weight="bold" className="text-xs text-primary">
+                    Pulihkan ke Web Client ID Bawaan (Aktif)
+                  </AppText>
+                </PressableScale>
+
+                <View className="flex-row items-center justify-between pt-1">
+                  <PressableScale
+                    onPress={() => setViewMode("quickTest")}
+                    pressedScale={0.96}
+                    className="py-1 flex-row items-center gap-x-1"
+                  >
+                    <ZapIconSvg size={13} color="#56605a" />
+                    <AppText weight="semibold" className="text-xs text-neutral-muted">
+                      Mode Uji Coba Cepat
+                    </AppText>
+                  </PressableScale>
+
+                  {hasConfiguredId && (
+                    <PressableScale
+                      onPress={() => setViewMode("connecting")}
+                      pressedScale={0.96}
+                      className="py-1"
+                    >
+                      <AppText weight="bold" className="text-xs text-primary">
+                        Kembali
+                      </AppText>
+                    </PressableScale>
+                  )}
+                </View>
+              </FadeInView>
+            )}
+
+            {/* Mode 3: Quick Test Account (for immediate testing without waiting for Cloud Console) */}
+            {viewMode === "quickTest" && (
+              <FadeInView key="mode-quicktest" duration={180} translateY={4} className="mb-2">
+                <AppText weight="semibold" className="text-xs text-neutral-muted mb-3 text-center">
+                  Pilih akun instan untuk mencoba alur aplikasi sebelum Google Client ID dibuat:
+                </AppText>
+
+                <PressableScale
+                  disabled={isLoading}
+                  onPress={() => handleQuickDemoLogin("daffa@gmail.com", "Daffa Pratama")}
+                  pressedScale={0.98}
+                  className="flex-row items-center p-3 rounded-2xl border border-neutral-border mb-2"
+                >
+                  <View className="w-10 h-10 rounded-full bg-blue-600 items-center justify-center mr-3">
+                    <AppText weight="bold" className="text-white text-base">D</AppText>
+                  </View>
+                  <View className="flex-1">
+                    <AppText weight="bold" className="text-sm text-neutral-dark">Daffa Pratama</AppText>
+                    <AppText weight="medium" className="text-xs text-neutral-muted">daffa@gmail.com</AppText>
+                  </View>
+                </PressableScale>
+
+                <PressableScale
+                  disabled={isLoading}
+                  onPress={() => handleQuickDemoLogin("johndoe25@gmail.com", "John Doe")}
+                  pressedScale={0.98}
+                  className="flex-row items-center p-3 rounded-2xl border border-neutral-border mb-3"
+                >
+                  <View className="w-10 h-10 rounded-full bg-emerald-600 items-center justify-center mr-3">
+                    <AppText weight="bold" className="text-white text-base">J</AppText>
+                  </View>
+                  <View className="flex-1">
+                    <AppText weight="bold" className="text-sm text-neutral-dark">John Doe</AppText>
+                    <AppText weight="medium" className="text-xs text-neutral-muted">johndoe25@gmail.com</AppText>
+                  </View>
+                </PressableScale>
+
+                <Button
+                  title="Kembali ke Setup Client ID"
+                  variant="outline"
+                  onPress={() => setViewMode("setup")}
+                  className="w-full"
+                />
+              </FadeInView>
+            )}
+
+            {/* Footer Close */}
+            <PressableScale
+              onPress={handleModalClose}
+              pressedScale={0.96}
+              className="pt-3 items-center"
+            >
+              <AppText weight="bold" className="text-xs text-neutral-muted">
+                Tutup
+              </AppText>
+            </PressableScale>
+          </Pressable>
+        </FadeInView>
       </Pressable>
     </Modal>
   );

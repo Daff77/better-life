@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { View, ViewProps } from "react-native";
 import Animated, {
   Easing,
+  cancelAnimation,
   useSharedValue,
   useAnimatedStyle,
   withTiming,
@@ -26,20 +27,25 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
   ...props
 }) => {
   // Normalize progress between 0 and 100
-  const normalized = progress > 1 ? Math.min(100, progress) : Math.min(100, Math.max(0, progress * 100));
+  const normalized =
+    progress > 1
+      ? Math.min(100, progress)
+      : Math.min(100, Math.max(0, progress * 100));
 
-  const animatedScale = useSharedValue(0);
+  const animatedPct = useSharedValue(0);
 
   useEffect(() => {
-    // Hardware-accelerated GPU transform (zero layout thread re-measurements)
-    animatedScale.value = withTiming(Math.max(0.001, normalized / 100), {
+    animatedPct.value = withTiming(normalized, {
       duration: MotionDurations.fill,
       easing: Easing.bezier(...MotionCurves.out),
     });
-  }, [normalized]);
+    return () => {
+      cancelAnimation(animatedPct);
+    };
+  }, [normalized, animatedPct]);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scaleX: animatedScale.value }],
+    width: `${Math.max(0, Math.min(100, animatedPct.value))}%`,
   }));
 
   return (
@@ -55,9 +61,7 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
           {
             backgroundColor: color,
             height: "100%",
-            width: "100%",
             borderRadius: height / 2,
-            transformOrigin: "left",
           },
           animatedStyle,
         ]}

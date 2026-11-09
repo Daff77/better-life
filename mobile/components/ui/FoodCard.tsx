@@ -1,7 +1,8 @@
 import React from "react";
-import { View, Image, Pressable, ImageSourcePropType, Platform } from "react-native";
+import { View, Image, ImageSourcePropType } from "react-native";
 import { AppText } from "./AppText";
 import { Badge } from "./Badge";
+import { PressableScale } from "./PressableScale";
 import { getMealIllustration } from "@/constants/Assets";
 
 export interface FoodCardProps {
@@ -26,12 +27,10 @@ export const FoodCard: React.FC<FoodCardProps> = ({
   const effectiveImage = imageSource || (imageUrl ? { uri: imageUrl } : getMealIllustration(category || title));
 
   return (
-    <Pressable
+    <PressableScale
       onPress={onPress}
-      className={`bg-white rounded-2xl border border-neutral-border-light/80 p-4 mb-3.5 shadow-sm flex-row items-center justify-between ${
-        Platform.OS === "web" ? "cursor-pointer hover:border-emerald-500/40 transition-colors" : ""
-      }`}
-      style={({ pressed }) => pressed ? { opacity: 0.88, transform: [{ scale: 0.985 }] } : undefined}
+      pressedScale={0.985}
+      className="bg-white rounded-2xl border border-neutral-border-light/80 p-4 mb-3.5 shadow-sm flex-row items-center justify-between"
       accessibilityRole="button"
       accessibilityLabel={`${title}, ${calories} calories`}
     >
@@ -71,6 +70,6 @@ export const FoodCard: React.FC<FoodCardProps> = ({
       </View>
 
       {category ? <Badge label={category} variant="secondary" size="sm" /> : null}
-    </Pressable>
+    </PressableScale>
   );
 };

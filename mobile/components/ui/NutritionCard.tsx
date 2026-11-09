@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { View, ViewProps, Modal, Pressable, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { AppText } from "./AppText";
+import { FadeInView } from "./FadeInView";
 import { Surface, CardHead, MixBar, ListRow, RingButton, PillButton, StatusPill } from "./Surface";
 import { Colors } from "@/constants/DesignTokens";
 import { useOnboardingStore } from "@/stores/useOnboardingStore";
@@ -160,65 +161,67 @@ export const NutritionCard: React.FC<NutritionCardProps> = ({
             onPress={() => setIsDetailsModalOpen(false)}
             style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(18, 24, 20, 0.45)" }]}
           />
-          <Surface className="w-full max-w-md z-10">
-            <CardHead
-              title="Detail makronutrisi"
-              caption="Kontribusi terhadap target harian Anda"
-              right={
-                <RingButton
-                  icon="close"
-                  accessibilityLabel="Tutup detail nutrisi"
-                  onPress={() => setIsDetailsModalOpen(false)}
-                />
-              }
-            />
-
-            <View className="flex-row items-center justify-between py-2.5 px-3.5 rounded-2xl bg-card-2 mb-3">
-              <View>
-                <AppText weight="medium" className="text-[12px] text-muted">
-                  Energi per porsi
-                </AppText>
-                <AppText weight="bold" className="text-[22px] text-ink" style={tnum}>
-                  {displayCalories} kcal
-                </AppText>
-              </View>
-              {fiberGrams !== undefined && (
-                <StatusPill label={`Serat ${fiberGrams} g`} tone="accent" />
-              )}
-            </View>
-
-            <View>
-              {rows.map((r, idx) => {
-                const goalPct = r.target > 0 ? Math.round((r.grams / r.target) * 100) : 0;
-                return (
-                  <ListRow
-                    key={r.key}
-                    last={idx === rows.length - 1}
-                    leading={<View className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: r.color }} />}
-                    title={r.label}
-                    caption={`${goalPct}% dari target harian (${r.target} g)`}
-                    trailing={
-                      <AppText weight="bold" className="text-[14px] text-ink" style={tnum}>
-                        {r.grams} g
-                      </AppText>
-                    }
+          <FadeInView duration={220} translateY={12} className="w-full max-w-md z-10">
+            <Surface className="w-full">
+              <CardHead
+                title="Detail makronutrisi"
+                caption="Kontribusi terhadap target harian Anda"
+                right={
+                  <RingButton
+                    icon="close"
+                    accessibilityLabel="Tutup detail nutrisi"
+                    onPress={() => setIsDetailsModalOpen(false)}
                   />
-                );
-              })}
-            </View>
-
-            <View className="mt-4">
-              <PillButton
-                label="Buka katalog makan"
-                variant="primary"
-                icon="utensils"
-                onPress={() => {
-                  setIsDetailsModalOpen(false);
-                  router.push("/(app)/(tabs)/meals");
-                }}
+                }
               />
-            </View>
-          </Surface>
+
+              <View className="flex-row items-center justify-between py-2.5 px-3.5 rounded-2xl bg-card-2 mb-3">
+                <View>
+                  <AppText weight="medium" className="text-[12px] text-muted">
+                    Energi per porsi
+                  </AppText>
+                  <AppText weight="bold" className="text-[22px] text-ink" style={tnum}>
+                    {displayCalories} kcal
+                  </AppText>
+                </View>
+                {fiberGrams !== undefined && (
+                  <StatusPill label={`Serat ${fiberGrams} g`} tone="accent" />
+                )}
+              </View>
+
+              <View>
+                {rows.map((r, idx) => {
+                  const goalPct = r.target > 0 ? Math.round((r.grams / r.target) * 100) : 0;
+                  return (
+                    <ListRow
+                      key={r.key}
+                      last={idx === rows.length - 1}
+                      leading={<View className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: r.color }} />}
+                      title={r.label}
+                      caption={`${goalPct}% dari target harian (${r.target} g)`}
+                      trailing={
+                        <AppText weight="bold" className="text-[14px] text-ink" style={tnum}>
+                          {r.grams} g
+                        </AppText>
+                      }
+                    />
+                  );
+                })}
+              </View>
+
+              <View className="mt-4">
+                <PillButton
+                  label="Buka katalog makan"
+                  variant="primary"
+                  icon="utensils"
+                  onPress={() => {
+                    setIsDetailsModalOpen(false);
+                    router.push("/(app)/(tabs)/meals");
+                  }}
+                />
+              </View>
+            </Surface>
+          </FadeInView>
         </View>
       </Modal>
     </Surface>

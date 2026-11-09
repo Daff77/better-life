@@ -1,8 +1,16 @@
-import React from "react";
-import { View, Pressable, useWindowDimensions, Platform, ViewStyle } from "react-native";
+import React, { useEffect } from "react";
+import { View, useWindowDimensions, Platform, ViewStyle } from "react-native";
 import { useRouter } from "expo-router";
+import Animated, {
+  cancelAnimation,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from "react-native-reanimated";
 import { AppText } from "@/components/ui/AppText";
+import { FadeInView } from "@/components/ui/FadeInView";
 import { LineIcon, LineIconName } from "@/components/ui/LineIcon";
+import { PressableScale } from "@/components/ui/PressableScale";
 import { FLOAT_SHADOW, SURFACE_SHADOW } from "@/components/ui/Surface";
 import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
 import { useAuthStore } from "@/stores/useAuthStore";
@@ -86,9 +94,10 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({ state, navig
           accessibilityRole="navigation"
           accessibilityLabel="Navigasi utama"
         >
-          <Pressable
+          <PressableScale
             onPress={() => handleTabPress(state.routes[0].key, state.routes[0].name, state.index === 0)}
-            className={`flex-row items-center gap-2.5 min-h-[44px] ${web ? "cursor-pointer" : ""}`}
+            pressedScale={0.97}
+            className="flex-row items-center gap-2.5 min-h-[44px]"
             accessibilityRole="link"
             accessibilityLabel="Better Life, beranda"
           >
@@ -98,7 +107,7 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({ state, navig
             <AppText weight="bold" className="text-[20px] text-ink" style={{ letterSpacing: -0.4 }}>
               Better Life
             </AppText>
-          </Pressable>
+          </PressableScale>
 
           <View className="flex-1 items-center">
             <View
@@ -110,12 +119,13 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({ state, navig
                 const isFocused = state.index === index;
                 const m = meta(route.name);
                 return (
-                  <Pressable
+                  <PressableScale
                     key={route.key}
                     onPress={() => handleTabPress(route.key, route.name, isFocused)}
+                    pressedScale={0.96}
                     className={`h-10 px-4 rounded-full flex-row items-center gap-2 ${
                       isFocused ? "bg-block-ink" : web ? "hover:bg-card-2" : ""
-                    } ${web ? "cursor-pointer transition-colors duration-150" : ""}`}
+                    }`}
                     accessibilityRole="tab"
                     accessibilityState={{ selected: isFocused }}
                     accessibilityLabel={m.label}
@@ -124,17 +134,18 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({ state, navig
                     <AppText weight="semibold" className={`text-[14px] ${isFocused ? "text-block-on-ink" : "text-ink-2"}`}>
                       {m.label}
                     </AppText>
-                  </Pressable>
+                  </PressableScale>
                 );
               })}
             </View>
           </View>
 
           <View className="flex-row items-center gap-2.5">
-            <Pressable
+            <PressableScale
               onPress={() => router.push("/(app)/upgrade")}
+              pressedScale={0.97}
               className={`h-11 pl-3 pr-4 rounded-full bg-card border border-line flex-row items-center gap-2 ${
-                web ? "cursor-pointer hover:bg-card-2" : ""
+                web ? "hover:bg-card-2" : ""
               }`}
               style={{ boxShadow: SURFACE_SHADOW } as ViewStyle}
               accessibilityRole="button"
@@ -150,15 +161,14 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({ state, navig
               <AppText weight="semibold" className="text-[13.5px] text-ink">
                 {isPremium ? "Premium aktif" : "Coba Premium"}
               </AppText>
-            </Pressable>
-            <Pressable
+            </PressableScale>
+            <PressableScale
               onPress={() =>
                 profileIndex >= 0 &&
                 handleTabPress(state.routes[profileIndex].key, "profile", state.index === profileIndex)
               }
-              className={`w-11 h-11 rounded-full bg-card border border-line items-center justify-center ${
-                web ? "cursor-pointer" : ""
-              }`}
+              pressedScale={0.95}
+              className="w-11 h-11 rounded-full bg-card border border-line items-center justify-center"
               style={{ boxShadow: SURFACE_SHADOW } as ViewStyle}
               accessibilityRole="button"
               accessibilityLabel="Buka profil"
@@ -168,7 +178,7 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({ state, navig
                   {initials}
                 </AppText>
               </View>
-            </Pressable>
+            </PressableScale>
           </View>
         </View>
 
@@ -187,28 +197,30 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({ state, navig
           <View className="bg-primary rounded-full p-2 gap-1" style={{ boxShadow: FLOAT_SHADOW } as ViewStyle}>
             {QUICK_ACTIONS.map((a) => (
               <View key={a.href}>
-                <Pressable
+                <PressableScale
                   onPress={() => router.push(a.href as any)}
                   onHoverIn={() => setHovered(a.href)}
                   onHoverOut={() => setHovered(null)}
+                  pressedScale={0.93}
                   className={`w-11 h-11 rounded-full items-center justify-center ${
-                    web ? "cursor-pointer hover:bg-white/15" : ""
+                    web ? "hover:bg-white/15" : ""
                   }`}
                   accessibilityRole="link"
                   accessibilityLabel={a.label}
                 >
                   <LineIcon name={a.icon} size={20} color="#ffffff" />
-                </Pressable>
+                </PressableScale>
                 {hovered === a.href ? <DockTip label={a.label} /> : null}
               </View>
             ))}
             <View className="h-px bg-white/20 mx-2.5 my-1" />
             <View>
-              <Pressable
+              <PressableScale
                 onPress={() => router.push("/(app)/upgrade")}
                 onHoverIn={() => setHovered("premium")}
                 onHoverOut={() => setHovered(null)}
-                className={`w-11 h-11 rounded-full items-center justify-center ${web ? "cursor-pointer hover:bg-white/15" : ""}`}
+                pressedScale={0.93}
+                className={`w-11 h-11 rounded-full items-center justify-center ${web ? "hover:bg-white/15" : ""}`}
                 accessibilityRole="link"
                 accessibilityLabel="Better Life Premium"
               >
@@ -219,7 +231,7 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({ state, navig
                     style={{ boxShadow: "0px 0px 0px 2px #0e7a52" } as ViewStyle}
                   />
                 ) : null}
-              </Pressable>
+              </PressableScale>
               {hovered === "premium" ? <DockTip label={isPremium ? "Premium aktif" : "Better Life Premium"} /> : null}
             </View>
           </View>
@@ -251,28 +263,13 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({ state, navig
           const isFocused = state.index === index;
           const m = meta(route.name);
           return (
-            <Pressable
+            <PhoneTabItem
               key={route.key}
+              isFocused={isFocused}
+              icon={m.icon}
+              label={m.label}
               onPress={() => handleTabPress(route.key, route.name, isFocused)}
-              className={`h-12 rounded-full flex-row items-center justify-center ${
-                isFocused ? "bg-white pl-3.5 pr-4 gap-2" : "w-12"
-              } ${web ? "cursor-pointer" : ""}`}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: isFocused }}
-              accessibilityLabel={m.label}
-            >
-              <LineIcon
-                name={m.icon}
-                size={20}
-                color={isFocused ? "#0e7a52" : "rgba(255,255,255,0.86)"}
-                strokeWidth={isFocused ? 2 : 1.7}
-              />
-              {isFocused ? (
-                <AppText weight="semibold" className="text-[14px] text-ink">
-                  {m.label}
-                </AppText>
-              ) : null}
-            </Pressable>
+            />
           );
         })}
       </View>
@@ -280,8 +277,71 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({ state, navig
   );
 };
 
+const PhoneTabItem: React.FC<{
+  isFocused: boolean;
+  icon: LineIconName;
+  label: string;
+  onPress: () => void;
+}> = ({ isFocused, icon, label, onPress }) => {
+  const focusProgress = useSharedValue(isFocused ? 1 : 0);
+
+  useEffect(() => {
+    focusProgress.value = withSpring(isFocused ? 1 : 0, {
+      damping: 22,
+      stiffness: 320,
+      mass: 0.7,
+    });
+    return () => {
+      cancelAnimation(focusProgress);
+    };
+  }, [isFocused, focusProgress]);
+
+  const iconAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: 0.94 + focusProgress.value * 0.08 }],
+  }));
+
+  const labelAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: focusProgress.value,
+    transform: [
+      { translateX: (1 - focusProgress.value) * -6 },
+      { scale: 0.94 + focusProgress.value * 0.06 },
+    ],
+  }));
+
+  return (
+    <PressableScale
+      onPress={onPress}
+      pressedScale={0.93}
+      className={`h-12 rounded-full flex-row items-center justify-center ${
+        isFocused ? "bg-white pl-3.5 pr-4 gap-2" : "w-12"
+      }`}
+      accessibilityRole="tab"
+      accessibilityState={{ selected: isFocused }}
+      accessibilityLabel={label}
+    >
+      <Animated.View style={iconAnimatedStyle}>
+        <LineIcon
+          name={icon}
+          size={20}
+          color={isFocused ? "#0e7a52" : "rgba(255,255,255,0.86)"}
+          strokeWidth={isFocused ? 2 : 1.7}
+        />
+      </Animated.View>
+      {isFocused ? (
+        <Animated.View style={labelAnimatedStyle}>
+          <AppText weight="semibold" className="text-[14px] text-ink">
+            {label}
+          </AppText>
+        </Animated.View>
+      ) : null}
+    </PressableScale>
+  );
+};
+
 const DockTip: React.FC<{ label: string }> = ({ label }) => (
-  <View
+  <FadeInView
+    duration={150}
+    translateY={2}
     className="absolute left-[58px] top-[7px] bg-card border border-line rounded-[10px] px-2.5 py-1.5"
     style={{
       pointerEvents: "none",
@@ -291,5 +351,5 @@ const DockTip: React.FC<{ label: string }> = ({ label }) => (
     <AppText weight="semibold" className="text-[12.5px] text-ink" numberOfLines={1} style={{ width: 170 } as any}>
       {label}
     </AppText>
-  </View>
+  </FadeInView>
 );

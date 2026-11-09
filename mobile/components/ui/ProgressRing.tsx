@@ -3,6 +3,7 @@ import { View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 import Animated, {
   Easing,
+  cancelAnimation,
   useSharedValue,
   useAnimatedProps,
   withTiming,
@@ -23,6 +24,7 @@ export interface ProgressRingProps {
   showPercent?: boolean;
   textColor?: string;
   labelColor?: string;
+  children?: React.ReactNode;
 }
 
 export const ProgressRing: React.FC<ProgressRingProps> = ({
@@ -35,6 +37,7 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
   showPercent = true,
   textColor,
   labelColor,
+  children,
 }) => {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -49,7 +52,10 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
       duration: MotionDurations.fill,
       easing: Easing.bezier(...MotionCurves.out),
     });
-  }, [clampedProgress]);
+    return () => {
+      cancelAnimation(animatedProgress);
+    };
+  }, [clampedProgress, animatedProgress]);
 
   const animatedProps = useAnimatedProps(() => {
     const strokeDashoffset = circumference - (animatedProgress.value / 100) * circumference;
@@ -88,26 +94,32 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
 
       {/* Center Value & Label */}
       <View style={{ pointerEvents: "none" }} className="absolute items-center justify-center">
-        {showPercent && (
-          <AppText
-            weight="black"
-            className={isCompact ? "text-base sm:text-lg" : "text-2xl"}
-            style={[
-              { fontVariant: ["tabular-nums"] },
-              textColor ? { color: textColor } : undefined,
-            ]}
-          >
-            {Math.round(clampedProgress)}%
-          </AppText>
-        )}
-        {Boolean(label) && (
-          <AppText
-            weight="medium"
-            className={isCompact ? "text-[9px]" : "text-xs mt-0.5"}
-            style={labelColor ? { color: labelColor } : undefined}
-          >
-            {label}
-          </AppText>
+        {children ? (
+          children
+        ) : (
+          <>
+            {showPercent && (
+              <AppText
+                weight="black"
+                className={isCompact ? "text-base sm:text-lg" : "text-2xl"}
+                style={[
+                  { fontVariant: ["tabular-nums"] },
+                  textColor ? { color: textColor } : undefined,
+                ]}
+              >
+                {Math.round(clampedProgress)}%
+              </AppText>
+            )}
+            {Boolean(label) && (
+              <AppText
+                weight="medium"
+                className={isCompact ? "text-[9px]" : "text-xs mt-0.5"}
+                style={labelColor ? { color: labelColor } : undefined}
+              >
+                {label}
+              </AppText>
+            )}
+          </>
         )}
       </View>
     </View>

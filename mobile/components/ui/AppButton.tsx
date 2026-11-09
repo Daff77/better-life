@@ -1,11 +1,13 @@
 import React from "react";
-import { TouchableOpacity, TouchableOpacityProps, ActivityIndicator } from "react-native";
+import { ActivityIndicator, StyleProp, ViewStyle } from "react-native";
 import { AppText } from "./AppText";
+import { PressableScale, PressableScaleProps } from "./PressableScale";
 
-interface AppButtonProps extends TouchableOpacityProps {
+interface AppButtonProps extends Omit<PressableScaleProps, "children"> {
   title: string;
   variant?: "primary" | "secondary" | "outline";
   loading?: boolean;
+  style?: StyleProp<ViewStyle>;
 }
 
 export const AppButton: React.FC<AppButtonProps> = ({
@@ -14,16 +16,17 @@ export const AppButton: React.FC<AppButtonProps> = ({
   loading = false,
   disabled,
   className,
+  style,
   ...props
 }) => {
   const getVariantStyles = () => {
     switch (variant) {
       case "primary":
-        return "bg-primary active:bg-primary-dark";
+        return "bg-primary";
       case "secondary":
-        return "bg-secondary active:bg-secondary-soft";
+        return "bg-secondary";
       case "outline":
-        return "bg-transparent border border-primary active:bg-primary-subtle";
+        return "bg-transparent border border-primary";
     }
   };
 
@@ -39,12 +42,13 @@ export const AppButton: React.FC<AppButtonProps> = ({
   };
 
   return (
-    <TouchableOpacity
+    <PressableScale
+      pressedScale={0.97}
       className={`h-[52px] rounded-xl flex-row items-center justify-center px-4 ${getVariantStyles()} ${
-        disabled ? "opacity-50" : ""
-      } ${className || ""}`}
+        className || ""
+      }`}
+      style={style}
       disabled={disabled || loading}
-      activeOpacity={0.8}
       {...props}
     >
       {loading ? (
@@ -54,6 +58,6 @@ export const AppButton: React.FC<AppButtonProps> = ({
           {title}
         </AppText>
       )}
-    </TouchableOpacity>
+    </PressableScale>
   );
 };

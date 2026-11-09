@@ -1,10 +1,11 @@
 import React, { useState, useRef } from "react";
-import { View, TextInput, Pressable, Alert, Image } from "react-native";
+import { View, Alert, Image } from "react-native";
 import { useRouter } from "expo-router";
 import {
   AppText,
   Button,
   Divider,
+  FadeInView,
   GoogleSignInModal,
   FlowScreen,
   FlowTitle,
@@ -12,6 +13,7 @@ import {
   FormAlert,
   TextLink,
   LineIcon,
+  PressableScale,
 } from "@/components/ui";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { DEFAULT_DEMO_ACCOUNT } from "@/lib/sessionStorage";
@@ -125,113 +127,116 @@ export default function LoginScreen() {
         </View>
       }
     >
-      <View className="flex-row items-center gap-2.5 mb-4">
-        <Image
-          source={BrandImages.logoPng}
-          style={{ width: 42, height: 42, marginLeft: -4 }}
-          resizeMode="contain"
-          accessibilityLabel="Better Life Logo"
-        />
-      </View>
+      <FadeInView index={0}>
+        <View className="flex-row items-center gap-2.5 mb-4">
+          <Image
+            source={BrandImages.logoPng}
+            style={{ width: 42, height: 42, marginLeft: -4 }}
+            resizeMode="contain"
+            accessibilityLabel="Better Life Logo"
+          />
+        </View>
 
-      <FlowTitle
-        eyebrow="Selamat datang kembali"
-        title="Masuk ke akun Anda"
-        caption="Lanjutkan catatan kalori, rencana menu mingguan, dan progres kesehatan Anda."
-      />
+        <FlowTitle
+          eyebrow="Selamat datang kembali"
+          title="Masuk ke akun Anda"
+          caption="Lanjutkan catatan kalori, rencana menu mingguan, dan progres kesehatan Anda."
+        />
+      </FadeInView>
 
       <FormAlert message={generalError} />
 
-      <View className="gap-4">
-        <TextField
-          label="Email atau Username"
-          icon="user"
-          placeholder="contoh: daffa@gmail.com"
-          value={identifier}
-          onChangeText={(text) => {
-            setIdentifier(text);
-            if (identifierError) setIdentifierError("");
-            if (generalError) setGeneralError("");
-          }}
-          error={identifierError}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          autoCorrect={false}
-          returnKeyType="next"
-          onSubmitEditing={() => passwordRef.current?.focus()}
-          accessibilityLabel="Input email atau username"
-        />
+      <FadeInView index={1}>
+        <View className="gap-4">
+          <TextField
+            label="Email atau Username"
+            icon="user"
+            placeholder="contoh: daffa@gmail.com"
+            value={identifier}
+            onChangeText={(text) => {
+              setIdentifier(text);
+              if (identifierError) setIdentifierError("");
+              if (generalError) setGeneralError("");
+            }}
+            error={identifierError}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            returnKeyType="next"
+            onSubmitEditing={() => passwordRef.current?.focus()}
+            accessibilityLabel="Input email atau username"
+          />
 
-        <TextField
-          ref={passwordRef}
-          label="Kata Sandi"
-          icon="lock"
-          password
-          placeholder="Masukkan kata sandi"
-          value={password}
-          onChangeText={(text) => {
-            setPassword(text);
-            if (passwordError) setPasswordError("");
-            if (generalError) setGeneralError("");
-          }}
-          error={passwordError}
-          returnKeyType="done"
-          onSubmitEditing={handleLogin}
-          accessibilityLabel="Input kata sandi"
-        />
-      </View>
+          <TextField
+            ref={passwordRef}
+            label="Kata Sandi"
+            icon="lock"
+            password
+            placeholder="Masukkan kata sandi"
+            value={password}
+            onChangeText={(text) => {
+              setPassword(text);
+              if (passwordError) setPasswordError("");
+              if (generalError) setGeneralError("");
+            }}
+            error={passwordError}
+            returnKeyType="done"
+            onSubmitEditing={handleLogin}
+            accessibilityLabel="Input kata sandi"
+          />
+        </View>
 
-      <View className="flex-row items-center justify-between mt-3 mb-5">
-        <Pressable
-          onPress={() => {
-            setIdentifier(DEFAULT_DEMO_ACCOUNT.email);
-            setPassword(DEFAULT_DEMO_ACCOUNT.password);
-            setIdentifierError("");
-            setPasswordError("");
-            setGeneralError("");
-          }}
-          className="flex-row items-center gap-1.5 py-1.5 px-3 rounded-full bg-primary-light"
-          accessibilityRole="button"
-          accessibilityLabel="Isi cepat akun contoh"
-        >
-          <LineIcon name="sparkle" size={14} color="#0b6b47" />
-          <AppText weight="semibold" className="text-[12.5px] text-primary-text">
-            Isi Akun Demo
-          </AppText>
-        </Pressable>
+        <View className="flex-row items-center justify-between mt-3 mb-5">
+          <PressableScale
+            onPress={() => {
+              setIdentifier(DEFAULT_DEMO_ACCOUNT.email);
+              setPassword(DEFAULT_DEMO_ACCOUNT.password);
+              setIdentifierError("");
+              setPasswordError("");
+              setGeneralError("");
+            }}
+            pressedScale={0.96}
+            className="flex-row items-center gap-1.5 py-1.5 px-3 rounded-full bg-primary-light"
+            accessibilityRole="button"
+            accessibilityLabel="Isi cepat akun contoh"
+          >
+            <LineIcon name="sparkle" size={14} color="#0b6b47" />
+            <AppText weight="semibold" className="text-[12.5px] text-primary-text">
+              Isi Akun Demo
+            </AppText>
+          </PressableScale>
 
-        <TextLink
-          label="Lupa kata sandi?"
-          onPress={() =>
-            Alert.alert(
-              "Pemulihan Kata Sandi",
-              "Untuk akun demo gunakan email 'daffa@gmail.com' dan kata sandi 'password123', atau gunakan kata sandi yang Anda buat saat pendaftaran."
-            )
-          }
-        />
-      </View>
+          <TextLink
+            label="Lupa kata sandi?"
+            onPress={() =>
+              Alert.alert(
+                "Pemulihan Kata Sandi",
+                "Untuk akun demo gunakan email 'daffa@gmail.com' dan kata sandi 'password123', atau gunakan kata sandi yang Anda buat saat pendaftaran."
+              )
+            }
+          />
+        </View>
 
-      <Divider label="ATAU" className="my-3" />
+        <Divider label="ATAU" className="my-3" />
 
-      <Pressable
-        onPress={() => setShowGoogleModal(true)}
-        style={({ pressed }) => [
-          {
+        <PressableScale
+          onPress={() => setShowGoogleModal(true)}
+          pressedScale={0.98}
+          style={{
             backgroundColor: "#fbfdfc",
             borderWidth: 1,
             borderColor: "#d5dbd7",
-          },
-          pressed ? { opacity: 0.88, transform: [{ scale: 0.985 }] } : null,
-        ]}
-        className="w-full h-[52px] flex-row items-center justify-center rounded-full gap-x-3 mt-1"
-        accessibilityRole="button"
-        accessibilityLabel="Masuk dengan Google"
-      >
-        <IconRenderer name="Google" size={20} />
-        <AppText weight="bold" className="text-[15px] text-ink">
-          Lanjutkan dengan Google
-        </AppText>
-      </Pressable>
+          }}
+          className="w-full h-[52px] flex-row items-center justify-center rounded-full gap-x-3 mt-1"
+          accessibilityRole="button"
+          accessibilityLabel="Masuk dengan Google"
+        >
+          <IconRenderer name="Google" size={20} />
+          <AppText weight="bold" className="text-[15px] text-ink">
+            Lanjutkan dengan Google
+          </AppText>
+        </PressableScale>
+      </FadeInView>
 
       <GoogleSignInModal
         visible={showGoogleModal}

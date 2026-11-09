@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
   View,
-  Image,
   ScrollView,
   Modal,
   Pressable,
@@ -18,16 +17,13 @@ import {
   Avatar,
   PressableScale,
   FadeInView,
-  PageHead,
   Surface,
   CardHead,
   RingButton,
   ColorBlock,
-  blockColors,
   ListRow,
   RowIcon,
   StatusPill,
-  Segmented,
   PillButton,
   LineIcon,
 } from "@/components/ui";
@@ -44,8 +40,6 @@ import { sessionStorage } from "@/lib/sessionStorage";
 import { useResetMealsMutation } from "@/hooks/useMealsQuery";
 import { confirmDestructive } from "@/lib/confirm";
 import { NAV_DESKTOP_BREAKPOINT } from "@/components/layout/ResponsiveTabBar";
-import { mealLabel } from "@/constants/MealLabels";
-import { MOCK_RECIPES } from "@/data/mockRecipes";
 
 const GOALS = ["Eat balanced", "Lose weight", "Gain muscle"] as const;
 const GOAL_LABELS: Record<(typeof GOALS)[number], string> = {
@@ -73,13 +67,10 @@ export default function ProfileScreen() {
   const logout = useAuthStore((state) => state.logout);
   const resetMealsMutation = useResetMealsMutation();
   const isPremium = useSubscriptionStore((state) => state.isPremium);
-  const currentPeriodEnd = useSubscriptionStore((state) => state.currentPeriodEnd);
 
   const currentYear = new Date().getFullYear();
   const userAge = Math.max(14, currentYear - (personalization.birthDate?.year || 2000));
 
-  const [activeTab, setActiveTab] = useState<"list" | "recipes">("list");
-  const [settingsVisible, setSettingsVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
 
   const [editGoal, setEditGoal] = useState<"Eat balanced" | "Lose weight" | "Gain muscle">(
@@ -116,11 +107,6 @@ export default function ProfileScreen() {
     age: previewAge,
     goal: editGoal,
   });
-
-  const [userLists, setUserLists] = useState([
-    { id: "favs", title: "Favorit Saya", count: "2 menu tersimpan", tag: "Akses cepat" },
-    { id: "protein", title: "Menu Tinggi Protein", count: "3 resep", tag: "Persiapan harian" },
-  ]);
 
   const handleOpenEdit = () => {
     setEditModalVisible(true);
@@ -180,16 +166,6 @@ export default function ProfileScreen() {
     }, 650);
   };
 
-  const handleCreateNewList = () => {
-    const newItem = {
-      id: `list-${Date.now()}`,
-      title: `Koleksi Menu #${userLists.length + 1}`,
-      count: "0 menu",
-      tag: "Kustom",
-    };
-    setUserLists([newItem, ...userLists]);
-  };
-
   const handleResetData = () => {
     confirmDestructive(
       "Reset Semua Data",
@@ -201,297 +177,177 @@ export default function ProfileScreen() {
         await sessionStorage.clearPersonalization();
         useJournalStore.setState({ journals: {} });
         useOnboardingStore.setState({ personalization: DEFAULT_PERSONALIZATION });
-        setSettingsVisible(false);
         await logout();
         router.replace("/(auth)/get-started");
       }
     );
   };
 
-  const greenColors = blockColors("green");
-  const amberColors = blockColors("amber");
+  const targetKcal = personalization.targetCalories || 2253;
+  const targetP = personalization.targetProteinGrams || 141;
+  const targetK = personalization.targetCarbGrams || 282;
+  const targetL = personalization.targetFatGrams || 63;
 
   return (
-    <ScreenWrapper maxWidth="wide" className="flex-1 bg-canvas">
+    <ScreenWrapper maxWidth="narrow" className="flex-1 bg-canvas">
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ paddingTop: hasDesktopNav ? 8 : 16, paddingBottom: hasDesktopNav ? 56 : 120 }}
+        contentContainerStyle={{ paddingTop: hasDesktopNav ? 12 : 20, paddingBottom: hasDesktopNav ? 56 : 120 }}
         showsVerticalScrollIndicator={false}
       >
-        <FadeInView index={0}>
-          <PageHead
-            title="Profil & target"
-            caption="Kalibrasi kebutuhan energi dan preferensi makan"
-            right={
-              <View className="flex-row items-center gap-2">
-                <RingButton
-                  icon="edit"
-                  variant="solid"
-                  size="md"
-                  onPress={handleOpenEdit}
-                  accessibilityLabel="Ubah data diri dan target"
-                />
-                <RingButton
-                  icon="settings"
-                  variant="solid"
-                  size="md"
-                  onPress={() => setSettingsVisible(true)}
-                  accessibilityLabel="Pengaturan akun"
-                />
-              </View>
-            }
+        {/* Minimalist Header */}
+        <FadeInView index={0} className="flex-row items-center justify-between mb-4">
+          <AppText
+            weight="semibold"
+            className="text-[26px] sm:text-[30px] text-ink"
+            style={{ letterSpacing: -0.7, lineHeight: 32 }}
+            accessibilityRole="header"
+          >
+            Profil
+          </AppText>
+          <PillButton
+            label="Ubah target"
+            icon="edit"
+            size="sm"
+            onPress={handleOpenEdit}
+            accessibilityLabel="Ubah data diri dan target"
           />
         </FadeInView>
 
-        <View className="flex-col lg:flex-row gap-4">
-          {/* Left Column: Identity + Biometrics + Membership */}
-          <View className="w-full lg:w-5/12 gap-4">
-            {/* 1. Identity & Target Blocks */}
-            <FadeInView index={1}>
-              <Surface>
-                <View className="flex-row items-center">
-                  <View className="mr-3.5 flex-shrink-0">
-                    <Avatar name={user?.name || "Pengguna"} size={52} showBadge />
-                  </View>
-                  <View className="flex-1 min-w-0 mr-2">
-                    <AppText weight="semibold" numberOfLines={1} className="text-[19px] text-ink" style={{ letterSpacing: -0.3 }}>
-                      {user?.name || "Pengguna Better Life"}
-                    </AppText>
-                    <AppText weight="medium" numberOfLines={1} className="text-[13px] text-muted mt-0.5">
-                      {user?.email || "Akun tersimpan di perangkat"}
-                    </AppText>
-                  </View>
-                  <StatusPill label={isPremium ? "Premium" : "Gratis"} tone={isPremium ? "good" : "plain"} />
-                </View>
-
-                <View className="flex-row gap-3 mt-4">
-                  <View className="flex-1 min-w-0">
-                    <ColorBlock tone="green" style={{ minHeight: 96 }}>
-                      <AppText weight="semibold" className="text-[12px]" style={{ color: greenColors.sub }}>
-                        Target harian
-                      </AppText>
-                      <View className="flex-row items-baseline gap-1 mt-1">
-                        <AppText
-                          weight="semibold"
-                          className="text-[22px] sm:text-[24px]"
-                          style={[{ color: greenColors.fg, letterSpacing: -0.5 }, tnum]}
-                        >
-                          {(personalization.targetCalories || 2253).toLocaleString("id-ID")}
-                        </AppText>
-                        <AppText weight="semibold" className="text-[11.5px]" style={{ color: greenColors.sub }}>
-                          kcal
-                        </AppText>
-                      </View>
-                    </ColorBlock>
-                  </View>
-
-                  <View className="flex-1 min-w-0">
-                    <ColorBlock tone="amber" style={{ minHeight: 96 }}>
-                      <AppText weight="semibold" className="text-[12px]" style={{ color: amberColors.sub }}>
-                        Fokus utama
-                      </AppText>
-                      <AppText
-                        weight="semibold"
-                        numberOfLines={1}
-                        className="text-[15.5px] sm:text-[17px] mt-1.5"
-                        style={{ color: amberColors.fg }}
-                      >
-                        {GOAL_LABELS[personalization.goal] ?? personalization.goal}
-                      </AppText>
-                      <AppText weight="medium" numberOfLines={1} className="text-[11px] mt-0.5" style={[{ color: amberColors.sub }, tnum]}>
-                        P {personalization.targetProteinGrams || 141}g · K {personalization.targetCarbGrams || 282}g
-                      </AppText>
-                    </ColorBlock>
-                  </View>
-                </View>
-              </Surface>
-            </FadeInView>
-
-            {/* 2. Biometric & Metabolic Summary */}
-            <FadeInView index={2}>
-              <Surface>
-                <CardHead
-                  title="Biometrik & metabolisme"
-                  caption="Parameter perhitungan Mifflin-St Jeor"
-                  right={
-                    <RingButton
-                      icon="edit"
-                      accessibilityLabel="Ubah data biometrik"
-                      onPress={handleOpenEdit}
-                    />
-                  }
-                />
-                <View>
-                  {[
-                    { label: "Berat badan", value: `${personalization.weight} kg`, icon: "scale" as const },
-                    { label: "Tinggi badan", value: `${personalization.height} cm`, icon: "target" as const },
-                    {
-                      label: "Usia & jenis kelamin",
-                      value: `${userAge} thn · ${GENDER_LABELS[personalization.gender] ?? personalization.gender}`,
-                      icon: "user" as const,
-                    },
-                    {
-                      label: "BMR / TDEE",
-                      value: `${personalization.bmr || "-"} / ${personalization.tdee || "-"} kcal`,
-                      icon: "flame" as const,
-                    },
-                  ].map((row, i) => (
-                    <ListRow
-                      key={row.label}
-                      last={i === 3}
-                      leading={<RowIcon icon={row.icon} tone="plain" />}
-                      title={row.label}
-                      trailing={
-                        <AppText weight="bold" className="text-[14px] text-ink" style={tnum}>
-                          {row.value}
-                        </AppText>
-                      }
-                    />
-                  ))}
-                </View>
-              </Surface>
-            </FadeInView>
-
-            {/* 3. Membership Surface */}
-            <FadeInView index={3}>
-              <Surface dense>
-                <ListRow
-                  last
-                  onPress={() => router.push("/(app)/upgrade")}
-                  accessibilityLabel={isPremium ? "Kelola langganan Premium" : "Lihat paket Premium"}
-                  leading={<RowIcon icon="crown" tone="amber" />}
-                  title={isPremium ? "Better Life Premium" : "Paket Gratis"}
-                  caption={
-                    isPremium
-                      ? currentPeriodEnd
-                        ? `Aktif hingga ${new Date(currentPeriodEnd).toLocaleDateString("id-ID")}`
-                        : "Semua fitur analitik dan rencana makan terbuka"
-                      : "Buka rencana makan 7 hari dan analitik 30 hari"
-                  }
-                  trailing={
-                    <View className="flex-row items-center gap-2">
-                      <StatusPill
-                        label={isPremium ? "Aktif" : "Upgrade"}
-                        tone={isPremium ? "good" : "warn"}
-                        dot={false}
-                      />
-                      <LineIcon name="chevronRight" size={18} color="#7d8781" />
-                    </View>
-                  }
-                />
-              </Surface>
-            </FadeInView>
-
-            {/* 4. Direct Account & Personalization Actions */}
-            <FadeInView index={4}>
-              <Surface dense>
-                <ListRow
-                  onPress={() => router.push("/(onboarding)")}
-                  accessibilityLabel="Ulangi kalibrasi personalisasi 8 langkah"
-                  leading={<RowIcon icon="refresh" tone="accent" />}
-                  title="Kalibrasi ulang personalisasi"
-                  caption="Atur ulang tujuan, metrik tubuh, diet & alergi (8 langkah)"
-                  trailing={<LineIcon name="chevronRight" size={18} color="#7d8781" />}
-                />
-                <ListRow
-                  last
-                  onPress={async () => {
-                    await logout();
-                    router.replace("/(auth)/get-started");
-                  }}
-                  accessibilityLabel="Keluar atau ganti akun"
-                  leading={<RowIcon icon="logout" tone="ink" />}
-                  title="Keluar / Ganti akun"
-                  caption="Kembali ke halaman masuk & pendaftaran akun"
-                  trailing={<LineIcon name="chevronRight" size={18} color="#7d8781" />}
-                />
-              </Surface>
-            </FadeInView>
-          </View>
-
-          {/* Right Column: Collections & Saved Recipes */}
-          <FadeInView index={3} className="w-full lg:w-7/12">
+        <View className="gap-3.5">
+          {/* 1. Minimalist Identity & Core Metrics Card */}
+          <FadeInView index={1}>
             <Surface>
-              <CardHead
-                title="Tersimpan"
-                caption="Koleksi menu dan resep pilihan Anda"
-              />
-
-              <View className="mb-3">
-                <Segmented
-                  stretch
-                  options={[
-                    { value: "list", label: "Koleksi Saya" },
-                    { value: "recipes", label: "Resep Tersimpan" },
-                  ]}
-                  value={activeTab}
-                  onChange={setActiveTab}
-                  accessibilityLabel="Pilih tampilan tersimpan"
-                />
+              <View className="flex-row items-center">
+                <View className="mr-3.5 flex-shrink-0">
+                  <Avatar name={user?.name || "Pengguna"} size={56} showBadge />
+                </View>
+                <View className="flex-1 min-w-0 mr-2">
+                  <AppText
+                    weight="semibold"
+                    numberOfLines={1}
+                    className="text-[19px] text-ink"
+                    style={{ letterSpacing: -0.3 }}
+                  >
+                    {user?.name || "Pengguna Better Life"}
+                  </AppText>
+                  <AppText weight="medium" numberOfLines={1} className="text-[13px] text-muted mt-0.5">
+                    {user?.email || "Akun tersimpan di perangkat"}
+                  </AppText>
+                </View>
+                <StatusPill label={isPremium ? "Premium" : "Gratis"} tone={isPremium ? "good" : "plain"} />
               </View>
 
-              {activeTab === "list" && (
-                <View>
-                  {userLists.map((item, idx) => (
-                    <ListRow
-                      key={item.id}
-                      last={idx === userLists.length - 1}
-                      onPress={() => router.push("/(app)/(tabs)/meals")}
-                      leading={<RowIcon icon="bookmark" tone="accent" />}
-                      title={item.title}
-                      caption={item.count}
-                      trailing={
-                        <View className="flex-row items-center gap-2">
-                          <StatusPill label={item.tag} tone="plain" dot={false} />
-                          <LineIcon name="chevronRight" size={17} color="#7d8781" />
-                        </View>
-                      }
-                    />
-                  ))}
-                  <View className="mt-3 pt-1">
-                    <PillButton
-                      label="Buat koleksi baru"
-                      icon="plus"
-                      size="sm"
-                      onPress={handleCreateNewList}
-                      accessibilityLabel="Buat koleksi menu baru"
-                    />
-                  </View>
+              {/* Clean 3-Column Minimalist Summary Strip */}
+              <PressableScale
+                onPress={handleOpenEdit}
+                pressedScale={0.99}
+                className="flex-row items-center justify-between bg-card-2 border border-line rounded-[18px] px-4 py-3.5 mt-4"
+                accessibilityRole="button"
+                accessibilityLabel="Ringkasan target dan fisik, ketuk untuk mengubah"
+              >
+                <View className="flex-1 min-w-0">
+                  <AppText weight="medium" className="text-[11.5px] text-muted">
+                    Target energi
+                  </AppText>
+                  <AppText weight="bold" className="text-[17px] text-ink mt-0.5" style={tnum}>
+                    {targetKcal.toLocaleString("id-ID")}{" "}
+                    <AppText weight="semibold" className="text-[11.5px] text-muted">
+                      kcal
+                    </AppText>
+                  </AppText>
                 </View>
-              )}
 
-              {activeTab === "recipes" && (
-                <View>
-                  {MOCK_RECIPES.slice(0, 4).map((recipe, idx) => (
-                    <ListRow
-                      key={recipe.id}
-                      last={idx === 3}
-                      onPress={() => router.push(`/(app)/recipe-detail?id=${recipe.id}`)}
-                      leading={
-                        <View className="w-11 h-11 rounded-[12px] bg-card-2 overflow-hidden items-center justify-center flex-shrink-0">
-                          {recipe.imageUrl ? (
-                            <Image
-                              source={{ uri: recipe.imageUrl }}
-                              style={{ width: "100%", height: "100%" }}
-                              resizeMode="cover"
-                            />
-                          ) : (
-                            <LineIcon name="book" size={18} color="#0e7a52" />
-                          )}
-                        </View>
-                      }
-                      title={recipe.title}
-                      caption={`${recipe.calories} kcal · ${recipe.prepTimeMinutes} mnt`}
-                      trailing={
-                        <View className="flex-row items-center gap-2">
-                          <StatusPill label={mealLabel(recipe.category)} tone="plain" dot={false} />
-                          <LineIcon name="chevronRight" size={17} color="#7d8781" />
-                        </View>
-                      }
-                    />
-                  ))}
+                <View className="w-px h-8 bg-line mx-3" />
+
+                <View className="flex-1 min-w-0">
+                  <AppText weight="medium" className="text-[11.5px] text-muted">
+                    Fokus
+                  </AppText>
+                  <AppText weight="bold" numberOfLines={1} className="text-[14.5px] text-ink mt-0.5">
+                    {GOAL_LABELS[personalization.goal] ?? personalization.goal}
+                  </AppText>
                 </View>
-              )}
+
+                <View className="w-px h-8 bg-line mx-3" />
+
+                <View className="flex-1 min-w-0">
+                  <AppText weight="medium" className="text-[11.5px] text-muted">
+                    Fisik
+                  </AppText>
+                  <AppText weight="bold" numberOfLines={1} className="text-[14.5px] text-ink mt-0.5" style={tnum}>
+                    {personalization.weight} kg · {personalization.height} cm
+                  </AppText>
+                </View>
+              </PressableScale>
+
+              {/* Concise Macro Target Line */}
+              <View className="flex-row items-center justify-between mt-3 px-1">
+                <AppText weight="medium" className="text-[12px] text-muted">
+                  Target makro harian
+                </AppText>
+                <AppText weight="semibold" className="text-[12.5px] text-ink" style={tnum}>
+                  Protein {targetP}g · Karbo {targetK}g · Lemak {targetL}g
+                </AppText>
+              </View>
+            </Surface>
+          </FadeInView>
+
+          {/* 2. Single Clean Action & Settings Group */}
+          <FadeInView index={2}>
+            <Surface dense>
+              <ListRow
+                onPress={() => router.push("/(app)/upgrade")}
+                accessibilityLabel={isPremium ? "Kelola langganan Premium" : "Lihat paket Premium"}
+                leading={<RowIcon icon="crown" tone="amber" />}
+                title={isPremium ? "Better Life Premium" : "Upgrade ke Premium"}
+                trailing={
+                  <View className="flex-row items-center gap-2">
+                    <StatusPill
+                      label={isPremium ? "Aktif" : "Coba"}
+                      tone={isPremium ? "good" : "warn"}
+                      dot={false}
+                    />
+                    <LineIcon name="chevronRight" size={18} color="#7d8781" />
+                  </View>
+                }
+              />
+
+              <ListRow
+                onPress={() => router.push("/(app)/analytics")}
+                accessibilityLabel="Lihat tren nutrisi"
+                leading={<RowIcon icon="chart" tone="accent" />}
+                title="Tren & analitik nutrisi"
+                trailing={<LineIcon name="chevronRight" size={18} color="#7d8781" />}
+              />
+
+              <ListRow
+                onPress={() => router.push("/(onboarding)")}
+                accessibilityLabel="Kalibrasi ulang personalisasi"
+                leading={<RowIcon icon="refresh" tone="plain" />}
+                title="Kalibrasi ulang personalisasi"
+                trailing={<LineIcon name="chevronRight" size={18} color="#7d8781" />}
+              />
+
+              <ListRow
+                onPress={handleResetData}
+                accessibilityLabel="Reset data jurnal"
+                leading={<RowIcon icon="trash" tone="plain" />}
+                title="Reset data jurnal"
+                trailing={<LineIcon name="chevronRight" size={18} color="#7d8781" />}
+              />
+
+              <ListRow
+                last
+                onPress={async () => {
+                  await logout();
+                  router.replace("/(auth)/get-started");
+                }}
+                accessibilityLabel="Keluar akun"
+                leading={<RowIcon icon="logout" tone="ink" />}
+                title="Keluar akun"
+                trailing={<LineIcon name="chevronRight" size={18} color="#7d8781" />}
+              />
             </Surface>
           </FadeInView>
         </View>
@@ -512,263 +368,185 @@ export default function ProfileScreen() {
               accessibilityRole="button"
               accessibilityLabel="Tutup jendela edit"
             />
-            <Surface className="w-full max-w-lg rounded-t-[26px] sm:rounded-[26px] p-5 sm:p-6 max-h-[90%] z-10">
-              <CardHead
-                title="Ubah data & target"
-                caption="Target kalori dan makro dihitung ulang otomatis"
-                right={
-                  <RingButton
-                    icon="close"
-                    disabled={isSaving}
-                    onPress={() => !isSaving && setEditModalVisible(false)}
-                    accessibilityLabel="Tutup"
-                  />
-                }
-              />
-
-              <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-                {formError && (
-                  <View className="p-3 mb-4 bg-bad-soft rounded-2xl">
-                    <AppText weight="semibold" className="text-xs text-bad text-center">
-                      {formError}
-                    </AppText>
-                  </View>
-                )}
-
-                {saveSuccess && (
-                  <View className="p-3 mb-4 bg-primary-light rounded-2xl items-center flex-row justify-center gap-x-2">
-                    <LineIcon name="check" size={16} color="#0e7a52" strokeWidth={2.4} />
-                    <AppText weight="bold" className="text-xs text-primary-text">
-                      Profil dan target kalori berhasil diperbarui
-                    </AppText>
-                  </View>
-                )}
-
-                {/* Goal Selector */}
-                <View className="mb-4">
-                  <AppText weight="semibold" className="text-[13px] text-muted mb-2">
-                    Tujuan utama
-                  </AppText>
-                  <View className="flex-row gap-2">
-                    {GOALS.map((g) => {
-                      const isSelected = editGoal === g;
-                      return (
-                        <PressableScale
-                          key={g}
-                          onPress={() => setEditGoal(g)}
-                          disabled={isSaving}
-                          pressedScale={0.96}
-                          className={`flex-1 min-h-[42px] py-2 px-2 rounded-full items-center justify-center border ${
-                            isSelected ? "bg-block-ink border-block-ink" : "bg-card border-line-2"
-                          }`}
-                          accessibilityRole="button"
-                        >
-                          <AppText
-                            weight="semibold"
-                            className={`text-xs text-center ${isSelected ? "text-block-on-ink" : "text-ink"}`}
-                          >
-                            {GOAL_LABELS[g]}
-                          </AppText>
-                        </PressableScale>
-                      );
-                    })}
-                  </View>
-                </View>
-
-                {/* Gender Selector */}
-                <View className="mb-4">
-                  <AppText weight="semibold" className="text-[13px] text-muted mb-2">
-                    Jenis kelamin
-                  </AppText>
-                  <View className="flex-row gap-2">
-                    {GENDERS.map((g) => {
-                      const isSelected = editGender === g;
-                      return (
-                        <PressableScale
-                          key={g}
-                          onPress={() => setEditGender(g)}
-                          disabled={isSaving}
-                          pressedScale={0.96}
-                          className={`flex-1 min-h-[42px] py-2 rounded-full items-center justify-center border ${
-                            isSelected ? "bg-block-ink border-block-ink" : "bg-card border-line-2"
-                          }`}
-                          accessibilityRole="button"
-                        >
-                          <AppText
-                            weight="semibold"
-                            className={`text-xs ${isSelected ? "text-block-on-ink" : "text-ink"}`}
-                          >
-                            {GENDER_LABELS[g]}
-                          </AppText>
-                        </PressableScale>
-                      );
-                    })}
-                  </View>
-                </View>
-
-                {/* Weight, Height, Age */}
-                <View className="flex-row gap-2.5 mb-4">
-                  <View className="flex-1">
-                    <AppText weight="semibold" className="text-[12.5px] text-muted mb-1.5">
-                      Berat (kg)
-                    </AppText>
-                    <TextInput
-                      value={editWeight}
-                      onChangeText={setEditWeight}
-                      keyboardType="numeric"
-                      placeholder="65"
-                      editable={!isSaving}
-                      className="w-full h-12 bg-card-2 border border-line rounded-2xl px-3.5 text-ink text-base"
-                      style={{ fontFamily: "Urbanist-Bold", fontSize: 16, includeFontPadding: false }}
+            <FadeInView duration={220} translateY={16} className="w-full max-w-lg max-h-[90%] z-10">
+              <Surface className="w-full rounded-t-[26px] sm:rounded-[26px] p-5 sm:p-6">
+                <CardHead
+                  title="Ubah data & target"
+                  caption="Target kalori dihitung ulang otomatis"
+                  right={
+                    <RingButton
+                      icon="close"
+                      disabled={isSaving}
+                      onPress={() => !isSaving && setEditModalVisible(false)}
+                      accessibilityLabel="Tutup"
                     />
-                  </View>
+                  }
+                />
 
-                  <View className="flex-1">
-                    <AppText weight="semibold" className="text-[12.5px] text-muted mb-1.5">
-                      Tinggi (cm)
-                    </AppText>
-                    <TextInput
-                      value={editHeight}
-                      onChangeText={setEditHeight}
-                      keyboardType="numeric"
-                      placeholder="170"
-                      editable={!isSaving}
-                      className="w-full h-12 bg-card-2 border border-line rounded-2xl px-3.5 text-ink text-base"
-                      style={{ fontFamily: "Urbanist-Bold", fontSize: 16, includeFontPadding: false }}
-                    />
-                  </View>
-
-                  <View className="flex-1">
-                    <AppText weight="semibold" className="text-[12.5px] text-muted mb-1.5">
-                      Usia (thn)
-                    </AppText>
-                    <TextInput
-                      value={editAge}
-                      onChangeText={setEditAge}
-                      keyboardType="numeric"
-                      placeholder="25"
-                      editable={!isSaving}
-                      className="w-full h-12 bg-card-2 border border-line rounded-2xl px-3.5 text-ink text-base"
-                      style={{ fontFamily: "Urbanist-Bold", fontSize: 16, includeFontPadding: false }}
-                    />
-                  </View>
-                </View>
-
-                {/* Live Preview */}
-                <ColorBlock tone="mist" className="mb-5">
-                  <AppText weight="medium" className="text-xs text-muted mb-1">
-                    Estimasi target harian baru
-                  </AppText>
-                  <View className="flex-row justify-between items-baseline flex-wrap gap-2">
-                    <View>
-                      <AppText weight="semibold" className="text-[24px] text-primary-text" style={tnum}>
-                        {previewPlan.targetCalories.toLocaleString("id-ID")} kcal
-                      </AppText>
-                      <AppText weight="medium" className="text-[11.5px] text-muted mt-0.5" style={tnum}>
-                        BMR {previewPlan.bmr} · TDEE {previewPlan.tdee}
+                <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+                  {formError && (
+                    <View className="p-3 mb-4 bg-bad-soft rounded-2xl">
+                      <AppText weight="semibold" className="text-xs text-bad text-center">
+                        {formError}
                       </AppText>
                     </View>
-                    <AppText weight="bold" className="text-xs text-ink" style={tnum}>
-                      P {previewPlan.targetProteinGrams}g · K {previewPlan.targetCarbGrams}g · L {previewPlan.targetFatGrams}g
-                    </AppText>
-                  </View>
-                </ColorBlock>
+                  )}
 
-                <View className="flex-row gap-2.5 pt-1 pb-2">
-                  <PillButton
-                    label="Batal"
-                    onPress={() => setEditModalVisible(false)}
-                    disabled={isSaving}
-                    className="flex-1"
-                  />
-                  <PillButton
-                    label={isSaving ? "Menyimpan..." : "Simpan perubahan"}
-                    variant="primary"
-                    icon="check"
-                    onPress={handleSaveProfile}
-                    disabled={isSaving}
-                    className="flex-1"
-                  />
-                </View>
-              </ScrollView>
-            </Surface>
+                  {saveSuccess && (
+                    <View className="p-3 mb-4 bg-primary-light rounded-2xl items-center flex-row justify-center gap-x-2">
+                      <LineIcon name="check" size={16} color="#0e7a52" strokeWidth={2.4} />
+                      <AppText weight="bold" className="text-xs text-primary-text">
+                        Profil dan target kalori berhasil diperbarui
+                      </AppText>
+                    </View>
+                  )}
+
+                  {/* Goal Selector */}
+                  <View className="mb-4">
+                    <AppText weight="semibold" className="text-[13px] text-muted mb-2">
+                      Tujuan utama
+                    </AppText>
+                    <View className="flex-row gap-2">
+                      {GOALS.map((g) => {
+                        const isSelected = editGoal === g;
+                        return (
+                          <PressableScale
+                            key={g}
+                            onPress={() => setEditGoal(g)}
+                            disabled={isSaving}
+                            pressedScale={0.96}
+                            className={`flex-1 min-h-[42px] py-2 px-2 rounded-full items-center justify-center border ${
+                              isSelected ? "bg-block-ink border-block-ink" : "bg-card border-line-2"
+                            }`}
+                            accessibilityRole="button"
+                          >
+                            <AppText
+                              weight="semibold"
+                              className={`text-xs text-center ${isSelected ? "text-block-on-ink" : "text-ink"}`}
+                            >
+                              {GOAL_LABELS[g]}
+                            </AppText>
+                          </PressableScale>
+                        );
+                      })}
+                    </View>
+                  </View>
+
+                  {/* Gender Selector */}
+                  <View className="mb-4">
+                    <AppText weight="semibold" className="text-[13px] text-muted mb-2">
+                      Jenis kelamin
+                    </AppText>
+                    <View className="flex-row gap-2">
+                      {GENDERS.map((g) => {
+                        const isSelected = editGender === g;
+                        return (
+                          <PressableScale
+                            key={g}
+                            onPress={() => setEditGender(g)}
+                            disabled={isSaving}
+                            pressedScale={0.96}
+                            className={`flex-1 min-h-[42px] py-2 rounded-full items-center justify-center border ${
+                              isSelected ? "bg-block-ink border-block-ink" : "bg-card border-line-2"
+                            }`}
+                            accessibilityRole="button"
+                          >
+                            <AppText
+                              weight="semibold"
+                              className={`text-xs ${isSelected ? "text-block-on-ink" : "text-ink"}`}
+                            >
+                              {GENDER_LABELS[g]}
+                            </AppText>
+                          </PressableScale>
+                        );
+                      })}
+                    </View>
+                  </View>
+
+                  {/* Weight, Height, Age */}
+                  <View className="flex-row gap-2.5 mb-4">
+                    <View className="flex-1">
+                      <AppText weight="semibold" className="text-[12.5px] text-muted mb-1.5">
+                        Berat (kg)
+                      </AppText>
+                      <TextInput
+                        value={editWeight}
+                        onChangeText={setEditWeight}
+                        keyboardType="numeric"
+                        placeholder="65"
+                        editable={!isSaving}
+                        className="w-full h-12 bg-card-2 border border-line rounded-2xl px-3.5 text-ink text-base"
+                        style={{ fontFamily: "Urbanist-Bold", fontSize: 16, includeFontPadding: false }}
+                      />
+                    </View>
+
+                    <View className="flex-1">
+                      <AppText weight="semibold" className="text-[12.5px] text-muted mb-1.5">
+                        Tinggi (cm)
+                      </AppText>
+                      <TextInput
+                        value={editHeight}
+                        onChangeText={setEditHeight}
+                        keyboardType="numeric"
+                        placeholder="170"
+                        editable={!isSaving}
+                        className="w-full h-12 bg-card-2 border border-line rounded-2xl px-3.5 text-ink text-base"
+                        style={{ fontFamily: "Urbanist-Bold", fontSize: 16, includeFontPadding: false }}
+                      />
+                    </View>
+
+                    <View className="flex-1">
+                      <AppText weight="semibold" className="text-[12.5px] text-muted mb-1.5">
+                        Usia (thn)
+                      </AppText>
+                      <TextInput
+                        value={editAge}
+                        onChangeText={setEditAge}
+                        keyboardType="numeric"
+                        placeholder="25"
+                        editable={!isSaving}
+                        className="w-full h-12 bg-card-2 border border-line rounded-2xl px-3.5 text-ink text-base"
+                        style={{ fontFamily: "Urbanist-Bold", fontSize: 16, includeFontPadding: false }}
+                      />
+                    </View>
+                  </View>
+
+                  {/* Live Preview */}
+                  <ColorBlock tone="mist" className="mb-5">
+                    <AppText weight="medium" className="text-xs text-muted mb-1">
+                      Estimasi target harian baru
+                    </AppText>
+                    <View className="flex-row justify-between items-baseline flex-wrap gap-2">
+                      <AppText weight="semibold" className="text-[22px] text-primary-text" style={tnum}>
+                        {previewPlan.targetCalories.toLocaleString("id-ID")} kcal
+                      </AppText>
+                      <AppText weight="bold" className="text-xs text-ink" style={tnum}>
+                        P {previewPlan.targetProteinGrams}g · K {previewPlan.targetCarbGrams}g · L {previewPlan.targetFatGrams}g
+                      </AppText>
+                    </View>
+                  </ColorBlock>
+
+                  <View className="flex-row gap-2.5 pt-1 pb-2">
+                    <PillButton
+                      label="Batal"
+                      onPress={() => setEditModalVisible(false)}
+                      disabled={isSaving}
+                      className="flex-1"
+                    />
+                    <PillButton
+                      label={isSaving ? "Menyimpan..." : "Simpan"}
+                      variant="primary"
+                      icon="check"
+                      onPress={handleSaveProfile}
+                      disabled={isSaving}
+                      className="flex-1"
+                    />
+                  </View>
+                </ScrollView>
+              </Surface>
+            </FadeInView>
           </View>
         </KeyboardAvoidingView>
-      </Modal>
-
-      {/* Account Settings Modal */}
-      <Modal
-        visible={settingsVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setSettingsVisible(false)}
-      >
-        <View className="flex-1 items-center justify-center px-5">
-          <Pressable
-            style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(18, 24, 20, 0.45)" }]}
-            onPress={() => setSettingsVisible(false)}
-            accessibilityRole="button"
-            accessibilityLabel="Tutup pengaturan"
-          />
-          <Surface className="w-full max-w-[380px] z-10">
-            <CardHead
-              title="Pengaturan akun"
-              right={
-                <RingButton
-                  icon="close"
-                  onPress={() => setSettingsVisible(false)}
-                  accessibilityLabel="Tutup"
-                />
-              }
-            />
-
-            <View>
-              <ListRow
-                onPress={() => {
-                  setSettingsVisible(false);
-                  setEditModalVisible(true);
-                }}
-                leading={<RowIcon icon="edit" tone="plain" />}
-                title="Ubah data diri & target"
-                trailing={<LineIcon name="chevronRight" size={17} color="#7d8781" />}
-              />
-              <ListRow
-                onPress={() => {
-                  setSettingsVisible(false);
-                  router.push("/(onboarding)");
-                }}
-                leading={<RowIcon icon="refresh" tone="plain" />}
-                title="Ulangi kalibrasi awal"
-                trailing={<LineIcon name="chevronRight" size={17} color="#7d8781" />}
-              />
-              <ListRow
-                onPress={() => {
-                  setSettingsVisible(false);
-                  router.push("/(app)/upgrade");
-                }}
-                leading={<RowIcon icon="crown" tone="amber" />}
-                title="Langganan & paket"
-                trailing={<LineIcon name="chevronRight" size={17} color="#7d8781" />}
-              />
-              <ListRow
-                onPress={handleResetData}
-                leading={<RowIcon icon="trash" tone="plain" />}
-                title="Reset semua data"
-                caption="Hapus jurnal & kalibrasi"
-              />
-              <ListRow
-                last
-                onPress={async () => {
-                  setSettingsVisible(false);
-                  await logout();
-                  router.replace("/(auth)/get-started");
-                }}
-                leading={<RowIcon icon="logout" tone="ink" />}
-                title="Keluar akun"
-              />
-            </View>
-          </Surface>
-        </View>
       </Modal>
     </ScreenWrapper>
   );

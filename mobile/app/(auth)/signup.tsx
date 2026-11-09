@@ -1,10 +1,11 @@
 import React, { useState, useRef } from "react";
-import { View, TextInput, Pressable, Image } from "react-native";
+import { View, Pressable, Image } from "react-native";
 import { useRouter } from "expo-router";
 import {
   AppText,
   Button,
   Divider,
+  FadeInView,
   GoogleSignInModal,
   FlowScreen,
   FlowTitle,
@@ -12,6 +13,7 @@ import {
   FormAlert,
   TextLink,
   LineIcon,
+  PressableScale,
 } from "@/components/ui";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { sessionStorage } from "@/lib/sessionStorage";
@@ -257,7 +259,7 @@ export default function SignupScreen() {
 
       {/* STEP 1: EMAIL REGISTRATION */}
       {step === 1 && (
-        <View key="signup-step-1">
+        <FadeInView key="signup-step-1" index={0}>
           <FlowTitle
             eyebrow="Langkah 1 dari 4 · Email"
             title="Daftarkan email Anda"
@@ -285,16 +287,14 @@ export default function SignupScreen() {
 
           <Divider label="ATAU" className="my-5" />
 
-          <Pressable
+          <PressableScale
             onPress={() => setShowGoogleModal(true)}
-            style={({ pressed }) => [
-              {
-                backgroundColor: "#fbfdfc",
-                borderWidth: 1,
-                borderColor: "#d5dbd7",
-              },
-              pressed ? { opacity: 0.88, transform: [{ scale: 0.985 }] } : null,
-            ]}
+            pressedScale={0.98}
+            style={{
+              backgroundColor: "#fbfdfc",
+              borderWidth: 1,
+              borderColor: "#d5dbd7",
+            }}
             className="w-full h-[52px] flex-row items-center justify-center rounded-full gap-x-3"
             accessibilityRole="button"
             accessibilityLabel="Daftar dengan Google"
@@ -303,13 +303,13 @@ export default function SignupScreen() {
             <AppText weight="bold" className="text-[15px] text-ink">
               Daftar Cepat dengan Google
             </AppText>
-          </Pressable>
-        </View>
+          </PressableScale>
+        </FadeInView>
       )}
 
       {/* STEP 2: OTP VERIFICATION */}
       {step === 2 && (
-        <View key="signup-step-2">
+        <FadeInView key="signup-step-2" index={0}>
           <FlowTitle
             eyebrow="Langkah 2 dari 4 · Verifikasi OTP"
             title="Masukkan kode 6 digit"
@@ -382,11 +382,12 @@ export default function SignupScreen() {
                 Ketuk tombol di samping untuk mengisi otomatis
               </AppText>
             </View>
-            <Pressable
+            <PressableScale
               onPress={() => {
                 setOtpInput(generatedOtp);
                 setOtpError("");
               }}
+              pressedScale={0.95}
               className="px-3.5 py-2 rounded-full bg-primary"
               accessibilityRole="button"
               accessibilityLabel="Isi kode OTP otomatis"
@@ -394,7 +395,7 @@ export default function SignupScreen() {
               <AppText weight="bold" className="text-[12px] text-white">
                 Isi Otomatis
               </AppText>
-            </Pressable>
+            </PressableScale>
           </View>
 
           <View className="flex-row items-center justify-between mt-4">
@@ -411,12 +412,12 @@ export default function SignupScreen() {
               }}
             />
           </View>
-        </View>
+        </FadeInView>
       )}
 
       {/* STEP 3: USERNAME / PROFILE CREATION */}
       {step === 3 && (
-        <View key="signup-step-3">
+        <FadeInView key="signup-step-3" index={0}>
           <FlowTitle
             eyebrow="Langkah 3 dari 4 · Profil"
             title="Buat username Anda"
@@ -453,12 +454,12 @@ export default function SignupScreen() {
               accessibilityLabel="Input nomor telepon opsional"
             />
           </View>
-        </View>
+        </FadeInView>
       )}
 
       {/* STEP 4: PASSWORD & CONFIRMATION */}
       {step === 4 && (
-        <View key="signup-step-4">
+        <FadeInView key="signup-step-4" index={0}>
           <FlowTitle
             eyebrow="Langkah 4 dari 4 · Keamanan"
             title="Buat kata sandi"
@@ -537,7 +538,7 @@ export default function SignupScreen() {
               </View>
             ))}
           </View>
-        </View>
+        </FadeInView>
       )}
 
       <GoogleSignInModal

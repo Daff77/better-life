@@ -25,6 +25,7 @@ import { NAV_DESKTOP_BREAKPOINT } from "@/components/layout/ResponsiveTabBar";
 import { mealLabel } from "@/constants/MealLabels";
 import { MealIllustrations, getMealIllustration } from "@/constants/Assets";
 import { FoodItem } from "@/data/mockRecipes";
+import { horizontalScrollTouchProps } from "@/lib/tabSwipeGuard";
 
 const ILLUSTRATED_SLOTS = [
   { id: "Breakfast", label: "Sarapan", subtitle: "Menu pagi", image: MealIllustrations.Breakfast },
@@ -214,6 +215,7 @@ export default function MealsScreen() {
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ gap: 10, paddingRight: 16 }}
+            {...horizontalScrollTouchProps}
           >
             {ILLUSTRATED_SLOTS.map((slot) => {
               const isSelected = selectedSlot === slot.id;
@@ -264,6 +266,7 @@ export default function MealsScreen() {
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ gap: 8, paddingRight: 16, alignItems: "center", marginTop: 10 }}
+            {...horizontalScrollTouchProps}
           >
             <FilterChip
               label="Semua waktu"

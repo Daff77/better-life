@@ -1,15 +1,18 @@
 import React from "react";
 import {
-  Pressable,
   PressableProps,
   View,
+  StyleProp,
+  ViewStyle,
 } from "react-native";
+import { PressableScale } from "./PressableScale";
 
-export interface IconButtonProps extends Omit<PressableProps, "children"> {
+export interface IconButtonProps extends Omit<PressableProps, "children" | "style"> {
   icon: React.ReactNode;
   size?: number;
   variant?: "default" | "filled" | "outline";
   className?: string;
+  style?: StyleProp<ViewStyle>;
   accessibilityLabel?: string;
 }
 
@@ -35,14 +38,12 @@ export const IconButton: React.FC<IconButtonProps> = ({
   };
 
   return (
-    <Pressable
-      className={`items-center justify-center ${getVariantStyles()} ${
-        disabled ? "opacity-45" : ""
-      } ${className || ""}`}
-      style={({ pressed }) => [
+    <PressableScale
+      pressedScale={0.94}
+      className={`items-center justify-center ${getVariantStyles()} ${className || ""}`}
+      style={[
         { width: size, height: size, minWidth: 44, minHeight: 44 },
-        pressed && !disabled ? { opacity: 0.85, transform: [{ scale: 0.94 }] } : undefined,
-        typeof style === "function" ? style({ pressed }) : (style as any),
+        style,
       ]}
       disabled={disabled}
       accessibilityRole="button"
@@ -60,6 +61,6 @@ export const IconButton: React.FC<IconButtonProps> = ({
       >
         {icon}
       </View>
-    </Pressable>
+    </PressableScale>
   );
 };

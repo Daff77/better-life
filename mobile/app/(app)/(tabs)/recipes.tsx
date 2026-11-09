@@ -21,6 +21,7 @@ import { Entitlement } from "@/lib/subscriptionDomain";
 import { NAV_DESKTOP_BREAKPOINT } from "@/components/layout/ResponsiveTabBar";
 import { mealLabel } from "@/constants/MealLabels";
 import { MealIllustrations } from "@/constants/Assets";
+import { horizontalScrollTouchProps } from "@/lib/tabSwipeGuard";
 
 const ILLUSTRATED_CATEGORIES = [
   { id: "Breakfast", label: "Sarapan", image: MealIllustrations.Breakfast },
@@ -93,6 +94,7 @@ export default function RecipesScreen() {
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ gap: 10, paddingRight: 16 }}
+            {...horizontalScrollTouchProps}
           >
             {ILLUSTRATED_CATEGORIES.map((cat) => {
               const isSelected = selectedCategory === cat.id;

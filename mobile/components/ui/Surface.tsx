@@ -1,9 +1,18 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { View, ViewProps, StyleProp, ViewStyle, Platform } from "react-native";
+import Animated, {
+  Easing,
+  cancelAnimation,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from "react-native-reanimated";
 import { AppText } from "./AppText";
 import { PressableScale } from "./PressableScale";
 import { LineIcon, LineIconName } from "./LineIcon";
 import { Colors } from "@/constants/DesignTokens";
+import { MotionCurves, MotionDurations } from "@/constants/AnimationTokens";
 
 /*
  * Better Life surface kit.
@@ -258,32 +267,78 @@ export interface MixSegment {
   outlined?: boolean;
 }
 
+const mixEaseOut = Easing.bezier(...MotionCurves.out);
+
+const AnimatedMixSegment: React.FC<{
+  targetGrow: number;
+  minSegmentWidth: number;
+  color: string;
+  height: number;
+  outlined?: boolean;
+}> = ({ targetGrow, minSegmentWidth, color, height, outlined }) => {
+  const grow = useSharedValue(Math.max(1, targetGrow * 0.35));
+
+  useEffect(() => {
+    grow.value = withTiming(Math.max(0.5, targetGrow), {
+      duration: MotionDurations.fill,
+      easing: mixEaseOut,
+    });
+    return () => {
+      cancelAnimation(grow);
+    };
+  }, [targetGrow, grow]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    flexGrow: grow.value,
+  }));
+
+  return (
+    <Animated.View
+      style={[
+        {
+          flexShrink: 1,
+          flexBasis: 0,
+          minWidth: minSegmentWidth,
+          backgroundColor: color,
+          borderRadius: Math.min(14, height / 2),
+          borderWidth: outlined ? 1 : 0,
+          borderColor: "rgba(16, 32, 24, 0.12)",
+        },
+        animatedStyle,
+      ]}
+    />
+  );
+};
+
 /** Proportional bar of rounded segments. Used for calorie composition and plan mix. */
-export const MixBar: React.FC<{ segments: MixSegment[]; height?: number; accessibilityLabel?: string }> = ({
+export const MixBar: React.FC<{
+  segments: MixSegment[];
+  height?: number;
+  minSegmentWidth?: number;
+  accessibilityLabel?: string;
+}> = ({
   segments,
   height = 40,
+  minSegmentWidth = 6,
   accessibilityLabel,
 }) => {
   const visible = segments.filter((s) => s.value > 0);
+  const total = visible.reduce((sum, s) => sum + s.value, 0);
   return (
     <View
-      className="flex-row gap-1.5"
+      className="flex-row gap-1.5 w-full"
       style={{ height }}
       accessibilityRole="image"
       accessibilityLabel={accessibilityLabel}
     >
       {visible.map((s, idx) => (
-        <View
+        <AnimatedMixSegment
           key={s.key ?? s.label ?? String(idx)}
-          style={{
-            flexGrow: s.value,
-            flexBasis: 0,
-            minWidth: 14,
-            backgroundColor: s.color,
-            borderRadius: Math.min(14, height / 2.6),
-            borderWidth: s.outlined ? 1 : 0,
-            borderColor: "rgba(16, 32, 24, 0.12)",
-          }}
+          targetGrow={total > 0 ? (s.value / total) * 100 : 1}
+          minSegmentWidth={minSegmentWidth}
+          color={s.color}
+          height={height}
+          outlined={s.outlined}
         />
       ))}
     </View>
@@ -436,6 +491,54 @@ export interface SegmentedProps<T extends string> {
   stretch?: boolean;
 }
 
+const SegmentedOption: React.FC<{
+  label: string;
+  selected: boolean;
+  stretch?: boolean;
+  onPress: () => void;
+}> = ({ label, selected, stretch, onPress }) => {
+  const activeScale = useSharedValue(selected ? 1 : 0.96);
+
+  useEffect(() => {
+    activeScale.value = withSpring(selected ? 1 : 0.96, {
+      damping: 22,
+      stiffness: 340,
+      mass: 0.65,
+    });
+    return () => {
+      cancelAnimation(activeScale);
+    };
+  }, [selected, activeScale]);
+
+  const labelStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: activeScale.value }],
+  }));
+
+  return (
+    <PressableScale
+      onPress={onPress}
+      pressedScale={0.95}
+      className={`h-9 px-3.5 rounded-full items-center justify-center ${stretch ? "flex-1" : ""} ${
+        selected ? "bg-card" : ""
+      }`}
+      style={selected ? ({ boxShadow: "0px 1px 2px rgba(0,0,0,0.08)" } as ViewStyle) : undefined}
+      accessibilityRole="radio"
+      accessibilityState={{ selected }}
+      accessibilityLabel={label}
+    >
+      <Animated.View style={labelStyle}>
+        <AppText
+          weight="semibold"
+          numberOfLines={1}
+          className={`text-[13px] ${selected ? "text-ink" : "text-muted"}`}
+        >
+          {label}
+        </AppText>
+      </Animated.View>
+    </PressableScale>
+  );
+};
+
 /** Pill segmented control. Selected segment lifts onto a card-coloured thumb. */
 export function Segmented<T extends string>({ options, value, onChange, accessibilityLabel, stretch }: SegmentedProps<T>) {
   return (
@@ -444,31 +547,15 @@ export function Segmented<T extends string>({ options, value, onChange, accessib
       accessibilityRole="radiogroup"
       accessibilityLabel={accessibilityLabel}
     >
-      {options.map((o) => {
-        const on = o.value === value;
-        return (
-          <PressableScale
-            key={o.value}
-            onPress={() => onChange(o.value)}
-            pressedScale={0.96}
-            className={`h-9 px-3.5 rounded-full items-center justify-center ${stretch ? "flex-1" : ""} ${
-              on ? "bg-card" : ""
-            }`}
-            style={on ? ({ boxShadow: "0px 1px 2px rgba(0,0,0,0.08)" } as ViewStyle) : undefined}
-            accessibilityRole="radio"
-            accessibilityState={{ selected: on }}
-            accessibilityLabel={o.label}
-          >
-            <AppText
-              weight="semibold"
-              numberOfLines={1}
-              className={`text-[13px] ${on ? "text-ink" : "text-muted"}`}
-            >
-              {o.label}
-            </AppText>
-          </PressableScale>
-        );
-      })}
+      {options.map((o) => (
+        <SegmentedOption
+          key={o.value}
+          label={o.label}
+          selected={o.value === value}
+          stretch={stretch}
+          onPress={() => onChange(o.value)}
+        />
+      ))}
     </View>
   );
 }

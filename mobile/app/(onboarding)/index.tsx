@@ -4,12 +4,14 @@ import { useRouter } from "expo-router";
 import {
   AppText,
   Button,
+  FadeInView,
   FlowScreen,
   FlowTitle,
   TextField,
   ChoiceTile,
   FormAlert,
   LineIcon,
+  PressableScale,
   Surface,
   StatusPill,
 } from "@/components/ui";
@@ -289,7 +291,7 @@ export default function OnboardingScreen() {
 
       {/* STEP 1: MAIN GOAL */}
       {currentStep === 1 && (
-        <View key="onboard-step-1">
+        <FadeInView key="onboard-step-1" index={0}>
           <FlowTitle
             eyebrow="Langkah 1 dari 8 · Tujuan Utama"
             title="Apa tujuan kesehatan utama Anda?"
@@ -333,12 +335,12 @@ export default function OnboardingScreen() {
               onPress={() => setGoal("Gain muscle")}
             />
           </View>
-        </View>
+        </FadeInView>
       )}
 
       {/* STEP 2: WEIGHT AND HEIGHT */}
       {currentStep === 2 && (
-        <View key="onboard-step-2">
+        <FadeInView key="onboard-step-2" index={0}>
           <FlowTitle
             eyebrow="Langkah 2 dari 8 · Metrik Tubuh"
             title="Berapa berat dan tinggi badan Anda?"
@@ -363,14 +365,15 @@ export default function OnboardingScreen() {
               </View>
 
               <View className="flex-row items-center gap-3">
-                <Pressable
+                <PressableScale
                   onPress={() => adjustMetric(weight, -1, 30, 250, setWeight)}
+                  pressedScale={0.93}
                   className="w-12 h-12 rounded-2xl bg-card-2 border border-line items-center justify-center"
                   accessibilityRole="button"
                   accessibilityLabel="Kurangi berat 1 kilogram"
                 >
                   <LineIcon name="minus" size={18} color="#121a16" />
-                </Pressable>
+                </PressableScale>
 
                 <View className="flex-1">
                   <TextField
@@ -388,14 +391,15 @@ export default function OnboardingScreen() {
                   />
                 </View>
 
-                <Pressable
+                <PressableScale
                   onPress={() => adjustMetric(weight, 1, 30, 250, setWeight)}
+                  pressedScale={0.93}
                   className="w-12 h-12 rounded-2xl bg-card-2 border border-line items-center justify-center"
                   accessibilityRole="button"
                   accessibilityLabel="Tambah berat 1 kilogram"
                 >
                   <LineIcon name="plus" size={18} color="#121a16" />
-                </Pressable>
+                </PressableScale>
               </View>
             </Surface>
 
@@ -416,14 +420,15 @@ export default function OnboardingScreen() {
               </View>
 
               <View className="flex-row items-center gap-3">
-                <Pressable
+                <PressableScale
                   onPress={() => adjustMetric(height, -1, 100, 250, setHeight)}
+                  pressedScale={0.93}
                   className="w-12 h-12 rounded-2xl bg-card-2 border border-line items-center justify-center"
                   accessibilityRole="button"
                   accessibilityLabel="Kurangi tinggi 1 sentimeter"
                 >
                   <LineIcon name="minus" size={18} color="#121a16" />
-                </Pressable>
+                </PressableScale>
 
                 <View className="flex-1">
                   <TextField
@@ -441,46 +446,49 @@ export default function OnboardingScreen() {
                   />
                 </View>
 
-                <Pressable
+                <PressableScale
                   onPress={() => adjustMetric(height, 1, 100, 250, setHeight)}
+                  pressedScale={0.93}
                   className="w-12 h-12 rounded-2xl bg-card-2 border border-line items-center justify-center"
                   accessibilityRole="button"
                   accessibilityLabel="Tambah tinggi 1 sentimeter"
                 >
                   <LineIcon name="plus" size={18} color="#121a16" />
-                </Pressable>
+                </PressableScale>
               </View>
             </Surface>
 
             {bmiInfo && (
-              <View className="flex-row items-center justify-between px-4 py-3 rounded-[16px] bg-card border border-line">
-                <View>
-                  <AppText weight="semibold" className="text-[13px] text-ink">
-                    Indeks Massa Tubuh (BMI)
-                  </AppText>
-                  <AppText weight="medium" className="text-[12px] text-muted">
-                    Estimasi proporsi berat & tinggi saat ini
-                  </AppText>
+              <FadeInView duration={220} translateY={4}>
+                <View className="flex-row items-center justify-between px-4 py-3 rounded-[16px] bg-card border border-line">
+                  <View>
+                    <AppText weight="semibold" className="text-[13px] text-ink">
+                      Indeks Massa Tubuh (BMI)
+                    </AppText>
+                    <AppText weight="medium" className="text-[12px] text-muted">
+                      Estimasi proporsi berat & tinggi saat ini
+                    </AppText>
+                  </View>
+                  <View className="flex-row items-center gap-2">
+                    <AppText
+                      weight="bold"
+                      className="text-[18px] text-ink"
+                      style={{ fontVariant: ["tabular-nums"] }}
+                    >
+                      {bmiInfo.value}
+                    </AppText>
+                    <StatusPill label={bmiInfo.label} tone={bmiInfo.tone} dot={false} />
+                  </View>
                 </View>
-                <View className="flex-row items-center gap-2">
-                  <AppText
-                    weight="bold"
-                    className="text-[18px] text-ink"
-                    style={{ fontVariant: ["tabular-nums"] }}
-                  >
-                    {bmiInfo.value}
-                  </AppText>
-                  <StatusPill label={bmiInfo.label} tone={bmiInfo.tone} dot={false} />
-                </View>
-              </View>
+              </FadeInView>
             )}
           </View>
-        </View>
+        </FadeInView>
       )}
 
       {/* STEP 3: GENDER */}
       {currentStep === 3 && (
-        <View key="onboard-step-3">
+        <FadeInView key="onboard-step-3" index={0}>
           <FlowTitle
             eyebrow="Langkah 3 dari 8 · Profil Biologis"
             title="Apa jenis kelamin biologis Anda?"
@@ -512,12 +520,12 @@ export default function OnboardingScreen() {
               onPress={() => setGender("Male")}
             />
           </View>
-        </View>
+        </FadeInView>
       )}
 
       {/* STEP 4: BIRTH DATE */}
       {currentStep === 4 && (
-        <View key="onboard-step-4">
+        <FadeInView key="onboard-step-4" index={0}>
           <FlowTitle
             eyebrow="Langkah 4 dari 8 · Tanggal Lahir"
             title="Kapan Anda lahir?"
@@ -544,8 +552,9 @@ export default function OnboardingScreen() {
               <AppText weight="semibold" className="text-[13.5px] text-ink-2 mb-2">
                 Bulan
               </AppText>
-              <Pressable
+              <PressableScale
                 onPress={() => setShowMonthPicker(true)}
+                pressedScale={0.98}
                 className="h-[54px] px-4 rounded-[16px] bg-card border border-line-2 flex-row items-center justify-between"
                 accessibilityRole="button"
                 accessibilityLabel={`Pilih bulan lahir, saat ini ${birthMonth}`}
@@ -554,7 +563,7 @@ export default function OnboardingScreen() {
                   {MONTHS_ID[birthMonth] || birthMonth}
                 </AppText>
                 <LineIcon name="chevronDown" size={18} color="#56605a" />
-              </Pressable>
+              </PressableScale>
             </View>
 
             <View className="flex-[1.1] min-w-0">
@@ -574,28 +583,30 @@ export default function OnboardingScreen() {
           </View>
 
           {calculatedAge !== null && (
-            <View className="mt-4 px-4 py-3 rounded-[16px] bg-primary-light flex-row items-center justify-between">
-              <View className="flex-row items-center gap-2">
-                <LineIcon name="calendar" size={17} color="#0b6b47" />
-                <AppText weight="semibold" className="text-[13.5px] text-primary-text">
-                  Usia terhitung
+            <FadeInView duration={220} translateY={4}>
+              <View className="mt-4 px-4 py-3 rounded-[16px] bg-primary-light flex-row items-center justify-between">
+                <View className="flex-row items-center gap-2">
+                  <LineIcon name="calendar" size={17} color="#0b6b47" />
+                  <AppText weight="semibold" className="text-[13.5px] text-primary-text">
+                    Usia terhitung
+                  </AppText>
+                </View>
+                <AppText
+                  weight="bold"
+                  className="text-[15px] text-primary-text"
+                  style={{ fontVariant: ["tabular-nums"] }}
+                >
+                  {calculatedAge} tahun
                 </AppText>
               </View>
-              <AppText
-                weight="bold"
-                className="text-[15px] text-primary-text"
-                style={{ fontVariant: ["tabular-nums"] }}
-              >
-                {calculatedAge} tahun
-              </AppText>
-            </View>
+            </FadeInView>
           )}
-        </View>
+        </FadeInView>
       )}
 
       {/* STEP 5: COOKING SKILL LEVEL */}
       {currentStep === 5 && (
-        <View key="onboard-step-5">
+        <FadeInView key="onboard-step-5" index={0}>
           <FlowTitle
             eyebrow="Langkah 5 dari 8 · Keahlian Memasak"
             title="Seberapa sering Anda memasak?"
@@ -627,12 +638,12 @@ export default function OnboardingScreen() {
               onPress={() => setCookingSkill("High")}
             />
           </View>
-        </View>
+        </FadeInView>
       )}
 
       {/* STEP 6: DIET TYPE */}
       {currentStep === 6 && (
-        <View key="onboard-step-6">
+        <FadeInView key="onboard-step-6" index={0}>
           <FlowTitle
             eyebrow="Langkah 6 dari 8 · Pola Makan"
             title="Apa preferensi diet Anda?"
@@ -676,12 +687,12 @@ export default function OnboardingScreen() {
               />
             ))}
           </View>
-        </View>
+        </FadeInView>
       )}
 
       {/* STEP 7: FOOD ALLERGIES & INTOLERANCES */}
       {currentStep === 7 && (
-        <View key="onboard-step-7">
+        <FadeInView key="onboard-step-7" index={0}>
           <FlowTitle
             eyebrow="Langkah 7 dari 8 · Alergi & Intoleransi"
             title="Apakah Anda memiliki alergi makanan?"
@@ -741,7 +752,7 @@ export default function OnboardingScreen() {
               onPress={() => toggleAllergy("Eggs")}
             />
           </View>
-        </View>
+        </FadeInView>
       )}
 
       {/* Month Picker Modal */}
@@ -755,53 +766,57 @@ export default function OnboardingScreen() {
           className="flex-1 bg-black/45 justify-center items-center p-5"
           onPress={() => setShowMonthPicker(false)}
         >
-          <Pressable
-            className="bg-card rounded-[24px] p-5 w-full max-w-sm border border-line"
-            onPress={(e) => e.stopPropagation()}
-          >
-            <View className="flex-row items-center justify-between mb-4">
-              <AppText weight="bold" className="text-[17px] text-ink">
-                Pilih Bulan Lahir
-              </AppText>
-              <Pressable
-                onPress={() => setShowMonthPicker(false)}
-                hitSlop={8}
-                className="w-8 h-8 rounded-full bg-card-2 items-center justify-center"
-                accessibilityLabel="Tutup"
-              >
-                <LineIcon name="close" size={16} color="#56605a" />
-              </Pressable>
-            </View>
+          <FadeInView duration={220} translateY={12} className="w-full max-w-sm">
+            <Pressable
+              className="bg-card rounded-[24px] p-5 w-full border border-line"
+              onPress={(e) => e.stopPropagation()}
+            >
+              <View className="flex-row items-center justify-between mb-4">
+                <AppText weight="bold" className="text-[17px] text-ink">
+                  Pilih Bulan Lahir
+                </AppText>
+                <PressableScale
+                  onPress={() => setShowMonthPicker(false)}
+                  hitSlop={8}
+                  pressedScale={0.92}
+                  className="w-8 h-8 rounded-full bg-card-2 items-center justify-center"
+                  accessibilityLabel="Tutup"
+                >
+                  <LineIcon name="close" size={16} color="#56605a" />
+                </PressableScale>
+              </View>
 
-            <View className="flex-row flex-wrap gap-2 justify-between">
-              {MONTHS_LIST.map((m) => {
-                const isSelected = birthMonth.trim().toLowerCase() === m.toLowerCase();
-                return (
-                  <Pressable
-                    key={m}
-                    onPress={() => {
-                      setBirthMonth(m);
-                      setShowMonthPicker(false);
-                    }}
-                    style={{
-                      width: "31%",
-                      backgroundColor: isSelected ? Colors.primary.DEFAULT : "#f0f4f1",
-                      borderColor: isSelected ? Colors.primary.DEFAULT : "#e6eae7",
-                      borderWidth: 1,
-                    }}
-                    className="py-3 px-2 rounded-[12px] items-center justify-center"
-                  >
-                    <AppText
-                      weight="semibold"
-                      className={`text-[13px] ${isSelected ? "text-white" : "text-ink"}`}
+              <View className="flex-row flex-wrap gap-2 justify-between">
+                {MONTHS_LIST.map((m) => {
+                  const isSelected = birthMonth.trim().toLowerCase() === m.toLowerCase();
+                  return (
+                    <PressableScale
+                      key={m}
+                      onPress={() => {
+                        setBirthMonth(m);
+                        setShowMonthPicker(false);
+                      }}
+                      pressedScale={0.95}
+                      style={{
+                        width: "31%",
+                        backgroundColor: isSelected ? Colors.primary.DEFAULT : "#f0f4f1",
+                        borderColor: isSelected ? Colors.primary.DEFAULT : "#e6eae7",
+                        borderWidth: 1,
+                      }}
+                      className="py-3 px-2 rounded-[12px] items-center justify-center"
                     >
-                      {(MONTHS_ID[m] || m).slice(0, 3)}
-                    </AppText>
-                  </Pressable>
-                );
-              })}
-            </View>
-          </Pressable>
+                      <AppText
+                        weight="semibold"
+                        className={`text-[13px] ${isSelected ? "text-white" : "text-ink"}`}
+                      >
+                        {(MONTHS_ID[m] || m).slice(0, 3)}
+                      </AppText>
+                    </PressableScale>
+                  );
+                })}
+              </View>
+            </Pressable>
+          </FadeInView>
         </Pressable>
       </Modal>
     </FlowScreen>

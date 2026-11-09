@@ -1,18 +1,19 @@
 import React from "react";
 import {
-  Pressable,
   PressableProps,
   ActivityIndicator,
   View,
-  Platform,
+  StyleProp,
+  ViewStyle,
   GestureResponderEvent,
 } from "react-native";
 import { AppText } from "./AppText";
+import { PressableScale } from "./PressableScale";
 import { Colors, Shadows } from "@/constants/DesignTokens";
 import { AnimationScales } from "@/constants/AnimationTokens";
 import { CheckIconSvg } from "@/constants/Assets";
 
-export interface ButtonProps extends Omit<PressableProps, "children"> {
+export interface ButtonProps extends Omit<PressableProps, "children" | "style"> {
   title: string;
   variant?: "primary" | "secondary" | "outline" | "ghost" | "social";
   size?: "sm" | "md" | "lg";
@@ -21,6 +22,7 @@ export interface ButtonProps extends Omit<PressableProps, "children"> {
   loading?: boolean;
   success?: boolean;
   className?: string;
+  style?: StyleProp<ViewStyle>;
   onPress?: (event: GestureResponderEvent) => void;
 }
 
@@ -89,22 +91,14 @@ export const Button: React.FC<ButtonProps> = ({
   };
 
   return (
-    <Pressable
+    <PressableScale
       onPress={handlePress}
-      className={`flex-row items-center justify-center min-h-[44px] ${
-        Platform.OS === "web"
-          ? "transition-colors duration-150 cursor-pointer"
-          : ""
-      } ${getSizeStyle()} ${getContainerStyle()} ${
-        disabled ? "opacity-45" : ""
-      } ${className || ""}`}
-      style={({ pressed }) => [
-        variant === "primary" ? Shadows.button : undefined,
-        pressed && !disabled && !loading
-          ? { opacity: 0.9, transform: [{ scale: AnimationScales.pressButton }] }
-          : undefined,
-        typeof style === "function" ? style({ pressed }) : (style as any),
-      ]}
+      pressedScale={AnimationScales.pressButton}
+      pressedOpacity={0.92}
+      className={`flex-row items-center justify-center min-h-[44px] ${getSizeStyle()} ${getContainerStyle()} ${
+        className || ""
+      }`}
+      style={[variant === "primary" ? Shadows.button : undefined, style]}
       disabled={disabled || loading}
       accessibilityRole="button"
       accessibilityState={{ disabled: !!(disabled || loading), busy: loading }}
@@ -144,6 +138,6 @@ export const Button: React.FC<ButtonProps> = ({
           </View>
         )}
       </View>
-    </Pressable>
+    </PressableScale>
   );
 };

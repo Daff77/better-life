@@ -1,8 +1,9 @@
 import React from "react";
-import { View, Pressable, PressableProps, Platform } from "react-native";
+import { View, PressableProps, StyleProp, ViewStyle } from "react-native";
 import { AppText } from "./AppText";
+import { PressableScale } from "./PressableScale";
 
-export interface OptionCardProps extends Omit<PressableProps, "children"> {
+export interface OptionCardProps extends Omit<PressableProps, "children" | "style"> {
   title: string;
   subtitle?: string;
   selected?: boolean;
@@ -10,6 +11,7 @@ export interface OptionCardProps extends Omit<PressableProps, "children"> {
   rightElement?: React.ReactNode;
   multiSelect?: boolean;
   className?: string;
+  style?: StyleProp<ViewStyle>;
 }
 
 export const OptionCard: React.FC<OptionCardProps> = ({
@@ -26,22 +28,16 @@ export const OptionCard: React.FC<OptionCardProps> = ({
   ...props
 }) => {
   return (
-    <Pressable
+    <PressableScale
       onPress={onPress}
+      pressedScale={0.985}
       className={`w-full min-h-[68px] p-4 rounded-xl border flex-row items-center justify-between mb-3 ${
-        Platform.OS === "web" ? "transition-all duration-150 hover:shadow-xs cursor-pointer" : ""
-      } ${
         selected
           ? "border-primary bg-[#edf8f2]"
           : "border-neutral-border bg-white"
-      } ${
-        disabled ? "opacity-45" : ""
       } ${className || ""}`}
       disabled={disabled}
-      style={({ pressed }) => [
-        pressed && !disabled ? { opacity: 0.9, transform: [{ scale: 0.985 }] } : undefined,
-        typeof style === "function" ? style({ pressed }) : (style as any),
-      ]}
+      style={style}
       accessibilityRole={multiSelect ? "checkbox" : "radio"}
       accessibilityLabel={props.accessibilityLabel || (subtitle ? `${title}, ${subtitle}` : title)}
       accessibilityState={{ checked: selected, disabled: !!disabled }}
@@ -99,6 +95,6 @@ export const OptionCard: React.FC<OptionCardProps> = ({
 
         {Boolean(rightElement) && <View className="ml-2">{rightElement}</View>}
       </View>
-    </Pressable>
+    </PressableScale>
   );
 };

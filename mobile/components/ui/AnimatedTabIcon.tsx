@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { ColorValue } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import Animated, {
+  cancelAnimation,
   useSharedValue,
   useAnimatedStyle,
   withSpring,
@@ -33,7 +34,10 @@ export const AnimatedTabIcon: React.FC<AnimatedTabIconProps> = ({
       focused ? AnimationScales.activeTab : 1,
       AnimationEasings.tabSpringConfig
     );
-  }, [focused]);
+    return () => {
+      cancelAnimation(scale);
+    };
+  }, [focused, scale]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -89,7 +93,7 @@ export const AnimatedTabIcon: React.FC<AnimatedTabIconProps> = ({
   };
 
   return (
-    <Animated.View style={animatedStyle} className="items-center justify-center">
+    <Animated.View style={[{ alignItems: "center", justifyContent: "center" }, animatedStyle]}>
       {renderIconSvg()}
     </Animated.View>
   );

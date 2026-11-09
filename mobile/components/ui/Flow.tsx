@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   ScrollView,
@@ -11,9 +11,20 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
+import Animated, {
+  Easing,
+  cancelAnimation,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from "react-native-reanimated";
 import { AppText } from "./AppText";
+import { PressableScale } from "./PressableScale";
+import { FadeInView } from "./FadeInView";
 import { LineIcon, LineIconName } from "./LineIcon";
 import { Colors } from "@/constants/DesignTokens";
+import { AnimationEasings, MotionCurves } from "@/constants/AnimationTokens";
 
 /*
  * Flow kit: the shared shell for authentication and personalization screens.
@@ -22,22 +33,56 @@ import { Colors } from "@/constants/DesignTokens";
  */
 
 const INK = Colors.neutral.dark;
+const easeOut = Easing.bezier(...MotionCurves.out);
 
 /* ---------------------------------------------------------- StepProgress */
 
+const StepProgressSegment: React.FC<{ active: boolean }> = ({ active }) => {
+  const fill = useSharedValue(active ? 1 : 0);
+
+  useEffect(() => {
+    fill.value = withTiming(active ? 1 : 0, {
+      duration: 280,
+      easing: easeOut,
+    });
+    return () => {
+      cancelAnimation(fill);
+    };
+  }, [active, fill]);
+
+  const fillStyle = useAnimatedStyle(() => ({
+    width: `${Math.round(fill.value * 100)}%`,
+    opacity: 0.35 + fill.value * 0.65,
+  }));
+
+  return (
+    <View
+      className="flex-1 h-1.5 rounded-full overflow-hidden"
+      style={{ backgroundColor: "#d5dbd7" }}
+    >
+      <Animated.View
+        style={[
+          {
+            height: "100%",
+            backgroundColor: Colors.primary.DEFAULT,
+            borderRadius: 999,
+          },
+          fillStyle,
+        ]}
+      />
+    </View>
+  );
+};
+
 export const StepProgress: React.FC<{ current: number; total: number }> = ({ current, total }) => (
   <View
-    className="flex-row gap-1 flex-1"
+    className="flex-row gap-1.5 flex-1"
     accessibilityRole="progressbar"
     accessibilityValue={{ min: 1, max: total, now: current }}
     accessibilityLabel={`Langkah ${current} dari ${total}`}
   >
     {Array.from({ length: total }).map((_, i) => (
-      <View
-        key={i}
-        className="flex-1 h-1 rounded-full"
-        style={{ backgroundColor: i < current ? Colors.primary.DEFAULT : "#d5dbd7" }}
-      />
+      <StepProgressSegment key={i} active={i < current} />
     ))}
   </View>
 );
@@ -65,16 +110,16 @@ export const FlowScreen: React.FC<FlowScreenProps> = ({ onBack, step, topRight, 
         {(onBack || step || topRight) && (
           <View className="flex-row items-center gap-3 px-5 pt-2 pb-1 min-h-[52px]">
             {onBack ? (
-              <Pressable
+              <PressableScale
                 onPress={onBack}
+                pressedScale={0.92}
                 hitSlop={8}
                 className="w-10 h-10 -ml-2 rounded-full items-center justify-center"
-                style={({ pressed }) => (pressed ? { backgroundColor: "rgba(18,26,22,0.06)" } : undefined)}
                 accessibilityRole="button"
                 accessibilityLabel="Kembali"
               >
                 <LineIcon name="arrowLeft" size={22} color={INK} />
-              </Pressable>
+              </PressableScale>
             ) : null}
             {step ? (
               <>
@@ -241,77 +286,103 @@ export interface ChoiceTileProps {
 }
 
 /** Single- or multi-select row. Selection reads from border, fill and the indicator. */
-export const ChoiceTile: React.FC<ChoiceTileProps> = ({ title, caption, leading, selected, multi, onPress }) => (
-  <Pressable
-    onPress={onPress}
-    className="flex-row items-center gap-3.5 rounded-[18px] px-4 py-3.5 min-h-[64px]"
-    style={({ pressed }) => [
-      {
+export const ChoiceTile: React.FC<ChoiceTileProps> = ({ title, caption, leading, selected, multi, onPress }) => {
+  const checkScale = useSharedValue(selected ? 1 : 0.75);
+
+  useEffect(() => {
+    checkScale.value = withSpring(selected ? 1 : 0.75, AnimationEasings.pressSpringConfig);
+    return () => {
+      cancelAnimation(checkScale);
+    };
+  }, [selected, checkScale]);
+
+  const indicatorAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: checkScale.value }],
+  }));
+
+  return (
+    <PressableScale
+      onPress={onPress}
+      pressedScale={0.985}
+      className="flex-row items-center gap-3.5 rounded-[18px] px-4 py-3.5 min-h-[64px]"
+      style={{
         backgroundColor: selected ? "#e8f3ed" : "#fbfdfc",
         borderWidth: selected ? 1.5 : 1,
         borderColor: selected ? Colors.primary.DEFAULT : "#e1e6e2",
-      },
-      pressed ? { transform: [{ scale: 0.985 }] } : null,
-    ]}
-    accessibilityRole={multi ? "checkbox" : "radio"}
-    accessibilityState={multi ? { checked: selected } : { selected }}
-    accessibilityLabel={caption ? `${title}. ${caption}` : title}
-  >
-    {leading ? <View className="flex-shrink-0">{leading}</View> : null}
-    <View className="flex-1 min-w-0">
-      <AppText weight="semibold" className="text-[16px] text-ink">
-        {title}
-      </AppText>
-      {caption ? (
-        <AppText weight="medium" className="text-[13.5px] text-muted mt-0.5" style={{ lineHeight: 18 }}>
-          {caption}
-        </AppText>
-      ) : null}
-    </View>
-    <View
-      className={`w-6 h-6 items-center justify-center flex-shrink-0 ${multi ? "rounded-[7px]" : "rounded-full"}`}
-      style={{
-        backgroundColor: selected ? Colors.primary.DEFAULT : "transparent",
-        borderWidth: selected ? 0 : 1.5,
-        borderColor: "#c3cbc6",
       }}
+      accessibilityRole={multi ? "checkbox" : "radio"}
+      accessibilityState={multi ? { checked: selected } : { selected }}
+      accessibilityLabel={caption ? `${title}. ${caption}` : title}
     >
-      {selected ? <LineIcon name="check" size={14} color="#ffffff" strokeWidth={2.6} /> : null}
-    </View>
-  </Pressable>
-);
+      {leading ? <View className="flex-shrink-0">{leading}</View> : null}
+      <View className="flex-1 min-w-0">
+        <AppText weight="semibold" className="text-[16px] text-ink">
+          {title}
+        </AppText>
+        {caption ? (
+          <AppText weight="medium" className="text-[13.5px] text-muted mt-0.5" style={{ lineHeight: 18 }}>
+            {caption}
+          </AppText>
+        ) : null}
+      </View>
+      <Animated.View
+        style={[
+          {
+            width: 24,
+            height: 24,
+            borderRadius: multi ? 7 : 12,
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+            backgroundColor: selected ? Colors.primary.DEFAULT : "transparent",
+            borderWidth: selected ? 0 : 1.5,
+            borderColor: "#c3cbc6",
+          },
+          indicatorAnimatedStyle,
+        ]}
+      >
+        {selected ? <LineIcon name="check" size={14} color="#ffffff" strokeWidth={2.6} /> : null}
+      </Animated.View>
+    </PressableScale>
+  );
+};
 
 /* --------------------------------------------------------------- FormAlert */
 
 export const FormAlert: React.FC<{ message?: string | null }> = ({ message }) =>
   message ? (
-    <View
-      className="flex-row items-start gap-2.5 p-3.5 mb-5 rounded-[14px] bg-bad-soft"
-      accessibilityRole="alert"
-      accessibilityLiveRegion="assertive"
-    >
-      <View className="mt-px">
-        <LineIcon name="alert" size={17} color="#b3301b" />
+    <FadeInView index={0} distance={6} duration={220}>
+      <View
+        className="flex-row items-start gap-2.5 p-3.5 mb-5 rounded-[14px] bg-bad-soft"
+        accessibilityRole="alert"
+        accessibilityLiveRegion="assertive"
+      >
+        <View className="mt-px">
+          <LineIcon name="alert" size={17} color="#b3301b" />
+        </View>
+        <AppText weight="semibold" className="text-[14px] text-bad flex-1" style={{ lineHeight: 19 }}>
+          {message}
+        </AppText>
       </View>
-      <AppText weight="semibold" className="text-[14px] text-bad flex-1" style={{ lineHeight: 19 }}>
-        {message}
-      </AppText>
-    </View>
+    </FadeInView>
   ) : null;
 
 /* -------------------------------------------------------------- TextLink */
 
 export const TextLink: React.FC<{ label: string; onPress: () => void; muted?: boolean }> = ({ label, onPress, muted }) => (
-  <Pressable onPress={onPress} hitSlop={8} accessibilityRole="link" className="py-1">
-    {({ pressed }) => (
-      <AppText
-        weight="bold"
-        className={`text-[14.5px] ${muted ? "text-ink-2" : "text-primary-text"}`}
-        style={{ opacity: pressed ? 0.6 : 1 }}
-      >
-        {label}
-      </AppText>
-    )}
-  </Pressable>
+  <PressableScale
+    onPress={onPress}
+    pressedScale={0.96}
+    pressedOpacity={0.65}
+    hitSlop={8}
+    accessibilityRole="link"
+    className="py-1"
+  >
+    <AppText
+      weight="bold"
+      className={`text-[14.5px] ${muted ? "text-ink-2" : "text-primary-text"}`}
+    >
+      {label}
+    </AppText>
+  </PressableScale>
 );
-
