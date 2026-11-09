@@ -69,19 +69,14 @@ export const MealCard: React.FC<MealCardProps> = ({
       onPress={onLogMeal}
       disabled={isLogging}
       hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-      className="h-8 px-3 rounded-full bg-primary flex-row items-center justify-center gap-1 flex-shrink-0"
+      className="w-8 h-8 rounded-full bg-primary items-center justify-center flex-shrink-0"
       accessibilityRole="button"
-      accessibilityLabel={`Catat ${displayTitle} ke jurnal`}
+      accessibilityLabel={`Catat ${displayTitle}`}
     >
       {isLogging ? (
         <ActivityIndicator size="small" color="#ffffff" />
       ) : (
-        <>
-          <PlusIconSvg size={13} color="#ffffff" strokeWidth={2.5} />
-          <AppText weight="bold" className="text-[12px] text-white">
-            Catat
-          </AppText>
-        </>
+        <PlusIconSvg size={14} color="#ffffff" strokeWidth={2.5} />
       )}
     </PressableScale>
   ) : null;

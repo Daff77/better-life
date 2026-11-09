@@ -225,20 +225,21 @@ export default function MealsScreen() {
         <FadeInView index={0}>
           <PageHead
             title="Catat makan"
-            caption={`${aggregates.totalConsumed.toLocaleString("id-ID")} dari ${target.toLocaleString("id-ID")} kcal hari ini`}
             right={
               <View className="flex-row items-center gap-2">
-                <PillButton
-                  label="Tambah resep"
-                  icon="plus"
-                  size="sm"
-                  onPress={() => setIsCreateModalVisible(true)}
-                  accessibilityLabel="Buat resep baru"
-                />
                 <StatusPill
-                  label={`${Math.max(0, target - aggregates.totalConsumed).toLocaleString("id-ID")} kcal tersisa`}
+                  label={`${Math.max(0, target - aggregates.totalConsumed).toLocaleString("id-ID")} kcal`}
                   tone="accent"
                 />
+                <PressableScale
+                  onPress={() => setIsCreateModalVisible(true)}
+                  pressedScale={0.93}
+                  className="w-10 h-10 rounded-full bg-primary items-center justify-center"
+                  accessibilityRole="button"
+                  accessibilityLabel="Tambah resep"
+                >
+                  <LineIcon name="plus" size={18} color="#ffffff" strokeWidth={2.3} />
+                </PressableScale>
               </View>
             }
           />
@@ -384,10 +385,6 @@ export default function MealsScreen() {
         </View>
 
         {renderList()}
-
-        <AppText weight="medium" className="text-xs text-muted leading-relaxed mt-6 px-0.5">
-          Harga adalah perkiraan biaya bahan di pasar lokal, untuk membantu menyusun menu sesuai budget.
-        </AppText>
       </ScrollView>
 
       <MealLogModal visible={isLogModalVisible} meal={selectedMealForLog} onClose={() => setIsLogModalVisible(false)} />

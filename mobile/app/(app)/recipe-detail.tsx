@@ -17,6 +17,7 @@ import {
   ListRow,
   RowIcon,
   PillButton,
+  RingButton,
   ColorBlock,
   LineIcon,
   SURFACE_SHADOW,
@@ -104,8 +105,7 @@ export default function RecipeDetailScreen() {
               }
             />
             {isCustomRecipe && (
-              <PillButton
-                label="Hapus"
+              <RingButton
                 icon="trash"
                 size="sm"
                 onPress={() => {
@@ -208,15 +208,11 @@ export default function RecipeDetailScreen() {
                 onPress={() => setIsLogModalVisible(true)}
                 className="w-full py-3.5 px-5 rounded-full bg-[#0e7a52] flex-row items-center justify-center gap-2"
                 accessibilityRole="button"
-                accessibilityLabel={`Catat ${recipe.title} ke jurnal`}
+                accessibilityLabel={`Catat ${recipe.title}`}
               >
                 <LineIcon name="plus" size={16} color="#ffffff" />
-                <AppText
-                  weight="semibold"
-                  className="text-sm text-white"
-                  style={{ fontVariant: ["tabular-nums"] }}
-                >
-                  Catat ke jurnal ({recipe.calories} kcal)
+                <AppText weight="semibold" className="text-sm text-white">
+                  Catat
                 </AppText>
               </PressableScale>
             </View>
@@ -366,11 +362,11 @@ export default function RecipeDetailScreen() {
             </AppText>
           </View>
           <PillButton
-            label="Catat ke jurnal"
+            label="Catat"
             variant="primary"
             icon={<LineIcon name="plus" size={15} color="#ffffff" />}
             onPress={() => setIsLogModalVisible(true)}
-            accessibilityLabel={`Catat ${recipe.title} ke jurnal`}
+            accessibilityLabel={`Catat ${recipe.title}`}
           />
         </View>
       </View>

@@ -90,17 +90,17 @@ export default function RecipesScreen() {
       >
         <FadeInView index={0}>
           <PageHead
-            title="Resep sehat"
-            caption="Takaran bahan jelas dan kalori terhitung per porsi"
+            title="Resep"
             right={
-              <PillButton
-                label="Tambah resep"
-                icon="plus"
-                variant="primary"
-                size="sm"
+              <PressableScale
                 onPress={() => setIsCreateModalVisible(true)}
-                accessibilityLabel="Tambah resep baru"
-              />
+                pressedScale={0.93}
+                className="w-10 h-10 rounded-full bg-primary items-center justify-center"
+                accessibilityRole="button"
+                accessibilityLabel="Tambah resep"
+              >
+                <LineIcon name="plus" size={18} color="#ffffff" strokeWidth={2.3} />
+              </PressableScale>
             }
           />
         </FadeInView>

@@ -205,12 +205,11 @@ export default function ProfileScreen() {
           >
             Profil
           </AppText>
-          <PillButton
-            label="Ubah target"
+          <RingButton
             icon="edit"
-            size="sm"
+            variant="solid"
             onPress={handleOpenEdit}
-            accessibilityLabel="Ubah data diri dan target"
+            accessibilityLabel="Ubah target"
           />
         </FadeInView>
 

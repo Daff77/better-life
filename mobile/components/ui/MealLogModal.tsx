@@ -466,15 +466,10 @@ export const MealLogModal: React.FC<MealLogModalProps> = ({
 
             {/* Header */}
             <View className="flex-row justify-between items-center pb-3 border-b border-line">
-              <View className="flex-1 pr-3 min-w-0">
-                <AppText weight="semibold" className="text-[19px] text-ink" style={{ letterSpacing: -0.3 }}>
-                  Catat ke jurnal
-                </AppText>
-                <AppText weight="medium" className="text-[12px] text-muted mt-0.5">
-                  Pilih menu makanan, porsi, dan waktu makan
-                </AppText>
-              </View>
-              <RingButton icon="close" accessibilityLabel="Tutup jendela" onPress={onClose} />
+              <AppText weight="semibold" className="text-[19px] text-ink" style={{ letterSpacing: -0.3 }}>
+                Catat makan
+              </AppText>
+              <RingButton icon="close" accessibilityLabel="Tutup" onPress={onClose} />
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" className="flex-shrink">
@@ -698,14 +693,9 @@ export const MealLogModal: React.FC<MealLogModalProps> = ({
 
                   {/* 2. Single Unified Portion Control */}
                   <View className="flex-row justify-between items-center rounded-[18px] bg-card border border-line px-3.5 py-2.5">
-                    <View className="flex-1 min-w-0 mr-3">
-                      <AppText weight="semibold" className="text-[14.5px] text-ink">
-                        Jumlah porsi
-                      </AppText>
-                      <AppText weight="medium" className="text-[12px] text-muted mt-0.5" style={tnum}>
-                        {baseCalories} kcal per porsi standar
-                      </AppText>
-                    </View>
+                    <AppText weight="semibold" className="text-[14.5px] text-ink">
+                      Porsi
+                    </AppText>
 
                     <View className="flex-row items-center bg-card-2 border border-line rounded-full p-1 flex-shrink-0">
                       <PressableScale
@@ -801,17 +791,13 @@ export const MealLogModal: React.FC<MealLogModalProps> = ({
                   {/* 4. Focused Primary Submit Action */}
                   <View className="pt-1">
                     <PillButton
-                      label={
-                        isSubmitting
-                          ? "Menyimpan..."
-                          : `Simpan ke ${mealLabel(selectedMealType || "Breakfast")} · ${totalCalories} kcal`
-                      }
+                      label={isSubmitting ? "Menyimpan..." : "Simpan"}
                       variant="primary"
                       icon="check"
                       disabled={!isFormValid}
                       onPress={handleLog}
                       className="w-full"
-                      accessibilityLabel="Konfirmasi catat makanan ke jurnal"
+                      accessibilityLabel="Simpan"
                     />
                   </View>
                 </View>

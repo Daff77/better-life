@@ -53,6 +53,40 @@ const DIFFICULTIES: ReadonlyArray<{ id: FoodItem["difficulty"]; label: string }>
   { id: "Hard", label: "Sulit" },
 ];
 
+/** Curated food photography options for quick 1-tap selection on Web & Mobile */
+const PHOTO_PRESETS: ReadonlyArray<{ id: string; label: string; url: string }> = [
+  {
+    id: "photo-chicken-bowl",
+    label: "Ayam & Sayur",
+    url: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80",
+  },
+  {
+    id: "photo-salmon",
+    label: "Ikan & Grill",
+    url: "https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=800&q=80",
+  },
+  {
+    id: "photo-oat-berry",
+    label: "Oat & Buah",
+    url: "https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=800&q=80",
+  },
+  {
+    id: "photo-avocado-egg",
+    label: "Toast & Telur",
+    url: "https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=800&q=80",
+  },
+  {
+    id: "photo-soup",
+    label: "Sup Hangat",
+    url: "https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=800&q=80",
+  },
+  {
+    id: "photo-smoothie",
+    label: "Minuman",
+    url: "https://images.unsplash.com/photo-1553530666-ba11a7da3888?auto=format&fit=crop&w=800&q=80",
+  },
+];
+
 const MACRO = Colors.macros;
 const tnum = { fontVariant: ["tabular-nums" as const] };
 
@@ -68,6 +102,10 @@ export const CreateRecipeModal: React.FC<CreateRecipeModalProps> = ({
   const [prepTime, setPrepTime] = useState("15");
   const [difficulty, setDifficulty] = useState<FoodItem["difficulty"]>("Easy");
   const [servings, setServings] = useState(1);
+
+  // Image / Photo state
+  const [imageUrl, setImageUrl] = useState<string>("");
+  const [showUrlInput, setShowUrlInput] = useState(false);
 
   // Ingredient input fields (user simply types ingredient name & grams)
   const [ingNameInput, setIngNameInput] = useState("");
@@ -99,13 +137,11 @@ export const CreateRecipeModal: React.FC<CreateRecipeModalProps> = ({
     }
   }, [visible]);
 
-  // Inline suggestions from the background database as user types an ingredient name
   const inlineSuggestions = useMemo(
     () => suggestIngredients(ingNameInput, 4),
     [ingNameInput]
   );
 
-  // Live preview of the currently typed ingredient before adding
   const liveTypedPreview = useMemo(() => {
     const clean = ingNameInput.trim();
     if (!clean) return null;
@@ -119,6 +155,28 @@ export const CreateRecipeModal: React.FC<CreateRecipeModalProps> = ({
     () => calculateRecipeTotalNutrition(selectedIngredients, servings),
     [selectedIngredients, servings]
   );
+
+  const handlePickDevicePhoto = () => {
+    if (Platform.OS === "web" && typeof document !== "undefined") {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "image/*";
+      input.onchange = (e: any) => {
+        const file = e?.target?.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          if (typeof reader.result === "string") {
+            setImageUrl(reader.result);
+          }
+        };
+        reader.readAsDataURL(file);
+      };
+      input.click();
+    } else {
+      setShowUrlInput((v) => !v);
+    }
+  };
 
   const handleAddTypedIngredient = (presetItem?: IngredientItem) => {
     setErrorMsg(null);
@@ -201,7 +259,7 @@ export const CreateRecipeModal: React.FC<CreateRecipeModalProps> = ({
     }
     const validIngredients = selectedIngredients.filter((i) => i.grams > 0);
     if (validIngredients.length === 0) {
-      setErrorMsg("Tambahkan minimal 1 bahan makanan pada resep.");
+      setErrorMsg("Tambahkan minimal 1 bahan makanan.");
       return;
     }
 
@@ -210,7 +268,7 @@ export const CreateRecipeModal: React.FC<CreateRecipeModalProps> = ({
     const autoDescription = `Resep sehat berbahan ${validIngredients
       .slice(0, 3)
       .map((i) => i.ingredient.name.split("(")[0].trim())
-      .join(", ")} dengan nutrisi terukur.`;
+      .join(", ")}.`;
 
     const newRecipe: FoodItem = {
       id: `custom-recipe-${Date.now()}`,
@@ -221,6 +279,7 @@ export const CreateRecipeModal: React.FC<CreateRecipeModalProps> = ({
       difficulty,
       description: autoDescription,
       svgIcon: catMeta.svgIcon,
+      imageUrl: imageUrl.trim() ? imageUrl.trim() : undefined,
       estimatedCostIdr: calculatedTotal.estimatedCostIdr,
       nutrition: {
         proteinGrams: calculatedTotal.proteinGrams,
@@ -245,11 +304,16 @@ export const CreateRecipeModal: React.FC<CreateRecipeModalProps> = ({
 
     await addCustomRecipe(newRecipe);
     setTitle("");
+    setImageUrl("");
     onRecipeCreated?.(newRecipe);
     onClose();
   };
 
   if (!visible) return null;
+
+  const previewImageSource = imageUrl.trim()
+    ? { uri: imageUrl.trim() }
+    : getMealIllustration(category);
 
   return (
     <Modal
@@ -268,40 +332,35 @@ export const CreateRecipeModal: React.FC<CreateRecipeModalProps> = ({
             style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(17, 24, 20, 0.52)" }]}
             onPress={onClose}
             accessibilityRole="button"
-            accessibilityLabel="Tutup modal buat resep"
+            accessibilityLabel="Tutup"
           />
 
           <FadeInView
             duration={240}
             translateY={18}
-            className="w-full max-w-[540px] max-h-[90%] bg-card rounded-t-[28px] sm:rounded-[28px] border border-line overflow-hidden z-10"
+            className="w-full max-w-[520px] max-h-[90%] bg-card rounded-t-[28px] sm:rounded-[28px] border border-line overflow-hidden z-10"
           >
             {/* Mobile Grab Handle */}
             <View className="items-center pt-2.5 pb-1 sm:hidden">
               <View className="w-10 h-1 rounded-full bg-line-2" />
             </View>
 
-            {/* Clean Header */}
-            <View className="flex-row items-center justify-between px-5 pt-3 pb-3.5 border-b border-line">
-              <View className="flex-1 min-w-0 pr-3">
-                <AppText
-                  weight="semibold"
-                  className="text-[19px] text-ink"
-                  style={{ letterSpacing: -0.4 }}
-                >
-                  Tambah Resep Baru
-                </AppText>
-                <AppText weight="medium" className="text-[12px] text-muted mt-0.5">
-                  Ketik nama bahan, kalori & nutrisi dihitung otomatis
-                </AppText>
-              </View>
+            {/* Minimalist Header */}
+            <View className="flex-row items-center justify-between px-5 pt-2.5 pb-3 border-b border-line">
+              <AppText
+                weight="semibold"
+                className="text-[19px] text-ink"
+                style={{ letterSpacing: -0.4 }}
+              >
+                Tambah Resep
+              </AppText>
               <RingButton icon="close" onPress={onClose} accessibilityLabel="Tutup" />
             </View>
 
             <ScrollView
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
-              contentContainerStyle={{ padding: 18, paddingBottom: 26 }}
+              contentContainerStyle={{ padding: 18, paddingBottom: 24 }}
             >
               {errorMsg && (
                 <View className="p-3 mb-4 rounded-2xl bg-bad-soft border border-bad/20">
@@ -311,73 +370,161 @@ export const CreateRecipeModal: React.FC<CreateRecipeModalProps> = ({
                 </View>
               )}
 
-              {/* Live Nutrition & Calorie Summary Card */}
-              <View className="bg-card-2 rounded-[20px] p-3.5 border border-line mb-4">
-                <View className="flex-row items-center justify-between mb-2.5">
-                  <View className="flex-row items-center gap-2.5 flex-1 min-w-0">
-                    <View className="w-9 h-9 rounded-[11px] overflow-hidden bg-card border border-line flex-shrink-0">
+              {/* 1. Foto / Gambar Resep + Ringkasan Nutrisi */}
+              <View className="rounded-[20px] overflow-hidden border border-line bg-card-2 mb-4">
+                <View className="w-full h-[132px] bg-card relative overflow-hidden">
+                  <Image
+                    source={previewImageSource}
+                    style={{ width: "100%", height: "100%" }}
+                    resizeMode="cover"
+                  />
+
+                  {/* Calorie Badge on Image */}
+                  <View
+                    className="absolute top-3 left-3 px-3 py-1 rounded-full"
+                    style={{ backgroundColor: "rgba(18, 26, 22, 0.82)" }}
+                  >
+                    <AppText weight="bold" className="text-[13px] text-white" style={tnum}>
+                      {calculatedTotal.calories} kcal
+                    </AppText>
+                  </View>
+
+                  {/* Minimalist Photo Action Buttons */}
+                  <View className="absolute bottom-2.5 right-2.5 flex-row items-center gap-1.5">
+                    {Platform.OS === "web" && (
+                      <PressableScale
+                        onPress={handlePickDevicePhoto}
+                        pressedScale={0.95}
+                        className="h-8 px-3 rounded-full flex-row items-center gap-1.5"
+                        style={{ backgroundColor: "rgba(255, 255, 255, 0.94)" }}
+                        accessibilityRole="button"
+                        accessibilityLabel="Upload foto dari perangkat"
+                      >
+                        <LineIcon name="download" size={13} color="#121a16" />
+                        <AppText weight="semibold" className="text-[11.5px] text-ink">
+                          Foto
+                        </AppText>
+                      </PressableScale>
+                    )}
+                    <PressableScale
+                      onPress={() => setShowUrlInput((v) => !v)}
+                      pressedScale={0.95}
+                      className="h-8 px-3 rounded-full flex-row items-center gap-1.5"
+                      style={{ backgroundColor: "rgba(255, 255, 255, 0.94)" }}
+                      accessibilityRole="button"
+                      accessibilityLabel="Link gambar"
+                    >
+                      <LineIcon name="edit" size={13} color="#121a16" />
+                      <AppText weight="semibold" className="text-[11.5px] text-ink">
+                        URL
+                      </AppText>
+                    </PressableScale>
+                    {Boolean(imageUrl) && (
+                      <PressableScale
+                        onPress={() => setImageUrl("")}
+                        pressedScale={0.95}
+                        className="w-8 h-8 rounded-full items-center justify-center"
+                        style={{ backgroundColor: "rgba(18, 26, 22, 0.78)" }}
+                        accessibilityRole="button"
+                        accessibilityLabel="Hapus foto"
+                      >
+                        <LineIcon name="close" size={13} color="#ffffff" />
+                      </PressableScale>
+                    )}
+                  </View>
+                </View>
+
+                {/* Photo Thumbnail Strip */}
+                <View className="px-3 py-2.5 border-b border-line bg-card">
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={{ gap: 8, alignItems: "center" }}
+                  >
+                    <PressableScale
+                      onPress={() => setImageUrl("")}
+                      pressedScale={0.95}
+                      className={`w-12 h-10 rounded-[10px] overflow-hidden border-2 ${
+                        !imageUrl ? "border-primary" : "border-line"
+                      }`}
+                    >
                       <Image
                         source={getMealIllustration(category)}
                         style={{ width: "100%", height: "100%" }}
                         resizeMode="cover"
                       />
-                    </View>
-                    <View className="flex-1 min-w-0">
-                      <AppText weight="semibold" className="text-[13.5px] text-ink">
-                        Total Nutrisi per Porsi
-                      </AppText>
-                      <AppText weight="medium" className="text-[11.5px] text-muted" style={tnum}>
-                        {selectedIngredients.length} bahan · {servings} porsi
-                      </AppText>
-                    </View>
-                  </View>
+                    </PressableScale>
 
-                  <View className="items-end flex-shrink-0">
-                    <AppText
-                      weight="bold"
-                      className="text-[22px] text-primary-text"
-                      style={[tnum, { letterSpacing: -0.5, lineHeight: 24 }]}
-                    >
-                      {calculatedTotal.calories}
-                    </AppText>
-                    <AppText weight="semibold" className="text-[10.5px] text-muted">
-                      kcal / porsi
-                    </AppText>
-                  </View>
+                    {PHOTO_PRESETS.map((p) => {
+                      const selected = imageUrl === p.url;
+                      return (
+                        <PressableScale
+                          key={p.id}
+                          onPress={() => setImageUrl(p.url)}
+                          pressedScale={0.95}
+                          className={`w-12 h-10 rounded-[10px] overflow-hidden border-2 ${
+                            selected ? "border-primary" : "border-line"
+                          }`}
+                        >
+                          <Image
+                            source={{ uri: p.url }}
+                            style={{ width: "100%", height: "100%" }}
+                            resizeMode="cover"
+                          />
+                        </PressableScale>
+                      );
+                    })}
+                  </ScrollView>
+
+                  {showUrlInput && (
+                    <View className="mt-2.5">
+                      <TextInput
+                        value={imageUrl}
+                        onChangeText={setImageUrl}
+                        placeholder="Tempel link gambar (https://...)"
+                        placeholderTextColor="#8a948e"
+                        autoCapitalize="none"
+                        className="w-full h-9 bg-card-2 border border-line rounded-[10px] px-3 text-[12.5px] text-ink"
+                        style={{ fontFamily: "Urbanist-Medium", includeFontPadding: false }}
+                      />
+                    </View>
+                  )}
                 </View>
 
-                <MixBar
-                  height={7}
-                  accessibilityLabel="Proporsi makronutrisi resep"
-                  segments={[
-                    { key: "p", value: Math.max(1, calculatedTotal.proteinGrams), color: MACRO.protein },
-                    { key: "c", value: Math.max(1, calculatedTotal.carbsGrams), color: MACRO.carbs },
-                    { key: "f", value: Math.max(1, calculatedTotal.fatGrams), color: MACRO.fat },
-                    { key: "fib", value: Math.max(1, calculatedTotal.fiberGrams), color: MACRO.fiber },
-                  ]}
-                />
-
-                <View className="flex-row items-center justify-between mt-2.5 pt-2 border-t border-line">
-                  {[
-                    { label: "Protein", val: `${calculatedTotal.proteinGrams}g`, color: MACRO.protein },
-                    { label: "Karbo", val: `${calculatedTotal.carbsGrams}g`, color: MACRO.carbs },
-                    { label: "Lemak", val: `${calculatedTotal.fatGrams}g`, color: MACRO.fat },
-                    { label: "Serat", val: `${calculatedTotal.fiberGrams}g`, color: MACRO.fiber },
-                  ].map((m) => (
-                    <View key={m.label} className="flex-row items-center gap-1">
-                      <View className="w-2 h-2 rounded-full" style={{ backgroundColor: m.color }} />
-                      <AppText weight="medium" className="text-[11px] text-muted">
-                        {m.label}{" "}
-                        <AppText weight="bold" className="text-ink" style={tnum}>
-                          {m.val}
+                {/* Live Macro Bar */}
+                <View className="p-3">
+                  <MixBar
+                    height={6}
+                    accessibilityLabel="Proporsi makronutrisi resep"
+                    segments={[
+                      { key: "p", value: Math.max(1, calculatedTotal.proteinGrams), color: MACRO.protein },
+                      { key: "c", value: Math.max(1, calculatedTotal.carbsGrams), color: MACRO.carbs },
+                      { key: "f", value: Math.max(1, calculatedTotal.fatGrams), color: MACRO.fat },
+                      { key: "fib", value: Math.max(1, calculatedTotal.fiberGrams), color: MACRO.fiber },
+                    ]}
+                  />
+                  <View className="flex-row items-center justify-between mt-2">
+                    {[
+                      { label: "Protein", val: `${calculatedTotal.proteinGrams}g`, color: MACRO.protein },
+                      { label: "Karbo", val: `${calculatedTotal.carbsGrams}g`, color: MACRO.carbs },
+                      { label: "Lemak", val: `${calculatedTotal.fatGrams}g`, color: MACRO.fat },
+                      { label: "Serat", val: `${calculatedTotal.fiberGrams}g`, color: MACRO.fiber },
+                    ].map((m) => (
+                      <View key={m.label} className="flex-row items-center gap-1">
+                        <View className="w-2 h-2 rounded-full" style={{ backgroundColor: m.color }} />
+                        <AppText weight="medium" className="text-[11px] text-muted">
+                          {m.label}{" "}
+                          <AppText weight="bold" className="text-ink" style={tnum}>
+                            {m.val}
+                          </AppText>
                         </AppText>
-                      </AppText>
-                    </View>
-                  ))}
+                      </View>
+                    ))}
+                  </View>
                 </View>
               </View>
 
-              {/* 1. Nama Resep */}
+              {/* 2. Nama Resep */}
               <View className="mb-3.5">
                 <AppText weight="semibold" className="text-[12.5px] text-muted mb-1.5">
                   Nama Resep
@@ -395,10 +542,10 @@ export const CreateRecipeModal: React.FC<CreateRecipeModalProps> = ({
                 />
               </View>
 
-              {/* 2. Kategori & Parameter Resep */}
+              {/* 3. Waktu Makan */}
               <View className="mb-3.5">
                 <AppText weight="semibold" className="text-[12.5px] text-muted mb-1.5">
-                  Waktu Makan
+                  Kategori
                 </AppText>
                 <ScrollView
                   horizontal
@@ -435,7 +582,8 @@ export const CreateRecipeModal: React.FC<CreateRecipeModalProps> = ({
                 </ScrollView>
               </View>
 
-              <View className="flex-row gap-2 mb-4">
+              {/* 4. Waktu, Porsi & Kesulitan (Clean 2-row balanced layout) */}
+              <View className="flex-row gap-2.5 mb-3">
                 <View className="flex-1">
                   <AppText weight="semibold" className="text-[11.5px] text-muted mb-1">
                     Waktu (mnt)
@@ -445,7 +593,7 @@ export const CreateRecipeModal: React.FC<CreateRecipeModalProps> = ({
                     onChangeText={setPrepTime}
                     keyboardType="numeric"
                     placeholder="15"
-                    className="h-10 bg-card-2 border border-line rounded-[12px] px-2.5 text-ink text-[13.5px] text-center"
+                    className="h-10 bg-card-2 border border-line rounded-[12px] px-3 text-ink text-[13.5px] text-center"
                     style={{ fontFamily: "Urbanist-Bold", includeFontPadding: false }}
                   />
                 </View>
@@ -454,7 +602,7 @@ export const CreateRecipeModal: React.FC<CreateRecipeModalProps> = ({
                   <AppText weight="semibold" className="text-[11.5px] text-muted mb-1">
                     Porsi
                   </AppText>
-                  <View className="h-10 bg-card-2 border border-line rounded-[12px] flex-row items-center justify-between px-1.5">
+                  <View className="h-10 bg-card-2 border border-line rounded-[12px] flex-row items-center justify-between px-2">
                     <PressableScale
                       onPress={() => setServings((s) => Math.max(1, s - 1))}
                       pressedScale={0.9}
@@ -462,7 +610,7 @@ export const CreateRecipeModal: React.FC<CreateRecipeModalProps> = ({
                     >
                       <LineIcon name="minus" size={11} color="#121a16" />
                     </PressableScale>
-                    <AppText weight="bold" className="text-[13px] text-ink" style={tnum}>
+                    <AppText weight="bold" className="text-[13.5px] text-ink" style={tnum}>
                       {servings}x
                     </AppText>
                     <PressableScale
@@ -474,43 +622,42 @@ export const CreateRecipeModal: React.FC<CreateRecipeModalProps> = ({
                     </PressableScale>
                   </View>
                 </View>
+              </View>
 
-                <View className="flex-[1.5]">
-                  <AppText weight="semibold" className="text-[11.5px] text-muted mb-1">
-                    Kesulitan
-                  </AppText>
-                  <View className="h-10 bg-card-2 border border-line rounded-[12px] flex-row p-1 gap-0.5">
-                    {DIFFICULTIES.map((d) => {
-                      const active = difficulty === d.id;
-                      return (
-                        <PressableScale
-                          key={d.id}
-                          onPress={() => setDifficulty(d.id)}
-                          pressedScale={0.95}
-                          className={`flex-1 rounded-[8px] items-center justify-center ${
-                            active ? "bg-block-ink" : ""
-                          }`}
+              <View className="mb-4">
+                <AppText weight="semibold" className="text-[11.5px] text-muted mb-1">
+                  Kesulitan
+                </AppText>
+                <View className="h-10 bg-card-2 border border-line rounded-[12px] flex-row p-1 gap-1">
+                  {DIFFICULTIES.map((d) => {
+                    const active = difficulty === d.id;
+                    return (
+                      <PressableScale
+                        key={d.id}
+                        onPress={() => setDifficulty(d.id)}
+                        pressedScale={0.96}
+                        className={`flex-1 rounded-[9px] items-center justify-center ${
+                          active ? "bg-block-ink" : ""
+                        }`}
+                      >
+                        <AppText
+                          weight="semibold"
+                          className={`text-[12px] ${active ? "text-white" : "text-muted"}`}
                         >
-                          <AppText
-                            weight="semibold"
-                            className={`text-[11px] ${active ? "text-white" : "text-muted"}`}
-                          >
-                            {d.label}
-                          </AppText>
-                        </PressableScale>
-                      );
-                    })}
-                  </View>
+                          {d.label}
+                        </AppText>
+                      </PressableScale>
+                    );
+                  })}
                 </View>
               </View>
 
-              {/* 3. Tambah Bahan Makanan (Ketik Nama Bahan -> Kalori & Nutrisi Otomatis) */}
+              {/* 5. Bahan Makanan (Minimalist Icon-Only Add Button) */}
               <View className="mb-4">
-                <AppText weight="semibold" className="text-[13px] text-ink mb-1.5">
-                  Bahan Makanan ({selectedIngredients.length})
+                <AppText weight="semibold" className="text-[12.5px] text-muted mb-1.5">
+                  Bahan ({selectedIngredients.length})
                 </AppText>
 
-                {/* Clean Single-Line Input: Nama Bahan + Gram + Tombol Tambah */}
                 <View className="flex-row items-center gap-2">
                   <View className="flex-1 h-11 bg-card-2 border border-line rounded-[13px] px-3 justify-center">
                     <TextInput
@@ -520,14 +667,14 @@ export const CreateRecipeModal: React.FC<CreateRecipeModalProps> = ({
                         if (errorMsg) setErrorMsg(null);
                       }}
                       onSubmitEditing={() => handleAddTypedIngredient()}
-                      placeholder="Ketik bahan (mis. Dada ayam, Telur, Tempe)"
+                      placeholder="Nama bahan (mis. Dada ayam, Telur)"
                       placeholderTextColor="#8a948e"
                       className="text-[13px] text-ink"
                       style={{ fontFamily: "Urbanist-Medium", includeFontPadding: false, padding: 0 }}
                     />
                   </View>
 
-                  <View className="w-[74px] h-11 bg-card-2 border border-line rounded-[13px] px-2 flex-row items-center justify-center">
+                  <View className="w-[70px] h-11 bg-card-2 border border-line rounded-[13px] px-2 flex-row items-center justify-center">
                     <TextInput
                       value={ingGramsInput}
                       onChangeText={(t) => setIngGramsInput(t.replace(/[^0-9]/g, ""))}
@@ -544,31 +691,25 @@ export const CreateRecipeModal: React.FC<CreateRecipeModalProps> = ({
 
                   <PressableScale
                     onPress={() => handleAddTypedIngredient()}
-                    pressedScale={0.95}
-                    className="h-11 px-3.5 rounded-[13px] bg-primary flex-row items-center justify-center gap-1"
+                    pressedScale={0.93}
+                    className="w-11 h-11 rounded-[13px] bg-primary items-center justify-center flex-shrink-0"
                     accessibilityRole="button"
                     accessibilityLabel="Tambah bahan"
                   >
-                    <LineIcon name="plus" size={14} color="#ffffff" strokeWidth={2.3} />
-                    <AppText weight="bold" className="text-[12.5px] text-white">
-                      Tambah
-                    </AppText>
+                    <LineIcon name="plus" size={18} color="#ffffff" strokeWidth={2.4} />
                   </PressableScale>
                 </View>
 
-                {/* Live Auto-Detected Nutrition Preview & Inline Suggestions */}
+                {/* Live Auto-Detected Nutrition Preview */}
                 {liveTypedPreview && (
                   <View className="mt-2 bg-primary-light/60 border border-primary/20 rounded-[12px] px-3 py-2">
-                    <View className="flex-row items-center justify-between flex-wrap gap-1">
-                      <AppText weight="semibold" className="text-[11.5px] text-primary-text">
-                        Otomatis ({liveTypedPreview.grams}g):{" "}
-                        <AppText weight="bold" style={tnum}>
-                          {liveTypedPreview.calc.calories} kcal
-                        </AppText>
+                    <View className="flex-row items-center justify-between">
+                      <AppText weight="bold" className="text-[11.5px] text-primary-text" style={tnum}>
+                        {liveTypedPreview.calc.calories} kcal ({liveTypedPreview.grams}g)
                       </AppText>
                       <AppText weight="medium" className="text-[11px] text-ink-2" style={tnum}>
                         P {liveTypedPreview.calc.proteinGrams}g · K {liveTypedPreview.calc.carbsGrams}g · L{" "}
-                        {liveTypedPreview.calc.fatGrams}g · Serat {liveTypedPreview.calc.fiberGrams}g
+                        {liveTypedPreview.calc.fatGrams}g
                       </AppText>
                     </View>
 
@@ -589,9 +730,6 @@ export const CreateRecipeModal: React.FC<CreateRecipeModalProps> = ({
                             <LineIcon name="plus" size={10} color="#0e7a52" />
                             <AppText weight="semibold" className="text-[11px] text-ink">
                               {sug.name.split("(")[0].trim()}
-                            </AppText>
-                            <AppText weight="medium" className="text-[10px] text-muted" style={tnum}>
-                              ({sug.per100g.calories} kcal/100g)
                             </AppText>
                           </PressableScale>
                         ))}
@@ -669,21 +807,18 @@ export const CreateRecipeModal: React.FC<CreateRecipeModalProps> = ({
                 </View>
               </View>
 
-              {/* 4. Langkah Memasak */}
+              {/* 6. Langkah Memasak (Minimalist Icon-Only Add Button) */}
               <View className="mb-5">
                 <View className="flex-row items-center justify-between mb-2">
-                  <AppText weight="semibold" className="text-[13px] text-ink">
+                  <AppText weight="semibold" className="text-[12.5px] text-muted">
                     Langkah Memasak
                   </AppText>
-                  <PressableScale
+                  <RingButton
+                    icon="plus"
+                    size="sm"
                     onPress={handleAddStep}
-                    className="flex-row items-center gap-1 px-2.5 py-1 rounded-full bg-card-2 border border-line"
-                  >
-                    <LineIcon name="plus" size={11} color="#0e7a52" />
-                    <AppText weight="semibold" className="text-[11px] text-primary-text">
-                      Tambah langkah
-                    </AppText>
-                  </PressableScale>
+                    accessibilityLabel="Tambah langkah"
+                  />
                 </View>
 
                 <View className="gap-2">
@@ -715,15 +850,15 @@ export const CreateRecipeModal: React.FC<CreateRecipeModalProps> = ({
                 </View>
               </View>
 
-              {/* Save Action */}
+              {/* Minimalist Save Action */}
               <View className="flex-row gap-2.5">
                 <PillButton label="Batal" onPress={onClose} className="flex-1" />
                 <PillButton
-                  label={`Simpan Resep · ${calculatedTotal.calories} kcal`}
+                  label="Simpan"
                   variant="primary"
                   icon="check"
                   onPress={handleSaveRecipe}
-                  className="flex-[1.8]"
+                  className="flex-1"
                 />
               </View>
             </ScrollView>
