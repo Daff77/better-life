@@ -120,6 +120,8 @@ export const ActivityStatsSchema = z.object({
   stepGoal: z.number().positive(),
   exerciseCalories: z.number().nonnegative(),
   exerciseDurationMinutes: z.number().nonnegative(),
+  waterGlasses: z.number().nonnegative().default(0),
+  waterGoal: z.number().positive().default(8),
 });
 
 export type ActivityStats = z.infer<typeof ActivityStatsSchema>;

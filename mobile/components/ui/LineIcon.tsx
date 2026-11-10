@@ -25,6 +25,8 @@ export type LineIconName =
   | "crown"
   | "flame"
   | "steps"
+  | "droplet"
+  | "protein"
   | "dumbbell"
   | "apple"
   | "sunrise"
@@ -163,6 +165,26 @@ export const LineIcon: React.FC<LineIconProps> = ({ name, size = 20, color = "#1
               {...p}
               d="M14.7 17.2h3.8l-.3 1.8a1.7 1.7 0 0 1-3.4 0z"
             />
+          </>
+        );
+      case "droplet":
+        return (
+          <>
+            <Path
+              {...p}
+              d="M12 3.5c-3.5 4.5-6.5 7.8-6.5 11.2a6.5 6.5 0 0 0 13 0c0-3.4-3-6.7-6.5-11.2z"
+            />
+            <Path {...p} d="M9.5 15.5a3 3 0 0 0 2.5 2.2" />
+          </>
+        );
+      case "protein":
+        return (
+          <>
+            <Path
+              {...p}
+              d="M10.2 11.4 6.2 15.4C4.5 14.8 3 16.2 3.8 17.8c.4.7 1.4.9 2 .4-.5.6-.3 1.6.4 2 1.6.8 3-.7 2.4-2.4l4-4c2.6 1.2 6.2.2 7.2-2.6.8-2.2.2-4.2-1.3-5.7-1.5-1.5-3.5-2.1-5.7-1.3-2.8 1-3.8 4.6-2.6 7.2z"
+            />
+            <Path {...p} d="M10.2 11.4q1.6.8 2.4 2.4" />
           </>
         );
       case "dumbbell":

@@ -22,3 +22,15 @@ export function useAddStepsMutation() {
     },
   });
 }
+
+export function useAddWaterMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (glasses: number = 1) => activityApi.addWater(glasses),
+    onSuccess: (updated) => {
+      queryClient.setQueryData<ActivityStats>(ACTIVITY_QUERY_KEY, updated);
+      queryClient.invalidateQueries({ queryKey: ACTIVITY_QUERY_KEY });
+    },
+  });
+}

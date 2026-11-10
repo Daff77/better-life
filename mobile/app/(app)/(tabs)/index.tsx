@@ -28,7 +28,7 @@ import { useAuthStore } from "@/stores/useAuthStore";
 import { useOnboardingStore } from "@/stores/useOnboardingStore";
 import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
 import { useJournalStore, getTodayDateKey, computeJournalAggregates } from "@/stores/useJournalStore";
-import { useActivityStats, useAddStepsMutation } from "@/hooks/useActivityQuery";
+import { useActivityStats, useAddStepsMutation, useAddWaterMutation } from "@/hooks/useActivityQuery";
 import { Colors } from "@/constants/DesignTokens";
 import { MealIllustrations, getMealIllustration } from "@/constants/Assets";
 import { NAV_DESKTOP_BREAKPOINT } from "@/components/layout/ResponsiveTabBar";
@@ -117,6 +117,7 @@ export default function HomeScreen() {
 
   const activityQuery = useActivityStats();
   const addStepsMutation = useAddStepsMutation();
+  const addWaterMutation = useAddWaterMutation();
 
   const [selectedMealForLog, setSelectedMealForLog] = useState<FoodItem | null>(null);
   const [isLogModalVisible, setIsLogModalVisible] = useState<boolean>(false);
@@ -212,6 +213,10 @@ export default function HomeScreen() {
   const stepGoal = activityQuery.data?.stepGoal ?? 6000;
   const stepsPct = Math.min(100, Math.round((steps / stepGoal) * 100));
 
+  const waterGlasses = activityQuery.data?.waterGlasses ?? 0;
+  const waterGoal = activityQuery.data?.waterGoal ?? 8;
+  const waterPct = Math.min(100, Math.round((waterGlasses / waterGoal) * 100));
+
   const mealTargetCount = 4;
   const mealsPct = Math.min(100, Math.round((aggregates.entryCount / mealTargetCount) * 100));
   const proteinPct = Math.min(100, Math.round((aggregates.totalProteinGrams / Math.max(1, targetProtein)) * 100));
@@ -251,23 +256,26 @@ export default function HomeScreen() {
       numericValue: steps,
       unit: "",
       progress: stepsPct,
-      color: "#1e6f9f",
-      trackColor: "#dfeaf2",
+      color: "#0e7a52",
+      trackColor: "#dfece5",
       icon: "steps" as LineIconName,
       hasAddAction: true,
+      actionLabel: "Tambah 500 langkah",
       onActionPress: () => !addStepsMutation.isPending && addStepsMutation.mutate(500),
     },
     {
-      key: "protein",
-      title: "Protein",
-      caption: `Target ${targetProtein} g`,
-      numericValue: Math.round(aggregates.totalProteinGrams),
-      unit: "g",
-      progress: proteinPct,
-      color: "#0e7a52",
-      trackColor: "#dfece5",
-      icon: "dumbbell" as LineIconName,
-      onPress: () => router.push("/(app)/analytics"),
+      key: "water",
+      title: "Air minum",
+      caption: `Target ${waterGoal} gelas (2L)`,
+      numericValue: waterGlasses,
+      unit: "gelas",
+      progress: waterPct,
+      color: "#1e6f9f",
+      trackColor: "#dfeaf2",
+      icon: "droplet" as LineIconName,
+      hasAddAction: true,
+      actionLabel: "Tambah 1 gelas air",
+      onActionPress: () => !addWaterMutation.isPending && addWaterMutation.mutate(1),
     },
   ];
 
@@ -302,7 +310,7 @@ export default function HomeScreen() {
             className="w-[24px] h-[24px] rounded-full items-center justify-center flex-shrink-0"
             style={{ backgroundColor: item.color }}
             accessibilityRole="button"
-            accessibilityLabel="Tambah 500 langkah"
+            accessibilityLabel={(item as any).actionLabel || `Tambah ${item.title}`}
           >
             <LineIcon name="plus" size={12} color="#ffffff" strokeWidth={2.5} />
           </PressableScale>

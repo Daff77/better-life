@@ -6,6 +6,8 @@ let mockActivityDatabase: ActivityStats = {
   stepGoal: 6000,
   exerciseCalories: 0,
   exerciseDurationMinutes: 0,
+  waterGlasses: 0,
+  waterGoal: 8,
 };
 
 export const activityApi = {
@@ -19,6 +21,16 @@ export const activityApi = {
     mockActivityDatabase = {
       ...mockActivityDatabase,
       steps: Math.min(mockActivityDatabase.stepGoal + 2000, mockActivityDatabase.steps + count),
+    };
+    ActivityStatsSchema.parse(mockActivityDatabase);
+    return { ...mockActivityDatabase };
+  },
+
+  addWater: async (glasses = 1): Promise<ActivityStats> => {
+    await new Promise((resolve) => setTimeout(resolve, 40));
+    mockActivityDatabase = {
+      ...mockActivityDatabase,
+      waterGlasses: Math.min(16, (mockActivityDatabase.waterGlasses ?? 0) + glasses),
     };
     ActivityStatsSchema.parse(mockActivityDatabase);
     return { ...mockActivityDatabase };

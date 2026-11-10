@@ -217,77 +217,113 @@ export default function ProfileScreen() {
           {/* 1. Minimalist Identity & Core Metrics Card */}
           <FadeInView index={1}>
             <Surface>
-              <View className="flex-row items-center">
-                <View className="mr-3.5 flex-shrink-0">
-                  <Avatar name={user?.name || "Pengguna"} size={56} showBadge />
-                </View>
-                <View className="flex-1 min-w-0 mr-2">
-                  <AppText
-                    weight="semibold"
-                    numberOfLines={1}
-                    className="text-[19px] text-ink"
-                    style={{ letterSpacing: -0.3 }}
-                  >
-                    {user?.name || "Pengguna Better Life"}
-                  </AppText>
-                  <AppText weight="medium" numberOfLines={1} className="text-[13px] text-muted mt-0.5">
-                    {user?.email || "Akun tersimpan di perangkat"}
-                  </AppText>
+              <View className="flex-row items-center justify-between gap-3">
+                <View className="flex-row items-center flex-1 min-w-0">
+                  <View className="mr-3.5 flex-shrink-0">
+                    <Avatar name={user?.name || "Pengguna"} size={54} showBadge />
+                  </View>
+                  <View className="flex-1 min-w-0">
+                    <AppText
+                      weight="semibold"
+                      numberOfLines={1}
+                      className="text-[18.5px] text-ink"
+                      style={{ letterSpacing: -0.3 }}
+                    >
+                      {user?.name || "Pengguna Better Life"}
+                    </AppText>
+                    <AppText weight="medium" numberOfLines={1} className="text-[13px] text-muted mt-0.5">
+                      {user?.email || "Akun tersimpan di perangkat"}
+                    </AppText>
+                  </View>
                 </View>
                 <StatusPill label={isPremium ? "Premium" : "Gratis"} tone={isPremium ? "good" : "plain"} />
               </View>
 
-              {/* Clean 3-Column Minimalist Summary Strip */}
+              {/* Clean 2x2 Minimalist Personalization Grid (zero text truncation) */}
               <PressableScale
                 onPress={handleOpenEdit}
                 pressedScale={0.99}
-                className="flex-row items-center justify-between bg-card-2 border border-line rounded-[18px] px-4 py-3.5 mt-4"
+                className="bg-card-2 border border-line rounded-[18px] p-3.5 mt-4"
                 accessibilityRole="button"
                 accessibilityLabel="Ringkasan target dan fisik, ketuk untuk mengubah"
               >
-                <View className="flex-1 min-w-0">
-                  <AppText weight="medium" className="text-[11.5px] text-muted">
-                    Target energi
-                  </AppText>
-                  <AppText weight="bold" className="text-[17px] text-ink mt-0.5" style={tnum}>
-                    {targetKcal.toLocaleString("id-ID")}{" "}
-                    <AppText weight="semibold" className="text-[11.5px] text-muted">
-                      kcal
+                <View className="flex-row items-center">
+                  <View className="flex-1 min-w-0 pr-3">
+                    <AppText weight="medium" className="text-[11.5px] text-muted">
+                      Target energi
                     </AppText>
-                  </AppText>
+                    <AppText weight="bold" numberOfLines={1} className="text-[16px] text-ink mt-0.5" style={tnum}>
+                      {targetKcal.toLocaleString("id-ID")}{" "}
+                      <AppText weight="semibold" className="text-[11.5px] text-muted">
+                        kcal
+                      </AppText>
+                    </AppText>
+                  </View>
+
+                  <View className="w-px h-8 bg-line" />
+
+                  <View className="flex-1 min-w-0 pl-3.5">
+                    <AppText weight="medium" className="text-[11.5px] text-muted">
+                      Fokus utama
+                    </AppText>
+                    <AppText weight="bold" numberOfLines={1} className="text-[15px] text-ink mt-0.5">
+                      {GOAL_LABELS[personalization.goal] ?? personalization.goal}
+                    </AppText>
+                  </View>
                 </View>
 
-                <View className="w-px h-8 bg-line mx-3" />
+                <View className="h-px bg-line my-3" />
 
-                <View className="flex-1 min-w-0">
-                  <AppText weight="medium" className="text-[11.5px] text-muted">
-                    Fokus
-                  </AppText>
-                  <AppText weight="bold" numberOfLines={1} className="text-[14.5px] text-ink mt-0.5">
-                    {GOAL_LABELS[personalization.goal] ?? personalization.goal}
-                  </AppText>
-                </View>
+                <View className="flex-row items-center">
+                  <View className="flex-1 min-w-0 pr-3">
+                    <AppText weight="medium" className="text-[11.5px] text-muted">
+                      Berat & tinggi
+                    </AppText>
+                    <AppText weight="bold" numberOfLines={1} className="text-[15px] text-ink mt-0.5" style={tnum}>
+                      {personalization.weight} kg · {personalization.height} cm
+                    </AppText>
+                  </View>
 
-                <View className="w-px h-8 bg-line mx-3" />
+                  <View className="w-px h-8 bg-line" />
 
-                <View className="flex-1 min-w-0">
-                  <AppText weight="medium" className="text-[11.5px] text-muted">
-                    Fisik
-                  </AppText>
-                  <AppText weight="bold" numberOfLines={1} className="text-[14.5px] text-ink mt-0.5" style={tnum}>
-                    {personalization.weight} kg · {personalization.height} cm
-                  </AppText>
+                  <View className="flex-1 min-w-0 pl-3.5">
+                    <AppText weight="medium" className="text-[11.5px] text-muted">
+                      Profil fisik
+                    </AppText>
+                    <AppText weight="bold" numberOfLines={1} className="text-[15px] text-ink mt-0.5" style={tnum}>
+                      {GENDER_LABELS[personalization.gender]} · {userAge} thn
+                    </AppText>
+                  </View>
                 </View>
               </PressableScale>
 
-              {/* Concise Macro Target Line */}
-              <View className="flex-row items-center justify-between mt-3 px-1">
-                <AppText weight="medium" className="text-[12px] text-muted">
+              {/* Clean 3-Column Macro Target Pills */}
+              <View className="mt-3.5">
+                <AppText weight="medium" className="text-[12px] text-muted mb-2 px-0.5">
                   Target makro harian
                 </AppText>
-                <AppText weight="semibold" className="text-[12.5px] text-ink" style={tnum}>
-                  Protein {targetP}g · Karbo {targetK}g · Lemak {targetL}g
-                </AppText>
+                <View className="flex-row gap-2">
+                  {[
+                    { label: "Protein", val: `${targetP}g`, color: "#0e7a52" },
+                    { label: "Karbo", val: `${targetK}g`, color: "#f3b23c" },
+                    { label: "Lemak", val: `${targetL}g`, color: "#141c18" },
+                  ].map((m) => (
+                    <View
+                      key={m.label}
+                      className="flex-1 min-w-0 bg-card-2 border border-line rounded-[13px] px-2.5 py-2 flex-row items-center justify-between gap-1.5"
+                    >
+                      <View className="flex-row items-center gap-1.5 min-w-0 flex-shrink">
+                        <View className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: m.color }} />
+                        <AppText weight="medium" numberOfLines={1} className="text-[11.5px] text-muted">
+                          {m.label}
+                        </AppText>
+                      </View>
+                      <AppText weight="bold" className="text-[12.5px] text-ink flex-shrink-0" style={tnum}>
+                        {m.val}
+                      </AppText>
+                    </View>
+                  ))}
+                </View>
               </View>
             </Surface>
           </FadeInView>
