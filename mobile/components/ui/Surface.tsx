@@ -3,6 +3,7 @@ import { View, ViewProps, StyleProp, ViewStyle, Platform } from "react-native";
 import Animated, {
   Easing,
   cancelAnimation,
+  interpolateColor,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
@@ -620,3 +621,90 @@ export const PillButton: React.FC<PillButtonProps> = ({
     </PressableScale>
   );
 };
+
+/* ----------------------------------------------------------- ToggleSwitch */
+
+export interface ToggleSwitchProps {
+  value: boolean;
+  onValueChange: (nextValue: boolean) => void;
+  disabled?: boolean;
+  activeColor?: string;
+  inactiveColor?: string;
+  accessibilityLabel?: string;
+}
+
+/**
+ * Pill toggle switch with circular white thumb and smooth Reanimated spring transition.
+ */
+export const ToggleSwitch: React.FC<ToggleSwitchProps> = ({
+  value,
+  onValueChange,
+  disabled = false,
+  activeColor = "#0e7a52",
+  inactiveColor = "#c6d0ca",
+  accessibilityLabel = "Sakelar pengaturan",
+}) => {
+  const progress = useSharedValue(value ? 1 : 0);
+
+  useEffect(() => {
+    progress.value = withSpring(value ? 1 : 0, {
+      damping: 22,
+      stiffness: 320,
+      mass: 0.6,
+    });
+    return () => {
+      cancelAnimation(progress);
+    };
+  }, [value, progress]);
+
+  const trackAnimatedStyle = useAnimatedStyle(() => ({
+    backgroundColor: interpolateColor(
+      progress.value,
+      [0, 1],
+      [inactiveColor, activeColor]
+    ),
+  }));
+
+  const thumbAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: progress.value * 20 }],
+  }));
+
+  return (
+    <PressableScale
+      onPress={() => !disabled && onValueChange(!value)}
+      disabled={disabled}
+      pressedScale={0.94}
+      accessibilityRole="switch"
+      accessibilityState={{ checked: value, disabled }}
+      accessibilityLabel={accessibilityLabel}
+      style={{ opacity: disabled ? 0.5 : 1 }}
+    >
+      <Animated.View
+        style={[
+          {
+            width: 48,
+            height: 28,
+            borderRadius: 999,
+            padding: 3,
+            justifyContent: "center",
+          },
+          trackAnimatedStyle,
+        ]}
+      >
+        <Animated.View
+          style={[
+            {
+              width: 22,
+              height: 22,
+              borderRadius: 999,
+              backgroundColor: "#ffffff",
+              boxShadow: "0px 1px 3px rgba(0, 0, 0, 0.22)",
+            } as ViewStyle,
+            thumbAnimatedStyle,
+          ]}
+        />
+      </Animated.View>
+    </PressableScale>
+  );
+};
+

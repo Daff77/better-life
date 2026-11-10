@@ -51,6 +51,7 @@ export type UIState = z.infer<typeof UIStateSchema>;
 export const PersonalizationSchema = z.object({
   goal: z.enum(["Eat balanced", "Lose weight", "Gain muscle"]),
   weight: z.number().min(30).max(300),
+  targetWeight: z.number().min(30).max(300).optional(),
   height: z.number().min(100).max(250),
   gender: z.enum(["Female", "Male"]),
   birthDate: z.object({

@@ -36,6 +36,8 @@ import {
 import { MotionCurves, MotionDurations } from "@/constants/AnimationTokens";
 import { useAnalyticsStore } from "@/stores/useAnalyticsStore";
 import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
+import { useOnboardingStore } from "@/stores/useOnboardingStore";
+import { useJournalStore, computeJournalAggregates } from "@/stores/useJournalStore";
 import {
   DateRangeOption,
   formatIdr,
@@ -122,6 +124,11 @@ export default function AnalyticsScreen() {
   const router = useRouter();
 
   const isPremium = useSubscriptionStore((state) => state.isPremium);
+  const personalization = useOnboardingStore((state) => state.personalization);
+  const savePersonalization = useOnboardingStore((state) => state.savePersonalization);
+  const journals = useJournalStore((state) => state.journals);
+  const activeDate = useJournalStore((state) => state.activeDate);
+
   const {
     range,
     analyticsData,
@@ -136,6 +143,181 @@ export default function AnalyticsScreen() {
 
   const [exporting, setExporting] = useState(false);
   const [exportNotice, setExportNotice] = useState<string | null>(null);
+
+  const currentWeight = personalization.weight || 65;
+  const targetWeight = personalization.targetWeight || currentWeight;
+  const weightDelta = Math.round((currentWeight - targetWeight) * 10) / 10;
+  const isAtTargetWeight = Math.abs(weightDelta) <= 0.5;
+
+  const handleAdjustWeight = async (deltaKg: number) => {
+    const nextWeight = Math.max(30, Math.min(250, Math.round((currentWeight + deltaKg) * 10) / 10));
+    await savePersonalization({ weight: nextWeight });
+  };
+
+  // Collect recent consumed meal history across journals
+  const consumedHistory = Object.entries(journals)
+    .sort(([dateA], [dateB]) => dateB.localeCompare(dateA))
+    .flatMap(([dateKey, journal]) =>
+      (journal.entries || []).map((entry) => ({
+        ...entry,
+        dateKey,
+      }))
+    )
+    .slice(0, 8);
+
+  const todayAggregates = computeJournalAggregates(
+    journals[activeDate],
+    personalization.targetCalories || 2000
+  );
+
+  const renderMonitoringOverview = () => (
+    <View className="gap-4 mb-4">
+      {/* 1. Monitoring Berat Badan & Target BB */}
+      <Surface>
+        <CardHead
+          title="Monitoring berat badan & target"
+          subtitle="Pantau progres menuju target berat badan ideal Anda"
+          right={
+            <StatusPill
+              tone={isAtTargetWeight ? "ok" : "warn"}
+              label={
+                isAtTargetWeight
+                  ? "Ideal tercapai"
+                  : weightDelta > 0
+                  ? `-${weightDelta} kg lagi`
+                  : `+${Math.abs(weightDelta)} kg lagi`
+              }
+            />
+          }
+        />
+
+        <View className="flex-row gap-3 mt-1">
+          <View className="flex-1 bg-card-2 border border-line rounded-[18px] p-3.5">
+            <AppText weight="medium" className="text-[11.5px] text-muted">
+              Berat saat ini
+            </AppText>
+            <View className="flex-row items-baseline justify-between mt-1">
+              <AppText
+                weight="bold"
+                className="text-[24px] text-ink"
+                style={{ fontVariant: ["tabular-nums"] }}
+              >
+                {currentWeight}{" "}
+                <AppText weight="semibold" className="text-[12px] text-muted">
+                  kg
+                </AppText>
+              </AppText>
+              <View className="flex-row items-center gap-1.5">
+                <PressableScale
+                  onPress={() => handleAdjustWeight(-0.5)}
+                  className="w-7 h-7 rounded-full bg-card border border-line items-center justify-center"
+                  accessibilityLabel="Kurangi berat 0.5 kg"
+                >
+                  <LineIcon name="minus" size={13} color="#121a16" />
+                </PressableScale>
+                <PressableScale
+                  onPress={() => handleAdjustWeight(0.5)}
+                  className="w-7 h-7 rounded-full bg-primary-light items-center justify-center"
+                  accessibilityLabel="Tambah berat 0.5 kg"
+                >
+                  <LineIcon name="plus" size={13} color="#0e7a52" />
+                </PressableScale>
+              </View>
+            </View>
+          </View>
+
+          <View className="flex-1 bg-card-2 border border-line rounded-[18px] p-3.5 justify-between">
+            <AppText weight="medium" className="text-[11.5px] text-muted">
+              Target berat badan
+            </AppText>
+            <View className="flex-row items-baseline justify-between mt-1">
+              <AppText
+                weight="bold"
+                className="text-[24px] text-primary"
+                style={{ fontVariant: ["tabular-nums"] }}
+              >
+                {targetWeight}{" "}
+                <AppText weight="semibold" className="text-[12px] text-muted">
+                  kg
+                </AppText>
+              </AppText>
+              <AppText weight="semibold" className="text-[11.5px] text-muted">
+                {personalization.height} cm
+              </AppText>
+            </View>
+          </View>
+        </View>
+
+        <View className="mt-3.5 pt-3 border-t border-line flex-row items-center justify-between flex-wrap gap-2">
+          <AppText weight="medium" className="text-[12px] text-muted">
+            Asupan kalori hari ini:{" "}
+            <AppText weight="bold" className="text-ink">
+              {todayAggregates.totalConsumed.toLocaleString("id-ID")} /{" "}
+              {todayAggregates.targetCalories.toLocaleString("id-ID")} kcal
+            </AppText>
+          </AppText>
+          <AppText weight="semibold" className="text-[12px] text-primary-text">
+            P {todayAggregates.totalProteinGrams}g · K {todayAggregates.totalCarbsGrams}g · L{" "}
+            {todayAggregates.totalFatGrams}g
+          </AppText>
+        </View>
+      </Surface>
+
+      {/* 2. Histori Menu yang Dikonsumsi */}
+      <Surface>
+        <CardHead
+          title="Histori menu yang dikonsumsi"
+          subtitle="Riwayat makanan dan minuman yang telah Anda catat"
+          right={
+            <PressableScale
+              onPress={() => router.push("/(app)/(tabs)/diary")}
+              className="px-3 py-1.5 rounded-full bg-card-2 border border-line"
+            >
+              <AppText weight="bold" className="text-[11.5px] text-ink">
+                Buka Jurnal
+              </AppText>
+            </PressableScale>
+          }
+        />
+
+        {consumedHistory.length === 0 ? (
+          <View className="py-5 items-center">
+            <AppText weight="medium" className="text-[13px] text-muted text-center">
+              Belum ada histori menu yang tercatat. Tambahkan makanan pertama Anda di Jurnal Harian.
+            </AppText>
+          </View>
+        ) : (
+          <View>
+            {consumedHistory.map((item, idx) => (
+              <ListRow
+                key={`${item.dateKey}-${item.id}-${idx}`}
+                first={idx === 0}
+                last={idx === consumedHistory.length - 1}
+                left={
+                  <RowIcon tone="green">
+                    <LineIcon name="utensils" size={15} color="#0e7a52" />
+                  </RowIcon>
+                }
+                title={item.title}
+                subtitle={`${item.category} · ${item.dateKey} · P ${item.proteinGrams ?? 0}g · K ${
+                  item.carbsGrams ?? 0
+                }g · L ${item.fatGrams ?? 0}g`}
+                right={
+                  <AppText
+                    weight="bold"
+                    className="text-[13px] text-ink"
+                    style={{ fontVariant: ["tabular-nums"] }}
+                  >
+                    {item.calories} kcal
+                  </AppText>
+                }
+              />
+            ))}
+          </View>
+        )}
+      </Surface>
+    </View>
+  );
 
   useEffect(() => {
     fetchAnalytics();
@@ -171,15 +353,15 @@ export default function AnalyticsScreen() {
     }
   };
 
-  // If user does not have Premium entitlement, display clean Vialo upgrade gate
+  // If user does not have Premium entitlement, display Monitoring overview + clean Vialo upgrade gate
   if (!isPremium) {
     return (
       <ScreenWrapper maxWidth="wide" className="flex-1 bg-[#edf1ee]" testID="analytics-screen-locked">
         <Header
           onBack={() => router.back()}
-          title="Tren & analitik nutrisi"
-          subtitle="Fitur analitik mendalam Better Life Premium"
-          rightComponent={<StatusPill tone="warn" label="Premium" />}
+          title="Monitoring & analitik nutrisi"
+          subtitle="Statistik berat badan, histori menu, dan tren kalori"
+          rightComponent={<StatusPill tone="warn" label="Gratis" />}
         />
 
         <ScrollView
@@ -188,6 +370,8 @@ export default function AnalyticsScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View className="max-w-xl mx-auto w-full gap-4 mt-2">
+            {renderMonitoringOverview()}
+
             <ColorBlock tone="amber">
               <View className="flex-row items-center gap-2 mb-2">
                 <View className="w-9 h-9 rounded-full bg-[#1b1406]/10 items-center justify-center">
@@ -277,8 +461,8 @@ export default function AnalyticsScreen() {
     <ScreenWrapper maxWidth="wide" className="flex-1 bg-[#edf1ee]" testID="analytics-screen">
       <Header
         onBack={() => router.back()}
-        title="Tren & analitik nutrisi"
-        subtitle="Evaluasi kalori, makronutrisi, dan anggaran dari jurnal Anda"
+        title="Monitoring & analitik nutrisi"
+        subtitle="Evaluasi berat badan, histori menu, kalori, makronutrisi, dan anggaran"
         rightComponent={
           <RingButton
             onPress={() => fetchAnalytics()}
@@ -294,6 +478,8 @@ export default function AnalyticsScreen() {
         contentContainerStyle={{ paddingBottom: 72 }}
         showsVerticalScrollIndicator={false}
       >
+        {renderMonitoringOverview()}
+
         {/* Top Controls Strip: Range Segmented Control + Export Action */}
         <View className="flex-row items-center justify-between flex-wrap gap-2.5 mb-4">
           <Segmented<DateRangeOption>

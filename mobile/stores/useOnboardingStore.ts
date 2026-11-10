@@ -84,6 +84,7 @@ interface OnboardingState {
 export const DEFAULT_PERSONALIZATION: PersonalizationMetrics = {
   goal: "Eat balanced",
   weight: 70,
+  targetWeight: 65,
   height: 175,
   gender: "Male",
   birthDate: { day: 15, month: "June", year: 2000 },

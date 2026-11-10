@@ -72,11 +72,15 @@ export default function ProfileScreen() {
   const userAge = Math.max(14, currentYear - (personalization.birthDate?.year || 2000));
 
   const [editModalVisible, setEditModalVisible] = useState(false);
+  const [infoModalType, setInfoModalType] = useState<"help" | "about" | null>(null);
 
   const [editGoal, setEditGoal] = useState<"Eat balanced" | "Lose weight" | "Gain muscle">(
     personalization.goal
   );
   const [editWeight, setEditWeight] = useState<string>(personalization.weight.toString());
+  const [editTargetWeight, setEditTargetWeight] = useState<string>(
+    (personalization.targetWeight ?? personalization.weight).toString()
+  );
   const [editHeight, setEditHeight] = useState<string>(personalization.height.toString());
   const [editAge, setEditAge] = useState<string>(userAge.toString());
   const [editGender, setEditGender] = useState<"Female" | "Male">(personalization.gender);
@@ -88,6 +92,7 @@ export default function ProfileScreen() {
     if (editModalVisible) {
       setEditGoal(personalization.goal);
       setEditWeight(personalization.weight.toString());
+      setEditTargetWeight((personalization.targetWeight ?? personalization.weight).toString());
       setEditHeight(personalization.height.toString());
       setEditAge(userAge.toString());
       setEditGender(personalization.gender);
@@ -116,6 +121,7 @@ export default function ProfileScreen() {
     if (isSaving) return;
 
     const weightNum = parseFloat(editWeight);
+    const targetWeightNum = parseFloat(editTargetWeight);
     const heightNum = parseFloat(editHeight);
     const ageNum = parseInt(editAge, 10);
 
@@ -126,6 +132,11 @@ export default function ProfileScreen() {
 
     if (isNaN(weightNum) || weightNum < 30 || weightNum > 300) {
       setFormError("Berat badan harus di antara 30 hingga 300 kg.");
+      return;
+    }
+
+    if (isNaN(targetWeightNum) || targetWeightNum < 30 || targetWeightNum > 300) {
+      setFormError("Target berat badan harus di antara 30 hingga 300 kg.");
       return;
     }
 
@@ -146,6 +157,7 @@ export default function ProfileScreen() {
 
     const res = await savePersonalization({
       weight: weightNum,
+      targetWeight: targetWeightNum,
       height: heightNum,
       gender: editGender,
       goal: editGoal,
@@ -277,10 +289,10 @@ export default function ProfileScreen() {
                 <View className="flex-row items-center">
                   <View className="flex-1 min-w-0 pr-3">
                     <AppText weight="medium" className="text-[11.5px] text-muted">
-                      Berat & tinggi
+                      Berat & target BB
                     </AppText>
                     <AppText weight="bold" numberOfLines={1} className="text-[15px] text-ink mt-0.5" style={tnum}>
-                      {personalization.weight} kg · {personalization.height} cm
+                      {personalization.weight} → {personalization.targetWeight ?? personalization.weight} kg
                     </AppText>
                   </View>
 
@@ -291,7 +303,7 @@ export default function ProfileScreen() {
                       Profil fisik
                     </AppText>
                     <AppText weight="bold" numberOfLines={1} className="text-[15px] text-ink mt-0.5" style={tnum}>
-                      {GENDER_LABELS[personalization.gender]} · {userAge} thn
+                      {personalization.height} cm · {userAge} thn
                     </AppText>
                   </View>
                 </View>
@@ -351,10 +363,28 @@ export default function ProfileScreen() {
 
               <ListRow
                 onPress={() => router.push("/(app)/analytics")}
-                accessibilityLabel="Lihat tren nutrisi"
+                accessibilityLabel="Lihat monitoring dan tren nutrisi"
                 leading={<RowIcon icon="chart" tone="accent" />}
-                title="Tren & analitik nutrisi"
-                subtitle="Progres kalori & makro 7–30 hari"
+                title="Monitoring & analitik nutrisi"
+                subtitle="Statistik berat badan, histori menu & progres kalori"
+                trailing={<LineIcon name="chevronRight" size={18} color="#7d8781" />}
+              />
+
+              <ListRow
+                onPress={() => router.push("/(app)/community" as any)}
+                accessibilityLabel="Buka komunitas dan konsultasi ahli gizi"
+                leading={<RowIcon icon="user" tone="accent" />}
+                title="Komunitas & konsultasi gizi"
+                subtitle="Postingan, tanya jawab ahli gizi & artikel kesehatan"
+                trailing={<LineIcon name="chevronRight" size={18} color="#7d8781" />}
+              />
+
+              <ListRow
+                onPress={() => router.push("/(app)/reminders" as any)}
+                accessibilityLabel="Pengaturan notifikasi pengingat minum dan makan"
+                leading={<RowIcon icon="bell" tone="plain" />}
+                title="Pengingat minum & jam makan"
+                subtitle="Notifikasi harian untuk target 8 gelas air & waktu makan"
                 trailing={<LineIcon name="chevronRight" size={18} color="#7d8781" />}
               />
 
@@ -364,6 +394,24 @@ export default function ProfileScreen() {
                 leading={<RowIcon icon="refresh" tone="plain" />}
                 title="Kalibrasi ulang personalisasi"
                 subtitle="Hitung ulang target berdasarkan tujuan baru"
+                trailing={<LineIcon name="chevronRight" size={18} color="#7d8781" />}
+              />
+
+              <ListRow
+                onPress={() => setInfoModalType("help")}
+                accessibilityLabel="Panduan penggunaan dan dokumentasi"
+                leading={<RowIcon icon="book" tone="plain" />}
+                title="Panduan penggunaan (Help)"
+                subtitle="Cara mencatat makanan, memantau kalori & memasak"
+                trailing={<LineIcon name="chevronRight" size={18} color="#7d8781" />}
+              />
+
+              <ListRow
+                onPress={() => setInfoModalType("about")}
+                accessibilityLabel="Tentang Better Life dan kontak"
+                leading={<RowIcon icon="shield" tone="plain" />}
+                title="Tentang kami & kontak"
+                subtitle="Informasi pengembang Better Life & layanan bantuan"
                 trailing={<LineIcon name="chevronRight" size={18} color="#7d8781" />}
               />
 
@@ -501,11 +549,11 @@ export default function ProfileScreen() {
                     </View>
                   </View>
 
-                  {/* Weight, Height, Age */}
-                  <View className="flex-row gap-2.5 mb-4">
+                  {/* Weight, Target Weight, Height, Age */}
+                  <View className="flex-row gap-2.5 mb-3">
                     <View className="flex-1">
                       <AppText weight="semibold" className="text-[12.5px] text-muted mb-1.5">
-                        Berat (kg)
+                        Berat saat ini (kg)
                       </AppText>
                       <TextInput
                         value={editWeight}
@@ -518,6 +566,23 @@ export default function ProfileScreen() {
                       />
                     </View>
 
+                    <View className="flex-1">
+                      <AppText weight="semibold" className="text-[12.5px] text-muted mb-1.5">
+                        Target BB (kg)
+                      </AppText>
+                      <TextInput
+                        value={editTargetWeight}
+                        onChangeText={setEditTargetWeight}
+                        keyboardType="numeric"
+                        placeholder="60"
+                        editable={!isSaving}
+                        className="w-full h-12 bg-card-2 border border-line rounded-2xl px-3.5 text-ink text-base"
+                        style={{ fontFamily: "Urbanist-Bold", fontSize: 16, includeFontPadding: false }}
+                      />
+                    </View>
+                  </View>
+
+                  <View className="flex-row gap-2.5 mb-4">
                     <View className="flex-1">
                       <AppText weight="semibold" className="text-[12.5px] text-muted mb-1.5">
                         Tinggi (cm)
@@ -585,6 +650,116 @@ export default function ProfileScreen() {
             </FadeInView>
           </View>
         </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Help & Documentation / About Us & Contact Us Modal */}
+      <Modal
+        visible={infoModalType !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setInfoModalType(null)}
+      >
+        <View className="flex-1 justify-end sm:justify-center items-center p-0 sm:p-6">
+          <Pressable
+            style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(18, 24, 20, 0.45)" }]}
+            onPress={() => setInfoModalType(null)}
+            accessibilityRole="button"
+            accessibilityLabel="Tutup"
+          />
+          <FadeInView duration={220} translateY={16} className="w-full max-w-lg max-h-[85%] z-10">
+            <Surface className="w-full rounded-t-[26px] sm:rounded-[26px] p-5 sm:p-6">
+              <CardHead
+                title={
+                  infoModalType === "help"
+                    ? "Panduan Penggunaan"
+                    : "Tentang Better Life & Kontak"
+                }
+                caption={
+                  infoModalType === "help"
+                    ? "Dokumentasi alur aplikasi Better Life"
+                    : "Informasi pengembang & layanan dukungan"
+                }
+                right={
+                  <RingButton
+                    icon="close"
+                    onPress={() => setInfoModalType(null)}
+                    accessibilityLabel="Tutup"
+                  />
+                }
+              />
+
+              <ScrollView showsVerticalScrollIndicator={false}>
+                {infoModalType === "help" ? (
+                  <View className="gap-3.5 pb-2">
+                    <View className="bg-card-2 border border-line rounded-2xl p-3.5">
+                      <AppText weight="bold" className="text-[14px] text-ink mb-1">
+                        1. Beranda & Pencatatan Harian
+                      </AppText>
+                      <AppText weight="medium" className="text-[12.5px] text-muted leading-5">
+                        Pantau ringkasan kalori, makronutrisi (Protein, Karbohidrat, Lemak), hidrasi air minum (target 8 gelas / 2L), serta aktivitas langkah kaki harian Anda langsung dari Beranda.
+                      </AppText>
+                    </View>
+                    <View className="bg-card-2 border border-line rounded-2xl p-3.5">
+                      <AppText weight="bold" className="text-[14px] text-ink mb-1">
+                        2. Resep, Bahan Makanan & Timer Memasak
+                      </AppText>
+                      <AppText weight="medium" className="text-[12.5px] text-muted leading-5">
+                        Cari resep sehat dan ekonomis yang disesuaikan dengan tingkat keahlian memasak, preferensi diet, dan alergi Anda. Gunakan fitur Timer Memasak interaktif pada setiap tahapan resep.
+                      </AppText>
+                    </View>
+                    <View className="bg-card-2 border border-line rounded-2xl p-3.5">
+                      <AppText weight="bold" className="text-[14px] text-ink mb-1">
+                        3. Monitoring & Komunitas
+                      </AppText>
+                      <AppText weight="medium" className="text-[12.5px] text-muted leading-5">
+                        Evaluasi progres berat badan menuju Target BB dan histori menu di halaman Monitoring, serta berdiskusi atau berkonsultasi langsung dengan ahli gizi di halaman Komunitas.
+                      </AppText>
+                    </View>
+                  </View>
+                ) : (
+                  <View className="gap-3.5 pb-2">
+                    <View className="bg-card-2 border border-line rounded-2xl p-3.5">
+                      <AppText weight="bold" className="text-[14px] text-ink mb-1">
+                        Tentang Better Life
+                      </AppText>
+                      <AppText weight="medium" className="text-[12.5px] text-muted leading-5">
+                        Better Life adalah aplikasi perencanaan dan pemantauan gaya hidup sehat yang dirancang khusus untuk mahasiswa, anak kost, dan masyarakat produktif agar dapat mengatur pola makan bergizi secara praktis dan terjangkau.
+                      </AppText>
+                    </View>
+                    <View className="bg-card-2 border border-line rounded-2xl p-3.5">
+                      <AppText weight="bold" className="text-[14px] text-ink mb-1">
+                        Tim Pengembang (Kelompok 4)
+                      </AppText>
+                      <AppText weight="medium" className="text-[12.5px] text-muted leading-5">
+                        • Daffa Pratama{"\n"}
+                        • Muhammad Nabil{"\n"}
+                        • Muhammad Rifky{"\n"}
+                        Program Studi S1 Sistem Informasi — Universitas Negeri Surabaya
+                      </AppText>
+                    </View>
+                    <View className="bg-card-2 border border-line rounded-2xl p-3.5">
+                      <AppText weight="bold" className="text-[14px] text-ink mb-1">
+                        Hubungi Kami (Contact Us)
+                      </AppText>
+                      <AppText weight="medium" className="text-[12.5px] text-muted leading-5">
+                        Email: support@betterlife.id{"\n"}
+                        Layanan Konsultasi & Bantuan Pengguna: Senin–Jumat (08.00–17.00 WIB)
+                      </AppText>
+                    </View>
+                  </View>
+                )}
+
+                <View className="pt-3">
+                  <PillButton
+                    label="Tutup"
+                    variant="primary"
+                    onPress={() => setInfoModalType(null)}
+                  />
+                </View>
+              </ScrollView>
+            </Surface>
+          </FadeInView>
+        </View>
       </Modal>
     </ScreenWrapper>
   );

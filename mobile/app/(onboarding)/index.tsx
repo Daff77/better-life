@@ -72,8 +72,11 @@ export default function OnboardingScreen() {
     personalization.goal
   );
 
-  // Step 2: Weight & Height
+  // Step 2: Weight, Target Weight & Height
   const [weight, setWeight] = useState(personalization.weight.toString());
+  const [targetWeight, setTargetWeight] = useState(
+    (personalization.targetWeight || personalization.weight || 65).toString()
+  );
   const [height, setHeight] = useState(personalization.height.toString());
 
   // Step 3: Gender
@@ -134,9 +137,14 @@ export default function OnboardingScreen() {
         return true;
       case 2: {
         const w = parseFloat(weight);
+        const tw = parseFloat(targetWeight);
         const h = parseFloat(height);
         if (isNaN(w) || w < 30 || w > 250) {
           setStepError("Masukkan berat badan yang valid antara 30 hingga 250 kg.");
+          return false;
+        }
+        if (isNaN(tw) || tw < 30 || tw > 250) {
+          setStepError("Masukkan target berat badan yang valid antara 30 hingga 250 kg.");
           return false;
         }
         if (isNaN(h) || h < 100 || h > 250) {
@@ -190,9 +198,11 @@ export default function OnboardingScreen() {
   };
 
   const persistCurrentFields = () => {
+    const parsedW = parseFloat(weight) || 65;
     const payload = {
       goal,
-      weight: parseFloat(weight) || 65,
+      weight: parsedW,
+      targetWeight: parseFloat(targetWeight) || parsedW,
       height: parseFloat(height) || 170,
       gender,
       birthDate: {
@@ -397,6 +407,61 @@ export default function OnboardingScreen() {
                   className="w-12 h-12 rounded-2xl bg-card-2 border border-line items-center justify-center"
                   accessibilityRole="button"
                   accessibilityLabel="Tambah berat 1 kilogram"
+                >
+                  <LineIcon name="plus" size={18} color="#121a16" />
+                </PressableScale>
+              </View>
+            </Surface>
+
+            {/* Target Weight Card */}
+            <Surface>
+              <View className="flex-row items-center justify-between mb-2.5">
+                <View className="flex-row items-center gap-2">
+                  <View className="w-8 h-8 rounded-full bg-primary-light items-center justify-center">
+                    <LineIcon name="target" size={16} color="#0b6b47" />
+                  </View>
+                  <AppText weight="semibold" className="text-[15px] text-ink">
+                    Target Berat Badan (Target BB)
+                  </AppText>
+                </View>
+                <AppText weight="medium" className="text-[12px] text-muted">
+                  Rentang 30 – 250 kg
+                </AppText>
+              </View>
+
+              <View className="flex-row items-center gap-3">
+                <PressableScale
+                  onPress={() => adjustMetric(targetWeight, -1, 30, 250, setTargetWeight)}
+                  pressedScale={0.93}
+                  className="w-12 h-12 rounded-2xl bg-card-2 border border-line items-center justify-center"
+                  accessibilityRole="button"
+                  accessibilityLabel="Kurangi target berat 1 kilogram"
+                >
+                  <LineIcon name="minus" size={18} color="#121a16" />
+                </PressableScale>
+
+                <View className="flex-1">
+                  <TextField
+                    label=""
+                    big
+                    suffix="kg"
+                    value={targetWeight}
+                    onChangeText={(val) => {
+                      setTargetWeight(val.replace(/[^0-9.]/g, ""));
+                      if (stepError) setStepError(null);
+                    }}
+                    keyboardType="numeric"
+                    placeholder="60"
+                    accessibilityLabel="Target berat badan dalam kilogram"
+                  />
+                </View>
+
+                <PressableScale
+                  onPress={() => adjustMetric(targetWeight, 1, 30, 250, setTargetWeight)}
+                  pressedScale={0.93}
+                  className="w-12 h-12 rounded-2xl bg-card-2 border border-line items-center justify-center"
+                  accessibilityRole="button"
+                  accessibilityLabel="Tambah target berat 1 kilogram"
                 >
                   <LineIcon name="plus" size={18} color="#121a16" />
                 </PressableScale>

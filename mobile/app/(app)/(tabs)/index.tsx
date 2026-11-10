@@ -713,39 +713,52 @@ export default function HomeScreen() {
   };
 
   /* ------------------------------------------------------------ Planning */
-  const renderPlanning = () => (
-    <Surface dense>
-      {[
-        {
-          title: "Rencana makan 7 hari",
-          caption: "Menu sesuai target kalori dan budget",
-          icon: "calendar" as const,
-          onPress: () => router.push("/(app)/meal-planner"),
-        },
-        {
-          title: "Tren nutrisi",
-          caption: "Kalori dan makro 7 sampai 30 hari",
-          icon: "chart" as const,
-          onPress: () => router.push("/(app)/analytics"),
-        },
-      ].map((row, i) => (
-        <ListRow
-          key={row.title}
-          last={i === 1}
-          onPress={row.onPress}
-          leading={<RowIcon icon={row.icon} tone="accent" />}
-          title={row.title}
-          caption={row.caption}
-          trailing={
-            <View className="flex-row items-center gap-2">
-              {!isPremium && <StatusPill label="Premium" tone="warn" dot={false} />}
-              <LineIcon name="chevronRight" size={18} color="#7d8781" />
-            </View>
-          }
-        />
-      ))}
-    </Surface>
-  );
+  const renderPlanning = () => {
+    const rows = [
+      {
+        title: "Rencana makan 7 hari",
+        caption: "Kalender menu sesuai target kalori dan budget",
+        icon: "calendar" as const,
+        premiumBadge: !isPremium,
+        onPress: () => router.push("/(app)/meal-planner"),
+      },
+      {
+        title: "Monitoring & statistik perkembangan",
+        caption: "Grafik berat badan, kalori, dan histori menu",
+        icon: "chart" as const,
+        premiumBadge: false,
+        onPress: () => router.push("/(app)/analytics"),
+      },
+      {
+        title: "Komunitas, konsultasi & artikel",
+        caption: "Berbagi motivasi, tanya ahli gizi, dan tips sehat",
+        icon: "heart" as const,
+        premiumBadge: false,
+        onPress: () => router.push("/(app)/community"),
+      },
+    ];
+
+    return (
+      <Surface dense>
+        {rows.map((row, i) => (
+          <ListRow
+            key={row.title}
+            last={i === rows.length - 1}
+            onPress={row.onPress}
+            leading={<RowIcon icon={row.icon} tone="accent" />}
+            title={row.title}
+            caption={row.caption}
+            trailing={
+              <View className="flex-row items-center gap-2">
+                {row.premiumBadge && <StatusPill label="Premium" tone="warn" dot={false} />}
+                <LineIcon name="chevronRight" size={18} color="#7d8781" />
+              </View>
+            }
+          />
+        ))}
+      </Surface>
+    );
+  };
 
   /* --------------------------------------------------------- Inspiration */
   const renderInspiration = () => (

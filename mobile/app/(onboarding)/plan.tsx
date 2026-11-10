@@ -160,14 +160,14 @@ export default function PersonalizedPlanScreen() {
               </View>
               <View className="items-end">
                 <AppText weight="regular" className="text-[11px] text-white/75">
-                  Tubuh
+                  BB → Target BB
                 </AppText>
                 <AppText
                   weight="semibold"
                   className="text-[14px] text-[#f3b23c] mt-0.5"
                   style={{ fontVariant: ["tabular-nums"] }}
                 >
-                  {personalization.weight}kg · {personalization.height}cm
+                  {personalization.weight}kg → {personalization.targetWeight || personalization.weight}kg
                 </AppText>
               </View>
             </View>

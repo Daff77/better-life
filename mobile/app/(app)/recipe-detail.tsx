@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Image, ScrollView, ActivityIndicator, Platform } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -20,6 +20,7 @@ import {
   RingButton,
   ColorBlock,
   LineIcon,
+  ProgressBar,
   SURFACE_SHADOW,
 } from "@/components/ui";
 import { MOCK_RECIPES } from "@/data/mockRecipes";
@@ -45,6 +46,61 @@ export default function RecipeDetailScreen() {
   const recipe = queriedRecipe || MOCK_RECIPES.find((r) => r.id === id) || (id ? null : MOCK_RECIPES[0]);
   const isCustomRecipe = Boolean(recipe?.id.startsWith("custom-recipe-"));
   const isLocked = Boolean((recipe as any)?.isPremium && !hasEntitlement(Entitlement.PREMIUM_RECIPES));
+
+  // Interactive Cooking Timer state (main recipe timer + per-step timers)
+  const defaultMainSeconds = Math.max(1, recipe?.prepTimeMinutes || 15) * 60;
+  const [timerSeconds, setTimerSeconds] = useState<number>(defaultMainSeconds);
+  const [timerTotalSeconds, setTimerTotalSeconds] = useState<number>(defaultMainSeconds);
+  const [isTimerRunning, setIsTimerRunning] = useState<boolean>(false);
+  const [activeStepTimer, setActiveStepTimer] = useState<number | null>(null);
+
+  useEffect(() => {
+    const secs = Math.max(1, recipe?.prepTimeMinutes || 15) * 60;
+    setTimerSeconds(secs);
+    setTimerTotalSeconds(secs);
+    setIsTimerRunning(false);
+    setActiveStepTimer(null);
+  }, [recipe?.id, recipe?.prepTimeMinutes]);
+
+  useEffect(() => {
+    if (!isTimerRunning) return;
+    const interval = setInterval(() => {
+      setTimerSeconds((prev) => {
+        if (prev <= 1) {
+          setIsTimerRunning(false);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [isTimerRunning]);
+
+  const formatTimer = (sec: number) => {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  };
+
+  const handleStartStepTimer = (stepNumber: number, minutes: number) => {
+    const secs = Math.max(1, minutes) * 60;
+    if (activeStepTimer === stepNumber) {
+      setIsTimerRunning((r) => !r);
+    } else {
+      setActiveStepTimer(stepNumber);
+      setTimerTotalSeconds(secs);
+      setTimerSeconds(secs);
+      setIsTimerRunning(true);
+    }
+  };
+
+  const handleResetTimer = () => {
+    setIsTimerRunning(false);
+    setActiveStepTimer(null);
+    const secs = Math.max(1, recipe?.prepTimeMinutes || 15) * 60;
+    setTimerTotalSeconds(secs);
+    setTimerSeconds(secs);
+  };
 
   if (isLoading && !recipe) {
     return (
@@ -273,41 +329,134 @@ export default function RecipeDetailScreen() {
 
               {activeTab === "instructions" ? (
                 <View className="gap-3">
-                  {recipe.instructions.map((step) => (
-                    <View
-                      key={step.step}
-                      className="flex-row items-start bg-[#f0f4f1] p-3.5 rounded-[16px] border border-[#e6eae7]"
-                    >
-                      <View className="w-7 h-7 rounded-full bg-[#0e7a52] items-center justify-center mr-3 mt-0.5 flex-shrink-0">
-                        <AppText
-                          weight="bold"
-                          className="text-xs text-white"
-                          style={{ fontVariant: ["tabular-nums"] }}
-                        >
-                          {step.step}
-                        </AppText>
+                  {/* Interactive Cooking Timer Panel */}
+                  <View className="bg-card-2 border border-line rounded-[18px] p-3.5 mb-1">
+                    <View className="flex-row items-center justify-between gap-2 mb-2.5">
+                      <View className="flex-row items-center gap-2.5 flex-1 min-w-0">
+                        <View className="w-9 h-9 rounded-full bg-primary-light items-center justify-center flex-shrink-0">
+                          <LineIcon name="clock" size={17} color="#0e7a52" />
+                        </View>
+                        <View className="flex-1 min-w-0">
+                          <AppText weight="semibold" numberOfLines={1} className="text-[13px] text-ink">
+                            {activeStepTimer
+                              ? `Timer Langkah ${activeStepTimer}`
+                              : "Timer Memasak"}
+                          </AppText>
+                          <AppText
+                            weight="bold"
+                            className="text-[20px] text-primary-text"
+                            style={{ fontVariant: ["tabular-nums"], letterSpacing: -0.5, lineHeight: 24 }}
+                          >
+                            {timerSeconds === 0 ? "Selesai!" : formatTimer(timerSeconds)}
+                          </AppText>
+                        </View>
                       </View>
 
-                      <View className="flex-1 min-w-0">
-                        <AppText weight="regular" className="text-[13.5px] text-[#121a16] leading-relaxed">
-                          {step.text}
-                        </AppText>
+                      <View className="flex-row items-center gap-2">
+                        <PressableScale
+                          onPress={() => {
+                            if (timerSeconds === 0) {
+                              setTimerSeconds(timerTotalSeconds);
+                              setIsTimerRunning(true);
+                            } else {
+                              setIsTimerRunning((r) => !r);
+                            }
+                          }}
+                          pressedScale={0.94}
+                          className={`px-3.5 h-9 rounded-full items-center justify-center ${
+                            isTimerRunning ? "bg-block-amber" : "bg-primary"
+                          }`}
+                          accessibilityRole="button"
+                          accessibilityLabel={isTimerRunning ? "Jeda timer memasak" : "Mulai timer memasak"}
+                        >
+                          <AppText
+                            weight="bold"
+                            className={`text-xs ${isTimerRunning ? "text-[#1b1406]" : "text-white"}`}
+                          >
+                            {isTimerRunning ? "Jeda" : timerSeconds === 0 ? "Ulangi" : "Mulai"}
+                          </AppText>
+                        </PressableScale>
 
-                        {Boolean(step.timerMinutes) && (
-                          <View className="flex-row items-center mt-2 bg-[#fbfdfc] border border-[#e6eae7] px-2.5 py-1 rounded-full self-start gap-1.5">
-                            <LineIcon name="clock" size={12} color="#0e7a52" />
-                            <AppText
-                              weight="semibold"
-                              className="text-[11px] text-[#0e7a52]"
-                              style={{ fontVariant: ["tabular-nums"] }}
-                            >
-                              {step.timerMinutes} menit
-                            </AppText>
-                          </View>
-                        )}
+                        <RingButton
+                          icon="refresh"
+                          size="sm"
+                          onPress={handleResetTimer}
+                          accessibilityLabel="Reset timer memasak"
+                        />
                       </View>
                     </View>
-                  ))}
+
+                    <ProgressBar
+                      progress={
+                        timerTotalSeconds > 0
+                          ? ((timerTotalSeconds - timerSeconds) / timerTotalSeconds) * 100
+                          : 0
+                      }
+                      color="#0e7a52"
+                      backgroundColor="#dfece5"
+                      height={5}
+                    />
+                  </View>
+
+                  {recipe.instructions.map((step) => {
+                    const isThisStepTiming = activeStepTimer === step.step;
+                    const stepMins = step.timerMinutes || 3;
+                    return (
+                      <View
+                        key={step.step}
+                        className={`flex-row items-start p-3.5 rounded-[16px] border ${
+                          isThisStepTiming
+                            ? "bg-primary-light/55 border-primary/40"
+                            : "bg-[#f0f4f1] border-[#e6eae7]"
+                        }`}
+                      >
+                        <View className="w-7 h-7 rounded-full bg-[#0e7a52] items-center justify-center mr-3 mt-0.5 flex-shrink-0">
+                          <AppText
+                            weight="bold"
+                            className="text-xs text-white"
+                            style={{ fontVariant: ["tabular-nums"] }}
+                          >
+                            {step.step}
+                          </AppText>
+                        </View>
+
+                        <View className="flex-1 min-w-0">
+                          <AppText weight="regular" className="text-[13.5px] text-[#121a16] leading-relaxed">
+                            {step.text}
+                          </AppText>
+
+                          <PressableScale
+                            onPress={() => handleStartStepTimer(step.step, stepMins)}
+                            pressedScale={0.96}
+                            className={`flex-row items-center mt-2 px-3 py-1.5 rounded-full self-start gap-1.5 border ${
+                              isThisStepTiming && isTimerRunning
+                                ? "bg-primary border-primary"
+                                : "bg-[#fbfdfc] border-[#e6eae7]"
+                            }`}
+                            accessibilityRole="button"
+                            accessibilityLabel={`Timer langkah ${step.step}, ${stepMins} menit`}
+                          >
+                            <LineIcon
+                              name="clock"
+                              size={12}
+                              color={isThisStepTiming && isTimerRunning ? "#ffffff" : "#0e7a52"}
+                            />
+                            <AppText
+                              weight="semibold"
+                              className={`text-[11px] ${
+                                isThisStepTiming && isTimerRunning ? "text-white" : "text-[#0e7a52]"
+                              }`}
+                              style={{ fontVariant: ["tabular-nums"] }}
+                            >
+                              {isThisStepTiming
+                                ? `${formatTimer(timerSeconds)} · ${isTimerRunning ? "Jeda" : "Lanjut"}`
+                                : `Set Timer ${stepMins} mnt`}
+                            </AppText>
+                          </PressableScale>
+                        </View>
+                      </View>
+                    );
+                  })}
                 </View>
               ) : (
                 <View>
