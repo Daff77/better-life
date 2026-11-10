@@ -22,7 +22,9 @@ import {
   PillButton,
   Segmented,
   ToggleSwitch,
+  LineIcon,
 } from "@/components/ui";
+import type { LineIconName } from "@/components/ui/LineIcon";
 import {
   useReminderStore,
   WaterIntervalHours,
@@ -40,6 +42,15 @@ const WHEEL_HEIGHT = ITEM_HEIGHT * VISIBLE_ROWS;
 const WHEEL_PADDING = ITEM_HEIGHT * Math.floor(VISIBLE_ROWS / 2);
 
 const BLUE = "#1e6f9f";
+
+/** Pick a sky icon + tint from the hour: sunrise (5–9), sun (10–16), sunset-ish (17–18), moon (19–4). */
+function getDayPhase(time: string): { icon: LineIconName; color: string; bg: string; label: string } {
+  const h = parseInt(time.split(":")[0] || "0", 10);
+  if (h >= 5 && h < 10) return { icon: "sunrise", color: "#c77d0a", bg: "#fdf1dc", label: "Pagi" };
+  if (h >= 10 && h < 15) return { icon: "sun", color: "#d48a00", bg: "#fff4d6", label: "Siang" };
+  if (h >= 15 && h < 18) return { icon: "sun", color: "#c2601a", bg: "#fde9dc", label: "Sore" };
+  return { icon: "moon", color: "#4b55a8", bg: "#e9ebf8", label: "Malam" };
+}
 
 /* ------------------------------------------------------------ WheelColumn */
 
@@ -151,8 +162,16 @@ const AlarmRow: React.FC<AlarmRowProps> = ({
   onToggle,
 }) => {
   const active = enabled && !disabled;
+  const phase = getDayPhase(time);
   return (
-    <View className={`flex-row items-center gap-4 py-3.5 ${first ? "" : "border-t border-line"}`}>
+    <View className={`flex-row items-center gap-3.5 py-3.5 ${first ? "" : "border-t border-line"}`}>
+      <View
+        className="w-11 h-11 rounded-full items-center justify-center flex-shrink-0"
+        style={{ backgroundColor: active ? phase.bg : "#eef1ef" }}
+        accessibilityLabel={phase.label}
+      >
+        <LineIcon name={phase.icon} size={20} color={active ? phase.color : "#9aa39e"} />
+      </View>
       <PressableScale
         onPress={onPress}
         disabled={disabled}
@@ -450,6 +469,20 @@ export default function RemindersScreen() {
             <FadeInView duration={220} translateY={16} className="w-full max-w-md z-10">
               <Surface className="w-full rounded-t-[28px] sm:rounded-[28px] p-5 sm:p-6">
                 <View className="items-center mb-4">
+                  {(() => {
+                    const phase = getDayPhase(preview);
+                    return (
+                      <View
+                        className="flex-row items-center gap-1.5 px-3 py-1 rounded-full mb-2"
+                        style={{ backgroundColor: phase.bg }}
+                      >
+                        <LineIcon name={phase.icon} size={14} color={phase.color} />
+                        <AppText weight="semibold" className="text-[12px]" style={{ color: phase.color }}>
+                          {phase.label}
+                        </AppText>
+                      </View>
+                    );
+                  })()}
                   <AppText weight="medium" className="text-[13px] text-muted">
                     {editingTarget.label}
                   </AppText>
