@@ -57,7 +57,9 @@ export type LineIconName =
   | "eye"
   | "eyeOff"
   | "mail"
-  | "ruler";
+  | "ruler"
+  | "image"
+  | "camera";
 
 export interface LineIconProps {
   name: LineIconName;
@@ -317,6 +319,24 @@ export const LineIcon: React.FC<LineIconProps> = ({ name, size = 20, color = "#1
         );
       case "ruler":
         return <Path {...p} d="M4 15.5 15.5 4l4.5 4.5L8.5 20zM8 11.5l2 2M11 8.5l2 2M14 5.5l2 2" />;
+      case "image":
+        return (
+          <>
+            <Rect {...p} x={3.5} y={4.5} width={17} height={15} rx={3} />
+            <Circle {...p} cx={8.5} cy={9} r={1.4} />
+            <Path {...p} d="M3.5 16.5 8.5 12l4 3.5 3.5-3.5 4.5 4.5" />
+          </>
+        );
+      case "camera":
+        return (
+          <>
+            <Path
+              {...p}
+              d="M4 8.5A2.5 2.5 0 0 1 6.5 6h2l1.4-2h4.2l1.4 2h2A2.5 2.5 0 0 1 20 8.5v9A2.5 2.5 0 0 1 17.5 20h-11A2.5 2.5 0 0 1 4 17.5z"
+            />
+            <Circle {...p} cx={12} cy={13} r={3.5} />
+          </>
+        );
     }
   })();
   return (

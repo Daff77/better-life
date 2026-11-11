@@ -30,6 +30,13 @@
       "expo-secure-store",
       "expo-web-browser",
       [
+        "expo-image-picker",
+        {
+          "photosPermission": "Izinkan Better Life mengakses galeri foto untuk mengunggah gambar resep.",
+          "cameraPermission": "Izinkan Better Life mengakses kamera untuk memotret resep makanan."
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "image": "./assets/splash-icon.png",

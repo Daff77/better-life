@@ -9,6 +9,7 @@ import {
   Platform,
   KeyboardAvoidingView,
   Image,
+  ActivityIndicator,
 } from "react-native";
 import { AppText } from "./AppText";
 import { PressableScale } from "./PressableScale";
@@ -17,6 +18,11 @@ import { LineIcon } from "./LineIcon";
 import { MixBar, RingButton, PillButton } from "./Surface";
 import { Colors } from "@/constants/DesignTokens";
 import { MealIllustrations, getMealIllustration } from "@/constants/Assets";
+import {
+  pickImageFromGallery,
+  takePhotoWithCamera,
+  isLocalUploadedUri,
+} from "@/lib/imagePicker";
 import {
   INGREDIENTS_DATABASE,
   IngredientItem,
@@ -105,7 +111,12 @@ export const CreateRecipeModal: React.FC<CreateRecipeModalProps> = ({
 
   // Image / Photo state
   const [imageUrl, setImageUrl] = useState<string>("");
+  const [imageSourceKind, setImageSourceKind] = useState<
+    "default" | "gallery" | "camera" | "preset" | "url"
+  >("default");
+  const [urlDraft, setUrlDraft] = useState<string>("");
   const [showUrlInput, setShowUrlInput] = useState(false);
+  const [isPickingPhoto, setIsPickingPhoto] = useState(false);
 
   // Ingredient input fields (user simply types ingredient name & grams)
   const [ingNameInput, setIngNameInput] = useState("");
@@ -156,26 +167,71 @@ export const CreateRecipeModal: React.FC<CreateRecipeModalProps> = ({
     [selectedIngredients, servings]
   );
 
-  const handlePickDevicePhoto = () => {
-    if (Platform.OS === "web" && typeof document !== "undefined") {
-      const input = document.createElement("input");
-      input.type = "file";
-      input.accept = "image/*";
-      input.onchange = (e: any) => {
-        const file = e?.target?.files?.[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = () => {
-          if (typeof reader.result === "string") {
-            setImageUrl(reader.result);
-          }
-        };
-        reader.readAsDataURL(file);
-      };
-      input.click();
-    } else {
-      setShowUrlInput((v) => !v);
+  const handlePickGalleryPhoto = async () => {
+    if (isPickingPhoto) return;
+    setErrorMsg(null);
+    setIsPickingPhoto(true);
+    try {
+      const res = await pickImageFromGallery();
+      if (res.error) {
+        setErrorMsg(res.error);
+        return;
+      }
+      if (!res.canceled && res.uri) {
+        setImageUrl(res.uri);
+        setImageSourceKind("gallery");
+        setUrlDraft("");
+        setShowUrlInput(false);
+      }
+    } finally {
+      setIsPickingPhoto(false);
     }
+  };
+
+  const handleTakeCameraPhoto = async () => {
+    if (isPickingPhoto) return;
+    setErrorMsg(null);
+    setIsPickingPhoto(true);
+    try {
+      const res = await takePhotoWithCamera();
+      if (res.error) {
+        setErrorMsg(res.error);
+        return;
+      }
+      if (!res.canceled && res.uri) {
+        setImageUrl(res.uri);
+        setImageSourceKind("camera");
+        setUrlDraft("");
+        setShowUrlInput(false);
+      }
+    } finally {
+      setIsPickingPhoto(false);
+    }
+  };
+
+  const handleUrlDraftChange = (text: string) => {
+    setUrlDraft(text);
+    const trimmed = text.trim();
+    if (trimmed) {
+      setImageUrl(trimmed);
+      setImageSourceKind("url");
+    } else if (imageSourceKind === "url") {
+      setImageUrl("");
+      setImageSourceKind("default");
+    }
+  };
+
+  const handleSelectPreset = (presetUrl: string) => {
+    setImageUrl(presetUrl);
+    setImageSourceKind("preset");
+    setUrlDraft("");
+    setShowUrlInput(false);
+  };
+
+  const handleResetPhoto = () => {
+    setImageUrl("");
+    setImageSourceKind("default");
+    setUrlDraft("");
   };
 
   const handleAddTypedIngredient = (presetItem?: IngredientItem) => {
@@ -304,7 +360,8 @@ export const CreateRecipeModal: React.FC<CreateRecipeModalProps> = ({
 
     await addCustomRecipe(newRecipe);
     setTitle("");
-    setImageUrl("");
+    handleResetPhoto();
+    setShowUrlInput(false);
     onRecipeCreated?.(newRecipe);
     onClose();
   };
@@ -372,7 +429,7 @@ export const CreateRecipeModal: React.FC<CreateRecipeModalProps> = ({
 
               {/* 1. Foto / Gambar Resep + Ringkasan Nutrisi */}
               <View className="rounded-[20px] overflow-hidden border border-line bg-card-2 mb-4">
-                <View className="w-full h-[132px] bg-card relative overflow-hidden">
+                <View className="w-full h-[148px] bg-card relative overflow-hidden">
                   <Image
                     source={previewImageSource}
                     style={{ width: "100%", height: "100%" }}
@@ -389,64 +446,164 @@ export const CreateRecipeModal: React.FC<CreateRecipeModalProps> = ({
                     </AppText>
                   </View>
 
-                  {/* Minimalist Photo Action Buttons */}
-                  <View className="absolute bottom-2.5 right-2.5 flex-row items-center gap-1.5">
-                    {Platform.OS === "web" && (
-                      <PressableScale
-                        onPress={handlePickDevicePhoto}
-                        pressedScale={0.95}
-                        className="h-8 px-3 rounded-full flex-row items-center gap-1.5"
-                        style={{ backgroundColor: "rgba(255, 255, 255, 0.94)" }}
-                        accessibilityRole="button"
-                        accessibilityLabel="Upload foto dari perangkat"
+                  {/* Active Photo Source Badge + Clear */}
+                  {Boolean(imageUrl) && (
+                    <View className="absolute top-3 right-3 flex-row items-center gap-1.5">
+                      <View
+                        className="px-2.5 py-1 rounded-full"
+                        style={{ backgroundColor: "rgba(14, 122, 82, 0.9)" }}
                       >
-                        <LineIcon name="download" size={13} color="#121a16" />
-                        <AppText weight="semibold" className="text-[11.5px] text-ink">
-                          Foto
+                        <AppText weight="semibold" className="text-[11px] text-white">
+                          {imageSourceKind === "gallery"
+                            ? "Dari Galeri"
+                            : imageSourceKind === "camera"
+                            ? "Foto Kamera"
+                            : imageSourceKind === "url"
+                            ? "Link URL"
+                            : "Foto Pilihan"}
                         </AppText>
-                      </PressableScale>
-                    )}
-                    <PressableScale
-                      onPress={() => setShowUrlInput((v) => !v)}
-                      pressedScale={0.95}
-                      className="h-8 px-3 rounded-full flex-row items-center gap-1.5"
-                      style={{ backgroundColor: "rgba(255, 255, 255, 0.94)" }}
-                      accessibilityRole="button"
-                      accessibilityLabel="Link gambar"
-                    >
-                      <LineIcon name="edit" size={13} color="#121a16" />
-                      <AppText weight="semibold" className="text-[11.5px] text-ink">
-                        URL
-                      </AppText>
-                    </PressableScale>
-                    {Boolean(imageUrl) && (
+                      </View>
                       <PressableScale
-                        onPress={() => setImageUrl("")}
-                        pressedScale={0.95}
-                        className="w-8 h-8 rounded-full items-center justify-center"
+                        onPress={handleResetPhoto}
+                        pressedScale={0.94}
+                        className="w-7 h-7 rounded-full items-center justify-center"
                         style={{ backgroundColor: "rgba(18, 26, 22, 0.78)" }}
                         accessibilityRole="button"
-                        accessibilityLabel="Hapus foto"
+                        accessibilityLabel="Hapus foto resep"
                       >
                         <LineIcon name="close" size={13} color="#ffffff" />
                       </PressableScale>
-                    )}
-                  </View>
+                    </View>
+                  )}
+
+                  {/* Loading indicator while picking/processing photo */}
+                  {isPickingPhoto && (
+                    <View
+                      className="absolute inset-0 items-center justify-center flex-row gap-2"
+                      style={{ backgroundColor: "rgba(18, 26, 22, 0.52)" }}
+                    >
+                      <ActivityIndicator size="small" color="#ffffff" />
+                      <AppText weight="semibold" className="text-[12.5px] text-white">
+                        Memuat foto...
+                      </AppText>
+                    </View>
+                  )}
                 </View>
 
-                {/* Photo Thumbnail Strip */}
-                <View className="px-3 py-2.5 border-b border-line bg-card">
+                {/* Photo Source Controls (Gallery, Camera, URL) + Thumbnail Strip */}
+                <View className="px-3 pt-2.5 pb-2.5 border-b border-line bg-card">
+                  <View className="flex-row items-center gap-2 mb-2.5">
+                    <PressableScale
+                      onPress={handlePickGalleryPhoto}
+                      disabled={isPickingPhoto}
+                      pressedScale={0.96}
+                      className={`flex-1 h-9 px-3 rounded-full flex-row items-center justify-center gap-1.5 border ${
+                        imageSourceKind === "gallery"
+                          ? "bg-primary border-primary"
+                          : "bg-primary-light border-primary/20"
+                      }`}
+                      accessibilityRole="button"
+                      accessibilityLabel="Unggah foto dari galeri"
+                    >
+                      <LineIcon
+                        name="image"
+                        size={14}
+                        color={imageSourceKind === "gallery" ? "#ffffff" : "#0e7a52"}
+                      />
+                      <AppText
+                        weight="bold"
+                        numberOfLines={1}
+                        className={`text-[12px] ${
+                          imageSourceKind === "gallery" ? "text-white" : "text-primary-text"
+                        }`}
+                      >
+                        Unggah Galeri
+                      </AppText>
+                    </PressableScale>
+
+                    <PressableScale
+                      onPress={handleTakeCameraPhoto}
+                      disabled={isPickingPhoto}
+                      pressedScale={0.96}
+                      className={`h-9 px-3 rounded-full flex-row items-center justify-center gap-1.5 border ${
+                        imageSourceKind === "camera"
+                          ? "bg-block-ink border-block-ink"
+                          : "bg-card-2 border-line"
+                      }`}
+                      accessibilityRole="button"
+                      accessibilityLabel="Ambil foto dengan kamera"
+                    >
+                      <LineIcon
+                        name="camera"
+                        size={14}
+                        color={imageSourceKind === "camera" ? "#ffffff" : "#121a16"}
+                      />
+                      <AppText
+                        weight="semibold"
+                        className={`text-[12px] ${
+                          imageSourceKind === "camera" ? "text-block-on-ink" : "text-ink"
+                        }`}
+                      >
+                        Kamera
+                      </AppText>
+                    </PressableScale>
+
+                    <PressableScale
+                      onPress={() => setShowUrlInput((v) => !v)}
+                      pressedScale={0.96}
+                      className={`h-9 px-3 rounded-full flex-row items-center justify-center gap-1.5 border ${
+                        showUrlInput || imageSourceKind === "url"
+                          ? "bg-block-ink border-block-ink"
+                          : "bg-card-2 border-line"
+                      }`}
+                      accessibilityRole="button"
+                      accessibilityLabel="Tambahkan lewat link URL gambar"
+                    >
+                      <LineIcon
+                        name="edit"
+                        size={13}
+                        color={showUrlInput || imageSourceKind === "url" ? "#ffffff" : "#121a16"}
+                      />
+                      <AppText
+                        weight="semibold"
+                        className={`text-[12px] ${
+                          showUrlInput || imageSourceKind === "url" ? "text-block-on-ink" : "text-ink"
+                        }`}
+                      >
+                        URL
+                      </AppText>
+                    </PressableScale>
+                  </View>
+
                   <ScrollView
                     horizontal
                     showsHorizontalScrollIndicator={false}
                     contentContainerStyle={{ gap: 8, alignItems: "center" }}
                   >
+                    {isLocalUploadedUri(imageUrl) && (
+                      <PressableScale
+                        onPress={handlePickGalleryPhoto}
+                        pressedScale={0.95}
+                        className="w-12 h-10 rounded-[10px] overflow-hidden border-2 border-primary"
+                        accessibilityRole="button"
+                        accessibilityLabel="Foto yang diunggah"
+                      >
+                        <Image
+                          source={{ uri: imageUrl }}
+                          style={{ width: "100%", height: "100%" }}
+                          resizeMode="cover"
+                        />
+                      </PressableScale>
+                    )}
+
                     <PressableScale
-                      onPress={() => setImageUrl("")}
+                      onPress={handleResetPhoto}
                       pressedScale={0.95}
                       className={`w-12 h-10 rounded-[10px] overflow-hidden border-2 ${
                         !imageUrl ? "border-primary" : "border-line"
                       }`}
+                      accessibilityRole="button"
+                      accessibilityLabel="Gunakan ilustrasi bawaan kategori"
                     >
                       <Image
                         source={getMealIllustration(category)}
@@ -460,7 +617,7 @@ export const CreateRecipeModal: React.FC<CreateRecipeModalProps> = ({
                       return (
                         <PressableScale
                           key={p.id}
-                          onPress={() => setImageUrl(p.url)}
+                          onPress={() => handleSelectPreset(p.url)}
                           pressedScale={0.95}
                           className={`w-12 h-10 rounded-[10px] overflow-hidden border-2 ${
                             selected ? "border-primary" : "border-line"
@@ -477,16 +634,28 @@ export const CreateRecipeModal: React.FC<CreateRecipeModalProps> = ({
                   </ScrollView>
 
                   {showUrlInput && (
-                    <View className="mt-2.5">
+                    <View className="mt-2.5 flex-row items-center gap-1.5">
                       <TextInput
-                        value={imageUrl}
-                        onChangeText={setImageUrl}
+                        value={urlDraft}
+                        onChangeText={handleUrlDraftChange}
                         placeholder="Tempel link gambar (https://...)"
                         placeholderTextColor="#8a948e"
                         autoCapitalize="none"
-                        className="w-full h-9 bg-card-2 border border-line rounded-[10px] px-3 text-[12.5px] text-ink"
+                        autoCorrect={false}
+                        className="flex-1 h-9 bg-card-2 border border-line rounded-[10px] px-3 text-[12.5px] text-ink"
                         style={{ fontFamily: "Urbanist-Medium", includeFontPadding: false }}
                       />
+                      {Boolean(urlDraft) && (
+                        <PressableScale
+                          onPress={() => handleUrlDraftChange("")}
+                          pressedScale={0.94}
+                          className="w-9 h-9 rounded-[10px] bg-card-2 border border-line items-center justify-center"
+                          accessibilityRole="button"
+                          accessibilityLabel="Bersihkan link URL"
+                        >
+                          <LineIcon name="close" size={13} color="#6b746f" />
+                        </PressableScale>
+                      )}
                     </View>
                   )}
                 </View>
