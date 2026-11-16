@@ -2,8 +2,10 @@ import React from "react";
 import { View, Platform } from "react-native";
 import { Stack } from "expo-router";
 import { WelcomeSplash } from "@/components/ui/WelcomeSplash";
+import { useStepTracking } from "@/hooks/useStepTracking";
 
 export default function AppLayout() {
+  useStepTracking();
   return (
     <View style={{ flex: 1 }}>
       <Stack

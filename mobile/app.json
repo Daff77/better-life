@@ -12,6 +12,7 @@
     },
     "android": {
       "package": "com.daff77.betterlife",
+      "permissions": ["android.permission.ACTIVITY_RECOGNITION", "android.permission.health.READ_STEPS"],
       "adaptiveIcon": {
         "backgroundColor": "#FFFFFF",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -29,6 +30,7 @@
       "expo-font",
       "expo-secure-store",
       "expo-web-browser",
+      ["expo-sensors", { "motionPermission": "Izinkan Better Life membaca aktivitas gerak untuk menghitung langkah harian Anda." }],
       [
         "expo-image-picker",
         {
@@ -43,7 +45,8 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ]
+      ],
+      "react-native-health-connect"
     ]
   }
 }

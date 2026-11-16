@@ -28,7 +28,8 @@ import { useAuthStore } from "@/stores/useAuthStore";
 import { useOnboardingStore } from "@/stores/useOnboardingStore";
 import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
 import { useJournalStore, getTodayDateKey, computeJournalAggregates } from "@/stores/useJournalStore";
-import { useActivityStats, useAddStepsMutation, useAddWaterMutation } from "@/hooks/useActivityQuery";
+import { useActivityStats, useAddWaterMutation } from "@/hooks/useActivityQuery";
+import { useStepTrackerStore } from "@/stores/useStepTrackerStore";
 import { Colors } from "@/constants/DesignTokens";
 import { MealIllustrations, getMealIllustration } from "@/constants/Assets";
 import { NAV_DESKTOP_BREAKPOINT } from "@/components/layout/ResponsiveTabBar";
@@ -116,7 +117,7 @@ export default function HomeScreen() {
   );
 
   const activityQuery = useActivityStats();
-  const addStepsMutation = useAddStepsMutation();
+  const trackingStatus = useStepTrackerStore((state) => state.status);
   const addWaterMutation = useAddWaterMutation();
 
   const [selectedMealForLog, setSelectedMealForLog] = useState<FoodItem | null>(null);
@@ -252,16 +253,14 @@ export default function HomeScreen() {
     {
       key: "steps",
       title: "Langkah",
-      caption: `Target ${fmt(stepGoal)}`,
+      caption: activityQuery.isError ? "Gagal memuat data" : trackingStatus === "tracking" ? `Otomatis · ${fmt(stepGoal)} target` : `Target ${fmt(stepGoal)} · Atur`,
       numericValue: steps,
       unit: "",
       progress: stepsPct,
       color: "#0e7a52",
       trackColor: "#dfece5",
       icon: "steps" as LineIconName,
-      hasAddAction: true,
-      actionLabel: "Tambah 500 langkah",
-      onActionPress: () => !addStepsMutation.isPending && addStepsMutation.mutate(500),
+      onPress: () => router.push("/(app)/steps"),
     },
     {
       key: "water",
