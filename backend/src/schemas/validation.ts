@@ -3,13 +3,23 @@ import { z } from "zod";
 export const RegisterInputSchema = z.object({
   name: z.string().min(2, "Name must have at least 2 characters"),
   email: z.string().email("Invalid email address"),
-  phone: z.string().min(8, "Phone number is too short"),
+  phone: z.string().min(6, "Phone number is too short").optional().default(""),
   password: z.string().min(6, "Password must have at least 6 characters"),
 });
 
-export const LoginInputSchema = z.object({
+export const LoginInputSchema = z
+  .object({
+    email: z.string().min(2).optional(),
+    identifier: z.string().min(2).optional(),
+    password: z.string().min(6, "Password must have at least 6 characters"),
+  })
+  .refine((val) => Boolean(val.email?.trim() || val.identifier?.trim()), {
+    message: "Email or username is required",
+    path: ["email"],
+  });
+
+export const CheckEmailInputSchema = z.object({
   email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must have at least 6 characters"),
 });
 
 export const GoogleAuthInputSchema = z.object({
@@ -18,23 +28,28 @@ export const GoogleAuthInputSchema = z.object({
 
 export const UpdateProfileInputSchema = z.object({
   name: z.string().min(2).optional(),
-  phone: z.string().min(8).optional(),
+  phone: z.string().min(6).optional(),
 });
 
 export const PersonalizationInputSchema = z.object({
   goal: z.enum(["Eat balanced", "Lose weight", "Gain muscle"]),
   weight: z.number().min(30).max(300),
+  targetWeight: z.number().min(30).max(300).optional(),
   height: z.number().min(100).max(250),
   gender: z.enum(["Female", "Male"]),
-  birthDate: z.object({
-    day: z.number().min(1).max(31),
-    month: z.string(),
-    year: z.number().min(1920).max(2025),
-  }),
-  cookingSkill: z.enum(["Low", "Middle", "High"]),
-  dietType: z.string(),
-  allergies: z.array(z.string()),
+  birthDate: z
+    .object({
+      day: z.number().min(1).max(31),
+      month: z.string(),
+      year: z.number().min(1920).max(2026),
+    })
+    .optional(),
+  age: z.number().int().min(14).max(100).optional(),
+  cookingSkill: z.enum(["Low", "Middle", "High"]).default("Middle"),
+  dietType: z.string().default("Omnivore"),
+  allergies: z.array(z.string()).default([]),
   targetCalories: z.number().positive(),
+  onboardingCompleted: z.boolean().optional(),
 });
 
 export const LogMealInputSchema = z.object({
@@ -49,24 +64,141 @@ export const LogMealInputSchema = z.object({
   estimatedCostIdr: z.number().nonnegative().optional().default(0),
   quantity: z.number().positive().optional().default(1),
   dateKey: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  time: z.string().max(40).optional(),
   loggedAt: z.string().datetime().optional(),
+  updatedAt: z.string().datetime().optional(),
+});
+
+export const UpdateMealInputSchema = z.object({
+  type: z.enum(["Breakfast", "Lunch", "Dinner", "Snack", "Drink"]).optional(),
+  name: z.string().min(1, "Meal name cannot be empty").optional(),
+  calories: z.number().nonnegative().optional(),
+  proteinGrams: z.number().nonnegative().optional(),
+  carbsGrams: z.number().nonnegative().optional(),
+  fatGrams: z.number().nonnegative().optional(),
+  fiberGrams: z.number().nonnegative().optional(),
+  estimatedCostIdr: z.number().nonnegative().optional(),
+  quantity: z.number().positive().optional(),
+  dateKey: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  updatedAt: z.string().datetime().optional(),
 });
 
 export const AnalyticsQuerySchema = z.object({
   range: z.enum(["7d", "30d", "custom"]).default("7d"),
   startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  today: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
 });
 
 export const AddStepsInputSchema = z.object({
   steps: z.number().positive(),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+});
+
+export const SyncActivityInputSchema = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  steps: z.number().int().min(0).max(200000).optional(),
+  sensorSteps: z.number().int().min(0).max(200000).optional(),
+  manualSteps: z.number().int().min(0).max(200000).optional(),
+  stepGoal: z.number().int().min(100).max(200000).optional(),
+  waterGlasses: z.number().int().min(0).max(32).optional(),
+  waterGoal: z.number().int().min(1).max(32).optional(),
+});
+
+export const AddWaterInputSchema = z.object({
+  glasses: z.number().int().min(-16).max(16).default(1),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+});
+
+export const ReminderSlotSchema = z.object({
+  id: z.enum(["breakfast", "lunch", "snack", "dinner"]),
+  label: z.string().min(1).max(80),
+  subtitle: z.string().max(160),
+  time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+  enabled: z.boolean(),
+});
+
+export const ReminderSettingsInputSchema = z.object({
+  masterEnabled: z.boolean(),
+  waterReminderEnabled: z.boolean(),
+  morningWaterEnabled: z.boolean(),
+  morningWaterTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+  waterIntervalHours: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+  waterStartHour: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+  waterEndHour: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+  mealSlots: z.array(ReminderSlotSchema).min(1).max(8),
+  eveningJournalEnabled: z.boolean(),
+  eveningJournalTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+  weeklyWeightEnabled: z.boolean(),
+  weeklyWeightTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+  updatedAt: z.string().optional(),
+});
+
+export const FavoriteFoodInputSchema = z.object({
+  itemId: z.string().min(1).max(200),
+  title: z.string().min(1).max(160),
+  category: z.enum(["Breakfast", "Lunch", "Dinner", "Snack", "Drink"]),
+  calories: z.number().nonnegative(),
+  proteinGrams: z.number().nonnegative().optional().default(0),
+  carbsGrams: z.number().nonnegative().optional().default(0),
+  fatGrams: z.number().nonnegative().optional().default(0),
+  fiberGrams: z.number().nonnegative().optional().default(0),
+  estimatedCostIdr: z.number().nonnegative().optional().default(0),
+  imageUrl: z.string().max(2000).optional().nullable(),
+});
+
+export const AccountBackupPayloadSchema = z.object({
+  schemaVersion: z.literal(1),
+  exportedAt: z.string(),
+  account: z.object({
+    email: z.string().email(),
+    name: z.string().optional(),
+  }),
+  personalization: PersonalizationInputSchema.optional().nullable(),
+  reminders: ReminderSettingsInputSchema.optional().nullable(),
+  favorites: z.array(FavoriteFoodInputSchema).optional().default([]),
+  meals: z
+    .array(
+      z.object({
+        id: z.string().min(1).max(200),
+        type: z.enum(["Breakfast", "Lunch", "Dinner", "Snack", "Drink"]),
+        name: z.string().min(1).max(200),
+        calories: z.number().nonnegative(),
+        proteinGrams: z.number().nonnegative().default(0),
+        carbsGrams: z.number().nonnegative().default(0),
+        fatGrams: z.number().nonnegative().default(0),
+        fiberGrams: z.number().nonnegative().default(0),
+        estimatedCostIdr: z.number().nonnegative().default(0),
+        quantity: z.number().positive().default(1),
+        dateKey: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        time: z.string().optional(),
+        loggedAt: z.string().optional(),
+        updatedAt: z.string().optional(),
+      })
+    )
+    .optional()
+    .default([]),
+  activities: z
+    .array(
+      z.object({
+        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        steps: z.number().int().min(0).max(200000).default(0),
+        sensorSteps: z.number().int().min(0).max(200000).optional(),
+        manualSteps: z.number().int().min(0).max(200000).optional(),
+        stepGoal: z.number().int().min(100).max(200000).default(6000),
+        waterGlasses: z.number().int().min(0).max(32).default(0),
+        waterGoal: z.number().int().min(1).max(32).default(8),
+      })
+    )
+    .optional()
+    .default([]),
 });
 
 export const CheckoutInputSchema = z.object({
   planId: z.enum(["monthly", "annual", "lifetime"]),
   provider: z
     .enum(["stripe", "apple_app_store", "google_play", "mock_sandbox"])
-    .default("mock_sandbox"),
+    .default("stripe"),
   cancelUrl: z.string().url().optional(),
   successUrl: z.string().url().optional(),
 });
@@ -85,7 +217,7 @@ export const CancelSubscriptionInputSchema = z.object({
 export const RestoreSubscriptionInputSchema = z.object({
   provider: z
     .enum(["apple_app_store", "google_play", "stripe", "mock_sandbox"])
-    .default("mock_sandbox"),
+    .default("stripe"),
   receiptData: z.string().optional(),
 });
 
@@ -153,5 +285,3 @@ export const RegenerateDayInputSchema = z.object({
   preferences: MealPlanPreferencesInputSchema.optional(),
   currentPlan: z.any(),
 });
-
-

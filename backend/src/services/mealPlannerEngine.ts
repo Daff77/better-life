@@ -1,9 +1,17 @@
+import {
+  checkRecipeAllergies,
+  checkRecipeDietaryRestrictions,
+  isRecipeEligible as sharedIsRecipeEligible,
+  explainRecipeSelection,
+  inspectIngredientsToVerify,
+} from "@better-life/shared";
 import { FoodItemData } from "../data/seedData.js";
 import {
   MealPlanPreferences,
   MealPlanDay,
   MealPlanRecord,
   MealPlanSummary,
+  MealPlanSlotAssignment,
   ShoppingListCategory,
   MealSlot,
 } from "../types/mealPlan.js";
@@ -18,141 +26,31 @@ const DAYS_OF_WEEK = [
   "Sunday",
 ];
 
-const ALLERGEN_KEYWORD_MAP: Record<string, string[]> = {
-  lactose: ["milk", "cheese", "yogurt", "butter", "cream", "dairy", "lactose"],
-  nuts: ["almond", "walnut", "cashew", "pecan", "pistachio", "peanut", "nuts"],
-  seafood: ["fish", "salmon", "tuna", "cod", "shrimp", "prawn", "crab", "lobster", "shellfish"],
-  dairy: ["dairy", "lactose", "milk", "yogurt", "cheese", "butter", "cream"],
-  eggs: ["egg", "eggs"],
-  fish: ["fish", "salmon", "cod", "tuna", "snapper", "sea bass"],
-  shellfish: ["shellfish", "shrimp", "prawn", "crab", "lobster"],
-  "tree nuts": ["tree nuts", "almond", "walnut", "cashew", "pecan", "pistachio"],
-  peanuts: ["peanut", "peanuts"],
-  "wheat/gluten": ["wheat", "gluten", "sourdough", "bread", "flour"],
-  soy: ["soy", "tempeh", "tofu", "edamame", "tamari", "soy sauce"],
-};
-
 export class MealPlannerEngine {
-  /**
-   * Evaluates whether a recipe violates user allergy constraints.
-   */
   public static checkAllergies(
     recipe: FoodItemData,
     allergies: string[]
   ): { safe: boolean; violatedAllergen?: string } {
-    if (!allergies || allergies.length === 0) return { safe: true };
-
-    const normAllergies = allergies.map((a) => a.toLowerCase().trim());
-
-    // 1. Check explicit recipe allergen tags
-    if (recipe.allergens && recipe.allergens.length > 0) {
-      for (const ra of recipe.allergens) {
-        const normRa = ra.toLowerCase();
-        for (const ua of normAllergies) {
-          if (normRa.includes(ua) || ua.includes(normRa)) {
-            return { safe: false, violatedAllergen: ra };
-          }
-        }
-      }
-    }
-
-    // 2. Check ingredient list keywords against allergen mappings
-    const ingredientsText = recipe.ingredients.map((i) => i.name.toLowerCase()).join(" ");
-
-    for (const ua of normAllergies) {
-      const keywords = ALLERGEN_KEYWORD_MAP[ua] || [ua];
-      for (const kw of keywords) {
-        const regex = new RegExp(`\\b${kw}`, "i");
-        if (regex.test(ingredientsText)) {
-          return { safe: false, violatedAllergen: ua };
-        }
-      }
-    }
-
-    return { safe: true };
+    return checkRecipeAllergies(recipe, allergies);
   }
 
-  /**
-   * Evaluates whether a recipe satisfies stated dietary restrictions.
-   */
   public static checkDietaryRestrictions(
     recipe: FoodItemData,
     restrictions: string[]
   ): { compliant: boolean; violatedRestriction?: string } {
-    if (!restrictions || restrictions.length === 0) return { compliant: true };
-
-    const normRestrictions = restrictions.map((r) => r.toLowerCase().trim());
-    const tags = (recipe.dietaryTags || []).map((t) => t.toLowerCase());
-    const ingredientsText = recipe.ingredients.map((i) => i.name.toLowerCase()).join(" ");
-    const titleText = recipe.title.toLowerCase();
-
-    for (const r of normRestrictions) {
-      if (r === "vegetarian") {
-        const isMeat =
-          /chicken|beef|steak|sirloin|tenderloin|salmon|fish|cod|tuna|pork|lamb/i.test(
-            ingredientsText + " " + titleText
-          );
-        if (isMeat) return { compliant: false, violatedRestriction: "Vegetarian" };
-      }
-
-      if (r === "vegan") {
-        const isAnimal =
-          /chicken|beef|steak|sirloin|tenderloin|salmon|fish|cod|egg|yogurt|milk|cheese|honey|butter/i.test(
-            ingredientsText + " " + titleText
-          );
-        if (isAnimal) return { compliant: false, violatedRestriction: "Vegan" };
-      }
-
-      if (r === "pescatarian") {
-        const isLandMeat = /chicken|beef|steak|sirloin|tenderloin|pork|lamb/i.test(
-          ingredientsText + " " + titleText
-        );
-        if (isLandMeat) return { compliant: false, violatedRestriction: "Pescatarian" };
-      }
-
-      if (r === "gluten-free") {
-        const hasGluten = /wheat|sourdough|bread|flour/i.test(ingredientsText);
-        if (hasGluten && !tags.includes("gluten-free")) {
-          return { compliant: false, violatedRestriction: "Gluten-Free" };
-        }
-      }
-
-      if (r === "dairy-free") {
-        const hasDairy = /dairy|yogurt|milk|cheese|butter|cream/i.test(ingredientsText);
-        if (hasDairy && !tags.includes("dairy-free")) {
-          return { compliant: false, violatedRestriction: "Dairy-Free" };
-        }
-      }
-
-      if (r === "keto") {
-        if (recipe.nutrition.carbsGrams > 25) {
-          return { compliant: false, violatedRestriction: "Keto" };
-        }
-      }
-    }
-
-    return { compliant: true };
+    return checkRecipeDietaryRestrictions(recipe, restrictions);
   }
 
-  /**
-   * Core filter checking both allergies and dietary restrictions.
-   */
   public static isRecipeEligible(
     recipe: FoodItemData,
     preferences: MealPlanPreferences
   ): boolean {
-    const allergyCheck = this.checkAllergies(recipe, preferences.allergies);
-    if (!allergyCheck.safe) return false;
-
-    const dietaryCheck = this.checkDietaryRestrictions(recipe, preferences.dietaryRestrictions);
-    if (!dietaryCheck.compliant) return false;
-
-    return true;
+    return sharedIsRecipeEligible(recipe, {
+      allergies: preferences.allergies,
+      dietaryRestrictions: preferences.dietaryRestrictions,
+    });
   }
 
-  /**
-   * Computes slot calorie allowances based on user preferences.
-   */
   public static getSlotWeights(slots: MealSlot[]): Record<MealSlot, number> {
     const defaultWeights: Record<MealSlot, number> = {
       Breakfast: 0.25,
@@ -161,7 +59,9 @@ export class MealPlannerEngine {
       Snack: 0.1,
     };
 
-    if (slots.length === 0) return { Breakfast: 0.3, Lunch: 0.4, Dinner: 0.3, Snack: 0 };
+    if (slots.length === 0) {
+      return { Breakfast: 0.3, Lunch: 0.4, Dinner: 0.3, Snack: 0 };
+    }
 
     let totalWeight = 0;
     for (const s of slots) {
@@ -184,28 +84,41 @@ export class MealPlannerEngine {
 
   /**
    * Generates a 7-day personalized meal plan.
+   * NEVER relaxes allergy or dietary restrictions when safe recipes are scarce or absent.
    */
   public static generatePlan(
     userId: string,
     preferences: MealPlanPreferences,
     allRecipes: FoodItemData[]
   ): MealPlanRecord {
-    const slots = preferences.preferredMealSlots && preferences.preferredMealSlots.length > 0
-      ? preferences.preferredMealSlots
-      : (["Breakfast", "Lunch", "Dinner", "Snack"] as MealSlot[]);
+    const slots =
+      preferences.preferredMealSlots && preferences.preferredMealSlots.length > 0
+        ? preferences.preferredMealSlots
+        : (["Breakfast", "Lunch", "Dinner", "Snack"] as MealSlot[]);
+
+    const eligiblePool = allRecipes.filter((r) => this.isRecipeEligible(r, preferences));
+    if (eligiblePool.length === 0) {
+      const activeFilters = [
+        ...(preferences.allergies || []),
+        ...(preferences.dietaryRestrictions || []),
+      ].filter(Boolean);
+      throw new Error(
+        activeFilters.length > 0
+          ? `No safe recipes match your allergy and dietary restrictions (${activeFilters.join(", ")}).`
+          : "No recipes are available to build a meal plan."
+      );
+    }
 
     const slotWeights = this.getSlotWeights(slots);
     const targetDailyCalories = preferences.dailyCalorieTarget || 2000;
     const targetDailyBudget = preferences.dailyBudgetIdr || 50000;
 
-    // Track recently assigned recipes for variety penalty
-    const recentRecipeHistory: Map<string, number> = new Map(); // recipeId -> dayIndex last used
-
+    const recentRecipeHistory: Map<string, number> = new Map();
     const days: MealPlanDay[] = [];
 
     for (let dayIndex = 0; dayIndex < DAYS_OF_WEEK.length; dayIndex++) {
       const dayName = DAYS_OF_WEEK[dayIndex];
-      const dayMeals: { slot: MealSlot; recipe: FoodItemData }[] = [];
+      const dayMeals: MealPlanSlotAssignment[] = [];
 
       let dayCalories = 0;
       let dayProtein = 0;
@@ -218,60 +131,40 @@ export class MealPlannerEngine {
         const slotCalorieTarget = Math.round(targetDailyCalories * slotWeights[slot]);
         const slotBudgetLimit = Math.round(targetDailyBudget * slotWeights[slot]);
 
-        // Filter eligible recipes for slot
-        let candidates = allRecipes.filter(
-          (r) =>
-            r.category.toLowerCase() === slot.toLowerCase() &&
-            this.isRecipeEligible(r, preferences)
+        // Only consider recipes from eligiblePool (guaranteed safe for allergies AND diet)
+        let candidates = eligiblePool.filter(
+          (r) => r.category.toLowerCase() === slot.toLowerCase()
         );
 
-        // If strict filtering left no candidates for snack, include Drinks
         if (candidates.length === 0 && slot === "Snack") {
-          candidates = allRecipes.filter(
-            (r) =>
-              (r.category === "Snack" || r.category === "Drink") &&
-              this.isRecipeEligible(r, preferences)
+          candidates = eligiblePool.filter(
+            (r) => r.category === "Snack" || r.category === "Drink"
           );
         }
 
-        // Fallback: If strict slot filtering produced empty set, try other meals compliant with diet and allergies
         if (candidates.length === 0) {
-          candidates = allRecipes.filter(
-            (r) =>
-              (r.category === "Lunch" || r.category === "Dinner") &&
-              this.isRecipeEligible(r, preferences)
+          candidates = eligiblePool.filter(
+            (r) => r.category === "Lunch" || r.category === "Dinner"
           );
         }
 
-        // Secondary fallback: Any eligible recipe across all categories
         if (candidates.length === 0) {
-          candidates = allRecipes.filter((r) => this.isRecipeEligible(r, preferences));
+          candidates = eligiblePool;
         }
 
-        // Final fallback: Match allergies safely
-        if (candidates.length === 0) {
-          candidates = allRecipes.filter(
-            (r) => this.checkAllergies(r, preferences.allergies).safe
-          );
-        }
-
-        // Score candidates deterministically
         const scored = candidates.map((recipe) => {
           let score = 0;
 
-          // 1. Calorie target proximity (lower diff = better)
           const calDiff = Math.abs(recipe.calories - slotCalorieTarget);
           score += calDiff * 1.5;
 
-          // 2. Budget proximity
           const cost = recipe.estimatedCostIdr || 0;
           if (cost > slotBudgetLimit && slotBudgetLimit > 0) {
             score += ((cost - slotBudgetLimit) / 1000) * 15;
           } else if (cost > 0) {
-            score -= 50; // reward cost awareness
+            score -= 50;
           }
 
-          // 3. Available pantry ingredient bonus
           if (preferences.availableIngredients && preferences.availableIngredients.length > 0) {
             const hasPantryItem = recipe.ingredients.some((ing) =>
               preferences.availableIngredients.some((p) =>
@@ -281,11 +174,10 @@ export class MealPlannerEngine {
             if (hasPantryItem) score -= 300;
           }
 
-          // 4. Variety penalty
           const lastUsedDay = recentRecipeHistory.get(recipe.id);
           if (lastUsedDay !== undefined) {
             const daysSince = dayIndex - lastUsedDay;
-            if (daysSince === 1) score += 900; // heavily penalize consecutive days
+            if (daysSince === 1) score += 900;
             else if (daysSince === 2) score += 450;
             else if (daysSince === 3) score += 200;
           }
@@ -296,7 +188,17 @@ export class MealPlannerEngine {
         scored.sort((a, b) => a.score - b.score);
         const chosen = scored[0]?.recipe || candidates[0];
 
-        dayMeals.push({ slot, recipe: chosen });
+        dayMeals.push({
+          slot,
+          recipe: chosen,
+          selectionReasons: explainRecipeSelection(chosen, {
+            slotCalorieTarget,
+            dailyBudgetIdr: targetDailyBudget,
+            allergies: preferences.allergies,
+            dietaryRestrictions: preferences.dietaryRestrictions,
+          }),
+          ingredientsToVerify: inspectIngredientsToVerify(chosen, preferences.allergies),
+        });
         recentRecipeHistory.set(chosen.id, dayIndex);
 
         dayCalories += chosen.calories;
@@ -321,7 +223,6 @@ export class MealPlannerEngine {
       });
     }
 
-    // Weekly aggregates
     const weeklyCalories = days.reduce((sum, d) => sum + d.totals.calories, 0);
     const weeklyCost = days.reduce((sum, d) => sum + d.totals.estimatedCostIdr, 0);
     const weeklyProtein = days.reduce((sum, d) => sum + d.totals.proteinGrams, 0);
@@ -336,7 +237,6 @@ export class MealPlannerEngine {
     const carbsPct = Math.round(((weeklyCarbs * 4) / (totalMacroCals || 1)) * 100);
     const fatPct = Math.max(0, 100 - proteinPct - carbsPct);
 
-    // Trade-off notes & disclaimers
     const tradeOffNotes: string[] = [];
 
     if (preferences.dailyBudgetIdr > 0 && averageDailyCost > preferences.dailyBudgetIdr) {
@@ -393,9 +293,6 @@ export class MealPlannerEngine {
     };
   }
 
-  /**
-   * Consolidates all ingredients across the 7-day schedule into categorized grocery items.
-   */
   public static generateShoppingList(days: MealPlanDay[]): ShoppingListCategory[] {
     const categoryMap: Record<
       string,
@@ -416,7 +313,6 @@ export class MealPlannerEngine {
 
           const bucket = categoryMap[targetCategory] || categoryMap["Pantry, Nuts & Seasonings"];
           if (bucket.has(normName)) {
-            // Item exists, preserve original or consolidate note
             const existing = bucket.get(normName)!;
             bucket.set(normName, {
               amount: `${existing.amount} + ${ing.amount}`,
@@ -452,9 +348,6 @@ export class MealPlannerEngine {
     return result;
   }
 
-  /**
-   * Helper categorizing ingredient into shopping pantry groups.
-   */
   private static categorizeIngredient(name: string): string {
     const l = name.toLowerCase();
 
@@ -462,7 +355,11 @@ export class MealPlannerEngine {
       return "Proteins & Farm Goods";
     }
 
-    if (/avocado|spinach|berry|berries|banana|apple|cucumber|tomato|lemon|mint|broccoli|asparagus|greens|kabocha|bok choy|buncis/i.test(l)) {
+    if (
+      /avocado|spinach|berry|berries|banana|apple|cucumber|tomato|lemon|mint|broccoli|asparagus|greens|kabocha|bok choy|buncis/i.test(
+        l
+      )
+    ) {
       return "Produce & Fresh Greens";
     }
 
@@ -477,9 +374,6 @@ export class MealPlannerEngine {
     return "Pantry, Nuts & Seasonings";
   }
 
-  /**
-   * Finds substitution candidates for a specific meal slot.
-   */
   public static getSubstitutions(
     slot: MealSlot,
     currentRecipeId: string,
@@ -509,9 +403,6 @@ export class MealPlannerEngine {
       .sort((a, b) => Math.abs(a.calorieDiff) - Math.abs(b.calorieDiff));
   }
 
-  /**
-   * Replaces an individual meal slot on a specific day and updates all totals.
-   */
   public static replaceMeal(
     plan: MealPlanRecord,
     dayIndex: number,
@@ -521,18 +412,42 @@ export class MealPlannerEngine {
   ): MealPlanRecord {
     const newRecipe = allRecipes.find((r) => r.id === newRecipeId);
     if (!newRecipe) throw new Error("Replacement recipe not found");
+    if (plan.preferences && !this.isRecipeEligible(newRecipe, plan.preferences)) {
+      throw new Error("Replacement recipe conflicts with allergy or dietary restrictions.");
+    }
 
     const targetDay = plan.days[dayIndex];
     if (!targetDay) throw new Error("Day index out of bounds");
 
+    const slotWeights = this.getSlotWeights(
+      plan.preferences?.preferredMealSlots || ["Breakfast", "Lunch", "Dinner", "Snack"]
+    );
+    const slotTarget = Math.round(
+      (plan.preferences?.dailyCalorieTarget || 2000) * (slotWeights[slot] || 0.25)
+    );
+
+    const newAssignment: MealPlanSlotAssignment = {
+      slot,
+      recipe: newRecipe,
+      selectionReasons: explainRecipeSelection(newRecipe, {
+        slotCalorieTarget: slotTarget,
+        dailyBudgetIdr: plan.preferences?.dailyBudgetIdr,
+        allergies: plan.preferences?.allergies,
+        dietaryRestrictions: plan.preferences?.dietaryRestrictions,
+      }),
+      ingredientsToVerify: inspectIngredientsToVerify(
+        newRecipe,
+        plan.preferences?.allergies
+      ),
+    };
+
     const mealIdx = targetDay.meals.findIndex((m) => m.slot === slot);
     if (mealIdx >= 0) {
-      targetDay.meals[mealIdx].recipe = newRecipe;
+      targetDay.meals[mealIdx] = newAssignment;
     } else {
-      targetDay.meals.push({ slot, recipe: newRecipe });
+      targetDay.meals.push(newAssignment);
     }
 
-    // Recalculate target day totals
     let dayCalories = 0;
     let dayProtein = 0;
     let dayCarbs = 0;
@@ -558,7 +473,6 @@ export class MealPlannerEngine {
       estimatedCostIdr: dayCost,
     };
 
-    // Recalculate summary
     const weeklyCalories = plan.days.reduce((sum, d) => sum + d.totals.calories, 0);
     const weeklyCost = plan.days.reduce((sum, d) => sum + d.totals.estimatedCostIdr, 0);
     const weeklyProtein = plan.days.reduce((sum, d) => sum + d.totals.proteinGrams, 0);

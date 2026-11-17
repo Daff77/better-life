@@ -20,7 +20,12 @@ import {
   PressableScale,
 } from "@/components/ui";
 import { useRecipes } from "@/hooks/useRecipesQuery";
-import { useJournalStore, getTodayDateKey, computeJournalAggregates } from "@/stores/useJournalStore";
+import {
+  useJournalStore,
+  getTodayDateKey,
+  computeJournalAggregates,
+} from "@/stores/useJournalStore";
+import { useFavoritesStore, favoriteToFoodItem } from "@/stores/useFavoritesStore";
 import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
 import { NAV_DESKTOP_BREAKPOINT } from "@/components/layout/ResponsiveTabBar";
 import { mealLabel } from "@/constants/MealLabels";
@@ -36,6 +41,7 @@ const ILLUSTRATED_SLOTS = [
   { id: "Snack", label: "Camilan", subtitle: "Kudapan sehat", image: MealIllustrations.Snacks },
   { id: "Drink", label: "Minuman", subtitle: "Segar & hidrasi", image: MealIllustrations.Drinks },
 ] as const;
+
 const BUDGETS = [
   { id: "all", label: "Semua harga", max: Infinity },
   { id: "20", label: "≤ Rp 20rb", max: 20000 },
@@ -53,16 +59,27 @@ export default function MealsScreen() {
   const { data: recipes = [], isLoading, isError, refetch } = useRecipes();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSlot, setSelectedSlot] = useState<string>("Semua");
+  const [favoritesOnly, setFavoritesOnly] = useState<boolean>(false);
   const [budgetId, setBudgetId] = useState<string>("all");
+  const [quickNotice, setQuickNotice] = useState<string | null>(null);
 
   const [selectedMealForLog, setSelectedMealForLog] = useState<FoodItem | null>(null);
   const [isLogModalVisible, setIsLogModalVisible] = useState(false);
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
 
   const todayDate = getTodayDateKey();
-  const todayJournal = useJournalStore((state) => state.journals[todayDate]);
+  const journals = useJournalStore((state) => state.journals);
+  const getRecentLoggedMeals = useJournalStore((state) => state.getRecentLoggedMeals);
+  const addJournalEntry = useJournalStore((state) => state.addEntry);
+  const todayJournal = journals[todayDate];
   const aggregates = useMemo(() => computeJournalAggregates(todayJournal), [todayJournal]);
   const target = aggregates.targetCalories || 2253;
+
+  const favorites = useFavoritesStore((state) => state.favorites);
+  const toggleFavorite = useFavoritesStore((state) => state.toggleFavorite);
+  const favoriteIdSet = useMemo(() => new Set(favorites.map((f) => f.itemId)), [favorites]);
+
+  const recentLoggedMeals = useMemo(() => getRecentLoggedMeals(6), [journals, getRecentLoggedMeals]);
 
   const ingredientAsMeals = useMemo<FoodItem[]>(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -98,7 +115,16 @@ export default function MealsScreen() {
   const filteredMeals = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     const budget = BUDGETS.find((b) => b.id === budgetId) ?? BUDGETS[0];
-    const baseMatches = recipes.filter((m) => {
+
+    // Include custom favorited items not present in base catalog when favorites filter is active
+    const catalogIds = new Set(recipes.map((r) => r.id));
+    const extraFavorites = favorites
+      .filter((f) => !catalogIds.has(f.itemId))
+      .map((f) => favoriteToFoodItem(f));
+    const combinedCatalog = [...extraFavorites, ...recipes];
+
+    const baseMatches = combinedCatalog.filter((m) => {
+      if (favoritesOnly && !favoriteIdSet.has(m.id)) return false;
       const matchSearch =
         !q ||
         m.title.toLowerCase().includes(q) ||
@@ -106,21 +132,44 @@ export default function MealsScreen() {
         mealLabel(m.category).toLowerCase().includes(q);
       const matchSlot = selectedSlot === "Semua" || m.category.toLowerCase() === selectedSlot.toLowerCase();
       const cost = m.estimatedCostIdr ?? 0;
-      const matchBudget = budget.max === Infinity || (cost > 0 && cost <= budget.max);
+      const matchBudget = budget.max === Infinity || cost === 0 || cost <= budget.max;
       return matchSearch && matchSlot && matchBudget;
     });
-    return [...baseMatches, ...ingredientAsMeals];
-  }, [recipes, searchQuery, selectedSlot, budgetId, ingredientAsMeals]);
+
+    const filteredIngredients = favoritesOnly
+      ? ingredientAsMeals.filter((m) => favoriteIdSet.has(m.id))
+      : ingredientAsMeals;
+
+    return [...baseMatches, ...filteredIngredients];
+  }, [recipes, favorites, favoriteIdSet, favoritesOnly, searchQuery, selectedSlot, budgetId, ingredientAsMeals]);
 
   const resetFilters = () => {
     setSearchQuery("");
     setSelectedSlot("Semua");
+    setFavoritesOnly(false);
     setBudgetId("all");
   };
 
   const handleOpenLogModal = (meal: FoodItem) => {
     setSelectedMealForLog(meal);
     setIsLogModalVisible(true);
+  };
+
+  const handleQuickRelog = async (recent: (typeof recentLoggedMeals)[number]) => {
+    const entry = await addJournalEntry({
+      mealId: recent.mealId,
+      title: recent.title,
+      category: recent.category,
+      calories: recent.calories,
+      baseCalories: recent.baseCalories,
+      quantity: recent.quantity || 1,
+      proteinGrams: recent.proteinGrams,
+      carbsGrams: recent.carbsGrams,
+      fatGrams: recent.fatGrams,
+      fiberGrams: recent.fiberGrams,
+    });
+    setQuickNotice(`${entry.title} (+${entry.calories} kcal) dicatat ulang ke jurnal hari ini.`);
+    setTimeout(() => setQuickNotice(null), 3500);
   };
 
   const renderList = () => {
@@ -150,13 +199,15 @@ export default function MealsScreen() {
       return (
         <Surface className="items-center py-10 px-6">
           <View className="w-12 h-12 rounded-full bg-primary-light items-center justify-center mb-3">
-            <LineIcon name="utensils" size={20} color="#0e7a52" />
+            <LineIcon name={favoritesOnly ? "heart" : "utensils"} size={20} color="#0e7a52" />
           </View>
           <AppText weight="semibold" className="text-base text-ink text-center">
-            Tidak ada menu yang cocok
+            {favoritesOnly ? "Belum ada menu favorit yang cocok" : "Tidak ada menu yang cocok"}
           </AppText>
           <AppText weight="medium" className="text-[13px] text-muted text-center mt-1 mb-4 max-w-xs">
-            {searchQuery
+            {favoritesOnly
+              ? "Ketuk ikon hati pada kartu menu atau halaman detail resep untuk menyimpannya sebagai favorit."
+              : searchQuery
               ? `Belum ada menu untuk "${searchQuery}". Coba kata lain atau hapus filter.`
               : "Kombinasi waktu makan dan harga ini belum punya menu."}
           </AppText>
@@ -178,6 +229,8 @@ export default function MealsScreen() {
                 prepTimeMinutes={meal.prepTimeMinutes}
                 estimatedCostIdr={meal.estimatedCostIdr}
                 imageUrl={meal.imageUrl}
+                isFavorite={favoriteIdSet.has(meal.id)}
+                onToggleFavorite={() => void toggleFavorite(meal)}
                 showLogButton
                 onLogMeal={() => handleOpenLogModal(meal)}
                 onPress={() => router.push({ pathname: "/(app)/recipe-detail", params: { id: meal.id } })}
@@ -204,6 +257,8 @@ export default function MealsScreen() {
               prepTimeMinutes={meal.prepTimeMinutes}
               estimatedCostIdr={meal.estimatedCostIdr}
               imageUrl={meal.imageUrl}
+              isFavorite={favoriteIdSet.has(meal.id)}
+              onToggleFavorite={() => void toggleFavorite(meal)}
               showLogButton
               onLogMeal={() => handleOpenLogModal(meal)}
               onPress={() => router.push({ pathname: "/(app)/recipe-detail", params: { id: meal.id } })}
@@ -228,8 +283,12 @@ export default function MealsScreen() {
             right={
               <View className="flex-row items-center gap-2">
                 <StatusPill
-                  label={`${Math.max(0, target - aggregates.totalConsumed).toLocaleString("id-ID")} kcal`}
-                  tone="accent"
+                  label={
+                    aggregates.remainingCalories < 0
+                      ? `Lewat ${Math.abs(aggregates.remainingCalories).toLocaleString("id-ID")} kcal`
+                      : `${Math.max(0, target - aggregates.totalConsumed).toLocaleString("id-ID")} kcal`
+                  }
+                  tone={aggregates.remainingCalories < 0 ? "warn" : "accent"}
                 />
                 <PressableScale
                   onPress={() => setIsCreateModalVisible(true)}
@@ -244,6 +303,17 @@ export default function MealsScreen() {
             }
           />
         </FadeInView>
+
+        {quickNotice && (
+          <Surface className="mb-3 py-3 px-4 bg-[#e2f2ec] border-[#bfe0d2]">
+            <View className="flex-row items-center gap-2">
+              <LineIcon name="check" size={15} color="#0e7a52" />
+              <AppText weight="semibold" className="text-xs text-[#0e7a52] flex-1">
+                {quickNotice}
+              </AppText>
+            </View>
+          </Surface>
+        )}
 
         <FadeInView index={1}>
           <SearchField
@@ -306,7 +376,7 @@ export default function MealsScreen() {
             })}
           </ScrollView>
 
-          {/* Secondary Filter Strip: Semua + Budgets */}
+          {/* Secondary Filter Strip: Semua + Favorit + Budgets */}
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -315,8 +385,16 @@ export default function MealsScreen() {
           >
             <FilterChip
               label="Semua waktu"
-              selected={selectedSlot === "Semua"}
-              onPress={() => setSelectedSlot("Semua")}
+              selected={selectedSlot === "Semua" && !favoritesOnly}
+              onPress={() => {
+                setSelectedSlot("Semua");
+                setFavoritesOnly(false);
+              }}
+            />
+            <FilterChip
+              label={favorites.length > 0 ? `Favorit (${favorites.length})` : "Favorit"}
+              selected={favoritesOnly}
+              onPress={() => setFavoritesOnly((prev) => !prev)}
             />
             <View className="w-px h-5 bg-line-2 mx-1" />
             {BUDGETS.map((b) => (
@@ -325,7 +403,59 @@ export default function MealsScreen() {
           </ScrollView>
         </FadeInView>
 
-        <FadeInView index={3} className="mt-4">
+        {/* Quick Re-log Recent Meals Strip */}
+        {!searchQuery && recentLoggedMeals.length > 0 && (
+          <FadeInView index={3} className="mt-4">
+            <View className="flex-row items-center justify-between mb-2 px-0.5">
+              <AppText weight="semibold" className="text-[15px] text-ink">
+                Terakhir dicatat
+              </AppText>
+              <AppText weight="medium" className="text-[12px] text-muted">
+                Ketuk Catat ulang untuk simpan instan
+              </AppText>
+            </View>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ gap: 10, paddingRight: 12 }}
+              {...horizontalScrollTouchProps}
+            >
+              {recentLoggedMeals.map((rec) => (
+                <View
+                  key={`${rec.mealId}-${rec.title}`}
+                  className="w-[216px] bg-card border border-line rounded-[18px] p-3 justify-between"
+                >
+                  <View>
+                    <AppText weight="medium" className="text-[11px] text-muted">
+                      {mealLabel(rec.category)} · {rec.quantity > 1 ? `${rec.quantity}x ` : "1x "}porsi
+                    </AppText>
+                    <AppText weight="semibold" numberOfLines={1} className="text-[14px] text-ink mt-0.5">
+                      {rec.title}
+                    </AppText>
+                    <AppText weight="bold" className="text-[12.5px] text-primary-text mt-1" style={tnum}>
+                      {rec.calories} kcal · P {Math.round(rec.proteinGrams)}g
+                    </AppText>
+                  </View>
+                  <View className="flex-row items-center justify-between gap-2 mt-2.5 pt-2 border-t border-line">
+                    <PressableScale
+                      onPress={() => void handleQuickRelog(rec)}
+                      className="flex-1 h-8 rounded-full bg-primary-light items-center justify-center flex-row gap-1"
+                      accessibilityRole="button"
+                      accessibilityLabel={`Catat ulang ${rec.title}`}
+                    >
+                      <LineIcon name="refresh" size={12} color="#0e7a52" />
+                      <AppText weight="bold" className="text-[11.5px] text-primary-text">
+                        Catat ulang
+                      </AppText>
+                    </PressableScale>
+                  </View>
+                </View>
+              ))}
+            </ScrollView>
+          </FadeInView>
+        )}
+
+        <FadeInView index={4} className="mt-4">
           <Surface dense>
             <ListRow
               last
@@ -375,7 +505,11 @@ export default function MealsScreen() {
 
         <View className="flex-row items-center justify-between mt-5 mb-3 px-0.5">
           <AppText weight="semibold" className="text-[17px] text-ink" style={{ letterSpacing: -0.2 }}>
-            {selectedSlot === "Semua" ? "Semua menu" : mealLabel(selectedSlot)}
+            {favoritesOnly
+              ? "Menu favorit"
+              : selectedSlot === "Semua"
+              ? "Semua menu"
+              : mealLabel(selectedSlot)}
           </AppText>
           {!isLoading && !isError && (
             <AppText weight="semibold" className="text-[12.5px] text-muted" style={tnum}>

@@ -1,5 +1,11 @@
+import {
+  isRecipeEligible,
+  explainRecipeSelection,
+  inspectIngredientsToVerify,
+} from "@better-life/shared";
 import { API_BASE_URL } from "./config";
 import { accountRevision } from "../accountScope";
+import { notifyUnauthorizedSession } from "../authToken";
 import {
   MealPlanPreferences,
   MealPlanRecord,
@@ -18,7 +24,9 @@ export interface MealPlanPreviewResponse {
 }
 
 let cachedLocalPlan: MealPlanRecord | null = null;
-export function resetMealPlanCache() { cachedLocalPlan = null; }
+export function resetMealPlanCache() {
+  cachedLocalPlan = null;
+}
 
 const DAYS_OF_WEEK = [
   "Monday",
@@ -30,55 +38,60 @@ const DAYS_OF_WEEK = [
   "Sunday",
 ];
 
-function isRecipeSafeLocal(recipe: FoodItem, allergies: string[], restrictions: string[]): boolean {
-  const normAllergies = (allergies || []).map((a) => a.toLowerCase().trim());
-  const normRestrictions = (restrictions || []).map((r) => r.toLowerCase().trim());
-
-  // Allergies
-  if (normAllergies.length > 0) {
-    const ingText = recipe.ingredients.map((i) => i.name.toLowerCase()).join(" ");
-    for (const a of normAllergies) {
-      const aliases: Record<string, RegExp> = {
-        lactose: /milk|cheese|yogurt|butter|cream|dairy|lactose/i,
-        nuts: /almond|walnut|cashew|pecan|pistachio|peanut|nuts/i,
-        seafood: /fish|salmon|tuna|cod|shrimp|prawn|crab|lobster|shellfish/i,
-      };
-      if (aliases[a]?.test(ingText)) return false;
-      if (ingText.includes(a)) return false;
-      if (a === "dairy" && /milk|cheese|yogurt|butter/i.test(ingText)) return false;
-      if (a === "eggs" && /egg/i.test(ingText)) return false;
-      if (a === "fish" && /fish|salmon|tuna/i.test(ingText)) return false;
-      if (a === "wheat/gluten" && /wheat|gluten|flour/i.test(ingText)) return false;
-    }
-  }
-
-  // Restrictions
-  if (normRestrictions.length > 0) {
-    const ingText = recipe.ingredients.map((i) => i.name.toLowerCase()).join(" ") + " " + recipe.title.toLowerCase();
-    for (const r of normRestrictions) {
-      if (r === "vegetarian" && /chicken|beef|steak|fish|salmon|meat|pork/i.test(ingText)) return false;
-      if (r === "vegan" && /chicken|beef|steak|fish|salmon|meat|pork|egg|dairy|milk|cheese|honey/i.test(ingText)) return false;
-    }
-  }
-
-  return true;
+function getSlotCalorieTarget(dailyTarget: number, slot: MealSlot, slots: MealSlot[]): number {
+  const weights: Record<MealSlot, number> = {
+    Breakfast: 0.25,
+    Lunch: 0.35,
+    Dinner: 0.3,
+    Snack: 0.1,
+  };
+  const totalWeight = slots.reduce((s, item) => s + (weights[item] || 0.25), 0) || 1;
+  return Math.round(dailyTarget * ((weights[slot] || 0.25) / totalWeight));
 }
 
 function generateLocalPlan(preferences: MealPlanPreferences): MealPlanRecord {
-  const slots: MealSlot[] = preferences.preferredMealSlots || ["Breakfast", "Lunch", "Dinner", "Snack"];
+  const slots: MealSlot[] =
+    preferences.preferredMealSlots && preferences.preferredMealSlots.length > 0
+      ? preferences.preferredMealSlots
+      : ["Breakfast", "Lunch", "Dinner", "Snack"];
+
+  // Single shared source of truth: NEVER relax allergy or dietary restrictions!
   const safeRecipes = MOCK_RECIPES.filter((r) =>
-    isRecipeSafeLocal(r, preferences.allergies, preferences.dietaryRestrictions)
+    isRecipeEligible(r, {
+      allergies: preferences.allergies,
+      dietaryRestrictions: preferences.dietaryRestrictions,
+    })
   );
 
-  if (!safeRecipes.length) throw new Error("No recipes match your allergy and dietary restrictions.");
-  const pool = safeRecipes;
+  if (!safeRecipes.length) {
+    throw new Error(
+      "No recipes match your allergy and dietary restrictions. Filter keamanan tidak dilonggarkan demi melindungi Anda."
+    );
+  }
+
+  const dailyTarget = preferences.dailyCalorieTarget || 2000;
+  const dailyBudget = preferences.dailyBudgetIdr || 50000;
 
   const days = DAYS_OF_WEEK.map((dayName, dayIdx) => {
     const dayMeals = slots.map((slot, sIdx) => {
-      const slotMatches = pool.filter((r) => r.category.toLowerCase() === slot.toLowerCase());
-      const available = slotMatches.length > 0 ? slotMatches : pool;
+      const slotMatches = safeRecipes.filter(
+        (r) => r.category.toLowerCase() === slot.toLowerCase()
+      );
+      const available = slotMatches.length > 0 ? slotMatches : safeRecipes;
       const recipe = available[(dayIdx + sIdx) % available.length];
-      return { slot, recipe };
+      const slotTarget = getSlotCalorieTarget(dailyTarget, slot, slots);
+
+      return {
+        slot,
+        recipe,
+        selectionReasons: explainRecipeSelection(recipe, {
+          slotCalorieTarget: slotTarget,
+          dailyBudgetIdr: dailyBudget,
+          allergies: preferences.allergies,
+          dietaryRestrictions: preferences.dietaryRestrictions,
+        }),
+        ingredientsToVerify: inspectIngredientsToVerify(recipe, preferences.allergies),
+      };
     });
 
     const dayCals = dayMeals.reduce((sum, m) => sum + (m.recipe.calories || 0), 0);
@@ -107,10 +120,29 @@ function generateLocalPlan(preferences: MealPlanPreferences): MealPlanRecord {
   const avgCals = Math.round(totalWeeklyCals / 7);
   const avgCost = Math.round(totalWeeklyCost / 7);
 
+  const totalWeeklyP = days.reduce((s, d) => s + d.totals.proteinGrams, 0);
+  const totalWeeklyC = days.reduce((s, d) => s + d.totals.carbsGrams, 0);
+  const totalWeeklyF = days.reduce((s, d) => s + d.totals.fatGrams, 0);
+  const macroSumKcal = totalWeeklyP * 4 + totalWeeklyC * 4 + totalWeeklyF * 9 || 1;
+  const pPct = Math.round(((totalWeeklyP * 4) / macroSumKcal) * 100);
+  const cPct = Math.round(((totalWeeklyC * 4) / macroSumKcal) * 100);
+  const fPct = Math.max(0, 100 - pPct - cPct);
+
+  const ingredientMap = new Map<string, string>();
+  for (const d of days) {
+    for (const m of d.meals) {
+      for (const ing of m.recipe.ingredients) {
+        if (!ingredientMap.has(ing.name)) {
+          ingredientMap.set(ing.name, ing.amount);
+        }
+      }
+    }
+  }
+
   const plan: MealPlanRecord = {
     id: `plan-${Date.now()}`,
     userId: "current-user",
-    title: "Personalized 7-Day Nutrition Plan",
+    title: "Rencana Makan 7 Hari Terpersonalisasi",
     status: "active",
     preferences,
     days,
@@ -121,40 +153,30 @@ function generateLocalPlan(preferences: MealPlanPreferences): MealPlanRecord {
       weeklyEstimatedCostIdr: totalWeeklyCost,
       averageDailyEstimatedCostIdr: avgCost,
       macroBalance: {
-        proteinGrams: Math.round(days.reduce((s, d) => s + d.totals.proteinGrams, 0) / 7),
-        carbsGrams: Math.round(days.reduce((s, d) => s + d.totals.carbsGrams, 0) / 7),
-        fatGrams: Math.round(days.reduce((s, d) => s + d.totals.fatGrams, 0) / 7),
-        proteinPct: 25,
-        carbsPct: 50,
-        fatPct: 25,
+        proteinGrams: Math.round(totalWeeklyP / 7),
+        carbsGrams: Math.round(totalWeeklyC / 7),
+        fatGrams: Math.round(totalWeeklyF / 7),
+        proteinPct: pPct,
+        carbsPct: cPct,
+        fatPct: fPct,
       },
       tradeOffNotes: [
-        "Balanced whole foods selected to match caloric and allergen constraints.",
-        "Local market ingredient costs aggregated across 7 days.",
+        "Seluruh menu disaring ketat mengikuti aturan alergi dan pembatasan diet Anda.",
+        "Estimasi biaya bahan dihitung berdasarkan harga pasar lokal.",
       ],
-      disclaimer: "Personalized nutritional estimate based on your dietary profile. Consult a dietitian for clinical requirements.",
+      disclaimer:
+        "Estimasi nutrisi disusun dari database bahan makanan utuh. Periksa kemasan bumbu/saus dan konsultasikan dengan ahli gizi untuk kondisi medis khusus.",
     },
     shoppingList: [
       {
-        category: "Produce & Fresh Ingredients",
-        items: [
-          { id: "shop-1", name: "Fresh Vegetables & Greens", amount: "1.5 kg", category: "Produce", checked: false },
-          { id: "shop-2", name: "Seasonal Fruits & Berries", amount: "800 g", category: "Produce", checked: false },
-        ],
-      },
-      {
-        category: "Protein & Dairy Alternatives",
-        items: [
-          { id: "shop-3", name: "Lean Protein (Chicken/Tempeh/Fish)", amount: "1.2 kg", category: "Protein", checked: false },
-          { id: "shop-4", name: "Farm Fresh Eggs / Tofu", amount: "1 pack", category: "Protein", checked: false },
-        ],
-      },
-      {
-        category: "Grains & Pantry",
-        items: [
-          { id: "shop-5", name: "Brown Rice / Quinoa", amount: "500 g", category: "Grains", checked: false },
-          { id: "shop-6", name: "Rolled Oats & Chia Seeds", amount: "300 g", category: "Grains", checked: false },
-        ],
+        category: "Bahan Belanja Mingguan",
+        items: Array.from(ingredientMap.entries()).map(([name, amount], idx) => ({
+          id: `shop-${idx + 1}`,
+          name,
+          amount,
+          category: "Bahan Utama",
+          checked: false,
+        })),
       },
     ],
     createdAt: new Date().toISOString(),
@@ -166,9 +188,6 @@ function generateLocalPlan(preferences: MealPlanPreferences): MealPlanRecord {
 }
 
 export const mealPlannerApi = {
-  /**
-   * Fetch free preview information
-   */
   async getPreview(): Promise<MealPlanPreviewResponse> {
     try {
       const res = await fetch(`${API_BASE_URL}/meal-plans/preview`);
@@ -179,27 +198,32 @@ export const mealPlannerApi = {
       // offline preview fallback
     }
     return {
-      feature: "Personalized Meal Planner",
-      description: "Weekly clinical schedules, allergen exclusions, and grocery budget optimization.",
+      feature: "Rencana Makan 7 Hari",
+      description:
+        "Jadwal menu mingguan dengan penyaringan alergen ketat dan estimasi belanja harian.",
       entitlementRequired: "MEAL_PLANNER",
       sampleDay: {
         day: "Monday",
         meals: [],
-        totals: { calories: 1850, proteinGrams: 110, carbsGrams: 210, fatGrams: 55, fiberGrams: 28, estimatedCostIdr: 75000 },
+        totals: {
+          calories: 1850,
+          proteinGrams: 110,
+          carbsGrams: 210,
+          fatGrams: 55,
+          fiberGrams: 28,
+          estimatedCostIdr: 75000,
+        },
       },
       sampleSummary: { totalDays: 7, averageDailyCalories: 1850 },
       capabilities: [
-        "Custom 7-day schedules",
-        "Strict allergen filters",
-        "Dietary restriction compliance",
-        "Indonesian grocery cost estimates",
+        "Jadwal 7 hari terpersonalisasi",
+        "Penyaringan alergi & diet ketat tanpa pelonggaran",
+        "Penjelasan alasan pemilihan tiap menu & bahan yang perlu diperiksa",
+        "Estimasi biaya belanja bahan lokal",
       ],
     };
   },
 
-  /**
-   * Fetch user's saved active meal plan
-   */
   async getSavedPlan(token?: string | null): Promise<MealPlanRecord | null> {
     const revision = accountRevision();
     if (token) {
@@ -210,6 +234,11 @@ export const mealPlannerApi = {
             "Content-Type": "application/json",
           },
         });
+
+        if (res.status === 401) {
+          await notifyUnauthorizedSession(revision);
+          return null;
+        }
 
         if (res.status === 404) {
           return cachedLocalPlan;
@@ -229,13 +258,11 @@ export const mealPlannerApi = {
     return cachedLocalPlan;
   },
 
-  /**
-   * Generate a fresh 7-day personalized meal plan
-   */
   async generatePlan(
     preferences: MealPlanPreferences,
     token?: string | null
   ): Promise<MealPlanRecord> {
+    const revision = accountRevision();
     if (token) {
       try {
         const res = await fetch(`${API_BASE_URL}/meal-plans/generate`, {
@@ -247,27 +274,42 @@ export const mealPlannerApi = {
           body: JSON.stringify(preferences),
         });
 
+        if (res.status === 401) {
+          await notifyUnauthorizedSession(revision);
+          throw new Error("Sesi Anda telah berakhir. Silakan masuk kembali.");
+        }
+
+        if (res.status === 422 || res.status === 400) {
+          const errData: any = await res.json().catch(() => ({}));
+          throw new Error(
+            errData?.message ||
+              "No recipes match your allergy and dietary restrictions."
+          );
+        }
+
         if (res.ok) {
           const plan = await res.json();
           cachedLocalPlan = plan;
           return plan;
         }
-      } catch {
-        // Fallback silently to local planner engine
+      } catch (err: any) {
+        if (
+          /No recipes|No safe recipes|Sesi Anda/i.test(String(err?.message || ""))
+        ) {
+          throw err;
+        }
+        // Network offline -> fall through to local planner using identical shared safety rules
       }
     }
 
-    // Honest local generation fallback
     return generateLocalPlan(preferences);
   },
 
-  /**
-   * Save an existing or customized meal plan
-   */
   async savePlan(
     plan: MealPlanRecord,
     token?: string | null
   ): Promise<MealPlanRecord> {
+    const revision = accountRevision();
     cachedLocalPlan = plan;
 
     if (token) {
@@ -281,6 +323,11 @@ export const mealPlannerApi = {
           body: JSON.stringify(plan),
         });
 
+        if (res.status === 401) {
+          await notifyUnauthorizedSession(revision);
+          return plan;
+        }
+
         if (res.ok) {
           const data = await res.json();
           return data.plan || plan;
@@ -293,15 +340,13 @@ export const mealPlannerApi = {
     return plan;
   },
 
-  /**
-   * Fetch alternative substitutions for a meal slot
-   */
   async getSubstitutions(
     slot: MealSlot,
     currentRecipeId: string,
     preferences?: MealPlanPreferences,
     token?: string | null
   ): Promise<SubstitutionCandidate[]> {
+    const revision = accountRevision();
     if (token) {
       try {
         const res = await fetch(`${API_BASE_URL}/meal-plans/substitute`, {
@@ -317,6 +362,11 @@ export const mealPlannerApi = {
           }),
         });
 
+        if (res.status === 401) {
+          await notifyUnauthorizedSession(revision);
+          return [];
+        }
+
         if (res.ok) {
           const data = await res.json();
           return data.substitutions || [];
@@ -326,28 +376,25 @@ export const mealPlannerApi = {
       }
     }
 
-    // Local substitution calculation
     const current = MOCK_RECIPES.find((r) => r.id === currentRecipeId);
     const currentCals = current?.calories || 0;
     const currentCost = current?.estimatedCostIdr || 0;
 
-    const candidates = MOCK_RECIPES.filter(
+    return MOCK_RECIPES.filter(
       (r) =>
         r.id !== currentRecipeId &&
         r.category.toLowerCase() === slot.toLowerCase() &&
-        isRecipeSafeLocal(r, preferences?.allergies || [], preferences?.dietaryRestrictions || [])
+        isRecipeEligible(r, {
+          allergies: preferences?.allergies || [],
+          dietaryRestrictions: preferences?.dietaryRestrictions || [],
+        })
     ).map((r) => ({
       recipe: r,
       calorieDiff: r.calories - currentCals,
       costDiffIdr: (r.estimatedCostIdr || 0) - currentCost,
     }));
-
-    return candidates;
   },
 
-  /**
-   * Replace a meal slot on a specific day
-   */
   async replaceMeal(
     dayIndex: number,
     slot: MealSlot,
@@ -355,6 +402,7 @@ export const mealPlannerApi = {
     currentPlan: MealPlanRecord,
     token?: string | null
   ): Promise<MealPlanRecord> {
+    const revision = accountRevision();
     if (token) {
       try {
         const res = await fetch(`${API_BASE_URL}/meal-plans/replace-meal`, {
@@ -371,34 +419,96 @@ export const mealPlannerApi = {
           }),
         });
 
+        if (res.status === 401) {
+          await notifyUnauthorizedSession(revision);
+          throw new Error("Sesi Anda telah berakhir.");
+        }
+
+        if (res.status === 400) {
+          const errData: any = await res.json().catch(() => ({}));
+          throw new Error(
+            errData?.message || "Recipe conflicts with dietary restrictions."
+          );
+        }
+
         if (res.ok) {
           const plan = await res.json();
           cachedLocalPlan = plan;
           return plan;
         }
-      } catch {
-        // Fallback silently to local replacement calculation
+      } catch (err: any) {
+        if (/conflicts|Sesi Anda/i.test(String(err?.message || ""))) {
+          throw err;
+        }
       }
     }
 
-    // Local replacement calculation
     const newRecipe = MOCK_RECIPES.find((r) => r.id === newRecipeId);
     if (!newRecipe) return currentPlan;
-    if (!isRecipeSafeLocal(newRecipe, currentPlan.preferences.allergies, currentPlan.preferences.dietaryRestrictions)) throw new Error("Recipe conflicts with dietary restrictions.");
+    if (
+      !isRecipeEligible(newRecipe, {
+        allergies: currentPlan.preferences.allergies,
+        dietaryRestrictions: currentPlan.preferences.dietaryRestrictions,
+      })
+    ) {
+      throw new Error("Recipe conflicts with dietary restrictions.");
+    }
+
+    const slots = currentPlan.preferences.preferredMealSlots || [
+      "Breakfast",
+      "Lunch",
+      "Dinner",
+      "Snack",
+    ];
+    const slotTarget = getSlotCalorieTarget(
+      currentPlan.preferences.dailyCalorieTarget || 2000,
+      slot,
+      slots
+    );
 
     const updatedDays = currentPlan.days.map((day, idx) => {
       if (idx !== dayIndex) return day;
 
       const updatedMeals = day.meals.map((m) =>
-        m.slot === slot ? { slot, recipe: newRecipe } : m
+        m.slot === slot
+          ? {
+              slot,
+              recipe: newRecipe,
+              selectionReasons: explainRecipeSelection(newRecipe, {
+                slotCalorieTarget: slotTarget,
+                dailyBudgetIdr: currentPlan.preferences.dailyBudgetIdr,
+                allergies: currentPlan.preferences.allergies,
+                dietaryRestrictions: currentPlan.preferences.dietaryRestrictions,
+              }),
+              ingredientsToVerify: inspectIngredientsToVerify(
+                newRecipe,
+                currentPlan.preferences.allergies
+              ),
+            }
+          : m
       );
 
       const dayCals = updatedMeals.reduce((sum, m) => sum + (m.recipe.calories || 0), 0);
-      const dayP = updatedMeals.reduce((sum, m) => sum + (m.recipe.nutrition?.proteinGrams || 0), 0);
-      const dayC = updatedMeals.reduce((sum, m) => sum + (m.recipe.nutrition?.carbsGrams || 0), 0);
-      const dayF = updatedMeals.reduce((sum, m) => sum + (m.recipe.nutrition?.fatGrams || 0), 0);
-      const dayFib = updatedMeals.reduce((sum, m) => sum + (m.recipe.nutrition?.fiberGrams || 0), 0);
-      const dayCost = updatedMeals.reduce((sum, m) => sum + (m.recipe.estimatedCostIdr || 0), 0);
+      const dayP = updatedMeals.reduce(
+        (sum, m) => sum + (m.recipe.nutrition?.proteinGrams || 0),
+        0
+      );
+      const dayC = updatedMeals.reduce(
+        (sum, m) => sum + (m.recipe.nutrition?.carbsGrams || 0),
+        0
+      );
+      const dayF = updatedMeals.reduce(
+        (sum, m) => sum + (m.recipe.nutrition?.fatGrams || 0),
+        0
+      );
+      const dayFib = updatedMeals.reduce(
+        (sum, m) => sum + (m.recipe.nutrition?.fiberGrams || 0),
+        0
+      );
+      const dayCost = updatedMeals.reduce(
+        (sum, m) => sum + (m.recipe.estimatedCostIdr || 0),
+        0
+      );
 
       return {
         ...day,
@@ -415,7 +525,10 @@ export const mealPlannerApi = {
     });
 
     const totalWeeklyCals = updatedDays.reduce((sum, d) => sum + d.totals.calories, 0);
-    const totalWeeklyCost = updatedDays.reduce((sum, d) => sum + d.totals.estimatedCostIdr, 0);
+    const totalWeeklyCost = updatedDays.reduce(
+      (sum, d) => sum + d.totals.estimatedCostIdr,
+      0
+    );
 
     const updatedPlan: MealPlanRecord = {
       ...currentPlan,

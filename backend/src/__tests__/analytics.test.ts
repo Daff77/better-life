@@ -4,8 +4,12 @@ import request from "supertest";
 import jwt from "jsonwebtoken";
 import { app } from "../index.js";
 import { env } from "../config/env.js";
-import { inMemoryStore } from "../services/store.js";
-import { Entitlement } from "../types/subscription.js";
+import {
+  userRepository,
+  subscriptionRepository,
+  profileRepository,
+  mealRepository,
+} from "../repositories/index.js";
 import { AnalyticsEngine } from "../services/analyticsEngine.js";
 
 function createTestToken(userId: string, email: string): string {
@@ -24,107 +28,115 @@ describe("Backend Advanced Nutrition Analytics Suite", () => {
   const freeToken = createTestToken(freeUserId, freeUserEmail);
   const otherPremiumToken = createTestToken(otherPremiumUserId, otherPremiumUserEmail);
 
-  beforeEach(() => {
-    // Reset users
-    inMemoryStore.users.set(premiumUserId, {
+  beforeEach(async () => {
+    await userRepository.upsert({
       id: premiumUserId,
       name: "Analytics Premium User",
       email: premiumUserEmail,
       phone: "+62 812-1111-2222",
       passwordHash: "hash",
-      createdAt: new Date(),
     });
 
-    inMemoryStore.users.set(freeUserId, {
+    await userRepository.upsert({
       id: freeUserId,
       name: "Free User",
       email: freeUserEmail,
       phone: "+62 813-2222-3333",
       passwordHash: "hash",
-      createdAt: new Date(),
     });
 
-    inMemoryStore.users.set(otherPremiumUserId, {
+    await userRepository.upsert({
       id: otherPremiumUserId,
       name: "Other Premium User",
       email: otherPremiumUserEmail,
       phone: "+62 814-3333-4444",
       passwordHash: "hash",
-      createdAt: new Date(),
     });
 
-    // Subscriptions
-    inMemoryStore.subscriptions.set(premiumUserId, {
+    const now = new Date();
+    await subscriptionRepository.upsert({
       id: `sub-${premiumUserId}`,
       userId: premiumUserId,
       tier: "premium",
       planId: "monthly",
       status: "premium_active",
-      entitlements: [
-        Entitlement.ADVANCED_ANALYTICS,
-        Entitlement.NUTRITION_REPORTS,
-        Entitlement.EXPORT_REPORTS,
-        Entitlement.PERSONALIZED_MEAL_PLAN,
-      ],
-      currentPeriodStart: new Date(),
+      billingProvider: "mock_sandbox",
+      externalSubscriptionId: null,
+      externalCustomerId: null,
+      currentPeriodStart: now,
       currentPeriodEnd: new Date(Date.now() + 30 * 24 * 3600 * 1000),
-      autoRenew: true,
+      cancelAtPeriodEnd: false,
+      canceledAt: null,
+      metadata: {},
+      createdAt: now,
+      updatedAt: now,
     });
 
-    inMemoryStore.subscriptions.set(freeUserId, {
+    await subscriptionRepository.upsert({
       id: `sub-${freeUserId}`,
       userId: freeUserId,
       tier: "free",
+      planId: null,
       status: "free",
-      entitlements: [],
-      currentPeriodStart: new Date(),
+      billingProvider: "mock_sandbox",
+      externalSubscriptionId: null,
+      externalCustomerId: null,
+      currentPeriodStart: now,
       currentPeriodEnd: null,
-      autoRenew: false,
+      cancelAtPeriodEnd: false,
+      canceledAt: null,
+      metadata: {},
+      createdAt: now,
+      updatedAt: now,
     });
 
-    inMemoryStore.subscriptions.set(otherPremiumUserId, {
+    await subscriptionRepository.upsert({
       id: `sub-${otherPremiumUserId}`,
       userId: otherPremiumUserId,
       tier: "premium",
       planId: "annual",
       status: "premium_active",
-      entitlements: [
-        Entitlement.ADVANCED_ANALYTICS,
-        Entitlement.NUTRITION_REPORTS,
-        Entitlement.EXPORT_REPORTS,
-      ],
-      currentPeriodStart: new Date(),
+      billingProvider: "mock_sandbox",
+      externalSubscriptionId: null,
+      externalCustomerId: null,
+      currentPeriodStart: now,
       currentPeriodEnd: new Date(Date.now() + 365 * 24 * 3600 * 1000),
-      autoRenew: true,
+      cancelAtPeriodEnd: false,
+      canceledAt: null,
+      metadata: {},
+      createdAt: now,
+      updatedAt: now,
     });
 
-    // Profiles
-    inMemoryStore.profiles.set(premiumUserId, {
-      userId: premiumUserId,
-      weightKg: 70,
-      heightCm: 175,
+    await profileRepository.upsert(premiumUserId, {
+      goal: "Eat balanced",
+      weight: 70,
+      height: 175,
+      gender: "Male",
+      birthDate: { day: 15, month: "June", year: 2000 },
+      cookingSkill: "Middle",
+      dietType: "Omnivore",
+      allergies: [],
       targetCalories: 2100,
-      activityLevel: "moderate",
-      dietaryPreference: "none",
-      allergies: [],
-      updatedAt: new Date(),
+      onboardingCompleted: true,
     });
 
-    inMemoryStore.profiles.set(otherPremiumUserId, {
-      userId: otherPremiumUserId,
-      weightKg: 65,
-      heightCm: 170,
+    await profileRepository.upsert(otherPremiumUserId, {
+      goal: "Lose weight",
+      weight: 65,
+      height: 170,
+      gender: "Female",
+      birthDate: { day: 10, month: "May", year: 2001 },
+      cookingSkill: "Middle",
+      dietType: "Omnivore",
+      allergies: [],
       targetCalories: 1800,
-      activityLevel: "light",
-      dietaryPreference: "none",
-      allergies: [],
-      updatedAt: new Date(),
+      onboardingCompleted: true,
     });
 
-    // Meal records
-    inMemoryStore.loggedMeals.set(premiumUserId, []);
-    inMemoryStore.loggedMeals.set(freeUserId, []);
-    inMemoryStore.loggedMeals.set(otherPremiumUserId, []);
+    await mealRepository.clearAllByUser(premiumUserId);
+    await mealRepository.clearAllByUser(freeUserId);
+    await mealRepository.clearAllByUser(otherPremiumUserId);
   });
 
   describe("1. Access Control, Entitlements & Privacy", () => {
@@ -184,7 +196,6 @@ describe("Backend Advanced Nutrition Analytics Suite", () => {
       assert.equal(res.body.spending.totalEstimatedCostIdr, 0);
       assert.equal(res.body.spending.pricingCoveragePct, 0);
 
-      // Verify all 7 days are present in continuous series with hasData: false
       assert.equal(res.body.dailyTrends.length, 7);
       for (const pt of res.body.dailyTrends) {
         assert.equal(pt.hasData, false);
@@ -197,7 +208,6 @@ describe("Backend Advanced Nutrition Analytics Suite", () => {
     it("should calculate average daily calories only over logged days (not artificially deflated)", async () => {
       const todayStr = AnalyticsEngine.formatDateKey(new Date());
 
-      // Log 2 meals today totaling 2000 kcal
       await request(app)
         .post("/api/meals")
         .set("Authorization", `Bearer ${premiumToken}`)
@@ -234,14 +244,12 @@ describe("Backend Advanced Nutrition Analytics Suite", () => {
 
       assert.equal(res.status, 200);
       assert.equal(res.body.summary.totalCalories, 2000);
-      // Only 1 day was logged, so average daily calories should be 2000, NOT 2000 / 7 = 285!
       assert.equal(res.body.summary.averageDailyCalories, 2000);
       assert.equal(res.body.consistency.loggedDaysCount, 1);
       assert.equal(res.body.consistency.totalDaysInRange, 7);
       assert.equal(res.body.consistency.totalMealsLogged, 2);
       assert.equal(res.body.consistency.dataCoveragePercentage, 14);
 
-      // Today's point has data
       const todayPoint = res.body.dailyTrends.find((p: any) => p.date === todayStr);
       assert.ok(todayPoint);
       assert.equal(todayPoint.hasData, true);
@@ -251,7 +259,6 @@ describe("Backend Advanced Nutrition Analytics Suite", () => {
       assert.equal(todayPoint.fatGrams, 50);
       assert.equal(todayPoint.fiberGrams, 22);
       assert.equal(todayPoint.mealCount, 2);
-      // 2000 kcal vs 2100 kcal target is within ±15% -> on_target
       assert.equal(todayPoint.adherenceStatus, "on_target");
     });
   });
@@ -296,7 +303,6 @@ describe("Backend Advanced Nutrition Analytics Suite", () => {
     it("should compute accurate macro ratios, fiber adequacy and spending metrics", async () => {
       const todayStr = AnalyticsEngine.formatDateKey(new Date());
 
-      // Log high protein meal
       await request(app)
         .post("/api/meals")
         .set("Authorization", `Bearer ${premiumToken}`)
@@ -318,17 +324,14 @@ describe("Backend Advanced Nutrition Analytics Suite", () => {
 
       assert.equal(res.status, 200);
 
-      // Check grams
       const macros = res.body.macroDistribution;
       assert.equal(macros.grams.protein, 60);
       assert.equal(macros.grams.carbs, 60);
       assert.equal(macros.grams.fat, 36);
       assert.equal(macros.grams.fiber, 26);
 
-      // Fiber is >= 25g -> Optimal
       assert.equal(res.body.summary.fiberScore, "Optimal");
 
-      // Check Spending
       const spending = res.body.spending;
       assert.equal(spending.totalEstimatedCostIdr, 65000);
       assert.equal(spending.pricedMealsCount, 1);
@@ -343,7 +346,6 @@ describe("Backend Advanced Nutrition Analytics Suite", () => {
     it("should strictly isolate analytics between different users", async () => {
       const todayStr = AnalyticsEngine.formatDateKey(new Date());
 
-      // User A logs a premium steak dinner
       await request(app)
         .post("/api/meals")
         .set("Authorization", `Bearer ${premiumToken}`)
@@ -359,7 +361,6 @@ describe("Backend Advanced Nutrition Analytics Suite", () => {
           dateKey: todayStr,
         });
 
-      // User B logs a simple salad
       await request(app)
         .post("/api/meals")
         .set("Authorization", `Bearer ${otherPremiumToken}`)
@@ -375,22 +376,18 @@ describe("Backend Advanced Nutrition Analytics Suite", () => {
           dateKey: todayStr,
         });
 
-      // User A requests analytics
       const resA = await request(app)
         .get("/api/analytics/advanced?range=7d")
         .set("Authorization", `Bearer ${premiumToken}`);
 
-      // User B requests analytics
       const resB = await request(app)
         .get("/api/analytics/advanced?range=7d")
         .set("Authorization", `Bearer ${otherPremiumToken}`);
 
-      // User A sees ONLY their own 900 kcal meal and 250k IDR spending
       assert.equal(resA.body.summary.totalCalories, 900);
       assert.equal(resA.body.spending.totalEstimatedCostIdr, 250000);
       assert.equal(resA.body.macroDistribution.grams.protein, 75);
 
-      // User B sees ONLY their own 250 kcal meal and 30k IDR spending
       assert.equal(resB.body.summary.totalCalories, 250);
       assert.equal(resB.body.spending.totalEstimatedCostIdr, 30000);
       assert.equal(resB.body.macroDistribution.grams.protein, 5);

@@ -2,11 +2,12 @@ import { describe, it, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import request from "supertest";
 import jwt from "jsonwebtoken";
+import crypto from "node:crypto";
 import { app } from "../index.js";
 import { env } from "../config/env.js";
-import { inMemoryStore } from "../services/store.js";
+import { userRepository, subscriptionRepository } from "../repositories/index.js";
 import { subscriptionService } from "../services/subscriptionService.js";
-import { Entitlement, SUBSCRIPTION_PLANS } from "../types/subscription.js";
+import { Entitlement } from "../types/subscription.js";
 
 function createTestToken(userId: string, email: string): string {
   return jwt.sign({ userId, email }, env.JWT_SECRET, { expiresIn: "1h" });
@@ -24,70 +25,70 @@ describe("Backend Premium Membership & Entitlements Security Suite", () => {
   const premiumToken = createTestToken(premiumUserId, premiumUserEmail);
   const attackerToken = createTestToken(attackerUserId, attackerUserEmail);
 
-  beforeEach(() => {
-    // Reset test users in store
-    inMemoryStore.users.set(freeUserId, {
+  beforeEach(async () => {
+    const now = new Date();
+    await userRepository.upsert({
       id: freeUserId,
       name: "Free User",
       email: freeUserEmail,
       phone: "+62 811-1111-1111",
       passwordHash: "hash",
-      createdAt: new Date(),
     });
 
-    inMemoryStore.users.set(premiumUserId, {
+    await userRepository.upsert({
       id: premiumUserId,
       name: "Premium User",
       email: premiumUserEmail,
       phone: "+62 822-2222-2222",
       passwordHash: "hash",
-      createdAt: new Date(),
     });
 
-    inMemoryStore.users.set(attackerUserId, {
+    await userRepository.upsert({
       id: attackerUserId,
       name: "Attacker User",
       email: attackerUserEmail,
       phone: "+62 833-3333-3333",
       passwordHash: "hash",
-      createdAt: new Date(),
     });
 
-    // Reset subscriptions
-    inMemoryStore.subscriptions.set(freeUserId, {
+    await subscriptionRepository.upsert({
       id: `sub-${freeUserId}`,
       userId: freeUserId,
       tier: "free",
       status: "free",
       planId: null,
       billingProvider: "mock_sandbox",
-      currentPeriodStart: new Date(),
+      externalSubscriptionId: null,
+      externalCustomerId: null,
+      currentPeriodStart: now,
       currentPeriodEnd: null,
       cancelAtPeriodEnd: false,
       canceledAt: null,
       metadata: {},
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: now,
+      updatedAt: now,
     });
 
-    inMemoryStore.subscriptions.set(premiumUserId, {
+    await subscriptionRepository.upsert({
       id: `sub-${premiumUserId}`,
       userId: premiumUserId,
       tier: "premium",
       status: "premium_active",
       planId: "monthly",
       billingProvider: "mock_sandbox",
-      currentPeriodStart: new Date(),
-      currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days ahead
+      externalSubscriptionId: null,
+      externalCustomerId: null,
+      currentPeriodStart: now,
+      currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       cancelAtPeriodEnd: false,
       canceledAt: null,
       metadata: {},
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: now,
+      updatedAt: now,
     });
 
-    // Clear payment events
-    inMemoryStore.paymentEvents.clear();
+    await subscriptionRepository.clearPaymentEvents();
+    delete process.env.STRIPE_WEBHOOK_SECRET;
   });
 
   describe("1. Public Plan Catalog & Free Membership Baseline", () => {
@@ -99,6 +100,7 @@ describe("Backend Premium Membership & Entitlements Security Suite", () => {
       assert.ok(res.body.plans.some((p: any) => p.id === "monthly"));
       assert.ok(res.body.plans.some((p: any) => p.id === "annual"));
       assert.ok(res.body.plans.some((p: any) => p.id === "lifetime"));
+      assert.ok(res.body.paymentReadiness);
     });
 
     it("GET /api/subscription/status — should accurately return Free status and core entitlements", async () => {
@@ -190,10 +192,9 @@ describe("Backend Premium Membership & Entitlements Security Suite", () => {
 
   describe("3. Subscription Lifecycle: Expiration & Cancellation Transitions", () => {
     it("should reject access when a subscription has expired past its currentPeriodEnd", async () => {
-      // Set premium user's subscription periodEnd to 2 hours ago
-      const expiredSub = inMemoryStore.subscriptions.get(premiumUserId)!;
+      const expiredSub = (await subscriptionRepository.findByUserId(premiumUserId))!;
       expiredSub.currentPeriodEnd = new Date(Date.now() - 2 * 60 * 60 * 1000);
-      inMemoryStore.subscriptions.set(premiumUserId, expiredSub);
+      await subscriptionRepository.upsert(expiredSub);
 
       const statusRes = await request(app)
         .get("/api/subscription/status")
@@ -204,7 +205,6 @@ describe("Backend Premium Membership & Entitlements Security Suite", () => {
       assert.equal(statusRes.body.tier, "free");
       assert.equal(statusRes.body.isPremium, false);
 
-      // Now attempting to access protected endpoint should return 403
       const protectedRes = await request(app)
         .get("/api/analytics/advanced")
         .set("Authorization", `Bearer ${premiumToken}`);
@@ -214,7 +214,6 @@ describe("Backend Premium Membership & Entitlements Security Suite", () => {
     });
 
     it("should allow access when auto-renew is canceled BUT currentPeriodEnd is still in the future", async () => {
-      // User cancels subscription
       const cancelRes = await request(app)
         .post("/api/subscription/cancel")
         .set("Authorization", `Bearer ${premiumToken}`)
@@ -223,19 +222,17 @@ describe("Backend Premium Membership & Entitlements Security Suite", () => {
       assert.equal(cancelRes.status, 200);
       assert.equal(cancelRes.body.subscription.status, "canceled");
       assert.equal(cancelRes.body.subscription.cancelAtPeriodEnd, true);
-      assert.equal(cancelRes.body.subscription.isPremium, true); // Still entitled!
+      assert.equal(cancelRes.body.subscription.isPremium, true);
 
-      // Access should still succeed
       const accessRes = await request(app)
         .get("/api/analytics/advanced")
         .set("Authorization", `Bearer ${premiumToken}`);
 
       assert.equal(accessRes.status, 200);
 
-      // Fast-forward periodEnd to past: access must now be revoked
-      const sub = inMemoryStore.subscriptions.get(premiumUserId)!;
+      const sub = (await subscriptionRepository.findByUserId(premiumUserId))!;
       sub.currentPeriodEnd = new Date(Date.now() - 1000);
-      inMemoryStore.subscriptions.set(premiumUserId, sub);
+      await subscriptionRepository.upsert(sub);
 
       const expiredAccessRes = await request(app)
         .get("/api/analytics/advanced")
@@ -256,16 +253,15 @@ describe("Backend Premium Membership & Entitlements Security Suite", () => {
   });
 
   describe("4. Purchase Checkout & Verification", () => {
-    it("POST /api/subscription/checkout — should activate premium subscription with valid plan", async () => {
+    it("POST /api/subscription/checkout — should reject unverified checkout when provider is unconfigured", async () => {
       const res = await request(app)
         .post("/api/subscription/checkout")
         .set("Authorization", `Bearer ${freeToken}`)
         .send({ planId: "annual", provider: "mock_sandbox" });
 
       assert.equal(res.status, 400);
-      assert.equal(subscriptionService.getStatusResponse(freeUserId).isPremium, false);
+      assert.equal((await subscriptionService.getStatusResponse(freeUserId)).isPremium, false);
 
-      // Verify the user can now access protected features
       const protectedRes = await request(app)
         .get("/api/analytics/advanced")
         .set("Authorization", `Bearer ${freeToken}`);
@@ -283,7 +279,7 @@ describe("Backend Premium Membership & Entitlements Security Suite", () => {
       assert.equal(res.body.error, "Validation Error");
     });
 
-    it("POST /api/subscription/verify — should verify in-app transaction and activate membership", async () => {
+    it("POST /api/subscription/verify — should reject unverified receipt claims", async () => {
       const transactionId = `txn_${Date.now()}_apple_receipt`;
       const res = await request(app)
         .post("/api/subscription/verify")
@@ -296,72 +292,95 @@ describe("Backend Premium Membership & Entitlements Security Suite", () => {
         });
 
       assert.equal(res.status, 400);
-      assert.equal(subscriptionService.getStatusResponse(freeUserId).isPremium, false);
+      assert.equal((await subscriptionService.getStatusResponse(freeUserId)).isPremium, false);
     });
   });
 
-  describe("5. Idempotent Webhook Event Processing", () => {
-    it("should process webhook events idempotently and prevent duplicate mutations", async () => {
-      const eventId = "evt_stripe_webhook_999";
+  describe("5. Cryptographically Verified & Idempotent Webhook Event Processing", () => {
+    it("should return 503 when webhook secret is not configured", async () => {
       const payload = {
-        eventId,
+        eventId: "evt_stripe_webhook_999",
         eventType: "subscription.created",
         provider: "stripe",
         userId: freeUserId,
         planId: "monthly",
         currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        payload: { stripe_event: "customer.subscription.created", customer: "cus_123" },
+        payload: { customer: "cus_123" },
       };
 
-      // 1st delivery
-      const firstRes = await request(app)
-        .post("/api/subscription/webhook")
-        .send(payload);
-
-      assert.equal(firstRes.status, 503);
-
-      // Verify user is upgraded
-      const statusRes = await request(app)
-        .get("/api/subscription/status")
-        .set("Authorization", `Bearer ${freeToken}`);
-      assert.equal(statusRes.body.tier, "free");
-
-      // 2nd delivery (identical eventId)
-      const secondRes = await request(app)
-        .post("/api/subscription/webhook")
-        .send(payload);
-
-      assert.equal(secondRes.status, 503);
+      const res = await request(app).post("/api/subscription/webhook").send(payload);
+      assert.equal(res.status, 503);
+      assert.equal((await subscriptionService.getStatusResponse(freeUserId)).tier, "free");
     });
 
-    it("should reject malformed webhook payloads with 400 Bad Request", async () => {
-      const res = await request(app)
-        .post("/api/subscription/webhook")
-        .send({ missingEventId: true });
+    it("should reject unsigned/forged webhooks with 401 and process signed webhooks idempotently", async () => {
+      const secret = "whsec_test_verified_secret_key_123456";
+      process.env.STRIPE_WEBHOOK_SECRET = secret;
 
-      assert.equal(res.status, 503);
+      const bodyObj = {
+        id: "evt_signed_stripe_001",
+        type: "checkout.session.completed",
+        data: {
+          object: {
+            id: "cs_test_001",
+            client_reference_id: freeUserId,
+            customer: "cus_verified_1",
+            metadata: { userId: freeUserId, planId: "annual" },
+          },
+        },
+      };
+      const rawJson = JSON.stringify(bodyObj);
+
+      // Unsigned request must be rejected
+      const unsignedRes = await request(app)
+        .post("/api/subscription/webhook")
+        .set("Content-Type", "application/json")
+        .send(rawJson);
+      assert.equal(unsignedRes.status, 401);
+      assert.equal((await subscriptionService.getStatusResponse(freeUserId)).isPremium, false);
+
+      // Valid HMAC-SHA256 Stripe-Signature
+      const ts = Math.floor(Date.now() / 1000);
+      const sig = crypto
+        .createHmac("sha256", secret)
+        .update(`${ts}.${rawJson}`, "utf8")
+        .digest("hex");
+
+      const firstRes = await request(app)
+        .post("/api/subscription/webhook")
+        .set("Content-Type", "application/json")
+        .set("stripe-signature", `t=${ts},v1=${sig}`)
+        .send(rawJson);
+      assert.equal(firstRes.status, 200);
+      assert.equal(firstRes.body.duplicate, false);
+      assert.equal((await subscriptionService.getStatusResponse(freeUserId)).isPremium, true);
+
+      // Duplicate delivery with identical eventId must be idempotent
+      const secondRes = await request(app)
+        .post("/api/subscription/webhook")
+        .set("Content-Type", "application/json")
+        .set("stripe-signature", `t=${ts},v1=${sig}`)
+        .send(rawJson);
+      assert.equal(secondRes.status, 200);
+      assert.equal(secondRes.body.duplicate, true);
     });
   });
 
   describe("6. User Ownership & Data Isolation Security", () => {
     it("Attacker cannot cancel or alter another user's subscription", async () => {
-      // Attacker attempts to cancel Premium user's subscription
       const attackerCancelRes = await request(app)
         .post("/api/subscription/cancel")
         .set("Authorization", `Bearer ${attackerToken}`)
         .send({ reason: "Malicious cancellation attempt" });
 
-      // Attacker is free, so their own cancel attempt fails
       assert.equal(attackerCancelRes.status, 400);
 
-      // Verify Premium user's subscription remains untouched and active
-      const premiumStatus = subscriptionService.getStatusResponse(premiumUserId);
+      const premiumStatus = await subscriptionService.getStatusResponse(premiumUserId);
       assert.equal(premiumStatus.status, "premium_active");
       assert.equal(premiumStatus.cancelAtPeriodEnd, false);
     });
 
     it("Free users can still log food and access basic recipes without restriction", async () => {
-      // Food logging is core entitlement for Free users
       const mealRes = await request(app)
         .post("/api/meals")
         .set("Authorization", `Bearer ${freeToken}`)
@@ -377,14 +396,12 @@ describe("Backend Premium Membership & Entitlements Security Suite", () => {
       assert.equal(mealRes.status, 201);
       assert.equal(mealRes.body.name, "Oatmeal with Sliced Banana");
 
-      // Recipe browsing is core entitlement
       const recipesRes = await request(app).get("/api/recipes");
       assert.equal(recipesRes.status, 200);
       assert.ok(recipesRes.body.length > 0);
     });
 
     it("Premium recipes are locked for Free users and unlocked for Premium users", async () => {
-      // Free user list
       const freeListRes = await request(app)
         .get("/api/recipes")
         .set("Authorization", `Bearer ${freeToken}`);
@@ -393,13 +410,11 @@ describe("Backend Premium Membership & Entitlements Security Suite", () => {
       assert.ok(lockedRecipe);
       assert.equal(lockedRecipe.isLocked, true);
 
-      // Premium collections route rejects Free user
       const collectionsFreeRes = await request(app)
         .get("/api/recipes/premium-collections")
         .set("Authorization", `Bearer ${freeToken}`);
       assert.equal(collectionsFreeRes.status, 403);
 
-      // Premium collections route allows Premium user
       const collectionsPremRes = await request(app)
         .get("/api/recipes/premium-collections")
         .set("Authorization", `Bearer ${premiumToken}`);
@@ -409,4 +424,3 @@ describe("Backend Premium Membership & Entitlements Security Suite", () => {
     });
   });
 });
-

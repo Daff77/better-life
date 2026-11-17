@@ -1,0 +1,7 @@
+{
+  "name": "@better-life/shared",
+  "version": "1.0.0",
+  "description": "Shared dietary safety rules, menu selection explanations, and local calendar date utilities for Better Life backend and mobile",
+  "main": "index.js",
+  "types": "index.d.ts"
+}

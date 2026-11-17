@@ -1,12 +1,10 @@
-import { describe, it, before, beforeEach } from "node:test";
+import { describe, it, before } from "node:test";
 import assert from "node:assert/strict";
 import request from "supertest";
 import jwt from "jsonwebtoken";
 import { app } from "../index.js";
-import { inMemoryStore } from "../services/store.js";
+import { userRepository, subscriptionRepository } from "../repositories/index.js";
 import { env } from "../config/env.js";
-import { MealPlannerEngine } from "../services/mealPlannerEngine.js";
-import { FoodItemData } from "../data/seedData.js";
 import { Entitlement } from "../types/subscription.js";
 
 describe("Backend Premium Personalized Meal Planner Security & Optimization Suite", () => {
@@ -18,74 +16,99 @@ describe("Backend Premium Personalized Meal Planner Security & Optimization Suit
   let premiumToken: string;
   let attackerToken: string;
 
-  before(() => {
+  before(async () => {
+    const now = new Date();
     // 1. Setup Free User
-    inMemoryStore.users.set(freeUserId, {
+    await userRepository.upsert({
       id: freeUserId,
       name: "Free Member",
       email: "free.planner@example.com",
       phone: "+6281110001",
       passwordHash: "hash",
-      createdAt: new Date(),
     });
-    inMemoryStore.subscriptions.set(freeUserId, {
+    await subscriptionRepository.upsert({
       id: "sub-free-planner",
       userId: freeUserId,
       tier: "free",
       status: "free",
       planId: null,
       billingProvider: "mock_sandbox",
-      currentPeriodStart: new Date(),
+      externalSubscriptionId: null,
+      externalCustomerId: null,
+      currentPeriodStart: now,
       currentPeriodEnd: null,
       cancelAtPeriodEnd: false,
+      canceledAt: null,
+      metadata: {},
+      createdAt: now,
+      updatedAt: now,
     });
-    freeToken = jwt.sign({ userId: freeUserId, email: "free.planner@example.com" }, env.JWT_SECRET);
+    freeToken = jwt.sign(
+      { userId: freeUserId, email: "free.planner@example.com" },
+      env.JWT_SECRET
+    );
 
     // 2. Setup Premium User
-    inMemoryStore.users.set(premiumUserId, {
+    await userRepository.upsert({
       id: premiumUserId,
       name: "Premium Member",
       email: "premium.planner@example.com",
       phone: "+6281110002",
       passwordHash: "hash",
-      createdAt: new Date(),
     });
     const futureDate = new Date();
     futureDate.setDate(futureDate.getDate() + 30);
-    inMemoryStore.subscriptions.set(premiumUserId, {
+    await subscriptionRepository.upsert({
       id: "sub-prem-planner",
       userId: premiumUserId,
       tier: "premium",
       status: "premium_active",
       planId: "monthly",
       billingProvider: "stripe",
-      currentPeriodStart: new Date(),
+      externalSubscriptionId: null,
+      externalCustomerId: null,
+      currentPeriodStart: now,
       currentPeriodEnd: futureDate,
       cancelAtPeriodEnd: false,
+      canceledAt: null,
+      metadata: {},
+      createdAt: now,
+      updatedAt: now,
     });
-    premiumToken = jwt.sign({ userId: premiumUserId, email: "premium.planner@example.com" }, env.JWT_SECRET);
+    premiumToken = jwt.sign(
+      { userId: premiumUserId, email: "premium.planner@example.com" },
+      env.JWT_SECRET
+    );
 
     // 3. Setup Attacker User
-    inMemoryStore.users.set(attackerUserId, {
+    await userRepository.upsert({
       id: attackerUserId,
       name: "Attacker User",
       email: "attacker.planner@example.com",
       phone: "+6281110003",
       passwordHash: "hash",
-      createdAt: new Date(),
     });
-    inMemoryStore.subscriptions.set(attackerUserId, {
+    await subscriptionRepository.upsert({
       id: "sub-att-planner",
       userId: attackerUserId,
       tier: "free",
       status: "free",
       planId: null,
       billingProvider: "mock_sandbox",
-      currentPeriodStart: new Date(),
+      externalSubscriptionId: null,
+      externalCustomerId: null,
+      currentPeriodStart: now,
       currentPeriodEnd: null,
       cancelAtPeriodEnd: false,
+      canceledAt: null,
+      metadata: {},
+      createdAt: now,
+      updatedAt: now,
     });
-    attackerToken = jwt.sign({ userId: attackerUserId, email: "attacker.planner@example.com" }, env.JWT_SECRET);
+    attackerToken = jwt.sign(
+      { userId: attackerUserId, email: "attacker.planner@example.com" },
+      env.JWT_SECRET
+    );
   });
 
   describe("1. Public Preview & Free Access Gating", () => {
@@ -159,7 +182,6 @@ describe("Backend Premium Personalized Meal Planner Security & Optimization Suit
       assert.ok(plan.summary.weeklyCalories > 0);
       assert.ok(plan.summary.weeklyEstimatedCostIdr > 0);
 
-      // Verify each day's calculations sum up consistently
       for (const day of plan.days) {
         let expectedCals = 0;
         let expectedCost = 0;
@@ -187,7 +209,6 @@ describe("Backend Premium Personalized Meal Planner Security & Optimization Suit
     });
 
     it("should strictly exclude all recipes containing user allergies", async () => {
-      // User is allergic to Dairy
       const res = await request(app)
         .post("/api/meal-plans/generate")
         .set("Authorization", `Bearer ${premiumToken}`)
@@ -204,10 +225,13 @@ describe("Backend Premium Personalized Meal Planner Security & Optimization Suit
       assert.equal(res.status, 201);
       const plan = res.body;
 
-      // Ensure no recipe in the plan has dairy or parfait
       for (const day of plan.days) {
         for (const meal of day.meals) {
-          assert.notEqual(meal.recipe.id, "parfait", "Parfait contains Greek yogurt and must be excluded");
+          assert.notEqual(
+            meal.recipe.id,
+            "parfait",
+            "Parfait contains Greek yogurt and must be excluded"
+          );
           const hasDairyAllergen = (meal.recipe.allergens || []).some((a: string) =>
             a.toLowerCase().includes("dairy")
           );
@@ -237,7 +261,11 @@ describe("Backend Premium Personalized Meal Planner Security & Optimization Suit
         for (const meal of day.meals) {
           const title = meal.recipe.title.toLowerCase();
           const isMeat = /chicken|beef|salmon|fish|wagyu|tenderloin|sirloin/i.test(title);
-          assert.equal(isMeat, false, `Vegetarian plan must not contain meat: ${meal.recipe.title}`);
+          assert.equal(
+            isMeat,
+            false,
+            `Vegetarian plan must not contain meat: ${meal.recipe.title}`
+          );
         }
       }
     });
@@ -265,7 +293,6 @@ describe("Backend Premium Personalized Meal Planner Security & Optimization Suit
       assert.equal(res.status, 200);
       assert.ok(res.body.substitutions.length > 0);
 
-      // Verify substitutions do not contain the current recipe itself
       const containsCurrent = res.body.substitutions.some(
         (s: any) => s.recipe.id === "parfait"
       );
@@ -274,7 +301,6 @@ describe("Backend Premium Personalized Meal Planner Security & Optimization Suit
     });
 
     it("POST /api/meal-plans/replace-meal — should swap meal and recompute daily and weekly totals", async () => {
-      // First get or generate plan
       const genRes = await request(app)
         .post("/api/meal-plans/generate")
         .set("Authorization", `Bearer ${premiumToken}`)
@@ -287,8 +313,8 @@ describe("Backend Premium Personalized Meal Planner Security & Optimization Suit
       const initialPlan = genRes.body;
       const day0Meal0 = initialPlan.days[0].meals[0];
 
-      // Substitute with avocado-toast or spinach-egg-scramble
-      const targetRecipeId = day0Meal0.recipe.id === "avocado-toast" ? "spinach-egg-scramble" : "avocado-toast";
+      const targetRecipeId =
+        day0Meal0.recipe.id === "avocado-toast" ? "spinach-egg-scramble" : "avocado-toast";
 
       const replaceRes = await request(app)
         .post("/api/meal-plans/replace-meal")
@@ -303,9 +329,7 @@ describe("Backend Premium Personalized Meal Planner Security & Optimization Suit
       assert.equal(replaceRes.status, 200);
       const updatedPlan = replaceRes.body;
 
-      // Verify the slot was swapped
       assert.equal(updatedPlan.days[0].meals[0].recipe.id, targetRecipeId);
-      // Verify shopping list updated
       assert.ok(updatedPlan.shoppingList.length > 0);
     });
   });
@@ -336,12 +360,10 @@ describe("Backend Premium Personalized Meal Planner Security & Optimization Suit
       assert.equal(saveRes.status, 200);
       assert.equal(saveRes.body.plan.title, "My Customized Wellness Plan");
 
-      // Verify attacker cannot access it
       const attackerRes = await request(app)
         .get("/api/meal-plans/saved")
         .set("Authorization", `Bearer ${attackerToken}`);
 
-      // Attacker is free member and must receive 403
       assert.equal(attackerRes.status, 403);
     });
   });

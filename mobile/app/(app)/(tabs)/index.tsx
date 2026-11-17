@@ -1,5 +1,17 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { View, ScrollView, Image, useWindowDimensions, ViewStyle } from "react-native";
+import {
+  View,
+  ScrollView,
+  Image,
+  Modal,
+  Pressable,
+  TextInput,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  useWindowDimensions,
+  ViewStyle,
+} from "react-native";
 import Animated, { FadeIn, FadeOut, LinearTransition } from "react-native-reanimated";
 import { useRouter } from "expo-router";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
@@ -18,7 +30,9 @@ import {
   Surface,
   CardHead,
   RingButton,
+  PillButton,
   StatusPill,
+  ColorBlock,
   BlockTone,
   ListRow,
   RowIcon,
@@ -27,13 +41,27 @@ import {
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useOnboardingStore } from "@/stores/useOnboardingStore";
 import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
-import { useJournalStore, getTodayDateKey, computeJournalAggregates } from "@/stores/useJournalStore";
+import {
+  useJournalStore,
+  getTodayDateKey,
+  computeJournalAggregates,
+} from "@/stores/useJournalStore";
+import { useReminderStore } from "@/stores/useReminderStore";
+import { useFavoritesStore } from "@/stores/useFavoritesStore";
+import {
+  useJournalSyncStore,
+  getSyncStatusDisplay,
+  retryJournalSync,
+} from "@/lib/journalSync";
+import { computeAdaptiveReminderInsight } from "@/lib/adaptiveReminderDomain";
+import { analyticsApi, WeeklySummaryDigest } from "@/lib/api/analyticsApi";
 import { useActivityStats, useAddWaterMutation } from "@/hooks/useActivityQuery";
 import { useStepTrackerStore } from "@/stores/useStepTrackerStore";
 import { Colors } from "@/constants/DesignTokens";
 import { MealIllustrations, getMealIllustration } from "@/constants/Assets";
 import { NAV_DESKTOP_BREAKPOINT } from "@/components/layout/ResponsiveTabBar";
 import { MOCK_RECIPES, FoodItem } from "@/data/mockRecipes";
+import { JournalEntry } from "@/lib/schemas";
 import { confirmDestructive } from "@/lib/confirm";
 import { horizontalScrollTouchProps } from "@/lib/tabSwipeGuard";
 
@@ -110,11 +138,26 @@ export default function HomeScreen() {
   const isPremium = useSubscriptionStore((state) => state.isPremium);
 
   const todayDate = getTodayDateKey();
-  const todayJournal = useJournalStore((state) => state.journals[todayDate]);
+  const journals = useJournalStore((state) => state.journals);
+  const lastUndoAction = useJournalStore((state) => state.lastUndoAction);
+  const undoLastAction = useJournalStore((state) => state.undoLastAction);
+  const dismissUndo = useJournalStore((state) => state.dismissUndo);
+  const todayJournal = journals[todayDate];
   const aggregates = useMemo(
     () => computeJournalAggregates(todayJournal, personalization.targetCalories),
     [todayJournal, personalization.targetCalories]
   );
+
+  const syncState = useJournalSyncStore();
+  const syncDisplay = getSyncStatusDisplay(syncState.status);
+
+  const mealSlots = useReminderStore((state) => state.mealSlots);
+  const masterEnabled = useReminderStore((state) => state.masterEnabled);
+  const setMealSlotTime = useReminderStore((state) => state.setMealSlotTime);
+
+  const favorites = useFavoritesStore((state) => state.favorites);
+  const toggleFavorite = useFavoritesStore((state) => state.toggleFavorite);
+  const favoriteIdSet = useMemo(() => new Set(favorites.map((f) => f.itemId)), [favorites]);
 
   const activityQuery = useActivityStats();
   const trackingStatus = useStepTrackerStore((state) => state.status);
@@ -123,6 +166,15 @@ export default function HomeScreen() {
   const [selectedMealForLog, setSelectedMealForLog] = useState<FoodItem | null>(null);
   const [isLogModalVisible, setIsLogModalVisible] = useState<boolean>(false);
 
+  // Edit existing logged entry state
+  const [editingEntry, setEditingEntry] = useState<JournalEntry | null>(null);
+  const [editTitle, setEditTitle] = useState<string>("");
+  const [editQuantity, setEditQuantity] = useState<number>(1);
+  const [isSavingEdit, setIsSavingEdit] = useState<boolean>(false);
+
+  // Weekly real-data digest
+  const [weeklyDigest, setWeeklyDigest] = useState<WeeklySummaryDigest | null>(null);
+
   useEffect(() => {
     if (personalization.targetCalories && personalization.targetCalories > 0) {
       if (todayJournal && todayJournal.targetCalories !== personalization.targetCalories) {
@@ -130,6 +182,29 @@ export default function HomeScreen() {
       }
     }
   }, [personalization.targetCalories, todayDate, todayJournal?.targetCalories]);
+
+  useEffect(() => {
+    let active = true;
+    analyticsApi
+      .getWeeklySummary()
+      .then((digest) => {
+        if (active) setWeeklyDigest(digest);
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, [journals, personalization.targetCalories, activityQuery.data?.steps, activityQuery.data?.waterGlasses]);
+
+  const adaptiveInsight = useMemo(() => {
+    const insight = computeAdaptiveReminderInsight({
+      journals,
+      mealSlots,
+      masterEnabled,
+    });
+    if (!insight || insight.kind === "on_track") return null;
+    return insight;
+  }, [journals, mealSlots, masterEnabled]);
 
   const progressPercent = Math.min(999, Math.round(aggregates.progressRatio * 100));
   const clampedCaloriePct = Math.min(100, Math.max(0, progressPercent));
@@ -198,10 +273,49 @@ export default function HomeScreen() {
     setIsLogModalVisible(true);
   };
 
+  const handleOpenEditEntry = (entry: JournalEntry) => {
+    setEditingEntry(entry);
+    setEditTitle(entry.title);
+    setEditQuantity(entry.quantity || 1);
+  };
+
+  const handleSaveEditEntry = async () => {
+    if (!editingEntry || isSavingEdit) return;
+    const cleanedTitle = editTitle.trim();
+    if (!cleanedTitle) return;
+    setIsSavingEdit(true);
+    try {
+      await useJournalStore
+        .getState()
+        .updateEntry(
+          editingEntry.id,
+          {
+            title: cleanedTitle,
+            quantity: editQuantity,
+          },
+          todayDate
+        );
+      setEditingEntry(null);
+    } finally {
+      setIsSavingEdit(false);
+    }
+  };
+
   const handleDeleteEntry = (entryId: string, title: string) => {
     confirmDestructive("Hapus makanan", `Hapus "${title}" dari jurnal hari ini?`, "Hapus", () => {
-      useJournalStore.getState().removeEntry(entryId, todayDate);
+      void useJournalStore.getState().removeEntry(entryId, todayDate);
     });
+  };
+
+  const handleClearToday = () => {
+    confirmDestructive(
+      "Reset jurnal hari ini",
+      "Semua catatan makanan pada tanggal hari ini akan dikosongkan. Anda masih bisa mengurungkannya sesaat setelah dihapus.",
+      "Reset hari ini",
+      () => {
+        void useJournalStore.getState().clearDay(todayDate);
+      }
+    );
   };
 
   const targetCalories = aggregates.targetCalories || 2253;
@@ -253,7 +367,11 @@ export default function HomeScreen() {
     {
       key: "steps",
       title: "Langkah",
-      caption: activityQuery.isError ? "Gagal memuat data" : trackingStatus === "tracking" ? `Otomatis · ${fmt(stepGoal)} target` : `Target ${fmt(stepGoal)} · Atur`,
+      caption: activityQuery.isError
+        ? "Gagal memuat data"
+        : trackingStatus === "tracking"
+        ? `Otomatis · ${fmt(stepGoal)} target`
+        : `Target ${fmt(stepGoal)} · Atur`,
       numericValue: steps,
       unit: "",
       progress: stepsPct,
@@ -414,6 +532,53 @@ export default function HomeScreen() {
     </View>
   );
 
+  /* --------------------------------------------------- Adaptive Callout */
+  const renderAdaptiveBanner = () => {
+    if (!adaptiveInsight) return null;
+    return (
+      <ColorBlock tone="amber">
+        <View className="flex-row items-center justify-between flex-wrap gap-3">
+          <View className="flex-1 min-w-[200px]">
+            <AppText weight="bold" className="text-[11px] uppercase tracking-wider text-[#1b1406]/75">
+              Pengingat Adaptif
+            </AppText>
+            <AppText weight="semibold" className="text-[14.5px] text-[#1b1406] mt-0.5">
+              {adaptiveInsight.title}
+            </AppText>
+            <AppText weight="regular" className="text-xs text-[#1b1406]/80 mt-0.5 leading-relaxed">
+              {adaptiveInsight.message}
+            </AppText>
+          </View>
+          {adaptiveInsight.actionLabel && (
+            <PillButton
+              label={adaptiveInsight.actionLabel}
+              size="sm"
+              variant="dark"
+              onPress={() => {
+                if (
+                  adaptiveInsight.kind === "habit_shift" &&
+                  adaptiveInsight.slotId &&
+                  adaptiveInsight.suggestedTime
+                ) {
+                  setMealSlotTime(adaptiveInsight.slotId, adaptiveInsight.suggestedTime);
+                } else if (adaptiveInsight.journalCategory) {
+                  const slotMatch = MEAL_SLOTS.find((s) => s.id === adaptiveInsight.journalCategory);
+                  if (slotMatch) {
+                    handleOpenSlotLog(slotMatch.id, slotMatch.label, slotMatch.legacyIcon);
+                  } else {
+                    router.push("/(app)/(tabs)/meals");
+                  }
+                } else {
+                  router.push("/(app)/(tabs)/meals");
+                }
+              }}
+            />
+          )}
+        </View>
+      </ColorBlock>
+    );
+  };
+
   /* -------------------------------------------------------------- Energy */
   const kcalProtein = aggregates.totalProteinGrams * 4;
   const kcalCarbs = aggregates.totalCarbsGrams * 4;
@@ -516,10 +681,72 @@ export default function HomeScreen() {
         <CardHead
           title="Jurnal hari ini"
           caption={
-            aggregates.entryCount === 0 ? "Pilih waktu makan untuk mulai mencatat" : `${aggregates.entryCount} menu tercatat hari ini`
+            aggregates.entryCount === 0
+              ? "Pilih waktu makan untuk mulai mencatat"
+              : `${aggregates.entryCount} menu tercatat hari ini`
           }
-          right={<RingButton accessibilityLabel="Lihat semua menu" onPress={() => router.push("/(app)/(tabs)/meals")} />}
+          right={
+            <View className="flex-row items-center gap-2">
+              <StatusPill label={syncDisplay.label} tone={syncDisplay.tone} />
+              <RingButton
+                accessibilityLabel="Lihat semua menu"
+                onPress={() => router.push("/(app)/(tabs)/meals")}
+              />
+            </View>
+          }
         />
+
+        {/* Sync Failure Recovery Banner */}
+        {syncState.status === "failed" && (
+          <View className="mb-3 p-3 rounded-[16px] bg-bad-soft border border-[#f5c2be] flex-row items-center justify-between gap-2.5">
+            <View className="flex-1 min-w-0">
+              <AppText weight="semibold" className="text-xs text-bad">
+                Gagal sinkronisasi ({syncState.failedCount} operasi tertunda)
+              </AppText>
+              <AppText weight="regular" numberOfLines={2} className="text-[11px] text-ink/80 mt-0.5">
+                {syncState.lastError || "Data tetap aman di perangkat. Periksa jaringan lalu coba lagi."}
+              </AppText>
+            </View>
+            <PillButton
+              label={syncState.isSyncing ? "Mencoba..." : "Coba lagi"}
+              size="sm"
+              variant="primary"
+              onPress={() => void retryJournalSync()}
+              disabled={syncState.isSyncing}
+              accessibilityLabel="Coba lagi sinkronisasi jurnal"
+            />
+          </View>
+        )}
+
+        {/* Undo Banner for Delete or Day Reset */}
+        {lastUndoAction && (
+          <View className="mb-3 p-3 rounded-[16px] bg-block-ink flex-row items-center justify-between gap-2.5">
+            <AppText weight="medium" numberOfLines={2} className="text-xs text-white flex-1">
+              {lastUndoAction.label}
+            </AppText>
+            <View className="flex-row items-center gap-1.5">
+              <PressableScale
+                onPress={() => void undoLastAction()}
+                className="px-3 py-1.5 rounded-full bg-primary"
+                accessibilityRole="button"
+                accessibilityLabel="Urungkan penghapusan jurnal"
+              >
+                <AppText weight="bold" className="text-xs text-white">
+                  Urungkan
+                </AppText>
+              </PressableScale>
+              <PressableScale
+                onPress={dismissUndo}
+                className="w-7 h-7 rounded-full items-center justify-center"
+                accessibilityRole="button"
+                accessibilityLabel="Tutup pesan urungkan"
+              >
+                <LineIcon name="close" size={14} color="#ffffff" />
+              </PressableScale>
+            </View>
+          </View>
+        )}
+
         <View className="gap-2.5">
           {slotRows.map((row, rowIdx) => (
             <View key={rowIdx} className="flex-row gap-2.5">
@@ -653,9 +880,21 @@ export default function HomeScreen() {
 
         {allEntries.length > 0 && (
           <View className="mt-4">
-            <AppText weight="semibold" className="text-[12.5px] text-muted mb-0.5">
-              Tercatat hari ini
-            </AppText>
+            <View className="flex-row items-center justify-between mb-1">
+              <AppText weight="semibold" className="text-[12.5px] text-muted">
+                Tercatat hari ini
+              </AppText>
+              <PressableScale
+                onPress={handleClearToday}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel="Reset jurnal hari ini"
+              >
+                <AppText weight="semibold" className="text-[12px] text-bad">
+                  Reset hari ini
+                </AppText>
+              </PressableScale>
+            </View>
             {allEntries.map(({ entry: item, slot }, i) => {
               const matchedRecipe = MOCK_RECIPES.find(
                 (r) => r.id === item.mealId || r.title.toLowerCase() === item.title.toLowerCase()
@@ -676,6 +915,7 @@ export default function HomeScreen() {
                 >
                   <ListRow
                     last={i === allEntries.length - 1}
+                    onPress={() => handleOpenEditEntry(item)}
                     leading={
                       <View className="w-10 h-10 rounded-[11px] bg-card-2 overflow-hidden items-center justify-center flex-shrink-0 border border-line">
                         <Image
@@ -685,20 +925,88 @@ export default function HomeScreen() {
                         />
                       </View>
                     }
-                    title={`${item.quantity > 1 ? `${item.quantity}x ` : ""}${item.title}`}
-                    caption={`${slot.label} · ${item.calories} kcal · P ${item.proteinGrams}g · K ${item.carbsGrams}g · L ${item.fatGrams}g`}
+                    title={`${item.quantity !== 1 ? `${item.quantity}x ` : ""}${item.title}`}
+                    caption={`${slot.label} · ${item.calories} kcal · P ${Math.round((item.proteinGrams || 0) * 10) / 10}g · K ${Math.round((item.carbsGrams || 0) * 10) / 10}g · L ${Math.round((item.fatGrams || 0) * 10) / 10}g`}
                     trailing={
-                      <RingButton
-                        icon="close"
-                        size="sm"
-                        accessibilityLabel={`Hapus ${item.title}`}
-                        onPress={() => handleDeleteEntry(item.id, item.title)}
-                      />
+                      <View className="flex-row items-center gap-1.5">
+                        <RingButton
+                          icon="edit"
+                          size="sm"
+                          accessibilityLabel={`Edit ${item.title}`}
+                          onPress={() => handleOpenEditEntry(item)}
+                        />
+                        <RingButton
+                          icon="close"
+                          size="sm"
+                          accessibilityLabel={`Hapus ${item.title}`}
+                          onPress={() => handleDeleteEntry(item.id, item.title)}
+                        />
+                      </View>
                     }
                   />
                 </Animated.View>
               );
             })}
+          </View>
+        )}
+      </Surface>
+    );
+  };
+
+  /* --------------------------------------------------- 7-Day Real Digest */
+  const renderWeeklySummary = () => {
+    if (!weeklyDigest) return null;
+    const hasLogged = weeklyDigest.loggedDaysCount > 0;
+    return (
+      <Surface>
+        <CardHead
+          title="Ringkasan 7 hari"
+          caption={`${weeklyDigest.startDate} sampai ${weeklyDigest.endDate} · dari data nyata`}
+          right={
+            <StatusPill
+              tone={hasLogged ? "good" : "plain"}
+              label={hasLogged ? `${weeklyDigest.loggedDaysCount}/7 hari aktif` : "Belum ada catatan"}
+              dot={false}
+            />
+          }
+        />
+
+        {!hasLogged ? (
+          <AppText weight="medium" className="text-[12.5px] text-muted leading-5">
+            Belum ada makanan tercatat dalam 7 hari terakhir. Setiap menu yang Anda simpan di jurnal akan langsung dihitung ke dalam rata-rata mingguan di sini.
+          </AppText>
+        ) : (
+          <View className="flex-row flex-wrap gap-2.5">
+            <View className="flex-1 min-w-[110px] bg-card-2 border border-line rounded-[15px] p-3">
+              <AppText weight="medium" className="text-[11px] text-muted">
+                Rata-rata kalori
+              </AppText>
+              <AppText weight="bold" className="text-[17px] text-ink mt-0.5" style={tnum}>
+                {fmt(weeklyDigest.averageDailyCalories)}{" "}
+                <AppText weight="medium" className="text-[11px] text-muted">
+                  kcal
+                </AppText>
+              </AppText>
+            </View>
+            <View className="flex-1 min-w-[110px] bg-card-2 border border-line rounded-[15px] p-3">
+              <AppText weight="medium" className="text-[11px] text-muted">
+                Rata-rata protein
+              </AppText>
+              <AppText weight="bold" className="text-[17px] text-primary-text mt-0.5" style={tnum}>
+                {weeklyDigest.averageProteinGrams}g{" "}
+                <AppText weight="medium" className="text-[11px] text-muted">
+                  / hari
+                </AppText>
+              </AppText>
+            </View>
+            <View className="flex-1 min-w-[110px] bg-card-2 border border-line rounded-[15px] p-3">
+              <AppText weight="medium" className="text-[11px] text-muted">
+                Rentetan catat
+              </AppText>
+              <AppText weight="bold" className="text-[17px] text-ink mt-0.5" style={tnum}>
+                {weeklyDigest.currentStreakDays} hari
+              </AppText>
+            </View>
           </View>
         )}
       </Surface>
@@ -783,6 +1091,8 @@ export default function HomeScreen() {
               prepTimeMinutes={meal.prepTimeMinutes}
               estimatedCostIdr={meal.estimatedCostIdr}
               imageUrl={meal.imageUrl}
+              isFavorite={favoriteIdSet.has(meal.id)}
+              onToggleFavorite={() => void toggleFavorite(meal)}
               showLogButton
               onLogMeal={() => handleOpenLogModal(meal)}
               onPress={() => router.push({ pathname: "/(app)/recipe-detail", params: { id: meal.id } })}
@@ -793,6 +1103,15 @@ export default function HomeScreen() {
     </View>
   );
 
+  const editPreviewCalories = editingEntry
+    ? Math.round(
+        (editingEntry.baseCalories ||
+          (editingEntry.quantity > 0
+            ? editingEntry.calories / editingEntry.quantity
+            : editingEntry.calories)) * editQuantity
+      )
+    : 0;
+
   return (
     <ScreenWrapper maxWidth="wide" className="flex-1 bg-canvas">
       <ScrollView
@@ -802,11 +1121,18 @@ export default function HomeScreen() {
       >
         <FadeInView index={0}>{head}</FadeInView>
 
+        {adaptiveInsight && (
+          <FadeInView index={1} className="mb-3.5">
+            {renderAdaptiveBanner()}
+          </FadeInView>
+        )}
+
         {isWide ? (
           <View className="gap-4">
             <View className="flex-row gap-4 items-start">
               <View className="flex-[7] gap-4 min-w-0">
                 <FadeInView index={1}>{renderEnergy()}</FadeInView>
+                <FadeInView index={2}>{renderWeeklySummary()}</FadeInView>
                 <FadeInView index={3}>{renderPlanning()}</FadeInView>
               </View>
               <View className="flex-[5] gap-4 min-w-0">
@@ -821,8 +1147,9 @@ export default function HomeScreen() {
           <View className="gap-3.5">
             <FadeInView index={1}>{renderEnergy()}</FadeInView>
             <FadeInView index={2}>{renderJournal()}</FadeInView>
-            <FadeInView index={3}>{renderPlanning()}</FadeInView>
-            <FadeInView index={4} className="mt-2">
+            <FadeInView index={3}>{renderWeeklySummary()}</FadeInView>
+            <FadeInView index={4}>{renderPlanning()}</FadeInView>
+            <FadeInView index={5} className="mt-2">
               {renderInspiration()}
             </FadeInView>
           </View>
@@ -830,6 +1157,112 @@ export default function HomeScreen() {
       </ScrollView>
 
       <MealLogModal visible={isLogModalVisible} meal={selectedMealForLog} onClose={() => setIsLogModalVisible(false)} />
+
+      {/* Edit Logged Entry Modal */}
+      <Modal
+        visible={editingEntry !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setEditingEntry(null)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          className="flex-1 justify-end sm:justify-center items-center p-0 sm:p-6"
+        >
+          <Pressable
+            style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(18, 24, 20, 0.45)" }]}
+            onPress={() => !isSavingEdit && setEditingEntry(null)}
+            accessibilityRole="button"
+            accessibilityLabel="Tutup edit catatan"
+          />
+          {editingEntry && (
+            <FadeInView duration={220} translateY={14} className="w-full max-w-md z-10">
+              <Surface className="w-full rounded-t-[26px] sm:rounded-[26px] p-5">
+                <CardHead
+                  title="Edit catatan makan"
+                  caption="Ubah nama menu atau takaran porsi"
+                  right={
+                    <RingButton
+                      icon="close"
+                      onPress={() => !isSavingEdit && setEditingEntry(null)}
+                      accessibilityLabel="Tutup"
+                    />
+                  }
+                />
+
+                <View className="gap-3.5">
+                  <View>
+                    <AppText weight="semibold" className="text-[12.5px] text-muted mb-1.5">
+                      Nama menu
+                    </AppText>
+                    <TextInput
+                      value={editTitle}
+                      onChangeText={setEditTitle}
+                      placeholder="Nama makanan"
+                      className="h-11 px-3.5 rounded-[14px] bg-card-2 border border-line text-ink text-sm"
+                      style={{ fontFamily: "Urbanist-SemiBold" }}
+                    />
+                  </View>
+
+                  <View className="flex-row items-center justify-between rounded-[16px] bg-card-2 border border-line px-3.5 py-2.5">
+                    <View>
+                      <AppText weight="semibold" className="text-[13.5px] text-ink">
+                        Jumlah porsi
+                      </AppText>
+                      <AppText weight="bold" className="text-xs text-primary-text mt-0.5" style={tnum}>
+                        Total {editPreviewCalories} kcal
+                      </AppText>
+                    </View>
+
+                    <View className="flex-row items-center gap-2">
+                      <PressableScale
+                        onPress={() =>
+                          setEditQuantity((q) => Math.max(0.25, Math.round((q - 0.25) * 100) / 100))
+                        }
+                        className="w-9 h-9 rounded-full bg-card border border-line items-center justify-center"
+                        accessibilityRole="button"
+                        accessibilityLabel="Kurangi porsi 0.25"
+                      >
+                        <LineIcon name="minus" size={14} color="#121a16" />
+                      </PressableScale>
+                      <AppText weight="bold" className="text-[15px] text-ink min-w-[46px] text-center" style={tnum}>
+                        {editQuantity}x
+                      </AppText>
+                      <PressableScale
+                        onPress={() =>
+                          setEditQuantity((q) => Math.min(10, Math.round((q + 0.25) * 100) / 100))
+                        }
+                        className="w-9 h-9 rounded-full bg-card border border-line items-center justify-center"
+                        accessibilityRole="button"
+                        accessibilityLabel="Tambah porsi 0.25"
+                      >
+                        <LineIcon name="plus" size={14} color="#121a16" />
+                      </PressableScale>
+                    </View>
+                  </View>
+
+                  <View className="flex-row gap-2.5 pt-1">
+                    <PillButton
+                      label="Batal"
+                      onPress={() => setEditingEntry(null)}
+                      disabled={isSavingEdit}
+                      className="flex-1"
+                    />
+                    <PillButton
+                      label={isSavingEdit ? "Menyimpan..." : "Simpan Perubahan"}
+                      variant="primary"
+                      icon="check"
+                      onPress={() => void handleSaveEditEntry()}
+                      disabled={isSavingEdit || !editTitle.trim()}
+                      className="flex-1"
+                    />
+                  </View>
+                </View>
+              </Surface>
+            </FadeInView>
+          )}
+        </KeyboardAvoidingView>
+      </Modal>
     </ScreenWrapper>
   );
 }

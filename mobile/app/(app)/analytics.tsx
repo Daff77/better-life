@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   Alert,
   Platform,
+  TextInput,
 } from "react-native";
 import { useRouter } from "expo-router";
 import Animated, {
@@ -45,6 +46,8 @@ import {
   getAdherenceBadge,
   buildAccessibleDayDescription,
 } from "@/lib/analyticsDomain";
+import { formatLocalDateKey, shiftCalendarDateKey } from "@better-life/shared";
+import { analyticsApi, WeeklySummaryDigest } from "@/lib/api/analyticsApi";
 
 const barEaseOut = Easing.bezier(...MotionCurves.out);
 
@@ -143,6 +146,26 @@ export default function AnalyticsScreen() {
 
   const [exporting, setExporting] = useState(false);
   const [exportNotice, setExportNotice] = useState<string | null>(null);
+  const [weeklyDigest, setWeeklyDigest] = useState<WeeklySummaryDigest | null>(null);
+
+  const todayLocalKey = formatLocalDateKey();
+  const [customStartInput, setCustomStartInput] = useState<string>(
+    shiftCalendarDateKey(todayLocalKey, -6)
+  );
+  const [customEndInput, setCustomEndInput] = useState<string>(todayLocalKey);
+
+  useEffect(() => {
+    let active = true;
+    analyticsApi
+      .getWeeklySummary()
+      .then((digest) => {
+        if (active) setWeeklyDigest(digest);
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, [journals, personalization.targetCalories]);
 
   const currentWeight = personalization.weight || 65;
   const targetWeight = personalization.targetWeight || currentWeight;
@@ -263,14 +286,74 @@ export default function AnalyticsScreen() {
         </View>
       </Surface>
 
-      {/* 2. Histori Menu yang Dikonsumsi */}
+      {/* 2. Ringkasan Mingguan dari Data Nyata */}
+      {weeklyDigest && (
+        <Surface>
+          <CardHead
+            title="Ringkasan mingguan (7 hari)"
+            subtitle={`${weeklyDigest.startDate} sampai ${weeklyDigest.endDate} · dihitung dari catatan nyata`}
+            right={
+              <StatusPill
+                tone={weeklyDigest.loggedDaysCount > 0 ? "ok" : "neutral"}
+                label={`${weeklyDigest.loggedDaysCount}/7 hari tercatat`}
+              />
+            }
+          />
+          {weeklyDigest.loggedDaysCount === 0 ? (
+            <AppText weight="regular" className="text-xs text-muted leading-relaxed">
+              Belum ada makanan tercatat pada 7 hari terakhir. Tambahkan catatan makan harian Anda untuk melihat rata-rata kalori dan makronutrisi mingguan.
+            </AppText>
+          ) : (
+            <View className="flex-row flex-wrap gap-2.5">
+              <View className="flex-1 min-w-[110px] bg-card-2 border border-line rounded-[16px] p-3">
+                <AppText weight="medium" className="text-[11px] text-muted">
+                  Rata-rata kalori
+                </AppText>
+                <AppText
+                  weight="bold"
+                  className="text-[18px] text-ink mt-0.5"
+                  style={{ fontVariant: ["tabular-nums"] }}
+                >
+                  {weeklyDigest.averageDailyCalories.toLocaleString("id-ID")} kcal
+                </AppText>
+              </View>
+              <View className="flex-1 min-w-[110px] bg-card-2 border border-line rounded-[16px] p-3">
+                <AppText weight="medium" className="text-[11px] text-muted">
+                  Rata-rata makro
+                </AppText>
+                <AppText
+                  weight="bold"
+                  className="text-[13.5px] text-primary-text mt-1"
+                  style={{ fontVariant: ["tabular-nums"] }}
+                >
+                  P {weeklyDigest.averageProteinGrams}g · K {weeklyDigest.averageCarbsGrams}g · L {weeklyDigest.averageFatGrams}g
+                </AppText>
+              </View>
+              <View className="flex-1 min-w-[100px] bg-card-2 border border-line rounded-[16px] p-3">
+                <AppText weight="medium" className="text-[11px] text-muted">
+                  Rentetan aktif
+                </AppText>
+                <AppText
+                  weight="bold"
+                  className="text-[18px] text-ink mt-0.5"
+                  style={{ fontVariant: ["tabular-nums"] }}
+                >
+                  {weeklyDigest.currentStreakDays} hari
+                </AppText>
+              </View>
+            </View>
+          )}
+        </Surface>
+      )}
+
+      {/* 3. Histori Menu yang Dikonsumsi */}
       <Surface>
         <CardHead
           title="Histori menu yang dikonsumsi"
           subtitle="Riwayat makanan dan minuman yang telah Anda catat"
           right={
             <PressableScale
-              onPress={() => router.push("/(app)/(tabs)/diary")}
+              onPress={() => router.push("/(app)/(tabs)")}
               className="px-3 py-1.5 rounded-full bg-card-2 border border-line"
             >
               <AppText weight="bold" className="text-[11.5px] text-ink">
@@ -484,10 +567,17 @@ export default function AnalyticsScreen() {
         <View className="flex-row items-center justify-between flex-wrap gap-2.5 mb-4">
           <Segmented<DateRangeOption>
             value={range}
-            onChange={(val) => setRange(val)}
+            onChange={(val) => {
+              if (val === "custom") {
+                void setRange("custom", customStartInput, customEndInput);
+              } else {
+                void setRange(val);
+              }
+            }}
             options={[
               { value: "7d", label: "7 Hari" },
               { value: "30d", label: "30 Hari" },
+              { value: "custom", label: "Khusus" },
             ]}
           />
           <PillButton
@@ -497,9 +587,46 @@ export default function AnalyticsScreen() {
             icon={<LineIcon name="download" size={14} color="#121a16" />}
             onPress={() => handleExport("csv")}
             disabled={exporting}
-            accessibilityLabel="Export nutrition data as CSV"
+            accessibilityLabel="Ekspor data nutrisi sebagai CSV"
           />
         </View>
+
+        {range === "custom" && (
+          <Surface className="mb-4 py-3.5 px-4">
+            <View className="flex-col sm:flex-row sm:items-end gap-3">
+              <View className="flex-1">
+                <AppText weight="semibold" className="text-[11.5px] text-muted mb-1">
+                  Tanggal mulai (YYYY-MM-DD)
+                </AppText>
+                <TextInput
+                  value={customStartInput}
+                  onChangeText={setCustomStartInput}
+                  placeholder="2026-11-10"
+                  className="h-10 px-3 rounded-[12px] bg-card-2 border border-line text-ink text-xs"
+                  style={{ fontFamily: "Urbanist-SemiBold" }}
+                />
+              </View>
+              <View className="flex-1">
+                <AppText weight="semibold" className="text-[11.5px] text-muted mb-1">
+                  Tanggal akhir (YYYY-MM-DD)
+                </AppText>
+                <TextInput
+                  value={customEndInput}
+                  onChangeText={setCustomEndInput}
+                  placeholder="2026-11-18"
+                  className="h-10 px-3 rounded-[12px] bg-card-2 border border-line text-ink text-xs"
+                  style={{ fontFamily: "Urbanist-SemiBold" }}
+                />
+              </View>
+              <PillButton
+                label="Terapkan"
+                variant="primary"
+                size="sm"
+                onPress={() => void setRange("custom", customStartInput.trim(), customEndInput.trim())}
+              />
+            </View>
+          </Surface>
+        )}
 
         {exportNotice && (
           <Surface className="mb-4 py-3 px-4 bg-[#e2f2ec] border-[#bfe0d2]">

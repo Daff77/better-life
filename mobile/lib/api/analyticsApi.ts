@@ -1,3 +1,7 @@
+import {
+  buildLocalDateWindow,
+  formatLocalDateKey,
+} from "@better-life/shared";
 import { API_BASE_URL } from "./config";
 import {
   DateRangeOption,
@@ -6,51 +10,153 @@ import {
 } from "../analyticsDomain";
 import { sessionStorage } from "../sessionStorage";
 import { journalStorage } from "../journalStorage";
+import { accountRevision } from "../accountScope";
+import { notifyUnauthorizedSession } from "../authToken";
+
+export interface WeeklySummaryDigest {
+  startDate: string;
+  endDate: string;
+  loggedDaysCount: number;
+  totalMealsLogged: number;
+  averageDailyCalories: number;
+  targetCalories: number;
+  deltaKcal: number;
+  averageProteinGrams: number;
+  averageCarbsGrams: number;
+  averageFatGrams: number;
+  currentStreakDays: number;
+  totalSteps: number;
+  totalWaterGlasses: number;
+  dailyTrends: DailyAnalyticsPoint[];
+}
 
 export const analyticsApi = {
   /**
    * Fetch advanced nutrition analytics from backend.
-   * If backend is unavailable or offline in demo/preview mode,
-   * honestly computes analytics from local persisted journal storage.
+   * Falls back to local computation using identical local calendar date rules when offline.
    */
   async getAdvancedAnalytics(
     range: DateRangeOption = "7d",
     startDate?: string,
-    endDate?: string
+    endDate?: string,
+    referenceDate?: Date | string
   ): Promise<AdvancedAnalyticsResponse> {
+    if (range === "custom") {
+      // Validate custom date window upfront (throws descriptive error if invalid or start > end)
+      buildLocalDateWindow("custom", startDate, endDate, referenceDate);
+    }
+
+    const rev = accountRevision();
     const session = await sessionStorage.getSession();
     const token = session?.token;
+    const localToday = formatLocalDateKey(referenceDate || new Date());
 
     if (token) {
       try {
-        const queryParams = new URLSearchParams({ range });
+        const queryParams = new URLSearchParams({ range, today: localToday });
         if (startDate) queryParams.set("startDate", startDate);
         if (endDate) queryParams.set("endDate", endDate);
 
-        const res = await fetch(`${API_BASE_URL}/analytics/advanced?${queryParams.toString()}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
+        const res = await fetch(
+          `${API_BASE_URL}/analytics/advanced?${queryParams.toString()}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (res.status === 401) {
+          await notifyUnauthorizedSession(rev);
+          throw new Error("Sesi telah berakhir.");
+        }
 
         if (res.ok) {
           const data: AdvancedAnalyticsResponse = await res.json();
           return data;
         }
-      } catch {
-        // Fallback silently to local computation
+      } catch (err: any) {
+        if (err?.message === "Sesi telah berakhir.") {
+          throw err;
+        }
+        // Offline or non-200 fallback to honest local computation
       }
     }
 
-    // Local honest fallback computation from persisted journalStorage
-    return this.computeLocalAnalytics(range);
+    return this.computeLocalAnalytics(range, startDate, endDate, referenceDate);
+  },
+
+  /**
+   * Fetch 7-day real weekly summary digest (available to all users, online & offline).
+   */
+  async getWeeklySummary(referenceDate?: Date | string): Promise<WeeklySummaryDigest> {
+    const rev = accountRevision();
+    const session = await sessionStorage.getSession();
+    const token = session?.token;
+    const localToday = formatLocalDateKey(referenceDate || new Date());
+
+    if (token) {
+      try {
+        const res = await fetch(
+          `${API_BASE_URL}/analytics/weekly-summary?today=${encodeURIComponent(localToday)}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (res.status === 401) {
+          await notifyUnauthorizedSession(rev);
+        } else if (res.ok) {
+          return (await res.json()) as WeeklySummaryDigest;
+        }
+      } catch {
+        // Fallback to local weekly summary computation
+      }
+    }
+
+    const local = await this.computeLocalAnalytics("7d", undefined, undefined, referenceDate);
+    let totalSteps = 0;
+    let totalWaterGlasses = 0;
+
+    try {
+      const { activityApi } = require("./activityApi");
+      const accountEmail = session?.user?.email || (session as any)?.email || "signed-out";
+      for (const pt of local.dailyTrends) {
+        const stats = await activityApi.getActivityStats(accountEmail, pt.date);
+        totalSteps += stats.steps || 0;
+        totalWaterGlasses += stats.waterGlasses || 0;
+      }
+    } catch {
+      // ignore activity lookup error
+    }
+
+    return {
+      startDate: local.startDate,
+      endDate: local.endDate,
+      loggedDaysCount: local.consistency.loggedDaysCount,
+      totalMealsLogged: local.consistency.totalMealsLogged,
+      averageDailyCalories: local.summary.averageDailyCalories,
+      targetCalories: local.summary.targetCalories,
+      deltaKcal: local.summary.targetComparison.deltaKcal,
+      averageProteinGrams: local.macroDistribution.grams.protein,
+      averageCarbsGrams: local.macroDistribution.grams.carbs,
+      averageFatGrams: local.macroDistribution.grams.fat,
+      currentStreakDays: local.consistency.currentStreakDays,
+      totalSteps,
+      totalWaterGlasses,
+      dailyTrends: local.dailyTrends,
+    };
   },
 
   /**
    * Export user nutrition report as CSV string or JSON payload.
    */
   async exportNutritionData(format: "csv" | "json" = "json"): Promise<string | object> {
+    const rev = accountRevision();
     const session = await sessionStorage.getSession();
     const token = session?.token;
 
@@ -61,7 +167,9 @@ export const analyticsApi = {
             Authorization: `Bearer ${token}`,
           },
         });
-        if (res.ok) {
+        if (res.status === 401) {
+          await notifyUnauthorizedSession(rev);
+        } else if (res.ok) {
           if (format === "csv") {
             return await res.text();
           }
@@ -72,13 +180,13 @@ export const analyticsApi = {
       }
     }
 
-    // Local CSV export fallback
     const journals = await journalStorage.getJournals();
     if (format === "csv") {
-      let csv = "ID,Name,Type,Calories,Protein(g),Carbs(g),Fat(g),Fiber(g),Date\n";
+      let csv = "ID,Name,Type,Calories,Protein(g),Carbs(g),Fat(g),Fiber(g),Quantity,Date\n";
       Object.values(journals).forEach((j) => {
         j.entries.forEach((m) => {
-          csv += `"${m.id}","${m.title}","${m.category}",${m.calories},${m.proteinGrams || 0},${m.carbsGrams || 0},${m.fatGrams || 0},${m.fiberGrams || 0},"${j.date}"\n`;
+          const safeTitle = String(m.title || "").replace(/"/g, '""');
+          csv += `"${m.id}","${safeTitle}","${m.category}",${m.calories},${m.proteinGrams || 0},${m.carbsGrams || 0},${m.fatGrams || 0},${m.fiberGrams || 0},${m.quantity || 1},"${j.date}"\n`;
         });
       });
       return csv;
@@ -92,10 +200,23 @@ export const analyticsApi = {
 
   /**
    * Computes honest, un-fabricated analytics locally from client journal storage
+   * using local calendar dates consistently across 7d, 30d, and custom windows.
    */
-  async computeLocalAnalytics(range: DateRangeOption): Promise<AdvancedAnalyticsResponse> {
-    const daysCount = range === "30d" ? 30 : 7;
+  async computeLocalAnalytics(
+    range: DateRangeOption,
+    customStart?: string,
+    customEnd?: string,
+    referenceDate?: Date | string
+  ): Promise<AdvancedAnalyticsResponse> {
+    const dateKeys = buildLocalDateWindow(
+      range,
+      customStart,
+      customEnd,
+      referenceDate || new Date()
+    );
+    const daysCount = dateKeys.length;
     const journals = await journalStorage.getJournals();
+
     let targetCalories = 2000;
     let targetProteinGrams = Math.round((2000 * 0.25) / 4);
     let targetCarbsGrams = Math.round((2000 * 0.5) / 4);
@@ -114,22 +235,9 @@ export const analyticsApi = {
       // safe fallback
     }
 
-    // Generate date sequence
-    const dateKeys: string[] = [];
     const weekdayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    const now = new Date();
-
-    for (let i = daysCount - 1; i >= 0; i--) {
-      const d = new Date(now);
-      d.setUTCDate(d.getUTCDate() - i);
-      const y = d.getUTCFullYear();
-      const m = String(d.getUTCMonth() + 1).padStart(2, "0");
-      const dt = String(d.getUTCDate()).padStart(2, "0");
-      dateKeys.push(`${y}-${m}-${dt}`);
-    }
-
-    const startDate = dateKeys[0];
-    const endDate = dateKeys[dateKeys.length - 1];
+    const startDate = dateKeys[0] || "";
+    const endDate = dateKeys[dateKeys.length - 1] || "";
 
     const dailyTrends: DailyAnalyticsPoint[] = [];
     let loggedDaysCount = 0;
@@ -152,7 +260,7 @@ export const analyticsApi = {
     for (const dk of dateKeys) {
       const dayJournal = journals[dk];
       const dayMeals = dayJournal?.entries || [];
-      const dObj = new Date(`${dk}T00:00:00Z`);
+      const dObj = new Date(`${dk}T12:00:00Z`);
       const dayLabel = `${weekdayNames[dObj.getUTCDay()]} ${dObj.getUTCDate()}`;
 
       if (dayMeals.length === 0) {
@@ -189,7 +297,7 @@ export const analyticsApi = {
         const c = m.carbsGrams || 0;
         const f = m.fatGrams || 0;
         const fib = m.fiberGrams || 0;
-        const cost = (m as any).estimatedCostIdr || 0;
+        const cost = m.estimatedCostIdr || 0;
 
         dayKcal += kcal;
         dayP += p;
@@ -242,10 +350,10 @@ export const analyticsApi = {
         dayLabel,
         hasData: true,
         calories: Math.round(dayKcal),
-        proteinGrams: Math.round(dayP),
-        carbsGrams: Math.round(dayC),
-        fatGrams: Math.round(dayF),
-        fiberGrams: Math.round(dayFib),
+        proteinGrams: Math.round(dayP * 10) / 10,
+        carbsGrams: Math.round(dayC * 10) / 10,
+        fatGrams: Math.round(dayF * 10) / 10,
+        fiberGrams: Math.round(dayFib * 10) / 10,
         estimatedCostIdr: dayCost,
         targetCalories,
         calorieDelta: Math.round(delta),
@@ -257,16 +365,43 @@ export const analyticsApi = {
 
     const divisor = Math.max(1, loggedDaysCount);
     const averageDailyCalories = loggedDaysCount > 0 ? Math.round(totalCalories / divisor) : 0;
+    const avgProtein = loggedDaysCount > 0 ? Math.round(totalProtein / divisor) : 0;
+    const avgCarbs = loggedDaysCount > 0 ? Math.round(totalCarbs / divisor) : 0;
+    const avgFat = loggedDaysCount > 0 ? Math.round(totalFat / divisor) : 0;
+    const avgFiber = loggedDaysCount > 0 ? Math.round(totalFiber / divisor) : 0;
     const avgDelta = loggedDaysCount > 0 ? averageDailyCalories - targetCalories : 0;
 
     const macroKcal = totalProtein * 4 + totalCarbs * 4 + totalFat * 9;
-    const proteinPercentage = macroKcal > 0 ? Math.round(((totalProtein * 4) / macroKcal) * 100) : 25;
-    const carbsPercentage = macroKcal > 0 ? Math.round(((totalCarbs * 4) / macroKcal) * 100) : 50;
-    const fatPercentage = macroKcal > 0 ? Math.round(((totalFat * 9) / macroKcal) * 100) : 25;
+    const proteinPercentage =
+      macroKcal > 0 ? Math.round(((totalProtein * 4) / macroKcal) * 100) : 25;
+    const carbsPercentage =
+      macroKcal > 0 ? Math.round(((totalCarbs * 4) / macroKcal) * 100) : 50;
+    const fatPercentage =
+      macroKcal > 0 ? Math.max(0, 100 - proteinPercentage - carbsPercentage) : 25;
 
-    const adherenceScore = targetCalories > 0 && loggedDaysCount > 0
-      ? Math.max(0, Math.min(100, Math.round((1 - Math.abs(avgDelta) / targetCalories) * 100)))
-      : 0;
+    const adherenceScore =
+      loggedDaysCount > 0 ? Math.round((onTargetDays / loggedDaysCount) * 100) : 0;
+
+    // Real streak calculation across the date window
+    let currentStreakDays = 0;
+    let longestStreakDays = 0;
+    let tempStreak = 0;
+    for (const pt of dailyTrends) {
+      if (pt.hasData) {
+        tempStreak++;
+        if (tempStreak > longestStreakDays) longestStreakDays = tempStreak;
+      } else {
+        tempStreak = 0;
+      }
+    }
+    for (let i = dailyTrends.length - 1; i >= 0; i--) {
+      if (dailyTrends[i].hasData) {
+        currentStreakDays++;
+      } else {
+        if (i === dailyTrends.length - 1) continue;
+        break;
+      }
+    }
 
     const totalMealsLogged = breakfastCount + lunchCount + dinnerCount + snackCount;
     const bPct = totalMealsLogged > 0 ? Math.round((breakfastCount / totalMealsLogged) * 100) : 0;
@@ -279,14 +414,19 @@ export const analyticsApi = {
       startDate,
       endDate,
       summary: {
-        totalCalories,
+        totalCalories: Math.round(totalCalories),
         targetCalories,
         averageDailyCalories,
         adherenceScore,
-        fiberScore: totalFiber / divisor >= 25 ? "Optimal" : "Needs Improvement",
+        fiberScore: avgFiber >= 25 ? "Optimal" : "Needs Improvement",
         targetComparison: {
           deltaKcal: avgDelta,
-          status: Math.abs(avgDelta) <= targetCalories * 0.1 ? "balanced" : avgDelta > 0 ? "surplus" : "deficit",
+          status:
+            Math.abs(avgDelta) <= targetCalories * 0.1
+              ? "balanced"
+              : avgDelta > 0
+              ? "surplus"
+              : "deficit",
           onTargetDays,
           underTargetDays,
           overTargetDays,
@@ -297,10 +437,10 @@ export const analyticsApi = {
         carbsPercentage,
         fatPercentage,
         grams: {
-          protein: Math.round(totalProtein),
-          carbs: Math.round(totalCarbs),
-          fat: Math.round(totalFat),
-          fiber: Math.round(totalFiber),
+          protein: avgProtein,
+          carbs: avgCarbs,
+          fat: avgFat,
+          fiber: avgFiber,
         },
         targetGrams: {
           protein: targetProteinGrams,
@@ -312,11 +452,15 @@ export const analyticsApi = {
       consistency: {
         totalDaysInRange: daysCount,
         loggedDaysCount,
-        dataCoveragePercentage: Math.round((loggedDaysCount / daysCount) * 100),
+        dataCoveragePercentage:
+          daysCount > 0 ? Math.round((loggedDaysCount / daysCount) * 100) : 0,
         totalMealsLogged,
-        averageMealsPerLoggedDay: loggedDaysCount > 0 ? Math.round((totalMealsLogged / loggedDaysCount) * 10) / 10 : 0,
-        currentStreakDays: loggedDaysCount > 0 ? 1 : 0,
-        longestStreakDays: loggedDaysCount > 0 ? 1 : 0,
+        averageMealsPerLoggedDay:
+          loggedDaysCount > 0
+            ? Math.round((totalMealsLogged / loggedDaysCount) * 10) / 10
+            : 0,
+        currentStreakDays,
+        longestStreakDays,
         mealTimingDistribution: {
           breakfastPercentage: bPct,
           lunchPercentage: lPct,
@@ -326,21 +470,29 @@ export const analyticsApi = {
       },
       spending: {
         totalEstimatedCostIdr: totalSpending,
-        averageDailyCostIdr: loggedDaysCount > 0 ? Math.round(totalSpending / loggedDaysCount) : 0,
-        averageCostPerMealIdr: pricedMealsCount > 0 ? Math.round(totalSpending / pricedMealsCount) : 0,
+        averageDailyCostIdr:
+          loggedDaysCount > 0 ? Math.round(totalSpending / loggedDaysCount) : 0,
+        averageCostPerMealIdr:
+          pricedMealsCount > 0 ? Math.round(totalSpending / pricedMealsCount) : 0,
         pricedMealsCount,
         totalMealsCount: totalMealsLogged,
-        pricingCoveragePct: totalMealsLogged > 0 ? Math.round((pricedMealsCount / totalMealsLogged) * 100) : 0,
+        pricingCoveragePct:
+          totalMealsLogged > 0 ? Math.round((pricedMealsCount / totalMealsLogged) * 100) : 0,
       },
       narrative:
         loggedDaysCount === 0
-          ? `No food entries have been logged in the past ${daysCount} days. Log your daily meals in the journal to view nutritional trends and target comparisons.`
-          : `Over the past ${daysCount} days, you logged meals across ${loggedDaysCount} days (${Math.round((loggedDaysCount / daysCount) * 100)}% logging consistency). Your average daily intake is ${averageDailyCalories} kcal against your ${targetCalories} kcal target.`,
-      insights: [
-        "Protein provides structural amino acids essential for tissue maintenance.",
-        "Clinical guidance recommends at least 25g of dietary fiber daily.",
-      ],
-      disclaimer: "Calculated strictly from your logged journal entries. No fabricated records.",
+          ? `Belum ada makanan yang dicatat dalam ${daysCount} hari ini. Catat menu harian di jurnal untuk melihat tren nutrisi.`
+          : `Dalam ${daysCount} hari (${startDate} s/d ${endDate}), Anda mencatat makanan pada ${loggedDaysCount} hari (${Math.round((loggedDaysCount / Math.max(1, daysCount)) * 100)}% konsistensi) dengan rata-rata ${averageDailyCalories.toLocaleString("id-ID")} kcal terhadap target ${targetCalories.toLocaleString("id-ID")} kcal.`,
+      insights:
+        loggedDaysCount === 0
+          ? ["Mulai catat menu sarapan, makan siang, atau makan malam untuk membangun analisis nyata."]
+          : [
+              `Rata-rata protein harian ${avgProtein}g (${proteinPercentage}% dari total energi).`,
+              avgFiber >= 25
+                ? `Rata-rata serat ${avgFiber}g/hari sudah memenuhi rekomendasi 25g.`
+                : `Rata-rata serat ${avgFiber}g/hari; tambahkan sayur, buah, atau kacang-kacangan menuju 25g.`,
+            ],
+      disclaimer: "Dihitung murni dari catatan jurnal Anda tanpa data buatan.",
     };
   },
 };

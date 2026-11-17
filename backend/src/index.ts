@@ -2,7 +2,8 @@ import express, { Express, Request, Response } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
-import { env } from "./config/env.js";
+import { env, isOriginAllowed } from "./config/env.js";
+import { ensureDbReady, getDatabaseMetadata } from "./db/index.js";
 import { authRouter } from "./routes/auth.js";
 import { profileRouter } from "./routes/profile.js";
 import { mealsRouter } from "./routes/meals.js";
@@ -22,29 +23,46 @@ app.use(
   })
 );
 
-// 2. CORS Handling
-const allowedOrigins = env.CORS_ORIGIN.split(",").map((o) => o.trim());
+// 2. Strict CORS Handling (rejects unlisted origins in production)
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow mobile simulator and same-origin / local dev requests
-      if (!origin || allowedOrigins.includes(origin) || origin.startsWith("http://localhost")) {
+      if (isOriginAllowed(origin, env)) {
         callback(null, true);
       } else {
-        callback(null, true); // Dev-friendly fallback
+        callback(new Error("Origin not allowed by CORS policy"));
       }
     },
     credentials: true,
   })
 );
 
-// 3. Body Parser with Payload Size Limit
-app.use(express.json({ limit: "1mb" }));
+// 3. Body Parser with Raw Buffer Capture for Webhook Signature Verification
+app.use(
+  express.json({
+    limit: "1mb",
+    verify: (req: Request, _res, buf) => {
+      if (req.originalUrl?.startsWith("/api/subscription/webhook")) {
+        req.rawBody = buf.toString("utf8");
+      }
+    },
+  })
+);
 
-// 4. Rate Limiting for Sensitive Auth Endpoints
+// 4. Ensure Database Migrations & Connection Are Ready Before Business Routes
+app.use(async (_req, _res, next) => {
+  try {
+    await ensureDbReady();
+    next();
+  } catch (err) {
+    next(err);
+  }
+});
+
+// 5. Rate Limiting for Sensitive Auth Endpoints
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  windowMs: 15 * 60 * 1000,
+  max: 100,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -54,17 +72,19 @@ const authLimiter = rateLimit({
   skip: () => env.NODE_ENV === "test",
 });
 
-// 5. Health Check Endpoint
+// 6. Health Check Endpoint
 app.get("/health", (_req: Request, res: Response) => {
+  const dbMeta = getDatabaseMetadata();
   res.json({
     status: "ok",
     service: "better-life-backend",
     timestamp: new Date().toISOString(),
     environment: env.NODE_ENV,
+    database: dbMeta,
   });
 });
 
-// 6. Modular Route Registrations
+// 7. Modular Route Registrations
 app.use("/api/auth", authLimiter, authRouter);
 app.use("/api/profile", profileRouter);
 app.use("/api/meals", mealsRouter);
@@ -74,11 +94,10 @@ app.use("/api/subscription", subscriptionRouter);
 app.use("/api/analytics", analyticsRouter);
 app.use("/api/meal-plans", mealPlansRouter);
 
-
-// 7. Centralized Error Handler Middleware
+// 8. Centralized Error Handler Middleware
 app.use(errorHandler);
 
-// 8. Server Startup
+// 9. Server Startup
 const PORT = parseInt(env.PORT, 10) || 4000;
 
 const isRunningTest =
@@ -88,9 +107,16 @@ const isRunningTest =
   Boolean(process.env.NODE_TEST_CONTEXT);
 
 if (!isRunningTest) {
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`🚀 Better Life Backend running on http://0.0.0.0:${PORT}`);
-    console.log(`📡 Health check: http://localhost:${PORT}/health`);
-  });
+  ensureDbReady()
+    .then(() => {
+      const dbMeta = getDatabaseMetadata();
+      app.listen(PORT, "0.0.0.0", () => {
+        console.log(`Better Life Backend running on http://0.0.0.0:${PORT} (db=${dbMeta.kind})`);
+        console.log(`Health check: http://localhost:${PORT}/health`);
+      });
+    })
+    .catch((err) => {
+      console.error("Failed to initialize database before server startup:", err);
+      process.exit(1);
+    });
 }
-

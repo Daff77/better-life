@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "expo-router/entry",
   "dependencies": {
+    "@better-life/shared": "file:../shared",
     "@tanstack/react-query": "^5.102.8",
     "expo": "~58.0.23",
     "expo-auth-session": "~58.0.14",
@@ -11,6 +12,7 @@
     "expo-font": "~58.0.10",
     "expo-image-picker": "~58.0.10",
     "expo-linking": "~58.0.14",
+    "expo-notifications": "~58.0.0",
     "expo-router": "~58.0.26",
     "expo-secure-store": "~58.0.2",
     "expo-sensors": "~58.0.5",

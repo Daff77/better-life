@@ -4,6 +4,7 @@ import {
   ScrollView,
   Alert,
   Platform,
+  Linking,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
@@ -38,10 +39,13 @@ export default function UpgradeScreen() {
     isPremium,
     currentPeriodEnd,
     cancelAtPeriodEnd,
+    paymentReadiness,
+    pendingSessionId,
     isLoading,
     isUpgrading,
     fetchStatus,
     upgradePlan,
+    verifyCheckoutSession,
     cancelSubscription,
     restorePurchases,
   } = useSubscriptionStore();
@@ -61,13 +65,54 @@ export default function UpgradeScreen() {
     setErrorMessage(null);
     setSuccessMessage(null);
 
-    const result = await upgradePlan(selectedPlan, "mock_sandbox");
-    if (result.success) {
-      setSuccessMessage(
-        `Keanggotaan Anda telah ditingkatkan ke ${SUBSCRIPTION_PLANS[selectedPlan].name}.`
+    if (!paymentReadiness.canCheckout) {
+      setErrorMessage(
+        "Gateway pembayaran terverifikasi belum dikonfigurasi pada server. Aktivasi tanpa verifikasi pembayaran dinonaktifkan demi keamanan akun."
       );
+      return;
+    }
+
+    const provider = paymentReadiness.stripeConfigured ? "stripe" : "mock_sandbox";
+    const result = await upgradePlan(selectedPlan, provider);
+
+    if (!result.success) {
+      setErrorMessage(
+        result.error || "Tidak dapat memulai proses pembayaran. Silakan coba lagi."
+      );
+      return;
+    }
+
+    if (result.checkoutUrl) {
+      setSuccessMessage(
+        "Sesi pembayaran Stripe telah dibuat. Selesaikan pembayaran pada halaman Stripe lalu ketuk Verifikasi Pembayaran."
+      );
+      try {
+        await Linking.openURL(result.checkoutUrl);
+      } catch {
+        // User can still copy or inspect status
+      }
+      return;
+    }
+
+    if (result.sandboxMode) {
+      setSuccessMessage(
+        `Mode Sandbox Pengujian aktif: paket ${SUBSCRIPTION_PLANS[selectedPlan].name} diaktifkan khusus untuk pengujian lokal (bukan transaksi uang nyata).`
+      );
+      return;
+    }
+
+    setSuccessMessage(result.message || "Permintaan langganan dicatat dan menunggu verifikasi.");
+  };
+
+  const handleVerifyPending = async () => {
+    if (!pendingSessionId) return;
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    const res = await verifyCheckoutSession(pendingSessionId, selectedPlan);
+    if (res.success) {
+      setSuccessMessage(res.message || "Pembayaran berhasil diverifikasi dan akses Premium aktif.");
     } else {
-      setErrorMessage(result.error || "Tidak dapat menyelesaikan peningkatan paket. Silakan coba lagi.");
+      setErrorMessage(res.error || "Pembayaran belum selesai atau belum terverifikasi.");
     }
   };
 
@@ -91,7 +136,11 @@ export default function UpgradeScreen() {
     if (result.restored) {
       setSuccessMessage(result.message);
     } else {
-      Alert.alert("Pulihkan Pembelian", result.message);
+      if (Platform.OS === "web") {
+        setErrorMessage(result.message);
+      } else {
+        Alert.alert("Pulihkan Pembelian", result.message);
+      }
     }
   };
 
@@ -146,7 +195,7 @@ export default function UpgradeScreen() {
             variant="ghost"
             onPress={handleRestore}
             disabled={isLoading || isUpgrading}
-            accessibilityLabel="Restore purchases"
+            accessibilityLabel="Pulihkan pembelian"
           />
         }
       />
@@ -221,12 +270,42 @@ export default function UpgradeScreen() {
                     size="sm"
                     variant="soft"
                     onPress={() => setCancelModalVisible(true)}
-                    accessibilityLabel="Cancel auto-renewal"
+                    accessibilityLabel="Batalkan perpanjangan otomatis"
                   />
                 </View>
               )}
             </Surface>
           </FadeInView>
+
+          {/* Payment Gateway Readiness Banner */}
+          {!paymentReadiness.stripeConfigured && (
+            <FadeInView duration={220} translateY={4}>
+              <Surface className="py-3.5 px-4 bg-[#fdf8ea] border-[#efe0b9]">
+                <View className="flex-row items-start gap-3">
+                  <RowIcon tone="amber" icon="shield" />
+                  <View className="flex-1 min-w-0">
+                    <View className="flex-row items-center gap-2 flex-wrap">
+                      <AppText weight="semibold" className="text-[13.5px] text-[#1b1406]">
+                        {paymentReadiness.sandboxEnabled
+                          ? "Mode Sandbox Pengujian Lokal Aktif"
+                          : "Gateway Pembayaran Belum Dikonfigurasi"}
+                      </AppText>
+                      <StatusPill
+                        tone="warn"
+                        label={paymentReadiness.sandboxEnabled ? "Sandbox" : "Menunggu Konfigurasi"}
+                        dot={false}
+                      />
+                    </View>
+                    <AppText weight="regular" className="text-xs text-[#56605a] mt-1 leading-relaxed">
+                      {paymentReadiness.sandboxEnabled
+                        ? "Kredensial Stripe nyata belum dipasang. Tombol aktivasi di bawah hanya menjalankan pengujian lokal (ENABLE_PAYMENT_SANDBOX=true) tanpa menagih pembayaran nyata."
+                        : `Aktivasi Premium tanpa verifikasi ditolak oleh server. Konfigurasikan variabel lingkungan berikut pada backend untuk mengaktifkan Stripe Checkout terverifikasi: ${paymentReadiness.missingRequirements.join(", ")}.`}
+                    </AppText>
+                  </View>
+                </View>
+              </Surface>
+            </FadeInView>
+          )}
 
           {/* Feedback Banners */}
           {successMessage && (
@@ -265,7 +344,30 @@ export default function UpgradeScreen() {
             </FadeInView>
           )}
 
-          {/* Plan Selector Cards — Vialo Filled ColorBlocks */}
+          {/* Pending Stripe Verification Card */}
+          {pendingSessionId && !isPremium && (
+            <Surface className="py-3.5 px-4">
+              <View className="flex-row items-center justify-between flex-wrap gap-3">
+                <View className="flex-1 min-w-[200px]">
+                  <AppText weight="semibold" className="text-[13.5px] text-ink">
+                    Menunggu konfirmasi pembayaran Stripe
+                  </AppText>
+                  <AppText weight="regular" className="text-xs text-muted mt-0.5">
+                    Setelah menyelesaikan pembayaran di jendela checkout, ketuk tombol verifikasi untuk menyinkronkan status akun.
+                  </AppText>
+                </View>
+                <PillButton
+                  label={isUpgrading ? "Memverifikasi..." : "Verifikasi Pembayaran"}
+                  variant="primary"
+                  size="sm"
+                  onPress={handleVerifyPending}
+                  disabled={isUpgrading}
+                />
+              </View>
+            </Surface>
+          )}
+
+          {/* Plan Selector Cards */}
           <FadeInView index={1}>
             <View className="flex-col sm:flex-row gap-3.5">
               {/* Annual Plan */}
@@ -273,7 +375,7 @@ export default function UpgradeScreen() {
                 <ColorBlock
                   tone={selectedPlan === "annual" ? "green" : "mist"}
                   onPress={() => setSelectedPlan("annual")}
-                  accessibilityLabel="Select Annual Membership"
+                  accessibilityLabel="Pilih paket tahunan"
                 >
                   <View className="flex-row items-center justify-between mb-2">
                     <AppText
@@ -355,7 +457,7 @@ export default function UpgradeScreen() {
                 <ColorBlock
                   tone={selectedPlan === "monthly" ? "green" : "mist"}
                   onPress={() => setSelectedPlan("monthly")}
-                  accessibilityLabel="Select Monthly Membership"
+                  accessibilityLabel="Pilih paket bulanan"
                 >
                   <View className="flex-row items-center justify-between mb-2">
                     <AppText
@@ -441,22 +543,28 @@ export default function UpgradeScreen() {
                   {SUBSCRIPTION_PLANS[selectedPlan].name}
                 </AppText>
                 <AppText weight="regular" className="text-xs text-[#56605a] mt-0.5">
-                  Pembayaran diverifikasi secara aman. Dapat dibatalkan kapan saja melalui pengaturan akun.
+                  {paymentReadiness.stripeConfigured
+                    ? "Pembayaran diproses melalui Stripe Checkout dan diverifikasi otomatis oleh server."
+                    : paymentReadiness.sandboxEnabled
+                    ? "Mode Sandbox Pengujian aktif (hanya untuk pengembangan lokal)."
+                    : "Menunggu konfigurasi penyedia pembayaran terverifikasi pada server."}
                 </AppText>
               </View>
               <PillButton
                 label={
                   isUpgrading
                     ? "Memproses..."
-                    : isPremium
-                    ? `Beralih ke ${SUBSCRIPTION_PLANS[selectedPlan].name}`
-                    : `Aktifkan ${SUBSCRIPTION_PLANS[selectedPlan].name}`
+                    : !paymentReadiness.canCheckout
+                    ? "Pembayaran Belum Tersedia"
+                    : paymentReadiness.stripeConfigured
+                    ? `Lanjut ke Checkout`
+                    : `Uji di Sandbox`
                 }
-                variant="primary"
-                icon={<LineIcon name="crown" size={15} color="#ffffff" />}
+                variant={paymentReadiness.canCheckout ? "primary" : "soft"}
+                icon={<LineIcon name="crown" size={15} color={paymentReadiness.canCheckout ? "#ffffff" : "#121a16"} />}
                 onPress={handleUpgrade}
-                disabled={isUpgrading}
-                accessibilityLabel={`Upgrade to ${SUBSCRIPTION_PLANS[selectedPlan].name}`}
+                disabled={isUpgrading || !paymentReadiness.canCheckout}
+                accessibilityLabel={`Checkout ${SUBSCRIPTION_PLANS[selectedPlan].name}`}
               />
             </Surface>
           </FadeInView>
@@ -524,7 +632,7 @@ export default function UpgradeScreen() {
                 Kebijakan Langganan Transparan
               </AppText>
               <AppText weight="regular" className="text-[11px] text-[#56605a] leading-relaxed">
-                Better Life tidak menggunakan hitung mundur palsu atau biaya perpanjangan tersembunyi. Langganan diperpanjang otomatis kecuali dibatalkan minimal 24 jam sebelum akhir periode berjalan. Saat dibatalkan, akses Premium Anda tetap aktif hingga masa aktif berakhir dan seluruh catatan jurnal Anda tetap tersimpan utuh.
+                Better Life tidak pernah mengaktifkan paket berbayar tanpa bukti pembayaran terverifikasi dan tidak menggunakan hitung mundur palsu. Saat dibatalkan, akses Premium Anda tetap aktif hingga masa aktif berakhir dan seluruh catatan jurnal Anda tetap tersimpan utuh.
               </AppText>
             </Surface>
           </FadeInView>

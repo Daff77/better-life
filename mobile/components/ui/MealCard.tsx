@@ -7,6 +7,7 @@ import {
 } from "react-native";
 import { AppText } from "./AppText";
 import { PressableScale } from "./PressableScale";
+import { LineIcon } from "./LineIcon";
 import { PlusIconSvg, getMealIllustration } from "@/constants/Assets";
 import { SURFACE_SHADOW } from "./Surface";
 import { mealLabel } from "@/constants/MealLabels";
@@ -25,6 +26,8 @@ export interface MealCardProps {
   onPress?: () => void;
   isLogging?: boolean;
   showLogButton?: boolean;
+  isFavorite?: boolean;
+  onToggleFavorite?: () => void;
   /** "stack": compact vertical card (carousels/grids). "row": horizontal list tile (mobile lists). */
   layout?: "stack" | "row";
   className?: string;
@@ -46,16 +49,16 @@ export const MealCard: React.FC<MealCardProps> = ({
   onPress,
   isLogging = false,
   showLogButton = false,
+  isFavorite = false,
+  onToggleFavorite,
   layout = "stack",
   className,
 }) => {
   const displayTitle = title || mealType;
-  const effectiveImageSource = imageSource || (imageUrl ? { uri: imageUrl } : getMealIllustration(mealType));
+  const effectiveImageSource =
+    imageSource || (imageUrl ? { uri: imageUrl } : getMealIllustration(mealType));
 
-  const meta = [
-    mealLabel(mealType),
-    prepTimeMinutes ? `${prepTimeMinutes} mnt` : null,
-  ]
+  const meta = [mealLabel(mealType), prepTimeMinutes ? `${prepTimeMinutes} mnt` : null]
     .filter(Boolean)
     .join(" · ");
 
@@ -64,6 +67,28 @@ export const MealCard: React.FC<MealCardProps> = ({
   ) : (
     <Image source={effectiveImageSource} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
   );
+
+  const favoriteButton = onToggleFavorite ? (
+    <PressableScale
+      onPress={onToggleFavorite}
+      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      className={`w-8 h-8 rounded-full items-center justify-center flex-shrink-0 border ${
+        isFavorite ? "bg-[#fde9e7] border-[#f5c2be]" : "bg-card-2 border-line"
+      }`}
+      accessibilityRole="button"
+      accessibilityState={{ selected: isFavorite }}
+      accessibilityLabel={
+        isFavorite ? `Hapus ${displayTitle} dari favorit` : `Simpan ${displayTitle} ke favorit`
+      }
+    >
+      <LineIcon
+        name="heart"
+        size={14}
+        color={isFavorite ? "#b92d26" : "#6c7670"}
+        strokeWidth={isFavorite ? 2.2 : 1.75}
+      />
+    </PressableScale>
+  ) : null;
 
   const logButton = showLogButton ? (
     <PressableScale
@@ -117,7 +142,10 @@ export const MealCard: React.FC<MealCardProps> = ({
             </View>
           </View>
         </PressableScale>
-        {logButton}
+        <View className="flex-row items-center gap-1.5 flex-shrink-0">
+          {favoriteButton}
+          {logButton}
+        </View>
       </View>
     );
   }
@@ -170,7 +198,10 @@ export const MealCard: React.FC<MealCardProps> = ({
         <AppText weight="semibold" numberOfLines={1} className="text-[12px] text-muted flex-1 mr-2" style={tnum}>
           {estimatedCostIdr !== undefined ? `Rp ${estimatedCostIdr.toLocaleString("id-ID")}` : `${calories} kcal`}
         </AppText>
-        {logButton}
+        <View className="flex-row items-center gap-1.5">
+          {favoriteButton}
+          {logButton}
+        </View>
       </View>
     </View>
   );

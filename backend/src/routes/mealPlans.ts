@@ -1,8 +1,13 @@
 import { Router, Request, Response } from "express";
 import { authMiddleware } from "../middleware/auth.js";
 import { requireEntitlement } from "../middleware/entitlement.js";
+import { asyncHandler } from "../middleware/asyncHandler.js";
 import { Entitlement } from "../types/subscription.js";
-import { inMemoryStore } from "../services/store.js";
+import {
+  recipeRepository,
+  mealPlanRepository,
+  profileRepository,
+} from "../repositories/index.js";
 import { MealPlannerEngine } from "../services/mealPlannerEngine.js";
 import {
   MealPlanPreferencesInputSchema,
@@ -14,97 +19,113 @@ import { MealPlanRecord, MealPlanPreferences } from "../types/mealPlan.js";
 
 export const mealPlansRouter = Router();
 
-// ==========================================
 // 1. PUBLIC / FREE PREVIEW ENDPOINT
-// ==========================================
-// Allows Free users to inspect a sample 1-day balanced plan & understand the feature value
-mealPlansRouter.get("/preview", (req: Request, res: Response) => {
-  const allRecipes = Array.from(inMemoryStore.recipes.values());
+mealPlansRouter.get(
+  "/preview",
+  asyncHandler(async (_req: Request, res: Response) => {
+    const allRecipes = await recipeRepository.findAll();
 
-  const samplePreferences: MealPlanPreferences = {
-    dailyCalorieTarget: 2000,
-    dietaryRestrictions: [],
-    allergies: [],
-    foodPreferences: ["Balanced", "High Protein"],
-    dailyBudgetIdr: 50000,
-    preferredMealSlots: ["Breakfast", "Lunch", "Dinner", "Snack"],
-    availableIngredients: [],
-    mealsPerDay: 4,
-  };
+    const samplePreferences: MealPlanPreferences = {
+      dailyCalorieTarget: 2000,
+      dietaryRestrictions: [],
+      allergies: [],
+      foodPreferences: ["Balanced", "High Protein"],
+      dailyBudgetIdr: 50000,
+      preferredMealSlots: ["Breakfast", "Lunch", "Dinner", "Snack"],
+      availableIngredients: [],
+      mealsPerDay: 4,
+    };
 
-  const samplePlan = MealPlannerEngine.generatePlan("sample-user", samplePreferences, allRecipes);
+    const samplePlan = MealPlannerEngine.generatePlan(
+      "sample-user",
+      samplePreferences,
+      allRecipes
+    );
 
-  return res.json({
-    feature: "Better Life Premium Personalized Meal Planner",
-    description:
-      "Clinical algorithmic meal planning tailored to your exact caloric targets, macro split, food allergies, dietary restrictions, and regional grocery budget.",
-    entitlementRequired: Entitlement.PERSONALIZED_MEAL_PLAN,
-    sampleDay: samplePlan.days[0],
-    sampleSummary: {
-      dailyCalories: samplePlan.days[0].totals.calories,
-      dailyCostIdr: samplePlan.days[0].totals.estimatedCostIdr,
-      macroBalance: samplePlan.summary.macroBalance,
-    },
-    capabilities: [
-      "Custom 7-day multi-meal schedules with zero consecutive day fatigue",
-      "Automatic allergen exclusion (Dairy, Gluten, Eggs, Soy, Nuts, Seafood)",
-      "Dietary compliance filters (Vegetarian, Vegan, Pescatarian, Keto, Halal)",
-      "Regional Indonesian grocery budget optimization & estimated cost tracking",
-      "One-tap recipe substitutions with live calorie and cost deltas",
-      "Consolidated pantry shopping list with interactive checkboxes",
-    ],
-  });
-});
+    return res.json({
+      feature: "Better Life Premium Personalized Meal Planner",
+      description:
+        "Clinical algorithmic meal planning tailored to your exact caloric targets, macro split, food allergies, dietary restrictions, and regional grocery budget.",
+      entitlementRequired: Entitlement.PERSONALIZED_MEAL_PLAN,
+      sampleDay: samplePlan.days[0],
+      sampleSummary: {
+        dailyCalories: samplePlan.days[0].totals.calories,
+        dailyCostIdr: samplePlan.days[0].totals.estimatedCostIdr,
+        macroBalance: samplePlan.summary.macroBalance,
+      },
+      capabilities: [
+        "Custom 7-day multi-meal schedules with zero consecutive day fatigue",
+        "Automatic allergen exclusion (Dairy, Gluten, Eggs, Soy, Nuts, Seafood)",
+        "Dietary compliance filters (Vegetarian, Vegan, Pescatarian, Keto, Halal)",
+        "Regional Indonesian grocery budget optimization & estimated cost tracking",
+        "One-tap recipe substitutions with live calorie and cost deltas",
+        "Consolidated pantry shopping list with interactive checkboxes",
+      ],
+    });
+  })
+);
 
-// All following endpoints require user authentication
 mealPlansRouter.use(authMiddleware);
 
-// ==========================================
-// 1.5. GET /api/meal-plans/personalized (BACKWARD COMPATIBLE & GATED)
-// ==========================================
+// 1.5. GET /api/meal-plans/personalized
 mealPlansRouter.get(
   "/personalized",
   requireEntitlement(Entitlement.PERSONALIZED_MEAL_PLAN),
-  (req: Request, res: Response) => {
+  asyncHandler(async (req: Request, res: Response) => {
     const userId = req.user!.userId;
-    const existing = inMemoryStore.mealPlans.get(userId);
+    const existing = await mealPlanRepository.getActiveByUserId(userId);
     if (existing) {
-      return res.json(existing);
+      return res.json({
+        ...existing,
+        schedule: existing.days,
+        planName: existing.title,
+        macroSplit: existing.summary.macroBalance,
+      });
     }
-    const allRecipes = Array.from(inMemoryStore.recipes.values());
-    const profile = inMemoryStore.profiles.get(userId);
+
+    const [allRecipes, profile] = await Promise.all([
+      recipeRepository.findAll(),
+      profileRepository.findByUserId(userId),
+    ]);
     const targetCalories = profile?.targetCalories || 2000;
-    const plan = MealPlannerEngine.generatePlan(
-      userId,
-      {
-        dailyCalorieTarget: targetCalories,
-        dietaryRestrictions: profile?.dietType === "Vegetarian" ? ["Vegetarian"] : [],
-        allergies: profile?.allergies || [],
-        foodPreferences: [],
-        dailyBudgetIdr: 50000,
-        preferredMealSlots: ["Breakfast", "Lunch", "Dinner", "Snack"],
-        availableIngredients: [],
-        mealsPerDay: 4,
-      },
-      allRecipes
-    );
-    inMemoryStore.mealPlans.set(userId, plan);
-    return res.json({
-      ...plan,
-      schedule: plan.days,
-      planName: plan.title,
-      macroSplit: plan.summary.macroBalance,
-    });
-  }
+
+    try {
+      const plan = MealPlannerEngine.generatePlan(
+        userId,
+        {
+          dailyCalorieTarget: targetCalories,
+          dietaryRestrictions: profile?.dietType === "Vegetarian" ? ["Vegetarian"] : [],
+          allergies: profile?.allergies || [],
+          foodPreferences: [],
+          dailyBudgetIdr: 50000,
+          preferredMealSlots: ["Breakfast", "Lunch", "Dinner", "Snack"],
+          availableIngredients: [],
+          mealsPerDay: 4,
+        },
+        allRecipes
+      );
+      const saved = await mealPlanRepository.saveActiveForUser(userId, plan);
+      return res.json({
+        ...saved,
+        schedule: saved.days,
+        planName: saved.title,
+        macroSplit: saved.summary.macroBalance,
+      });
+    } catch (err: any) {
+      return res.status(422).json({
+        error: "Unprocessable Entity",
+        code: "NO_SAFE_RECIPES",
+        message: err.message || "No safe recipes match your allergy and dietary restrictions.",
+      });
+    }
+  })
 );
 
-// ==========================================
 // 2. GENERATE PERSONALIZED MEAL PLAN (GATED)
-// ==========================================
 mealPlansRouter.post(
   "/generate",
   requireEntitlement(Entitlement.PERSONALIZED_MEAL_PLAN),
-  (req: Request, res: Response) => {
+  asyncHandler(async (req: Request, res: Response) => {
     const parseResult = MealPlanPreferencesInputSchema.safeParse(req.body);
     if (!parseResult.success) {
       return res.status(400).json({
@@ -116,26 +137,29 @@ mealPlansRouter.post(
 
     const userId = req.user!.userId;
     const preferences = parseResult.data as MealPlanPreferences;
-    const allRecipes = Array.from(inMemoryStore.recipes.values());
+    const allRecipes = await recipeRepository.findAll();
 
-    const plan = MealPlannerEngine.generatePlan(userId, preferences, allRecipes);
-
-    // Save as active plan in store
-    inMemoryStore.mealPlans.set(userId, plan);
-
-    return res.status(201).json(plan);
-  }
+    try {
+      const plan = MealPlannerEngine.generatePlan(userId, preferences, allRecipes);
+      const saved = await mealPlanRepository.saveActiveForUser(userId, plan);
+      return res.status(201).json(saved);
+    } catch (err: any) {
+      return res.status(422).json({
+        error: "Unprocessable Entity",
+        code: "NO_SAFE_RECIPES",
+        message: err.message || "No safe recipes match your allergy and dietary restrictions.",
+      });
+    }
+  })
 );
 
-// ==========================================
 // 3. GET SAVED ACTIVE MEAL PLAN (GATED)
-// ==========================================
 mealPlansRouter.get(
   "/saved",
   requireEntitlement(Entitlement.PERSONALIZED_MEAL_PLAN),
-  (req: Request, res: Response) => {
+  asyncHandler(async (req: Request, res: Response) => {
     const userId = req.user!.userId;
-    const plan = inMemoryStore.mealPlans.get(userId);
+    const plan = await mealPlanRepository.getActiveByUserId(userId);
 
     if (!plan) {
       return res.status(404).json({
@@ -144,7 +168,6 @@ mealPlansRouter.get(
       });
     }
 
-    // Strict IDOR isolation verification
     if (plan.userId !== userId) {
       return res.status(403).json({
         error: "Forbidden",
@@ -153,16 +176,14 @@ mealPlansRouter.get(
     }
 
     return res.json(plan);
-  }
+  })
 );
 
-// ==========================================
 // 4. SAVE / UPDATE ACTIVE MEAL PLAN (GATED)
-// ==========================================
 mealPlansRouter.post(
   "/save",
   requireEntitlement(Entitlement.PERSONALIZED_MEAL_PLAN),
-  (req: Request, res: Response) => {
+  asyncHandler(async (req: Request, res: Response) => {
     const parseResult = SaveMealPlanInputSchema.safeParse(req.body);
     if (!parseResult.success) {
       return res.status(400).json({
@@ -188,23 +209,21 @@ mealPlansRouter.post(
       updatedAt: new Date().toISOString(),
     };
 
-    inMemoryStore.mealPlans.set(userId, record);
+    const saved = await mealPlanRepository.saveActiveForUser(userId, record);
 
     return res.json({
       success: true,
       message: "Meal plan saved successfully",
-      plan: record,
+      plan: saved,
     });
-  }
+  })
 );
 
-// ==========================================
 // 5. GET MEAL SUBSTITUTIONS (GATED)
-// ==========================================
 mealPlansRouter.post(
   "/substitute",
   requireEntitlement(Entitlement.PERSONALIZED_MEAL_PLAN),
-  (req: Request, res: Response) => {
+  asyncHandler(async (req: Request, res: Response) => {
     const parseResult = SubstituteMealInputSchema.safeParse(req.body);
     if (!parseResult.success) {
       return res.status(400).json({
@@ -215,7 +234,7 @@ mealPlansRouter.post(
     }
 
     const { slot, currentRecipeId, preferences } = parseResult.data;
-    const allRecipes = Array.from(inMemoryStore.recipes.values());
+    const allRecipes = await recipeRepository.findAll();
 
     const userPrefs: MealPlanPreferences = (preferences as MealPlanPreferences) || {
       dailyCalorieTarget: 2000,
@@ -241,16 +260,14 @@ mealPlansRouter.post(
       count: substitutions.length,
       substitutions,
     });
-  }
+  })
 );
 
-// ==========================================
 // 6. REPLACE INDIVIDUAL MEAL (GATED)
-// ==========================================
 mealPlansRouter.post(
   "/replace-meal",
   requireEntitlement(Entitlement.PERSONALIZED_MEAL_PLAN),
-  (req: Request, res: Response) => {
+  asyncHandler(async (req: Request, res: Response) => {
     const parseResult = ReplaceMealInputSchema.safeParse(req.body);
     if (!parseResult.success) {
       return res.status(400).json({
@@ -261,39 +278,35 @@ mealPlansRouter.post(
     }
 
     const { dayIndex, slot, newRecipeId, currentPlan } = parseResult.data;
-    const allRecipes = Array.from(inMemoryStore.recipes.values());
+    const allRecipes = await recipeRepository.findAll();
 
     try {
+      const userId = req.user!.userId;
       const updatedPlan = MealPlannerEngine.replaceMeal(
-        currentPlan as MealPlanRecord,
+        { ...(currentPlan as MealPlanRecord), userId },
         dayIndex,
         slot,
         newRecipeId,
         allRecipes
       );
 
-      // Persist in store for user
-      const userId = req.user!.userId;
-      inMemoryStore.mealPlans.set(userId, updatedPlan);
-
-      return res.json(updatedPlan);
+      const saved = await mealPlanRepository.saveActiveForUser(userId, updatedPlan);
+      return res.json(saved);
     } catch (err: any) {
       return res.status(400).json({
         error: "Bad Request",
         message: err.message || "Failed to replace meal",
       });
     }
-  }
+  })
 );
 
-// ==========================================
 // 7. BUDGET-AWARE MEAL RECOMMENDATIONS (GATED)
-// ==========================================
 mealPlansRouter.get(
   "/budget-recommendations",
   requireEntitlement(Entitlement.BUDGET_RECOMMENDATIONS),
-  (_req: Request, res: Response) => {
-    const allRecipes = Array.from(inMemoryStore.recipes.values());
+  asyncHandler(async (_req: Request, res: Response) => {
+    const allRecipes = await recipeRepository.findAll();
 
     const budgetMeals = allRecipes
       .filter((r) => (r.estimatedCostIdr || 0) > 0)
@@ -307,5 +320,5 @@ mealPlansRouter.get(
       summary: "Curated cost-effective recipes maximizing nutritional density per rupiah spent.",
       recommendations: budgetMeals,
     });
-  }
+  })
 );

@@ -51,5 +51,9 @@ Thumbs.db
 # TypeScript
 *.tsbuildinfo
 
+# Local embedded PostgreSQL data directory
+backend/data/
+data/
+
 .agents/
 .agent/

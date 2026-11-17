@@ -4,6 +4,7 @@ import { useAuthStore } from "@/stores/useAuthStore";
 import { sessionStorage } from "@/lib/sessionStorage";
 import { API_BASE_URL } from "@/lib/api/config";
 import { accountRevision } from "@/lib/accountScope";
+import { notifyUnauthorizedSession } from "@/lib/authToken";
 import { calculatePersonalizedPlan } from "@/lib/nutritionDomain";
 export { calculatePersonalizedPlan } from "@/lib/nutritionDomain";
 
@@ -61,9 +62,63 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
       const persisted = await sessionStorage.getPersonalization();
       if (revision !== accountRevision()) return;
       if (persisted) {
-        set({ personalization: persisted, isHydrated: true });
+        set({
+          personalization: persisted,
+          onboardingCompleted: true,
+          isHydrated: true,
+        });
       } else {
         set({ personalization: DEFAULT_PERSONALIZATION, isHydrated: true });
+      }
+
+      // Reconcile profile from backend when authenticated (especially important on new device login)
+      const session = await sessionStorage.getSession();
+      if (session?.token && revision === accountRevision()) {
+        try {
+          const res = await fetch(`${API_BASE_URL}/profile`, {
+            headers: { Authorization: `Bearer ${session.token}` },
+          });
+          if (res.status === 401 && revision === accountRevision()) {
+            await notifyUnauthorizedSession("Sesi berakhir. Silakan masuk kembali.");
+            return;
+          }
+          if (res.ok && revision === accountRevision()) {
+            const payload = await res.json();
+            const remoteProfile = payload?.profile;
+            if (remoteProfile && remoteProfile.weight && remoteProfile.height) {
+              const plan = calculatePersonalizedPlan({
+                weight: remoteProfile.weight,
+                height: remoteProfile.height,
+                gender: remoteProfile.gender,
+                birthDate: remoteProfile.birthDate,
+                goal: remoteProfile.goal,
+              });
+              const hydratedMetrics: PersonalizationMetrics = {
+                goal: remoteProfile.goal,
+                weight: remoteProfile.weight,
+                targetWeight: remoteProfile.targetWeight ?? persisted?.targetWeight ?? remoteProfile.weight,
+                height: remoteProfile.height,
+                gender: remoteProfile.gender,
+                birthDate: remoteProfile.birthDate ?? DEFAULT_PERSONALIZATION.birthDate,
+                cookingSkill: remoteProfile.cookingSkill ?? "Middle",
+                dietType: remoteProfile.dietType ?? "Omnivore",
+                allergies: Array.isArray(remoteProfile.allergies) ? remoteProfile.allergies : [],
+                ...plan,
+                targetCalories: remoteProfile.targetCalories || plan.targetCalories,
+              };
+              if (!persisted) {
+                set({
+                  personalization: hydratedMetrics,
+                  onboardingCompleted: Boolean(remoteProfile.onboardingCompleted),
+                  isHydrated: true,
+                });
+                await sessionStorage.savePersonalization(hydratedMetrics);
+              }
+            }
+          }
+        } catch {
+          // Offline safe
+        }
       }
     } catch {
       if (revision !== accountRevision()) return;
@@ -83,7 +138,6 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
     const current = get().personalization;
     const merged = { ...current, ...data };
 
-    // Explicit field validations
     if (merged.weight <= 0 || isNaN(merged.weight) || merged.weight < 30 || merged.weight > 300) {
       return { success: false, error: "Weight must be between 30 and 300 kg." };
     }
@@ -110,7 +164,6 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
       return { success: false, error: "Age must be between 14 and 100." };
     }
 
-    // Schema validation check
     const parseResult = PersonalizationSchema.safeParse(merged);
     if (!parseResult.success) {
       return {
@@ -119,7 +172,6 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
       };
     }
 
-    // Recalculate plan with the single source formula
     const plan = calculatePersonalizedPlan({
       weight: merged.weight,
       height: merged.height,
@@ -133,18 +185,17 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
       ...plan,
     };
 
-    // Update in-memory Zustand state
     set({ personalization: updatedMetrics });
 
-    // Persist to storage
     await sessionStorage.savePersonalization(updatedMetrics);
-    if (revision !== accountRevision()) return { success: false, error: "Akun telah berubah. Silakan ulangi." };
+    if (revision !== accountRevision()) {
+      return { success: false, error: "Akun telah berubah. Silakan ulangi." };
+    }
 
-    // Synchronize with backend profile if token exists
     try {
       const session = await sessionStorage.getSession();
       if (session?.token) {
-        await fetch(`${API_BASE_URL}/profile/personalization`, {
+        const res = await fetch(`${API_BASE_URL}/profile/personalization`, {
           method: "PUT",
           headers: {
             Authorization: `Bearer ${session.token}`,
@@ -153,21 +204,26 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
           body: JSON.stringify({
             goal: updatedMetrics.goal,
             weight: updatedMetrics.weight,
+            targetWeight: updatedMetrics.targetWeight,
             height: updatedMetrics.height,
             gender: updatedMetrics.gender,
+            birthDate: updatedMetrics.birthDate,
             age: currentYear - (updatedMetrics.birthDate?.year || 2000),
             targetCalories: updatedMetrics.targetCalories,
             dietType: updatedMetrics.dietType,
             cookingSkill: updatedMetrics.cookingSkill,
             allergies: updatedMetrics.allergies,
+            onboardingCompleted: true,
           }),
         });
+        if (res.status === 401 && revision === accountRevision()) {
+          await notifyUnauthorizedSession("Sesi berakhir. Silakan masuk kembali.");
+        }
       }
     } catch {
       // Non-fatal if backend is offline
     }
 
-    // Synchronize active Journal target
     try {
       const { useJournalStore, getTodayDateKey } = require("@/stores/useJournalStore");
       const journalStore = useJournalStore.getState();
@@ -186,7 +242,7 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
     set(() => ({
       onboardingCompleted: true,
     }));
-    await sessionStorage.savePersonalization(current);
+    await get().savePersonalization(current);
     if (revision !== accountRevision()) return;
     await useAuthStore.getState().setOnboardingCompleted(true);
     try {

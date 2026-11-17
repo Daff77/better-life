@@ -9,7 +9,11 @@ import {
   isEntitled as checkIsEntitled,
   BillingProvider,
 } from "../lib/subscriptionDomain";
-import { subscriptionApi } from "../lib/api/subscriptionApi";
+import {
+  subscriptionApi,
+  PaymentReadiness,
+  DEFAULT_PAYMENT_READINESS,
+} from "../lib/api/subscriptionApi";
 import { sessionStorage } from "../lib/sessionStorage";
 import { accountRevision } from "../lib/accountScope";
 
@@ -22,13 +26,29 @@ interface SubscriptionState {
   currentPeriodEnd: string | null;
   cancelAtPeriodEnd: boolean;
   entitlements: readonly Entitlement[];
+  paymentReadiness: PaymentReadiness;
+  pendingSessionId: string | null;
+  checkoutUrl: string | null;
   isLoading: boolean;
   isUpgrading: boolean;
   error: string | null;
 
-  // Actions
   fetchStatus: () => Promise<void>;
-  upgradePlan: (planId: PlanId, provider?: BillingProvider) => Promise<{ success: boolean; error?: string }>;
+  upgradePlan: (
+    planId: PlanId,
+    provider?: BillingProvider
+  ) => Promise<{
+    success: boolean;
+    error?: string;
+    checkoutUrl?: string;
+    sessionId?: string;
+    sandboxMode?: boolean;
+    message?: string;
+  }>;
+  verifyCheckoutSession: (
+    sessionId: string,
+    planId: PlanId
+  ) => Promise<{ success: boolean; error?: string; message?: string }>;
   cancelSubscription: (reason?: string) => Promise<{ success: boolean; error?: string }>;
   restorePurchases: () => Promise<{ restored: boolean; message: string }>;
   hasEntitlement: (entitlement: Entitlement) => boolean;
@@ -40,10 +60,13 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
   status: "free",
   isPremium: false,
   planId: null,
-  billingProvider: "mock_sandbox",
+  billingProvider: null,
   currentPeriodEnd: null,
   cancelAtPeriodEnd: false,
   entitlements: FREE_ENTITLEMENTS,
+  paymentReadiness: DEFAULT_PAYMENT_READINESS,
+  pendingSessionId: null,
+  checkoutUrl: null,
   isLoading: false,
   isUpgrading: false,
   error: null,
@@ -53,8 +76,11 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const session = await sessionStorage.getSession();
-      const token = (session as any)?.token || null;
-      const data = await subscriptionApi.getStatus(token);
+      const token = session?.token || null;
+      const [data, catalog] = await Promise.all([
+        subscriptionApi.getStatus(token),
+        subscriptionApi.getCatalogAndReadiness(),
+      ]);
       if (revision !== accountRevision()) return;
 
       set({
@@ -62,43 +88,90 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
         status: data.status,
         isPremium: data.isPremium,
         planId: data.planId ?? null,
-        billingProvider: data.billingProvider ?? "mock_sandbox",
+        billingProvider: data.billingProvider ?? null,
         currentPeriodEnd: data.currentPeriodEnd ?? null,
         cancelAtPeriodEnd: Boolean(data.cancelAtPeriodEnd),
         entitlements: data.entitlements || (data.isPremium ? PREMIUM_ENTITLEMENTS : FREE_ENTITLEMENTS),
+        paymentReadiness: catalog.paymentReadiness,
         isLoading: false,
       });
     } catch (err: any) {
       set({
         isLoading: false,
-        error: err.message || "Failed to load subscription status",
+        error: err.message || "Gagal memuat status langganan.",
       });
     }
   },
 
-  upgradePlan: async (planId: PlanId, provider: BillingProvider = "mock_sandbox") => {
+  upgradePlan: async (planId: PlanId, explicitProvider?: BillingProvider) => {
     set({ isUpgrading: true, error: null });
     try {
       const session = await sessionStorage.getSession();
-      const token = (session as any)?.token || null;
-      const res = await subscriptionApi.checkout(planId, provider, token);
+      const token = session?.token || null;
+      const readiness = get().paymentReadiness;
+      const resolvedProvider: BillingProvider =
+        explicitProvider ??
+        (readiness.stripeConfigured
+          ? "stripe"
+          : readiness.sandboxEnabled
+          ? "mock_sandbox"
+          : "stripe");
+
+      const res = await subscriptionApi.checkout(planId, resolvedProvider, token);
 
       set({
         tier: res.subscription.tier,
         status: res.subscription.status,
         isPremium: res.subscription.isPremium,
         planId: res.subscription.planId ?? planId,
-        billingProvider: res.subscription.billingProvider ?? provider,
+        billingProvider: res.subscription.billingProvider ?? resolvedProvider,
         currentPeriodEnd: res.subscription.currentPeriodEnd ?? null,
         cancelAtPeriodEnd: Boolean(res.subscription.cancelAtPeriodEnd),
         entitlements: res.subscription.entitlements,
+        pendingSessionId: res.sessionId ?? null,
+        checkoutUrl: res.checkoutUrl ?? null,
         isUpgrading: false,
         error: null,
       });
 
-      return { success: true };
+      return {
+        success: true,
+        checkoutUrl: res.checkoutUrl,
+        sessionId: res.sessionId,
+        sandboxMode: res.sandboxMode,
+        message: res.message,
+      };
     } catch (err: any) {
-      const errorMsg = err.message || "Failed to upgrade subscription";
+      const errorMsg = err.message || "Gagal memulai proses pembayaran.";
+      set({ isUpgrading: false, error: errorMsg });
+      return { success: false, error: errorMsg };
+    }
+  },
+
+  verifyCheckoutSession: async (sessionId: string, planId: PlanId) => {
+    set({ isUpgrading: true, error: null });
+    try {
+      const session = await sessionStorage.getSession();
+      const token = session?.token || null;
+      const res = await subscriptionApi.verify(sessionId, "stripe", planId, token);
+
+      set({
+        tier: res.subscription.tier,
+        status: res.subscription.status,
+        isPremium: res.subscription.isPremium,
+        planId: res.subscription.planId ?? planId,
+        billingProvider: res.subscription.billingProvider ?? "stripe",
+        currentPeriodEnd: res.subscription.currentPeriodEnd ?? null,
+        cancelAtPeriodEnd: Boolean(res.subscription.cancelAtPeriodEnd),
+        entitlements: res.subscription.entitlements,
+        pendingSessionId: res.subscription.isPremium ? null : sessionId,
+        isUpgrading: false,
+        error: null,
+      });
+
+      return { success: true, message: res.message };
+    } catch (err: any) {
+      const errorMsg = err.message || "Pembayaran belum terverifikasi.";
       set({ isUpgrading: false, error: errorMsg });
       return { success: false, error: errorMsg };
     }
@@ -108,7 +181,7 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const session = await sessionStorage.getSession();
-      const token = (session as any)?.token || null;
+      const token = session?.token || null;
       const res = await subscriptionApi.cancel(reason, token);
 
       set({
@@ -121,7 +194,7 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
 
       return { success: true };
     } catch (err: any) {
-      const errorMsg = err.message || "Failed to cancel subscription";
+      const errorMsg = err.message || "Gagal membatalkan perpanjangan otomatis.";
       set({ isLoading: false, error: errorMsg });
       return { success: false, error: errorMsg };
     }
@@ -131,8 +204,9 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const session = await sessionStorage.getSession();
-      const token = (session as any)?.token || null;
-      const res = await subscriptionApi.restore(get().billingProvider || "mock_sandbox", token);
+      const token = session?.token || null;
+      const provider = get().billingProvider || "stripe";
+      const res = await subscriptionApi.restore(provider, token);
 
       if (res.restored) {
         set({
@@ -151,7 +225,7 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
       return { restored: res.restored, message: res.message };
     } catch (err: any) {
       set({ isLoading: false, error: err.message });
-      return { restored: false, message: "Could not connect to billing server." };
+      return { restored: false, message: err.message || "Tidak dapat terhubung ke server langganan." };
     }
   },
 
@@ -166,10 +240,13 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
       status: "free",
       isPremium: false,
       planId: null,
-      billingProvider: "mock_sandbox",
+      billingProvider: null,
       currentPeriodEnd: null,
       cancelAtPeriodEnd: false,
       entitlements: FREE_ENTITLEMENTS,
+      paymentReadiness: DEFAULT_PAYMENT_READINESS,
+      pendingSessionId: null,
+      checkoutUrl: null,
       isLoading: false,
       isUpgrading: false,
       error: null,

@@ -37,6 +37,10 @@ import {
   DEFAULT_MEAL_SLOTS,
   formatIdr,
 } from "@/lib/mealPlannerDomain";
+import {
+  explainRecipeSelection,
+  inspectIngredientsToVerify,
+} from "@better-life/shared";
 
 export default function MealPlannerScreen() {
   const router = useRouter();
@@ -520,76 +524,128 @@ export default function MealPlannerScreen() {
                       />
 
                       <View className="gap-3">
-                        {currentDay.meals.map((item, idx) => (
-                          <View
-                            key={idx}
-                            className="p-3.5 rounded-[18px] bg-[#f0f4f1] border border-[#e6eae7] flex-col sm:flex-row sm:items-center justify-between gap-3"
-                          >
-                            <PressableScale
-                              onPress={() =>
-                                router.push({
-                                  pathname: "/(app)/recipe-detail",
-                                  params: { id: item.recipe.id },
-                                })
-                              }
-                              pressedScale={0.99}
-                              className="flex-row items-center gap-3.5 flex-1 min-w-0"
-                              accessibilityRole="button"
-                              accessibilityLabel={`View recipe ${item.recipe.title}`}
+                        {currentDay.meals.map((item, idx) => {
+                          const reasons =
+                            item.selectionReasons && item.selectionReasons.length > 0
+                              ? item.selectionReasons
+                              : explainRecipeSelection(item.recipe, {
+                                  slotCalorieTarget: Math.round(
+                                    (activePlan.preferences.dailyCalorieTarget || 2000) /
+                                      Math.max(1, activePlan.preferences.preferredMealSlots.length)
+                                  ),
+                                  dailyBudgetIdr: activePlan.preferences.dailyBudgetIdr,
+                                  allergies: activePlan.preferences.allergies,
+                                  dietaryRestrictions: activePlan.preferences.dietaryRestrictions,
+                                });
+                          const verifyNotes =
+                            item.ingredientsToVerify && item.ingredientsToVerify.length > 0
+                              ? item.ingredientsToVerify
+                              : inspectIngredientsToVerify(
+                                  item.recipe,
+                                  activePlan.preferences.allergies
+                                );
+
+                          return (
+                            <View
+                              key={idx}
+                              className="p-3.5 rounded-[18px] bg-[#f0f4f1] border border-[#e6eae7] gap-2.5"
                             >
-                              <Image
-                                source={
-                                  item.recipe.imageUrl
-                                    ? { uri: item.recipe.imageUrl }
-                                    : getMealIllustration(item.slot)
-                                }
-                                className="w-16 h-16 rounded-[14px] bg-[#dfe6e1] flex-shrink-0"
-                                resizeMode="cover"
-                              />
+                              <View className="flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <PressableScale
+                                  onPress={() =>
+                                    router.push({
+                                      pathname: "/(app)/recipe-detail",
+                                      params: { id: item.recipe.id },
+                                    })
+                                  }
+                                  pressedScale={0.99}
+                                  className="flex-row items-center gap-3.5 flex-1 min-w-0"
+                                  accessibilityRole="button"
+                                  accessibilityLabel={`Lihat resep ${item.recipe.title}`}
+                                >
+                                  <Image
+                                    source={
+                                      item.recipe.imageUrl
+                                        ? { uri: item.recipe.imageUrl }
+                                        : getMealIllustration(item.slot)
+                                    }
+                                    className="w-16 h-16 rounded-[14px] bg-[#dfe6e1] flex-shrink-0"
+                                    resizeMode="cover"
+                                  />
 
-                              <View className="flex-1 min-w-0">
-                                <View className="flex-row items-center gap-1.5 flex-wrap">
-                                  <StatusPill tone="neutral" label={item.slot} />
-                                  {item.recipe.isPremium && (
-                                    <StatusPill tone="warn" label="Koleksi Chef" />
-                                  )}
+                                  <View className="flex-1 min-w-0">
+                                    <View className="flex-row items-center gap-1.5 flex-wrap">
+                                      <StatusPill tone="neutral" label={item.slot} />
+                                      {item.recipe.isPremium && (
+                                        <StatusPill tone="warn" label="Koleksi Chef" />
+                                      )}
+                                    </View>
+                                    <AppText
+                                      weight="semibold"
+                                      className="text-[14px] text-[#121a16] mt-1"
+                                      numberOfLines={1}
+                                    >
+                                      {item.recipe.title}
+                                    </AppText>
+                                    <AppText
+                                      weight="regular"
+                                      className="text-xs text-[#56605a] mt-0.5"
+                                      style={{ fontVariant: ["tabular-nums"] }}
+                                    >
+                                      {item.recipe.calories} kcal · {item.recipe.prepTimeMinutes} mnt ·{" "}
+                                      {formatIdr(item.recipe.estimatedCostIdr || 0)}
+                                    </AppText>
+                                  </View>
+                                </PressableScale>
+
+                                <View className="self-end sm:self-center">
+                                  <PillButton
+                                    label="Ganti menu"
+                                    size="sm"
+                                    variant="ghost"
+                                    icon={<LineIcon name="swap" size={13} color="#121a16" />}
+                                    onPress={() =>
+                                      openSubstitutionModal(
+                                        selectedDayIndex,
+                                        item.slot,
+                                        item.recipe.id
+                                      )
+                                    }
+                                    accessibilityLabel={`Ganti menu ${item.slot}`}
+                                  />
                                 </View>
-                                <AppText
-                                  weight="semibold"
-                                  className="text-[14px] text-[#121a16] mt-1"
-                                  numberOfLines={1}
-                                >
-                                  {item.recipe.title}
-                                </AppText>
-                                <AppText
-                                  weight="regular"
-                                  className="text-xs text-[#56605a] mt-0.5"
-                                  style={{ fontVariant: ["tabular-nums"] }}
-                                >
-                                  {item.recipe.calories} kcal · {item.recipe.prepTimeMinutes} mnt ·{" "}
-                                  {formatIdr(item.recipe.estimatedCostIdr || 0)}
-                                </AppText>
                               </View>
-                            </PressableScale>
 
-                            <View className="self-end sm:self-center">
-                              <PillButton
-                                label="Ganti menu"
-                                size="sm"
-                                variant="ghost"
-                                icon={<LineIcon name="swap" size={13} color="#121a16" />}
-                                onPress={() =>
-                                  openSubstitutionModal(
-                                    selectedDayIndex,
-                                    item.slot,
-                                    item.recipe.id
-                                  )
-                                }
-                                accessibilityLabel={`Replace ${item.slot}`}
-                              />
+                              {/* Selection Reasons & Ingredients to Verify */}
+                              {(reasons.length > 0 || verifyNotes.length > 0) && (
+                                <View className="pt-2 border-t border-[#dfe6e1] gap-1.5">
+                                  {reasons.length > 0 && (
+                                    <View className="flex-row items-start gap-1.5">
+                                      <LineIcon name="check" size={13} color="#0e7a52" />
+                                      <AppText
+                                        weight="medium"
+                                        className="text-[11.5px] text-[#121a16] flex-1 leading-4"
+                                      >
+                                        Alasan dipilih: {reasons.join(" · ")}
+                                      </AppText>
+                                    </View>
+                                  )}
+                                  {verifyNotes.map((vn, vIdx) => (
+                                    <View key={vIdx} className="flex-row items-start gap-1.5">
+                                      <LineIcon name="alert" size={13} color="#946000" />
+                                      <AppText
+                                        weight="medium"
+                                        className="text-[11.5px] text-[#946000] flex-1 leading-4"
+                                      >
+                                        Periksa bahan ({vn.ingredient}): {vn.note}
+                                      </AppText>
+                                    </View>
+                                  ))}
+                                </View>
+                              )}
                             </View>
-                          </View>
-                        ))}
+                          );
+                        })}
                       </View>
                     </Surface>
                   </FadeInView>

@@ -16,7 +16,6 @@ import {
   PressableScale,
 } from "@/components/ui";
 import { useAuthStore } from "@/stores/useAuthStore";
-import { sessionStorage } from "@/lib/sessionStorage";
 import { BrandImages, IconRenderer } from "@/constants/Assets";
 import { Colors } from "@/constants/DesignTokens";
 
@@ -93,11 +92,15 @@ export default function SignupScreen() {
 
     setIsLoading(true);
     try {
-      const accounts = await sessionStorage.getAccounts();
-      const exists = accounts.some((a) => a.email.toLowerCase() === trimmedEmail);
+      const availability = await useAuthStore.getState().checkEmailAvailability(trimmedEmail);
       setIsLoading(false);
 
-      if (exists) {
+      if (availability.error) {
+        setGeneralError(availability.error);
+        return;
+      }
+
+      if (!availability.available) {
         setEmailError("Email ini sudah terdaftar. Silakan masuk ke akun Anda.");
         return;
       }
@@ -118,8 +121,7 @@ export default function SignupScreen() {
       setStep(2);
     } catch {
       setIsLoading(false);
-      generateNewCode();
-      setStep(2);
+      setGeneralError("Server pendaftaran tidak dapat dihubungi. Periksa koneksi Anda.");
     }
   };
 

@@ -30,6 +30,7 @@
       "expo-font",
       "expo-secure-store",
       "expo-web-browser",
+      "expo-notifications",
       ["expo-sensors", { "motionPermission": "Izinkan Better Life membaca aktivitas gerak untuk menghitung langkah harian Anda." }],
       [
         "expo-image-picker",

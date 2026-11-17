@@ -41,6 +41,12 @@ export interface MealPlanPreferences {
 export interface MealPlanSlotAssignment {
   slot: MealSlot;
   recipe: FoodItemData;
+  selectionReasons?: string[];
+  ingredientsToVerify?: {
+    ingredient: string;
+    amount: string;
+    note: string;
+  }[];
 }
 
 export interface MealPlanDayTotals {

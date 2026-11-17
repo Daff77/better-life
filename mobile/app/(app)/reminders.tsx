@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
   ScrollView,
@@ -23,6 +23,7 @@ import {
   Segmented,
   ToggleSwitch,
   LineIcon,
+  ColorBlock,
 } from "@/components/ui";
 import type { LineIconName } from "@/components/ui/LineIcon";
 import {
@@ -30,6 +31,8 @@ import {
   WaterIntervalHours,
   CustomTimeTarget,
 } from "@/stores/useReminderStore";
+import { useJournalStore } from "@/stores/useJournalStore";
+import { computeAdaptiveReminderInsight } from "@/lib/adaptiveReminderDomain";
 
 const tnum = { fontVariant: ["tabular-nums" as const] };
 
@@ -43,7 +46,6 @@ const WHEEL_PADDING = ITEM_HEIGHT * Math.floor(VISIBLE_ROWS / 2);
 
 const BLUE = "#1e6f9f";
 
-/** Pick a sky icon + tint from the hour: sunrise (5–9), sun (10–16), sunset-ish (17–18), moon (19–4). */
 function getDayPhase(time: string): { icon: LineIconName; color: string; bg: string; label: string } {
   const h = parseInt(time.split(":")[0] || "0", 10);
   if (h >= 5 && h < 10) return { icon: "sunrise", color: "#c77d0a", bg: "#fdf1dc", label: "Pagi" };
@@ -61,7 +63,6 @@ interface WheelColumnProps {
   accessibilityLabel: string;
 }
 
-/** Vertical drum wheel: drag to scroll, snaps to the centre row. */
 const WheelColumn: React.FC<WheelColumnProps> = ({
   values,
   initialIndex,
@@ -88,7 +89,6 @@ const WheelColumn: React.FC<WheelColumnProps> = ({
     const idx = Math.max(0, Math.min(maxIndex, Math.round(y / ITEM_HEIGHT)));
     setLiveIndex((prev) => (prev === idx ? prev : idx));
 
-    // Settle after the user stops dragging (works on native and web)
     if (settleTimer.current) clearTimeout(settleTimer.current);
     settleTimer.current = setTimeout(() => {
       if (Math.abs(y - idx * ITEM_HEIGHT) > 1) {
@@ -149,7 +149,6 @@ interface AlarmRowProps {
   onToggle: (next: boolean) => void;
 }
 
-/** Alarm-style row: large time, label and caption on the left, switch on the right. */
 const AlarmRow: React.FC<AlarmRowProps> = ({
   time,
   label,
@@ -232,6 +231,11 @@ export default function RemindersScreen() {
     eveningJournalTime,
     weeklyWeightEnabled,
     weeklyWeightTime,
+    permissionStatus,
+    platformSupport,
+    scheduledCount,
+    requestPermission,
+    refreshNotificationStatus,
     setMasterEnabled,
     setWaterReminderEnabled,
     setMorningWaterEnabled,
@@ -243,9 +247,26 @@ export default function RemindersScreen() {
     setWeeklyWeightEnabled,
   } = useReminderStore();
 
+  const journals = useJournalStore((state) => state.journals);
+
   const [editingTarget, setEditingTarget] = useState<CustomTimeTarget | null>(null);
   const [selectedHour, setSelectedHour] = useState(7);
   const [selectedMinute, setSelectedMinute] = useState(0);
+  const [isRequestingPerm, setIsRequestingPerm] = useState(false);
+
+  useEffect(() => {
+    void refreshNotificationStatus();
+  }, [refreshNotificationStatus]);
+
+  const adaptiveInsight = useMemo(
+    () =>
+      computeAdaptiveReminderInsight({
+        journals,
+        mealSlots,
+        masterEnabled,
+      }),
+    [journals, mealSlots, masterEnabled]
+  );
 
   const activeCount = masterEnabled
     ? (waterReminderEnabled ? 1 : 0) +
@@ -275,14 +296,39 @@ export default function RemindersScreen() {
     closePicker();
   };
 
+  const handleRequestPermission = async () => {
+    setIsRequestingPerm(true);
+    try {
+      await requestPermission();
+    } finally {
+      setIsRequestingPerm(false);
+    }
+  };
+
   const preview = `${HOURS[selectedHour]}:${MINUTES[selectedMinute]}`;
+
+  const permissionLabel =
+    permissionStatus === "granted"
+      ? `Izin aktif · ${scheduledCount} jadwal`
+      : permissionStatus === "denied"
+      ? "Izin ditolak"
+      : permissionStatus === "unsupported"
+      ? "Tidak didukung"
+      : "Belum diizinkan";
+
+  const permissionTone =
+    permissionStatus === "granted"
+      ? "good"
+      : permissionStatus === "denied"
+      ? "bad"
+      : "warn";
 
   return (
     <ScreenWrapper maxWidth="narrow" className="flex-1 bg-canvas" testID="reminders-screen">
       <Header
         onBack={() => router.back()}
         title="Pengingat"
-        subtitle="Jadwal minum air & jam makan harian"
+        subtitle="Jadwal minum air & jam makan harian per akun"
         rightComponent={
           <StatusPill
             tone={activeCount > 0 ? "good" : "plain"}
@@ -307,7 +353,9 @@ export default function RemindersScreen() {
                     Semua pengingat
                   </AppText>
                   <AppText weight="medium" numberOfLines={1} className="text-[12.5px] text-muted mt-0.5">
-                    {masterEnabled ? "Ketuk jam untuk mengubah waktu" : "Semua notifikasi dijeda"}
+                    {masterEnabled
+                      ? "Tersimpan ke akun · ketuk jam untuk mengubah waktu"
+                      : "Semua notifikasi dibatalkan sementara"}
                   </AppText>
                 </View>
                 <ToggleSwitch
@@ -316,15 +364,92 @@ export default function RemindersScreen() {
                   accessibilityLabel="Aktifkan semua pengingat"
                 />
               </View>
+
+              {/* OS Permission & Platform Support Status */}
+              <View className="mt-3.5 pt-3.5 border-t border-line gap-2.5">
+                <View className="flex-row items-center justify-between gap-2 flex-wrap">
+                  <AppText weight="semibold" className="text-[13px] text-ink">
+                    {platformSupport.headline}
+                  </AppText>
+                  <StatusPill tone={permissionTone} label={permissionLabel} dot={false} />
+                </View>
+                <AppText weight="regular" className="text-[12px] text-muted leading-relaxed">
+                  {platformSupport.detail}
+                </AppText>
+
+                {permissionStatus !== "granted" && permissionStatus !== "unsupported" && (
+                  <View className="self-start mt-1">
+                    <PillButton
+                      label={
+                        isRequestingPerm
+                          ? "Meminta izin..."
+                          : permissionStatus === "denied"
+                          ? "Coba minta izin lagi"
+                          : "Izinkan Notifikasi"
+                      }
+                      size="sm"
+                      variant="primary"
+                      icon="bell"
+                      onPress={handleRequestPermission}
+                      disabled={isRequestingPerm}
+                    />
+                  </View>
+                )}
+              </View>
             </Surface>
           </FadeInView>
 
+          {/* Adaptive Reminder Insight Card */}
+          {adaptiveInsight && (
+            <FadeInView index={1}>
+              <ColorBlock tone={adaptiveInsight.kind === "on_track" ? "mist" : "amber"}>
+                <View className="flex-row items-start justify-between gap-3">
+                  <View className="flex-1 min-w-0">
+                    <AppText
+                      weight="bold"
+                      className="text-[11px] uppercase tracking-wider text-ink/70 mb-1"
+                    >
+                      Pengingat Adaptif
+                    </AppText>
+                    <AppText weight="semibold" className="text-[14.5px] text-ink">
+                      {adaptiveInsight.title}
+                    </AppText>
+                    <AppText weight="regular" className="text-[12px] text-ink/80 mt-1 leading-relaxed">
+                      {adaptiveInsight.message}
+                    </AppText>
+
+                    {adaptiveInsight.actionLabel && (
+                      <View className="self-start mt-3">
+                        <PillButton
+                          label={adaptiveInsight.actionLabel}
+                          size="sm"
+                          variant="dark"
+                          onPress={() => {
+                            if (
+                              adaptiveInsight.kind === "habit_shift" &&
+                              adaptiveInsight.slotId &&
+                              adaptiveInsight.suggestedTime
+                            ) {
+                              setMealSlotTime(adaptiveInsight.slotId, adaptiveInsight.suggestedTime);
+                            } else {
+                              router.push("/(app)/(tabs)/meals");
+                            }
+                          }}
+                        />
+                      </View>
+                    )}
+                  </View>
+                </View>
+              </ColorBlock>
+            </FadeInView>
+          )}
+
           {/* Hydration */}
-          <FadeInView index={1}>
+          <FadeInView index={2}>
             <Surface style={{ opacity: masterEnabled ? 1 : 0.6 }}>
               <CardHead
                 title="Air minum"
-                caption={`Target 8 gelas · ${waterStartHour}–${waterEndHour} WIB`}
+                caption={`Target 8 gelas · ${waterStartHour} sampai ${waterEndHour} WIB`}
                 className="mb-1"
               />
 
@@ -388,7 +513,7 @@ export default function RemindersScreen() {
           </FadeInView>
 
           {/* Meals */}
-          <FadeInView index={2}>
+          <FadeInView index={3}>
             <Surface style={{ opacity: masterEnabled ? 1 : 0.6 }}>
               <CardHead title="Jam makan" caption="Pengingat makan & catat jurnal" className="mb-1" />
               {mealSlots.map((slot, index) => (
@@ -410,7 +535,7 @@ export default function RemindersScreen() {
           </FadeInView>
 
           {/* Evaluation */}
-          <FadeInView index={3}>
+          <FadeInView index={4}>
             <Surface style={{ opacity: masterEnabled ? 1 : 0.6 }}>
               <CardHead title="Evaluasi" caption="Jurnal harian & berat badan" className="mb-1" />
               <AlarmRow

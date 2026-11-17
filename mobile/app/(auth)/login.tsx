@@ -16,12 +16,14 @@ import {
   PressableScale,
 } from "@/components/ui";
 import { useAuthStore } from "@/stores/useAuthStore";
-import { DEFAULT_DEMO_ACCOUNT } from "@/lib/sessionStorage";
+import { DEMO_LOGIN_HINT } from "@/lib/sessionStorage";
 import { BrandImages, IconRenderer } from "@/constants/Assets";
 
 export default function LoginScreen() {
   const router = useRouter();
   const login = useAuthStore((state) => state.login);
+  const sessionNotice = useAuthStore((state) => state.sessionNotice);
+  const clearSessionNotice = useAuthStore((state) => state.clearSessionNotice);
   const passwordRef = useRef<any>(null);
 
   const [identifier, setIdentifier] = useState("");
@@ -144,7 +146,7 @@ export default function LoginScreen() {
         />
       </FadeInView>
 
-      <FormAlert message={generalError} />
+      <FormAlert message={generalError || sessionNotice || ""} />
 
       <FadeInView index={1}>
         <View className="gap-4">
@@ -157,6 +159,7 @@ export default function LoginScreen() {
               setIdentifier(text);
               if (identifierError) setIdentifierError("");
               if (generalError) setGeneralError("");
+              if (sessionNotice) clearSessionNotice();
             }}
             error={identifierError}
             keyboardType="email-address"
@@ -178,6 +181,7 @@ export default function LoginScreen() {
               setPassword(text);
               if (passwordError) setPasswordError("");
               if (generalError) setGeneralError("");
+              if (sessionNotice) clearSessionNotice();
             }}
             error={passwordError}
             returnKeyType="done"
@@ -189,11 +193,12 @@ export default function LoginScreen() {
         <View className="flex-row items-center justify-between mt-3 mb-5">
           <PressableScale
             onPress={() => {
-              setIdentifier(DEFAULT_DEMO_ACCOUNT.email);
-              setPassword(DEFAULT_DEMO_ACCOUNT.password);
+              setIdentifier(DEMO_LOGIN_HINT.email);
+              setPassword(DEMO_LOGIN_HINT.password);
               setIdentifierError("");
               setPasswordError("");
               setGeneralError("");
+              if (sessionNotice) clearSessionNotice();
             }}
             pressedScale={0.96}
             className="flex-row items-center gap-1.5 py-1.5 px-3 rounded-full bg-primary-light"

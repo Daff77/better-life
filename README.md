@@ -238,10 +238,20 @@ Create `backend/.env` from `backend/.env.example`:
 ```env
 PORT=4000
 NODE_ENV=development
-DATABASE_URL=postgresql://betterlife:betterlife_secret@localhost:5432/betterlife_db
+# Embedded persistent PostgreSQL 16 (PGlite) on disk — or set postgresql://user:pass@host:5432/db for external PostgreSQL
+DATABASE_URL=pglite://./data/postgres
 JWT_SECRET=your_super_secret_jwt_key_at_least_32_characters_long
 CORS_ORIGIN=http://localhost:8081,http://localhost:8082,http://localhost:8085,http://localhost:3000
+
+# Optional Verified Stripe Payment Integration (required for live Premium checkout)
+# STRIPE_SECRET_KEY=sk_live_...
+# STRIPE_WEBHOOK_SECRET=whsec_...
+# STRIPE_PRICE_MONTHLY=price_...
+# STRIPE_PRICE_ANNUAL=price_...
+# ENABLE_PAYMENT_SANDBOX=false
 ```
+
+> **Production Security Rules (`NODE_ENV=production`):** The server refuses to start if `JWT_SECRET` uses a default placeholder or is shorter than 32 characters, or if `CORS_ORIGIN` contains `*` or is empty.
 
 ### Mobile (`mobile/.env`)
 Create `mobile/.env` from `mobile/.env.example`:
@@ -256,12 +266,15 @@ EXPO_PUBLIC_API_URL=http://localhost:4000
 
 ## 🗄 Database Migrations
 
-Apply database schemas using Drizzle ORM:
+Safe, non-destructive SQL migrations (`backend/src/db/migrations/0000_base_schema.sql` through `0004_persistence_complete.sql`) are tracked in `_schema_migrations` so existing user data is never dropped or overwritten:
 ```bash
-cd backend
-npx drizzle-kit push
-cd ..
+# Run safe SQL migrations & reference recipe seed from workspace root
+npm run db:migrate
+
+# Or directly inside backend/
+npm run db:migrate --prefix backend
 ```
+Migrations also run automatically on backend server startup before accepting HTTP requests.
 
 ---
 

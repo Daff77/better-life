@@ -29,8 +29,16 @@ import { mealLabel, DIFFICULTY_LABELS } from "@/constants/MealLabels";
 import { useRecipe } from "@/hooks/useRecipesQuery";
 import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
 import { useCustomRecipesStore } from "@/stores/useCustomRecipesStore";
+import { useFavoritesStore } from "@/stores/useFavoritesStore";
+import { useOnboardingStore } from "@/stores/useOnboardingStore";
 import { Entitlement } from "@/lib/subscriptionDomain";
 import { confirmDestructive } from "@/lib/confirm";
+import {
+  checkRecipeAllergies,
+  checkRecipeDietaryRestrictions,
+  explainRecipeSelection,
+  inspectIngredientsToVerify,
+} from "@better-life/shared";
 
 export default function RecipeDetailScreen() {
   const router = useRouter();
@@ -38,6 +46,9 @@ export default function RecipeDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: queriedRecipe, isLoading } = useRecipe(id || "");
   const removeCustomRecipe = useCustomRecipesStore((state) => state.removeCustomRecipe);
+  const favorites = useFavoritesStore((state) => state.favorites);
+  const toggleFavorite = useFavoritesStore((state) => state.toggleFavorite);
+  const personalization = useOnboardingStore((state) => state.personalization);
 
   const hasEntitlement = useSubscriptionStore((state) => state.hasEntitlement);
   const [activeTab, setActiveTab] = useState<"instructions" | "ingredients">("instructions");
@@ -141,6 +152,19 @@ export default function RecipeDetailScreen() {
   }
 
   const diffLabel = DIFFICULTY_LABELS[recipe.difficulty] ?? recipe.difficulty;
+  const isFavorited = favorites.some((f) => f.itemId === recipe.id);
+  const userRestrictions =
+    personalization.dietType && personalization.dietType !== "Omnivore"
+      ? [personalization.dietType]
+      : [];
+  const allergyCheck = checkRecipeAllergies(recipe, personalization.allergies);
+  const dietCheck = checkRecipeDietaryRestrictions(recipe, userRestrictions);
+  const fitReasons = explainRecipeSelection(recipe, {
+    slotCalorieTarget: Math.round((personalization.targetCalories || 2000) / 3),
+    allergies: personalization.allergies,
+    dietaryRestrictions: userRestrictions,
+  });
+  const ingredientsToVerify = inspectIngredientsToVerify(recipe, personalization.allergies);
 
   return (
     <ScreenWrapper maxWidth="wide" className="flex-1 bg-[#edf1ee]">
@@ -158,6 +182,15 @@ export default function RecipeDetailScreen() {
                   : (recipe as any)?.isPremium
                   ? "Koleksi Chef"
                   : mealLabel(recipe.category)
+              }
+            />
+            <RingButton
+              icon="heart"
+              size="sm"
+              variant={isFavorited ? "solid" : "ring"}
+              onPress={() => void toggleFavorite(recipe)}
+              accessibilityLabel={
+                isFavorited ? `Hapus ${recipe.title} dari favorit` : `Simpan ${recipe.title} ke favorit`
               }
             />
             {isCustomRecipe && (
@@ -258,6 +291,54 @@ export default function RecipeDetailScreen() {
               fiberGrams={recipe.nutrition.fiberGrams}
               totalCalories={recipe.calories}
             />
+
+            {/* Nutritional Fit Reasons & Ingredient Verification Notes */}
+            <Surface>
+              <CardHead
+                title="Kesesuaian menu & pemeriksaan bahan"
+                subtitle="Evaluasi otomatis terhadap target dan profil pantangan Anda"
+              />
+              <View className="gap-2.5">
+                {(!allergyCheck.safe || !dietCheck.compliant) && (
+                  <View className="p-3 rounded-[14px] bg-[#fde9e7] border border-[#f5c2be] flex-row items-start gap-2">
+                    <LineIcon name="alert" size={16} color="#b92d26" />
+                    <AppText weight="semibold" className="text-xs text-[#b92d26] flex-1 leading-relaxed">
+                      {!allergyCheck.safe
+                        ? `Perhatian alergi: resep ini terdeteksi mengandung bahan terkait "${allergyCheck.violatedAllergen}".`
+                        : `Perhatian pola makan: resep ini tidak sesuai dengan preferensi "${dietCheck.violatedRestriction}".`}
+                    </AppText>
+                  </View>
+                )}
+
+                {fitReasons.map((reason, idx) => (
+                  <View key={idx} className="flex-row items-start gap-2">
+                    <LineIcon name="check" size={14} color="#0e7a52" />
+                    <AppText weight="medium" className="text-xs text-[#121a16] flex-1 leading-relaxed">
+                      {reason}
+                    </AppText>
+                  </View>
+                ))}
+
+                {ingredientsToVerify.length > 0 && (
+                  <View className="mt-1 pt-2.5 border-t border-[#e6eae7] gap-2">
+                    <AppText weight="semibold" className="text-xs text-[#946000]">
+                      Bahan & bumbu yang perlu diperiksa pada label kemasan:
+                    </AppText>
+                    {ingredientsToVerify.map((item, idx) => (
+                      <View key={idx} className="flex-row items-start gap-2">
+                        <LineIcon name="alert" size={14} color="#946000" />
+                        <AppText weight="regular" className="text-xs text-[#56605a] flex-1 leading-relaxed">
+                          <AppText weight="semibold" className="text-[#121a16]">
+                            {item.ingredient} ({item.amount}):
+                          </AppText>{" "}
+                          {item.note}
+                        </AppText>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </View>
+            </Surface>
 
             <View className="hidden lg:flex">
               <PressableScale

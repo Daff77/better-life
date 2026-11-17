@@ -85,12 +85,18 @@ export const JournalEntrySchema = z.object({
   category: JournalCategorySchema,
   calories: z.number().nonnegative(),
   baseCalories: z.number().nonnegative().optional(),
+  baseProteinGrams: z.number().nonnegative().optional(),
+  baseCarbsGrams: z.number().nonnegative().optional(),
+  baseFatGrams: z.number().nonnegative().optional(),
+  baseFiberGrams: z.number().nonnegative().optional(),
   quantity: z.number().positive().default(1),
   proteinGrams: z.number().nonnegative().default(0),
   carbsGrams: z.number().nonnegative().default(0),
   fatGrams: z.number().nonnegative().default(0),
   fiberGrams: z.number().nonnegative().default(0),
+  estimatedCostIdr: z.number().nonnegative().optional(),
   loggedAt: z.string(),
+  updatedAt: z.string().optional(),
 });
 export type JournalEntry = z.infer<typeof JournalEntrySchema>;
 

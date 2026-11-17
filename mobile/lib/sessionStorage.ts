@@ -6,13 +6,17 @@ export interface StoredUser {
   name: string;
   email: string;
   phone?: string;
+  photoUrl?: string;
 }
 
-export interface StoredAccount {
+/**
+ * Non-sensitive per-account metadata cached on device.
+ * Raw passwords are NEVER stored on the client.
+ */
+export interface StoredAccountMeta {
   id: string;
   name: string;
   email: string;
-  password: string;
   phone?: string;
   onboardingCompleted: boolean;
 }
@@ -25,8 +29,15 @@ export interface SessionData {
 }
 
 const SESSION_KEY = "betterlife_session_v2";
-const USERS_KEY = "betterlife_registered_accounts_v1";
+const LEGACY_USERS_KEY = "betterlife_registered_accounts_v1";
+const ACCOUNT_META_KEY = "betterlife_account_meta_v2";
 const PERSONALIZATION_KEY = "betterlife_personalization_v1";
+
+// Demo credentials hint strictly for UI quick-fill helper in development, never used to verify auth locally
+export const DEMO_LOGIN_HINT = {
+  email: "daffa@gmail.com",
+  password: "password123",
+} as const;
 
 // In-memory fallback if storage is blocked or in non-browser Node environments
 const memoryStore: Record<string, string> = {};
@@ -54,7 +65,6 @@ function getSecureStore() {
   }
 }
 
-// Platform-aware storage helpers
 async function getStorageItem(key: string): Promise<string | null> {
   try {
     const { isWeb, hasSecureStore } = getPlatformInfo();
@@ -114,76 +124,144 @@ async function deleteStorageItem(key: string): Promise<void> {
   }
 }
 
-// Default pre-seeded account for local testing
-export const DEFAULT_DEMO_ACCOUNT: StoredAccount = {
-  id: "user-daffa",
-  name: "Daffa Pratama",
-  email: "daffa@gmail.com",
-  password: "password123",
-  phone: "+62 812-3456-7890",
-  onboardingCompleted: true,
-};
-
 export const sessionStorage = {
-  // Session handling
   async getSession(): Promise<SessionData | null> {
     const raw = await getStorageItem(SESSION_KEY);
     if (!raw) return null;
     try {
-      return JSON.parse(raw) as SessionData;
+      const parsed = JSON.parse(raw) as SessionData & { password?: unknown };
+      // Ensure no legacy password field survives inside session payload
+      if (parsed && typeof parsed === "object" && "password" in parsed) {
+        delete parsed.password;
+      }
+      if (parsed?.user && typeof parsed.user === "object" && "password" in (parsed.user as any)) {
+        delete (parsed.user as any).password;
+      }
+      return parsed;
     } catch {
       return null;
     }
   },
 
   async saveSession(session: SessionData): Promise<void> {
-    await setStorageItem(SESSION_KEY, JSON.stringify(session));
+    const cleanUser: StoredUser = {
+      id: session.user.id,
+      name: session.user.name,
+      email: session.user.email,
+      ...(session.user.phone ? { phone: session.user.phone } : {}),
+      ...(session.user.photoUrl ? { photoUrl: session.user.photoUrl } : {}),
+    };
+    await setStorageItem(
+      SESSION_KEY,
+      JSON.stringify({
+        user: cleanUser,
+        isAuthenticated: Boolean(session.isAuthenticated),
+        onboardingCompleted: Boolean(session.onboardingCompleted),
+        ...(session.token ? { token: session.token } : {}),
+      })
+    );
   },
 
   async clearSession(): Promise<void> {
     await deleteStorageItem(SESSION_KEY);
   },
 
-  // Registered accounts for local authentication verification
-  async getAccounts(): Promise<StoredAccount[]> {
-    const raw = await getStorageItem(USERS_KEY);
-    if (!raw) {
-      return [DEFAULT_DEMO_ACCOUNT];
-    }
+  /**
+   * Safely migrates legacy account registry by stripping all plaintext passwords
+   * while preserving per-email onboarding completion metadata.
+   * Global unowned journals/profiles (`betterlife_journals_v1`, `betterlife_personalization_v1`)
+   * are intentionally NOT assigned to any user to prevent cross-account data leaks.
+   */
+  async sanitizeLegacyStorage(): Promise<void> {
+    const legacyRaw = await getStorageItem(LEGACY_USERS_KEY);
+    if (!legacyRaw) return;
+
     try {
-      const parsed = JSON.parse(raw) as StoredAccount[];
-      if (!parsed.some((a) => a.email.toLowerCase() === DEFAULT_DEMO_ACCOUNT.email.toLowerCase())) {
-        parsed.unshift(DEFAULT_DEMO_ACCOUNT);
+      const parsed = JSON.parse(legacyRaw);
+      if (Array.isArray(parsed)) {
+        const currentMeta = await this.getAccountMetaList();
+        const byEmail = new Map<string, StoredAccountMeta>(
+          currentMeta.map((m) => [m.email.toLowerCase(), m])
+        );
+
+        for (const item of parsed) {
+          if (item && typeof item.email === "string" && item.email.trim()) {
+            const normEmail = item.email.trim().toLowerCase();
+            if (!byEmail.has(normEmail)) {
+              byEmail.set(normEmail, {
+                id: String(item.id || `user-${normEmail}`),
+                name: String(item.name || normEmail.split("@")[0]),
+                email: normEmail,
+                phone: typeof item.phone === "string" ? item.phone : undefined,
+                onboardingCompleted: Boolean(item.onboardingCompleted),
+              });
+            }
+          }
+        }
+
+        await setStorageItem(ACCOUNT_META_KEY, JSON.stringify(Array.from(byEmail.values())));
       }
-      return parsed;
     } catch {
-      return [DEFAULT_DEMO_ACCOUNT];
+      // ignore malformed legacy value
+    }
+
+    // Permanently remove legacy plaintext-password registry key
+    await deleteStorageItem(LEGACY_USERS_KEY);
+  },
+
+  async getAccountMetaList(): Promise<StoredAccountMeta[]> {
+    const raw = await getStorageItem(ACCOUNT_META_KEY);
+    if (!raw) return [];
+    try {
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return [];
+      return parsed.map((item) => ({
+        id: String(item.id || ""),
+        name: String(item.name || ""),
+        email: String(item.email || "").toLowerCase(),
+        phone: typeof item.phone === "string" ? item.phone : undefined,
+        onboardingCompleted: Boolean(item.onboardingCompleted),
+      }));
+    } catch {
+      return [];
     }
   },
 
-  async saveAccount(account: StoredAccount): Promise<void> {
-    const accounts = await this.getAccounts();
-    const existingIndex = accounts.findIndex(
-      (a) => a.email.toLowerCase() === account.email.toLowerCase()
-    );
-    if (existingIndex >= 0) {
-      accounts[existingIndex] = account;
+  async getAccountMeta(email: string): Promise<StoredAccountMeta | null> {
+    const norm = email.trim().toLowerCase();
+    const list = await this.getAccountMetaList();
+    return list.find((a) => a.email.toLowerCase() === norm) ?? null;
+  },
+
+  async saveAccountMeta(meta: StoredAccountMeta): Promise<void> {
+    const list = await this.getAccountMetaList();
+    const normEmail = meta.email.trim().toLowerCase();
+    const clean: StoredAccountMeta = {
+      id: meta.id,
+      name: meta.name,
+      email: normEmail,
+      ...(meta.phone ? { phone: meta.phone } : {}),
+      onboardingCompleted: Boolean(meta.onboardingCompleted),
+    };
+    const idx = list.findIndex((a) => a.email.toLowerCase() === normEmail);
+    if (idx >= 0) {
+      list[idx] = clean;
     } else {
-      accounts.push(account);
+      list.push(clean);
     }
-    await setStorageItem(USERS_KEY, JSON.stringify(accounts));
+    await setStorageItem(ACCOUNT_META_KEY, JSON.stringify(list));
   },
 
   async updateAccountOnboarding(email: string, onboardingCompleted: boolean): Promise<void> {
-    const accounts = await this.getAccounts();
-    const account = accounts.find((a) => a.email.toLowerCase() === email.toLowerCase());
-    if (account) {
-      account.onboardingCompleted = onboardingCompleted;
-      await setStorageItem(USERS_KEY, JSON.stringify(accounts));
+    const existing = await this.getAccountMeta(email);
+    if (existing) {
+      await this.saveAccountMeta({
+        ...existing,
+        onboardingCompleted,
+      });
     }
   },
 
-  // Personalization data persistence
   async getPersonalization(): Promise<PersonalizationMetrics | null> {
     const raw = await getStorageItem(accountStorageKey(PERSONALIZATION_KEY));
     if (!raw) return null;

@@ -39,6 +39,10 @@ import { journalStorage } from "@/lib/journalStorage";
 import { sessionStorage } from "@/lib/sessionStorage";
 import { useResetMealsMutation } from "@/hooks/useMealsQuery";
 import { confirmDestructive } from "@/lib/confirm";
+import {
+  exportAccountBackupJson,
+  restoreAccountBackupJson,
+} from "@/lib/accountBackup";
 import { NAV_DESKTOP_BREAKPOINT } from "@/components/layout/ResponsiveTabBar";
 
 const GOALS = ["Eat balanced", "Lose weight", "Gain muscle"] as const;
@@ -73,6 +77,10 @@ export default function ProfileScreen() {
 
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [infoModalType, setInfoModalType] = useState<"help" | "about" | null>(null);
+  const [backupModalVisible, setBackupModalVisible] = useState(false);
+  const [backupJsonText, setBackupJsonText] = useState("");
+  const [backupBusy, setBackupBusy] = useState(false);
+  const [backupNotice, setBackupNotice] = useState<{ tone: "ok" | "err"; text: string } | null>(null);
 
   const [editGoal, setEditGoal] = useState<"Eat balanced" | "Lose weight" | "Gain muscle">(
     personalization.goal
@@ -193,6 +201,70 @@ export default function ProfileScreen() {
         router.replace("/(auth)/get-started");
       }
     );
+  };
+
+  const handleExportBackup = async () => {
+    setBackupBusy(true);
+    setBackupNotice(null);
+    try {
+      const res = await exportAccountBackupJson();
+      setBackupJsonText(res.json);
+      setBackupNotice({
+        tone: "ok",
+        text: res.downloadedOnWeb
+          ? `Cadangan berhasil diunduh (${res.filename}) dan siap disalin di bawah.`
+          : "Data cadangan akun berhasil dibuat. Salin teks JSON di bawah untuk menyimpannya.",
+      });
+    } catch (err: any) {
+      setBackupNotice({
+        tone: "err",
+        text: err?.message || "Gagal mengekspor data akun.",
+      });
+    } finally {
+      setBackupBusy(false);
+    }
+  };
+
+  const handleRestoreBackup = async () => {
+    setBackupBusy(true);
+    setBackupNotice(null);
+    try {
+      const summary = await restoreAccountBackupJson(backupJsonText);
+      setBackupNotice({
+        tone: "ok",
+        text: `Pemulihan selesai: +${summary.addedMeals} catatan baru, ${summary.updatedMeals} diperbarui, ${summary.skippedDuplicateMeals} duplikat dilewati, +${summary.addedFavorites} favorit.`,
+      });
+    } catch (err: any) {
+      setBackupNotice({
+        tone: "err",
+        text: err?.message || "Gagal memulihkan cadangan.",
+      });
+    } finally {
+      setBackupBusy(false);
+    }
+  };
+
+  const handlePickBackupFileWeb = () => {
+    if (Platform.OS !== "web" || typeof document === "undefined") return;
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".json,application/json";
+    input.onchange = () => {
+      const file = input.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === "string") {
+          setBackupJsonText(reader.result);
+          setBackupNotice({
+            tone: "ok",
+            text: `File "${file.name}" dimuat. Ketuk Pulihkan Data untuk memvalidasi dan mengimpor.`,
+          });
+        }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
   };
 
   const targetKcal = personalization.targetCalories || 2253;
@@ -412,6 +484,18 @@ export default function ProfileScreen() {
                 leading={<RowIcon icon="shield" tone="plain" />}
                 title="Tentang kami & kontak"
                 subtitle="Informasi pengembang Better Life & layanan bantuan"
+                trailing={<LineIcon name="chevronRight" size={18} color="#7d8781" />}
+              />
+
+              <ListRow
+                onPress={() => {
+                  setBackupNotice(null);
+                  setBackupModalVisible(true);
+                }}
+                accessibilityLabel="Ekspor dan pulihkan data akun"
+                leading={<RowIcon icon="download" tone="accent" />}
+                title="Ekspor & pulihkan data akun"
+                subtitle="Cadangan JSON tervalidasi, khusus akun ini & bebas duplikat"
                 trailing={<LineIcon name="chevronRight" size={18} color="#7d8781" />}
               />
 
@@ -734,7 +818,7 @@ export default function ProfileScreen() {
                         • Daffa Pratama{"\n"}
                         • Muhammad Nabil{"\n"}
                         • Muhammad Rifky{"\n"}
-                        Program Studi S1 Sistem Informasi — Universitas Negeri Surabaya
+                        Program Studi S1 Sistem Informasi · Universitas Negeri Surabaya
                       </AppText>
                     </View>
                     <View className="bg-card-2 border border-line rounded-2xl p-3.5">
@@ -760,6 +844,117 @@ export default function ProfileScreen() {
             </Surface>
           </FadeInView>
         </View>
+      </Modal>
+
+      {/* Export & Restore Account Backup Modal */}
+      <Modal
+        visible={backupModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setBackupModalVisible(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          className="flex-1 justify-end sm:justify-center items-center p-0 sm:p-6"
+        >
+          <Pressable
+            style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(18, 24, 20, 0.45)" }]}
+            onPress={() => !backupBusy && setBackupModalVisible(false)}
+            accessibilityRole="button"
+            accessibilityLabel="Tutup cadangan akun"
+          />
+          <FadeInView duration={220} translateY={16} className="w-full max-w-lg max-h-[90%] z-10">
+            <Surface className="w-full rounded-t-[26px] sm:rounded-[26px] p-5 sm:p-6">
+              <CardHead
+                title="Ekspor & pulihkan data"
+                caption={`Khusus akun ${user?.email || "aktif"} · menolak file akun lain`}
+                right={
+                  <RingButton
+                    icon="close"
+                    onPress={() => !backupBusy && setBackupModalVisible(false)}
+                    accessibilityLabel="Tutup"
+                  />
+                }
+              />
+
+              <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+                <View className="gap-3">
+                  {backupNotice && (
+                    <View
+                      className={`p-3 rounded-2xl border ${
+                        backupNotice.tone === "ok"
+                          ? "bg-primary-light border-[#bfe0d2]"
+                          : "bg-bad-soft border-[#f5c2be]"
+                      }`}
+                    >
+                      <AppText
+                        weight="semibold"
+                        className={`text-xs leading-relaxed ${
+                          backupNotice.tone === "ok" ? "text-primary-text" : "text-bad"
+                        }`}
+                      >
+                        {backupNotice.text}
+                      </AppText>
+                    </View>
+                  )}
+
+                  <View className="flex-row flex-wrap gap-2">
+                    <PillButton
+                      label={backupBusy ? "Memproses..." : "Ekspor JSON"}
+                      variant="primary"
+                      icon="download"
+                      onPress={() => void handleExportBackup()}
+                      disabled={backupBusy}
+                      className="flex-1"
+                    />
+                    {Platform.OS === "web" && (
+                      <PillButton
+                        label="Pilih File JSON"
+                        variant="ghost"
+                        onPress={handlePickBackupFileWeb}
+                        disabled={backupBusy}
+                      />
+                    )}
+                  </View>
+
+                  <View>
+                    <AppText weight="semibold" className="text-xs text-muted mb-1.5">
+                      Isi dokumen JSON cadangan (tempel untuk memulihkan atau salin hasil ekspor)
+                    </AppText>
+                    <TextInput
+                      value={backupJsonText}
+                      onChangeText={setBackupJsonText}
+                      multiline
+                      numberOfLines={7}
+                      placeholder='{"schemaVersion": 1, "account": {"email": "..."}, ...}'
+                      placeholderTextColor="#8c9690"
+                      textAlignVertical="top"
+                      className="w-full min-h-[140px] max-h-[220px] p-3 rounded-[16px] bg-card-2 border border-line text-ink text-xs"
+                      style={{ fontFamily: "Urbanist-Medium" }}
+                    />
+                  </View>
+
+                  <View className="flex-row gap-2.5 pt-1">
+                    <PillButton
+                      label="Tutup"
+                      onPress={() => setBackupModalVisible(false)}
+                      disabled={backupBusy}
+                      className="flex-1"
+                    />
+                    <PillButton
+                      label={backupBusy ? "Memvalidasi..." : "Pulihkan Data"}
+                      variant="dark"
+                      icon="refresh"
+                      onPress={() => void handleRestoreBackup()}
+                      disabled={backupBusy || !backupJsonText.trim()}
+                      className="flex-1"
+                    />
+                  </View>
+                </View>
+              </ScrollView>
+            </Surface>
+          </FadeInView>
+        </KeyboardAvoidingView>
       </Modal>
     </ScreenWrapper>
   );
