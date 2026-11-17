@@ -2,171 +2,95 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Better Life · Scandinavian Organic UI & Motion Prototype</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Akatab:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Better Life - Mobile App Prototype</title>
+  
+  <!-- Urbanist Font (Exact font used in Better Life React Native Mobile App) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,600&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Akatab', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            sans: ['Urbanist', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
           },
           colors: {
+            canvas: '#edf1ee',
+            card: '#fbfdfc',
+            'card-2': '#f0f4f1',
+            line: '#d5dbd7',
+            'line-2': '#e6eae7',
+            ink: '#121a16',
+            'ink-muted': '#56605a',
             primary: {
-              DEFAULT: '#153e28',
-              dark: '#0f2e1e',
-              light: '#eaf2ec',
+              DEFAULT: '#0e7a52',
+              dark: '#0a6544',
+              light: '#e0ede6',
+              text: '#0b6b47',
             },
-            secondary: {
-              DEFAULT: '#e4ede7',
-              soft: '#f2f7f4',
+            macro: {
+              protein: '#0e7a52',
+              carbs: '#f3b23c',
+              fat: '#141c18',
+              water: '#1e6f9f',
+              track: '#dfe6e1',
             },
-            accent: {
-              sage: '#52796f',
-              amber: '#b45309',
-            },
-            neutral: {
-              dark: '#1c201d',
-              muted: '#5a625b',
-              border: '#ebe9e2',
-              bg: '#faf9f5',
-            },
+            status: {
+              good: '#12714f',
+              goodSoft: '#e0ede6',
+              warn: '#8f4e00',
+              warnSoft: '#fbebd0',
+              bad: '#b3301b',
+              badSoft: '#fde8e3',
+            }
           },
-        },
-      },
-    };
-  </script>
-  <style>
-    :root {
-      --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
-      --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+          boxShadow: {
+            surface: '0px 2px 8px rgba(16, 22, 40, 0.05)',
+            float: '0px 8px 20px rgba(8, 60, 38, 0.16)',
+            dock: '0px 10px 28px rgba(8, 60, 38, 0.28)',
+            phone: '0px 25px 60px -15px rgba(0, 0, 0, 0.35), 0px 0px 0px 12px #1e2421, 0px 0px 0px 14px #333d37',
+          }
+        }
+      }
     }
+  </script>
 
+  <style>
     * {
       box-sizing: border-box;
       -webkit-tap-highlight-color: transparent;
+      user-select: none;
     }
-
     body {
-      font-family: 'Akatab', -apple-system, BlinkMacSystemFont, sans-serif;
-      background-color: #efeee8;
-      color: #1c201d;
+      font-family: 'Urbanist', -apple-system, sans-serif;
+      background-color: #2b332f;
+      color: #121a16;
       margin: 0;
       padding: 0;
-      -webkit-font-smoothing: antialiased;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    /* Native smooth scrolling */
+    .screen-scroll {
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .screen-scroll::-webkit-scrollbar {
+      display: none;
     }
 
-    .tabular-nums {
-      font-variant-numeric: tabular-nums;
-    }
-
-    /* Tactile press feedback (Emil Kowalski design engineering) */
-    .press-btn {
-      transition: transform 140ms var(--ease-out), background-color 150ms ease, border-color 150ms ease;
-      user-select: none;
-    }
-    .press-btn:active {
-      transform: scale(0.97);
-    }
-
-    .press-card {
-      transition: transform 150ms var(--ease-out), border-color 150ms ease;
-      user-select: none;
-    }
-    .press-card:active {
-      transform: scale(0.985);
-    }
-
-    .press-chip {
-      transition: transform 140ms var(--ease-out), background-color 150ms ease, color 150ms ease;
-      user-select: none;
-    }
-    .press-chip:active {
-      transform: scale(0.96);
-    }
-
-    /* Gate hover states behind pointer:fine so touch devices never stick */
-    @media (hover: hover) and (pointer: fine) {
-      .press-card:hover {
-        border-color: #d6e0d9;
-      }
-      .press-btn-secondary:hover {
-        background-color: #f4f3ee;
-      }
-    }
-
-    /* Staggered one-time section entrance (8px rise + fade) */
-    @keyframes sectionRise {
-      from {
-        opacity: 0;
-        transform: translateY(8px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .stagger-item {
-      opacity: 0;
-      animation: sectionRise 320ms var(--ease-out) forwards;
-    }
-    .stagger-1 { animation-delay: 0ms; }
-    .stagger-2 { animation-delay: 45ms; }
-    .stagger-3 { animation-delay: 90ms; }
-    .stagger-4 { animation-delay: 135ms; }
-    .stagger-5 { animation-delay: 180ms; }
-    .stagger-6 { animation-delay: 225ms; }
-
-    /* Synchronized 560ms ease-out fill for ProgressRing and ProgressBars */
-    .ring-progress {
-      transition: stroke-dashoffset 560ms var(--ease-out), stroke 240ms ease;
-    }
-    .bar-fill {
-      transition: width 560ms var(--ease-out), background-color 240ms ease;
-    }
-
-    /* Modal entrance: never from scale(0), starts at scale(0.96) + 16px rise */
-    .modal-backdrop {
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 200ms var(--ease-out);
-    }
-    .modal-backdrop.open {
-      opacity: 1;
-      pointer-events: auto;
-    }
-    .modal-sheet {
-      transform: translateY(16px) scale(0.96);
-      opacity: 0;
-      transition: transform 280ms var(--ease-out), opacity 220ms var(--ease-out);
-    }
-    .modal-backdrop.open .modal-sheet {
-      transform: translateY(0) scale(1);
-      opacity: 1;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .stagger-item {
-        animation: none !important;
-        opacity: 1 !important;
-        transform: none !important;
-      }
-      .ring-progress,
-      .bar-fill,
-      .press-btn,
-      .press-card,
-      .press-chip,
-      .modal-sheet {
-        transition-duration: 0.01ms !important;
-      }
-    }
-
-    /* Hide scrollbars cleanly */
     .no-scrollbar::-webkit-scrollbar {
       display: none;
     }
@@ -175,829 +99,978 @@
       scrollbar-width: none;
     }
 
-    /* Keyboard focus ring (WCAG 2.4.7 / R-32) */
-    button:focus-visible,
-    input:focus-visible {
-      outline: 2px solid #153e28;
-      outline-offset: 2px;
+    /* Spring micro-interactions */
+    .pressable {
+      transition: transform 0.16s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.16s ease;
+      cursor: pointer;
+    }
+    .pressable:active {
+      transform: scale(0.96);
+      opacity: 0.88;
+    }
+
+    /* Wheel Drum Roll Picker */
+    .wheel-container {
+      position: relative;
+      height: 220px;
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+      scrollbar-width: none;
+    }
+    .wheel-container::-webkit-scrollbar {
+      display: none;
+    }
+    .wheel-item {
+      height: 44px;
+      scroll-snap-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+    }
+
+    /* Modal Backdrop */
+    .modal-overlay {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-sheet {
+      transform: translateY(100%);
+      transition: transform 0.28s cubic-bezier(0.2, 0.9, 0.3, 1);
+    }
+    .modal-overlay.open .modal-sheet {
+      transform: translateY(0);
+    }
+
+    /* Desktop switcher toggle */
+    .viewport-mode-desktop body {
+      background-color: #edf1ee;
+    }
+    .viewport-mode-desktop #phone-shell {
+      width: 100vw !important;
+      height: 100vh !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      max-width: 100% !important;
+    }
+    .viewport-mode-desktop #phone-status-bar,
+    .viewport-mode-desktop #phone-home-indicator {
+      display: none !important;
+    }
+    .viewport-mode-desktop #main-app-container {
+      max-width: 520px;
+      margin: 0 auto;
     }
   </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="bg-[#242b27] flex items-center justify-center min-h-screen">
 
-  <!-- TOP PROTOTYPE CONTROL BAR -->
-  <header class="w-full bg-white border-b border-[#ebe9e2] px-4 py-2.5 sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
-      <div class="flex items-center gap-2.5">
-        <div class="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
-            <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
-          </svg>
-        </div>
-        <div>
-          <span class="font-black text-sm text-neutral-dark tracking-tight">Better Life</span>
-          <span class="text-xs font-medium text-neutral-muted ml-1.5">Scandinavian Organic UI · Synced with Expo App</span>
+  <!-- Desktop floating switcher bar -->
+  <aside class="fixed top-4 right-4 z-50 flex items-center gap-2 bg-[#141c18]/90 backdrop-blur-md border border-white/10 px-3 py-1.5 rounded-full shadow-2xl text-white text-xs font-semibold">
+    <span class="text-white/60">Tampilan:</span>
+    <button onclick="setDeviceView('phone')" id="btn-view-phone" class="px-2.5 py-1 rounded-full bg-primary text-white font-bold transition-all">📱 iPhone (Mobile)</button>
+    <button onclick="setDeviceView('full')" id="btn-view-full" class="px-2.5 py-1 rounded-full text-white/80 hover:text-white transition-all">🖥️ Layar Penuh</button>
+  </aside>
+
+  <!-- =====================================================================
+       IPHONE DEVICE MOCKUP FRAME (PERSIS SEPERTI EXPO GO / REAL DEVICE)
+       ===================================================================== -->
+  <main id="phone-shell" class="w-[393px] h-[852px] bg-canvas rounded-[52px] shadow-phone overflow-hidden flex flex-col relative transition-all duration-300">
+    
+    <!-- iPhone Top Dynamic Island & Status Bar -->
+    <header id="phone-status-bar" class="w-full pt-2.5 px-7 flex items-center justify-between flex-shrink-0 z-30 select-none pointer-events-none">
+      <time class="text-[14px] font-bold text-ink tabular-nums tracking-tight" id="status-clock">09:41</time>
+      <!-- Dynamic Island pill -->
+      <div class="w-[120px] h-[30px] bg-black rounded-full flex items-center justify-between px-3">
+        <span class="w-2.5 h-2.5 rounded-full bg-[#0e7a52]/80"></span>
+        <span class="w-2.5 h-2.5 rounded-full bg-[#1e6f9f]/80"></span>
+      </div>
+      <div class="flex items-center gap-1.5 text-ink">
+        <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L12 22l7.03-4.39C20.26 16.07 21 14.12 21 12c0-4.97-4.03-9-9-9z"/></svg>
+        <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12 4C7.31 4 3.07 5.9 0 8.98L12 21 24 8.98C20.93 5.9 16.69 4 12 4z"/></svg>
+        <!-- Battery icon -->
+        <div class="w-5 h-2.5 rounded-[4px] border border-ink p-[1px] flex items-center">
+          <div class="w-full h-full bg-ink rounded-[2px]"></div>
         </div>
       </div>
+    </header>
 
-      <div class="flex items-center gap-1.5 bg-[#f4f3ee] p-1 rounded-full">
-        <button id="btn-mode-mobile" onclick="setViewportMode('mobile')" class="press-chip px-3.5 py-1 rounded-full text-xs font-bold bg-primary text-white">
-          Mobile (390px)
-        </button>
-        <button id="btn-mode-web" onclick="setViewportMode('web')" class="press-chip px-3.5 py-1 rounded-full text-xs font-medium text-neutral-dark">
-          Responsive Web
-        </button>
-        <button onclick="openTokensModal()" class="press-chip px-3.5 py-1 rounded-full text-xs font-bold text-primary">
-          Design System
-        </button>
-      </div>
+    <!-- Main Viewport Scroll Container -->
+    <div id="main-app-container" class="flex-1 w-full flex flex-col min-h-0 relative">
+      <section id="screen-viewport" class="screen-scroll flex-1 w-full px-4 pt-2 pb-28">
+        <!-- Injected via JavaScript renderActiveScreen() -->
+      </section>
     </div>
-  </header>
 
-  <!-- MAIN WORKSPACE CONTAINER -->
-  <main id="workspace" class="flex-1 flex items-center justify-center p-4 sm:p-6">
-    <!-- Rendered dynamically by renderViewport() -->
+    <!-- =====================================================================
+         FLOATING EMERALD DOCK (PERSIS SEPERTI ResponsiveTabBar.tsx MOBILE)
+         ===================================================================== -->
+    <nav id="mobile-floating-dock" class="absolute bottom-5 left-0 right-0 flex justify-center z-40 pointer-events-none px-4">
+      <div class="pointer-events-auto flex items-center bg-primary rounded-full p-1.5 gap-1 shadow-dock">
+        <!-- Tab: Beranda -->
+        <button onclick="switchTab('index')" id="dock-btn-index" class="h-12 rounded-full flex items-center justify-center pressable transition-all bg-white pl-3.5 pr-4 gap-2">
+          <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="#0e7a52" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span class="text-[13.5px] font-semibold text-ink">Beranda</span>
+        </button>
+
+        <!-- Tab: Makan -->
+        <button onclick="switchTab('meals')" id="dock-btn-meals" class="w-12 h-12 rounded-full flex items-center justify-center pressable transition-all text-white/85">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 2v6a3 3 0 0 1-3 3 3 3 0 0 1-3-3V2"/><path d="M15 2v14a4 4 0 0 1-8 0V2"/><line x1="21" y1="15" x2="21" y2="22"/><line x1="18" y1="22" x2="22" y2="22"/></svg>
+        </button>
+
+        <!-- Tab: Resep -->
+        <button onclick="switchTab('recipes')" id="dock-btn-recipes" class="w-12 h-12 rounded-full flex items-center justify-center pressable transition-all text-white/85">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        </button>
+
+        <!-- Tab: Profil -->
+        <button onclick="switchTab('profile')" id="dock-btn-profile" class="w-12 h-12 rounded-full flex items-center justify-center pressable transition-all text-white/85">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </button>
+      </div>
+    </nav>
+
+    <!-- iPhone Bottom Home Bar -->
+    <div id="phone-home-indicator" class="w-32 h-1 bg-ink/25 rounded-full mx-auto mb-1.5 flex-shrink-0 pointer-events-none"></div>
   </main>
 
-  <!-- INTERACTIVE MEAL LOG MODAL (Synced with MealLogModal.tsx) -->
-  <div id="log-modal" class="modal-backdrop fixed inset-0 z-50 bg-[#121814]/45 flex items-end sm:items-center justify-center p-0 sm:p-4" onclick="handleBackdropClick(event, 'log-modal')">
-    <div class="modal-sheet w-full max-w-md bg-white rounded-t-[28px] sm:rounded-[28px] p-5 sm:p-6 border-t sm:border border-[#ebe9e2]">
-      <div class="flex items-center justify-between pb-3.5 border-b border-[#f0eee8]">
-        <div>
-          <h3 class="font-black text-xl text-neutral-dark tracking-tight">Catat ke jurnal</h3>
-          <p class="text-xs font-medium text-neutral-muted mt-0.5">Atur jumlah porsi dan waktu makan</p>
+  <!-- =====================================================================
+       ALL MODALS (IDENTICAL TO MOBILE MODALS & DIALOGS)
+       ===================================================================== -->
+  
+  <!-- 1. Wheel Roller Time Picker Modal -->
+  <div id="time-picker-modal" class="modal-overlay fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50" onclick="handleBackdropClick(event, 'time-picker-modal')">
+    <div class="modal-sheet w-full max-w-[393px] bg-card rounded-t-[32px] sm:rounded-[32px] p-5 shadow-2xl border border-line" onclick="event.stopPropagation()">
+      <div class="w-10 h-1 bg-ink/15 rounded-full mx-auto mb-3"></div>
+      
+      <!-- Phase Pill & Title -->
+      <div class="text-center mb-4">
+        <div id="picker-phase-pill" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold mb-1.5 bg-[#fdf1dc] text-[#c77d0a]">
+          <span id="picker-phase-icon">🌅</span>
+          <span id="picker-phase-label">Pagi</span>
         </div>
-        <button onclick="closeLogModal()" class="press-btn w-10 h-10 rounded-full bg-[#f4f3ee] flex items-center justify-center" aria-label="Tutup jendela">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5a625b" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
-        </button>
+        <p id="picker-target-label" class="text-xs font-medium text-ink-muted">Sarapan Pagi</p>
+        <p id="picker-time-display" class="text-4xl font-black text-ink tabular-nums tracking-tight mt-0.5">07:00 <span class="text-xs text-ink-muted font-bold">WIB</span></p>
       </div>
 
-      <div id="log-modal-body">
-        <!-- Populated by openLogModal() -->
+      <!-- Dual Drum Wheels -->
+      <div class="bg-card-2 border border-line rounded-[22px] p-3 mb-4 relative overflow-hidden">
+        <!-- Highlight Center Band -->
+        <div class="absolute left-3 right-3 top-[50%] -translate-y-[50%] h-[44px] rounded-xl bg-primary/10 border border-primary/20 pointer-events-none"></div>
+        
+        <div class="grid grid-cols-2 gap-4 text-center">
+          <!-- Hours Column -->
+          <div>
+            <span class="text-[10.5px] font-bold text-ink-muted tracking-wider block mb-1">JAM (00 - 23)</span>
+            <div class="flex items-center justify-between px-2">
+              <button onclick="changeHourBy(-1)" class="w-9 h-9 rounded-xl bg-card border border-line font-black text-base pressable flex items-center justify-center">−</button>
+              <span id="picker-hour-val" class="text-3xl font-extrabold text-ink tabular-nums">07</span>
+              <button onclick="changeHourBy(1)" class="w-9 h-9 rounded-xl bg-card border border-line font-black text-base pressable flex items-center justify-center">+</button>
+            </div>
+          </div>
+
+          <!-- Minutes Column -->
+          <div>
+            <span class="text-[10.5px] font-bold text-ink-muted tracking-wider block mb-1">MENIT (00 - 59)</span>
+            <div class="flex items-center justify-between px-2">
+              <button onclick="changeMinuteBy(-5)" class="w-9 h-9 rounded-xl bg-card border border-line font-black text-sm pressable flex items-center justify-center">−5</button>
+              <span id="picker-minute-val" class="text-3xl font-extrabold text-ink tabular-nums">00</span>
+              <button onclick="changeMinuteBy(5)" class="w-9 h-9 rounded-xl bg-card border border-line font-black text-sm pressable flex items-center justify-center">+5</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex gap-2.5">
+        <button onclick="closeTimePickerModal()" class="flex-1 h-12 rounded-full bg-card-2 border border-line text-xs font-bold text-ink pressable">Batal</button>
+        <button onclick="saveTimePickerResult()" class="flex-1 h-12 rounded-full bg-primary text-white text-xs font-bold shadow-md pressable">Simpan Jam</button>
       </div>
     </div>
   </div>
 
-  <!-- DESIGN TOKENS & CRAFT MODAL -->
-  <div id="tokens-modal" class="modal-backdrop fixed inset-0 z-50 bg-[#121814]/45 flex items-center justify-center p-4" onclick="handleBackdropClick(event, 'tokens-modal')">
-    <div class="modal-sheet w-full max-w-lg bg-white rounded-[28px] p-6 border border-[#ebe9e2] max-h-[88vh] overflow-y-auto">
-      <div class="flex items-center justify-between pb-3.5 border-b border-[#f0eee8] mb-4">
+  <!-- 2. Meal Log Modal (Portion Multiplier) -->
+  <div id="meal-log-modal" class="modal-overlay fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50" onclick="handleBackdropClick(event, 'meal-log-modal')">
+    <div class="modal-sheet w-full max-w-[393px] bg-card rounded-t-[32px] sm:rounded-[32px] p-5 shadow-2xl border border-line" onclick="event.stopPropagation()">
+      <div class="w-10 h-1 bg-ink/15 rounded-full mx-auto mb-3"></div>
+      <div id="meal-log-body">
+        <!-- Injected via openMealLogModal() -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Create Recipe Modal (With Local Gallery Upload) -->
+  <div id="create-recipe-modal" class="modal-overlay fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50" onclick="handleBackdropClick(event, 'create-recipe-modal')">
+    <div class="modal-sheet w-full max-w-[393px] max-h-[85vh] overflow-y-auto screen-scroll bg-card rounded-t-[32px] sm:rounded-[32px] p-5 shadow-2xl border border-line" onclick="event.stopPropagation()">
+      <div class="w-10 h-1 bg-ink/15 rounded-full mx-auto mb-3"></div>
+      
+      <div class="flex items-center justify-between mb-4">
         <div>
-          <h3 class="font-black text-xl text-neutral-dark tracking-tight">Design System & Motion Rules</h3>
-          <p class="text-xs font-medium text-neutral-muted mt-0.5">ENERGY 2 · RHYTHM 2 · MOTION 2 (Spring & Ease-Out)</p>
+          <h2 class="text-lg font-bold text-ink">Tambah Resep Baru</h2>
+          <p class="text-xs text-ink-muted">Foto galeri lokal, bahan & kalkulasi kalori</p>
         </div>
-        <button onclick="closeTokensModal()" class="press-btn w-10 h-10 rounded-full bg-[#f4f3ee] flex items-center justify-center" aria-label="Tutup">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5a625b" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
-        </button>
+        <button onclick="closeCreateRecipeModal()" class="w-8 h-8 rounded-full bg-card-2 border border-line flex items-center justify-center pressable">✕</button>
       </div>
 
-      <div class="space-y-4 text-xs">
+      <!-- Gallery / Camera Image Picker -->
+      <div class="mb-4">
+        <label class="text-xs font-bold text-ink block mb-1.5">Foto Resep</label>
+        <div id="recipe-preview-box" class="w-full h-40 rounded-[20px] bg-card-2 border-2 border-dashed border-line flex flex-col items-center justify-center overflow-hidden relative group">
+          <img id="recipe-preview-img" class="w-full h-full object-cover hidden" alt="Preview Resep" />
+          <div id="recipe-preview-placeholder" class="text-center p-4">
+            <div class="w-11 h-11 rounded-full bg-primary/10 text-primary mx-auto mb-2 flex items-center justify-center">
+              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            </div>
+            <p class="text-xs font-bold text-ink">Pilih dari Galeri Perangkat</p>
+            <p class="text-[11px] text-ink-muted mt-0.5">Mendukung format JPG, PNG, WebP</p>
+          </div>
+          <!-- Real File Input -->
+          <input type="file" id="recipe-file-input" accept="image/*" onchange="handleRecipeImageUpload(event)" class="absolute inset-0 opacity-0 cursor-pointer" />
+        </div>
+        <p class="text-[11px] text-ink-muted mt-1">Ketuk kotak di atas untuk membuka galeri foto lokal perangkat Anda.</p>
+      </div>
+
+      <div class="space-y-3 mb-4">
         <div>
-          <p class="font-bold text-neutral-dark mb-2">Palet Warna (Scandinavian Organic Light)</p>
-          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            <div class="p-2.5 rounded-xl border border-[#ebe9e2] bg-[#faf9f5]">
-              <div class="w-full h-6 rounded-md bg-[#faf9f5] border border-[#e3e1da] mb-1.5"></div>
-              <p class="font-bold text-neutral-dark">Canvas Base</p>
-              <p class="text-neutral-muted tabular-nums">#faf9f5</p>
+          <label class="text-xs font-bold text-ink block mb-1">Nama Resep</label>
+          <input type="text" id="recipe-input-title" placeholder="Misal: Dada Ayam Panggang Sambal Matah" class="w-full h-11 px-3.5 bg-card-2 border border-line rounded-xl text-xs font-semibold text-ink outline-none focus:border-primary" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-xs font-bold text-ink block mb-1">Kategori</label>
+            <select id="recipe-input-cat" class="w-full h-11 px-3 bg-card-2 border border-line rounded-xl text-xs font-semibold text-ink outline-none">
+              <option value="Breakfast">Sarapan Pagi</option>
+              <option value="Lunch" selected>Makan Siang</option>
+              <option value="Dinner">Makan Malam</option>
+              <option value="Snack">Camilan</option>
+              <option value="Drink">Minuman</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs font-bold text-ink block mb-1">Waktu Masak</label>
+            <input type="number" id="recipe-input-prep" value="20" class="w-full h-11 px-3 bg-card-2 border border-line rounded-xl text-xs font-semibold text-ink outline-none" />
+          </div>
+        </div>
+
+        <div>
+          <label class="text-xs font-bold text-ink block mb-1">Perkiraan Kalori & Nutrisi</label>
+          <div class="grid grid-cols-4 gap-1.5 text-center">
+            <div class="bg-card-2 p-2 rounded-xl border border-line">
+              <span class="text-[10px] text-ink-muted block font-bold">Kcal</span>
+              <input type="number" id="recipe-input-kcal" value="380" class="w-full text-center bg-transparent font-black text-xs text-ink outline-none" />
             </div>
-            <div class="p-2.5 rounded-xl border border-[#ebe9e2] bg-white">
-              <div class="w-full h-6 rounded-md bg-[#153e28] mb-1.5"></div>
-              <p class="font-bold text-neutral-dark">Primary Forest</p>
-              <p class="text-neutral-muted tabular-nums">#153e28</p>
+            <div class="bg-card-2 p-2 rounded-xl border border-line">
+              <span class="text-[10px] text-macro-protein block font-bold">Prot</span>
+              <input type="number" id="recipe-input-prot" value="32" class="w-full text-center bg-transparent font-black text-xs text-ink outline-none" />
             </div>
-            <div class="p-2.5 rounded-xl border border-[#ebe9e2] bg-white">
-              <div class="w-full h-6 rounded-md bg-[#eaf2ec] mb-1.5"></div>
-              <p class="font-bold text-neutral-dark">Sage Mist</p>
-              <p class="text-neutral-muted tabular-nums">#eaf2ec</p>
+            <div class="bg-card-2 p-2 rounded-xl border border-line">
+              <span class="text-[10px] text-macro-carbs block font-bold">Karbo</span>
+              <input type="number" id="recipe-input-carbs" value="18" class="w-full text-center bg-transparent font-black text-xs text-ink outline-none" />
             </div>
-            <div class="p-2.5 rounded-xl border border-[#ebe9e2] bg-white">
-              <div class="w-full h-6 rounded-md bg-[#52796f] mb-1.5"></div>
-              <p class="font-bold text-neutral-dark">Accent Sage (Karbo)</p>
-              <p class="text-neutral-muted tabular-nums">#52796f</p>
-            </div>
-            <div class="p-2.5 rounded-xl border border-[#ebe9e2] bg-white">
-              <div class="w-full h-6 rounded-md bg-[#b45309] mb-1.5"></div>
-              <p class="font-bold text-neutral-dark">Warm Amber (Lemak)</p>
-              <p class="text-neutral-muted tabular-nums">#b45309</p>
-            </div>
-            <div class="p-2.5 rounded-xl border border-[#ebe9e2] bg-white">
-              <div class="w-full h-6 rounded-md bg-[#1c201d] mb-1.5"></div>
-              <p class="font-bold text-neutral-dark">Neutral Dark</p>
-              <p class="text-neutral-muted tabular-nums">#1c201d</p>
+            <div class="bg-card-2 p-2 rounded-xl border border-line">
+              <span class="text-[10px] text-macro-fat block font-bold">Lemak</span>
+              <input type="number" id="recipe-input-fat" value="10" class="w-full text-center bg-transparent font-black text-xs text-ink outline-none" />
             </div>
           </div>
         </div>
 
-        <div class="pt-2 border-t border-[#f0eee8]">
-          <p class="font-bold text-neutral-dark mb-1.5">Prinsip Anti-Slop & Motion Engineering</p>
-          <ul class="space-y-1.5 text-neutral-muted leading-relaxed">
-            <li>· <strong class="text-neutral-dark">Satu titik fokus:</strong> Kalori tersisa (44px Black tabular-nums) menjadi fokus utama layar Beranda.</li>
-            <li>· <strong class="text-neutral-dark">Rhythm bervariasi:</strong> Hero dan Jurnal memakai kartu putih, sedangkan Aktivitas dan Rencanakan duduk langsung di atas kanvas.</li>
-            <li>· <strong class="text-neutral-dark">Tanpa kartu bersarang:</strong> Makro nutrisi dan daftar jurnal diratakan dengan garis pembagi halus.</li>
-            <li>· <strong class="text-neutral-dark">Motion terkalibrasi:</strong> Kurva <code>cubic-bezier(0.23, 1, 0.32, 1)</code> 560ms untuk ring & bar, skala tekan <code>0.97</code> pada tombol, dan modal masuk dari <code>scale(0.96)</code>.</li>
-          </ul>
+        <div>
+          <label class="text-xs font-bold text-ink block mb-1">Deskripsi Singkat</label>
+          <textarea id="recipe-input-desc" rows="2" placeholder="Resep tinggi protein rendah minyak..." class="w-full p-3 bg-card-2 border border-line rounded-xl text-xs font-medium text-ink outline-none"></textarea>
         </div>
+      </div>
+
+      <div class="flex gap-2">
+        <button onclick="closeCreateRecipeModal()" class="flex-1 h-12 rounded-full bg-card-2 border border-line text-xs font-bold text-ink pressable">Batal</button>
+        <button onclick="saveNewRecipe()" class="flex-1 h-12 rounded-full bg-primary text-white text-xs font-bold shadow-md pressable">Simpan Resep</button>
       </div>
     </div>
   </div>
 
+  <!-- 4. Edit Profile Modal -->
+  <div id="edit-profile-modal" class="modal-overlay fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50" onclick="handleBackdropClick(event, 'edit-profile-modal')">
+    <div class="modal-sheet w-full max-w-[393px] bg-card rounded-t-[32px] sm:rounded-[32px] p-5 shadow-2xl border border-line" onclick="event.stopPropagation()">
+      <div class="w-10 h-1 bg-ink/15 rounded-full mx-auto mb-3"></div>
+      
+      <h2 class="text-lg font-bold text-ink mb-1">Ubah Profil & Target BB</h2>
+      <p class="text-xs text-ink-muted mb-4">Target kalori harian dihitung otomatis (Mifflin-St Jeor)</p>
+
+      <div class="space-y-3 mb-4">
+        <div>
+          <label class="text-xs font-bold text-ink block mb-1">Fokus Tujuan</label>
+          <div class="grid grid-cols-3 gap-1.5" id="profile-goal-selector">
+            <button onclick="setEditGoal('Lose weight')" id="goal-opt-lose" class="py-2 rounded-xl text-xs font-bold border bg-primary border-primary text-white">Turun BB</button>
+            <button onclick="setEditGoal('Eat balanced')" id="goal-opt-bal" class="py-2 rounded-xl text-xs font-semibold border bg-card-2 border-line text-ink">Gizi Pas</button>
+            <button onclick="setEditGoal('Gain muscle')" id="goal-opt-gain" class="py-2 rounded-xl text-xs font-semibold border bg-card-2 border-line text-ink">Bina Otot</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-xs font-bold text-ink block mb-1">Berat Saat Ini (kg)</label>
+            <input type="number" id="edit-weight-input" value="68" oninput="recalcProfilePlan()" class="w-full h-11 px-3 bg-card-2 border border-line rounded-xl text-xs font-bold text-ink outline-none" />
+          </div>
+          <div>
+            <label class="text-xs font-bold text-ink block mb-1">Target BB (kg)</label>
+            <input type="number" id="edit-target-weight-input" value="65" class="w-full h-11 px-3 bg-card-2 border border-line rounded-xl text-xs font-bold text-ink outline-none" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-xs font-bold text-ink block mb-1">Tinggi Badan (cm)</label>
+            <input type="number" id="edit-height-input" value="172" oninput="recalcProfilePlan()" class="w-full h-11 px-3 bg-card-2 border border-line rounded-xl text-xs font-bold text-ink outline-none" />
+          </div>
+          <div>
+            <label class="text-xs font-bold text-ink block mb-1">Usia (tahun)</label>
+            <input type="number" id="edit-age-input" value="24" oninput="recalcProfilePlan()" class="w-full h-11 px-3 bg-card-2 border border-line rounded-xl text-xs font-bold text-ink outline-none" />
+          </div>
+        </div>
+
+        <!-- Calculated Live Preview -->
+        <div class="bg-primary/10 border border-primary/20 rounded-2xl p-3 flex items-center justify-between">
+          <div>
+            <span class="text-[11px] font-bold text-primary block">Target Energi Dihitung</span>
+            <span id="preview-calc-kcal" class="text-lg font-black text-primary tabular-nums">2.253 kcal</span>
+          </div>
+          <div class="text-right text-[11px] font-bold text-ink-muted">
+            <span id="preview-calc-macros">P 141g · K 282g · L 63g</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex gap-2">
+        <button onclick="closeEditProfileModal()" class="flex-1 h-12 rounded-full bg-card-2 border border-line text-xs font-bold text-ink pressable">Batal</button>
+        <button onclick="saveProfileChanges()" class="flex-1 h-12 rounded-full bg-primary text-white text-xs font-bold shadow-md pressable">Simpan Target</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       JAVASCRIPT APP LOGIC (IDENTICAL EXPO-ROUTER NAVIGATION & STORES)
+       ===================================================================== -->
   <script>
-    /* =====================================================================
-       STATE & CATALOG DATA (Synchronized with mobile/data/mockRecipes.ts)
-       ===================================================================== */
-    const CATALOG = [
-      {
-        id: 'rcp-1',
-        title: 'Salad Ayam Panggang & Alpukat',
-        category: 'Lunch',
-        calories: 420,
-        prepTimeMinutes: 15,
-        difficulty: 'Mudah',
-        estimatedCostIdr: 24000,
-        protein: 36,
-        carbs: 18,
-        fat: 22,
-        isPremium: false,
-        description: 'Dada ayam panggang rempah dengan irisan alpukat segar, tomat ceri, dan saus lemon zaitun.',
-        imageUrl: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80',
+    /* Global Application State */
+    const appState = {
+      viewMode: 'phone', // 'phone' | 'full'
+      activeTab: 'index', // Main Tabs: 'index' | 'meals' | 'recipes' | 'profile'
+      stackScreen: null, // Subpages: 'reminders' | 'analytics' | 'community' | 'recipe-detail' | 'meal-planner'
+      selectedRecipeId: 'parfait',
+      communityTab: 'feed',
+      
+      // Personalization
+      user: {
+        name: 'Daffa Pratama',
+        email: 'daffa@gmail.com',
+        initials: 'DP',
       },
-      {
-        id: 'rcp-2',
-        title: 'Oatmeal Pisang & Biji Chia',
-        category: 'Breakfast',
-        calories: 310,
-        prepTimeMinutes: 10,
-        difficulty: 'Mudah',
-        estimatedCostIdr: 14000,
-        protein: 12,
-        carbs: 48,
-        fat: 7,
-        isPremium: false,
-        description: 'Havermut hangat dimasak dengan susu rendah lemak, potongan pisang raja, dan taburan chia.',
-        imageUrl: 'https://images.unsplash.com/photo-1517673132405-a56a62b18caf?auto=format&fit=crop&w=600&q=80',
+      personalization: {
+        targetCalories: 2253,
+        targetProtein: 141,
+        targetCarbs: 282,
+        targetFat: 63,
+        weight: 68,
+        targetWeight: 65,
+        height: 172,
+        age: 24,
+        gender: 'Male',
+        goal: 'Lose weight',
       },
-      {
-        id: 'rcp-3',
-        title: 'Salmon Panggang & Brokoli Kukus',
-        category: 'Dinner',
-        calories: 480,
-        prepTimeMinutes: 20,
-        difficulty: 'Sedang',
-        estimatedCostIdr: 45000,
-        protein: 42,
-        carbs: 22,
-        fat: 24,
-        isPremium: true,
-        description: 'Fillet salmon kaya omega-3 dipanggang bawang putih, disajikan bersama nasi merah dan brokoli.',
-        imageUrl: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=600&q=80',
-      },
-      {
-        id: 'rcp-4',
-        title: 'Pepes Tahu & Tempe Kemangi',
-        category: 'Lunch',
-        calories: 290,
-        prepTimeMinutes: 25,
-        difficulty: 'Mudah',
-        estimatedCostIdr: 12000,
-        protein: 21,
-        carbs: 26,
-        fat: 11,
-        isPremium: false,
-        description: 'Olahan tahu dan tempe tumbuk dengan daun kemangi segar, dikukus dalam bungkus daun pisang.',
-        imageUrl: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=600&q=80',
-      },
-      {
-        id: 'rcp-5',
-        title: 'Yogurt Yunani & Buah Beri',
-        category: 'Snack',
-        calories: 180,
-        prepTimeMinutes: 5,
-        difficulty: 'Mudah',
-        estimatedCostIdr: 18000,
-        protein: 15,
-        carbs: 19,
-        fat: 4,
-        isPremium: false,
-        description: 'Greek yogurt kental tinggi protein dengan potongan stroberi segar dan sedikit madu.',
-        imageUrl: 'https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=600&q=80',
-      },
-      {
-        id: 'rcp-6',
-        title: 'Sup Bening Ikan Kakap & Oyong',
-        category: 'Dinner',
-        calories: 340,
-        prepTimeMinutes: 20,
-        difficulty: 'Mudah',
-        estimatedCostIdr: 28000,
-        protein: 34,
-        carbs: 24,
-        fat: 9,
-        isPremium: false,
-        description: 'Kuah kaldu jahe hangat dengan potongan ikan kakap segar, oyong, dan tomat merah.',
-        imageUrl: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=600&q=80',
-      },
-    ];
 
-    const CATEGORY_LABELS = {
-      Semua: 'Semua',
-      Breakfast: 'Sarapan',
-      Lunch: 'Makan siang',
-      Dinner: 'Makan malam',
-      Snack: 'Camilan',
-      Drink: 'Minuman',
-    };
+      // Daily Activity Tracker
+      activity: {
+        steps: 3200,
+        stepGoal: 6000,
+        waterGlasses: 4,
+        waterGoal: 8,
+      },
 
-    const MEAL_SLOTS = [
-      { id: 'Breakfast', label: 'Sarapan' },
-      { id: 'Lunch', label: 'Makan siang' },
-      { id: 'Dinner', label: 'Makan malam' },
-      { id: 'Snack', label: 'Camilan & minum' },
-    ];
-
-    const state = {
-      viewport: 'mobile', // 'mobile' | 'web'
-      activeTab: 'index', // 'index' | 'meals' | 'recipes' | 'profile'
-      targetCalories: 2253,
-      targetProtein: 141,
-      targetCarbs: 282,
-      targetFat: 63,
-      steps: 0, // Honest empty state until user adds steps (R-17 / R-38)
-      stepGoal: 6000,
-      mealSearch: '',
-      mealCategory: 'Semua',
-      mealBudget: 'all',
-      recipeSearch: '',
-      recipeCategory: 'Semua',
-      profileTab: 'list',
-      userName: 'Daffa Pratama',
-      weight: 68,
-      height: 172,
-      age: 24,
-      goalLabel: 'Gizi seimbang',
+      // Meal Jurnal Entries
       journal: [
         {
-          id: 'j-1',
-          mealId: 'rcp-2',
-          title: 'Oatmeal Pisang & Biji Chia',
+          id: 'log-1',
+          title: 'Oatmeal Pisang & Madu',
           category: 'Breakfast',
-          quantity: 1,
-          calories: 310,
+          calories: 340,
           protein: 12,
-          carbs: 48,
-          fat: 7,
-          imageUrl: 'https://images.unsplash.com/photo-1517673132405-a56a62b18caf?auto=format&fit=crop&w=600&q=80',
+          carbs: 58,
+          fat: 6,
+          time: '07:30',
         },
+        {
+          id: 'log-2',
+          title: 'Nasi Merah Dada Ayam Bakar',
+          category: 'Lunch',
+          calories: 520,
+          protein: 44,
+          carbs: 48,
+          fat: 11,
+          time: '12:45',
+        }
       ],
-      modalMeal: null,
-      modalPortion: 1,
-      modalCategory: 'Breakfast',
+
+      // Reminders (Alarm System)
+      reminders: {
+        masterEnabled: true,
+        waterReminderEnabled: true,
+        waterIntervalHours: 2,
+        morningWaterTime: '07:00',
+        morningWaterEnabled: true,
+        meals: [
+          { id: 'Breakfast', label: 'Sarapan Pagi', subtitle: 'Jaga energi awal hari & catat menu sarapan', time: '07:00', enabled: true },
+          { id: 'Lunch', label: 'Makan Siang', subtitle: 'Penuhi kebutuhan protein & karbohidrat siang', time: '12:30', enabled: true },
+          { id: 'Snack', label: 'Camilan Sore', subtitle: 'Opsi sehat buah atau camilan tinggi serat', time: '16:00', enabled: false },
+          { id: 'Dinner', label: 'Makan Malam', subtitle: 'Makan malam seimbang 2–3 jam sebelum tidur', time: '19:00', enabled: true },
+        ],
+        eveningJournalTime: '21:00',
+        eveningJournalEnabled: true,
+        weeklyWeightTime: '07:00',
+        weeklyWeightEnabled: true,
+      },
+
+      // Recipes Catalog
+      recipes: [
+        {
+          id: 'parfait',
+          title: 'Greek Yogurt Berry Bowl',
+          category: 'Breakfast',
+          calories: 320,
+          prepTimeMinutes: 10,
+          difficulty: 'Mudah',
+          imageUrl: 'https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=800&q=80',
+          description: 'Greek yogurt kaya probiotik dengan topping stroberi segar, blueberry, dan madu alami.',
+          price: 28000,
+          nutrition: { protein: 22, carbs: 38, fat: 6, fiber: 8 },
+          ingredients: ['200g Greek Yogurt non-fat', '100g Campuran stroberi & blueberry', '1 sdm Biji chia', '1 sdt Madu hutan'],
+          instructions: [
+            { step: 1, text: 'Cuci bersih semua buah beri segar, potong stroberi menjadi 4 bagian.', timer: 2 },
+            { step: 2, text: 'Tuang Greek yogurt ke dalam mangkuk saji.', timer: 1 },
+            { step: 3, text: 'Susun potongan beri dan taburkan chia seed serta madu di atasnya.', timer: 1 },
+          ]
+        },
+        {
+          id: 'avocado-toast',
+          title: 'Avocado Sourdough & Telur',
+          category: 'Breakfast',
+          calories: 385,
+          prepTimeMinutes: 12,
+          difficulty: 'Mudah',
+          imageUrl: 'https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=800&q=80',
+          description: 'Roti gandum sourdough renyah dengan lumat alpukat segar dan telur rebus setengah matang.',
+          price: 25000,
+          nutrition: { protein: 16, carbs: 34, fat: 21, fiber: 9 },
+          ingredients: ['2 lembar Roti Sourdough', '1 buah Alpukat matang', '1 butir Telur ayam kampung', 'Sejumput Garam laut & lada hitam'],
+          instructions: [
+            { step: 1, text: 'Panggang roti sourdough di atas pan hingga cokelat keemasan.', timer: 3 },
+            { step: 2, text: 'Rebus telur dalam air mendidih selama 6 menit untuk hasil setengah matang lembut.', timer: 6 },
+            { step: 3, text: 'Lumatkan alpukat dengan perasan lemon, oleskan ke atas roti, dan letakkan telur di atasnya.', timer: 2 },
+          ]
+        },
+        {
+          id: 'chicken-salad',
+          title: 'Salad Dada Ayam Panggang',
+          category: 'Lunch',
+          calories: 450,
+          prepTimeMinutes: 20,
+          difficulty: 'Sedang',
+          imageUrl: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80',
+          description: 'Dada ayam tanpa kulit dipanggang rempah dengan selada romaine, tomat ceri, dan dressing zaitun lemon.',
+          price: 32000,
+          nutrition: { protein: 42, carbs: 16, fat: 12, fiber: 6 },
+          ingredients: ['180g Dada ayam fillet', '100g Selada romaine', '6 butir Tomat ceri', '1 sdm Minyak zaitun extra virgin'],
+          instructions: [
+            { step: 1, text: 'Marinasi dada ayam dengan bawang putih cincang, oregano, garam, dan lada selama 10 menit.', timer: 10 },
+            { step: 2, text: 'Panggang ayam di wajan anti lengket selama 6-7 menit tiap sisi hingga matang sempurna.', timer: 7 },
+            { step: 3, text: 'Potong dada ayam dan sajikan di atas mangkuk selada segar dan tomat ceri.', timer: 2 },
+          ]
+        },
+        {
+          id: 'salmon-bowl',
+          title: 'Salmon Teriyaki Quinoa Bowl',
+          category: 'Dinner',
+          calories: 520,
+          prepTimeMinutes: 25,
+          difficulty: 'Sedang',
+          imageUrl: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=800&q=80',
+          description: 'Fillet salmon kaya Omega-3 dengan saus teriyaki rendah gula di atas quinoa hangat dan edamame.',
+          price: 48000,
+          nutrition: { protein: 38, carbs: 42, fat: 18, fiber: 7 },
+          ingredients: ['150g Fillet Salmon segar', '80g Quinoa matang', '50g Edamame kupas', '1 sdm Saus teriyaki low-sodium'],
+          instructions: [
+            { step: 1, text: 'Masak quinoa dengan perbandingan 1:2 air hingga mengembang pulen.', timer: 15 },
+            { step: 2, text: 'Panaskan pan, panggang salmon sisi kulit ke bawah selama 4 menit, lalu balik 3 menit.', timer: 7 },
+            { step: 3, text: 'Tata quinoa, edamame rebus, salmon, dan siramkan saus teriyaki hangat.', timer: 2 },
+          ]
+        }
+      ],
+
+      // Cooking Timer State
+      timerRunning: false,
+      timerSeconds: 600,
+      timerInterval: null,
+
+      // Time Picker Working Target
+      editingPickerKey: null,
+      pickerHour: 7,
+      pickerMinute: 0,
+      
+      // Temporary recipe image upload
+      tempUploadedImg: null,
     };
 
-    const fmt = (n) => Math.round(n).toLocaleString('id-ID');
+    /* Helper: Day Phase calculation */
+    function getDayPhase(timeStr) {
+      const h = parseInt(timeStr.split(':')[0] || '0', 10);
+      if (h >= 5 && h < 10) return { icon: 'sunrise', color: '#c77d0a', bg: '#fdf1dc', label: 'Pagi' };
+      if (h >= 10 && h < 15) return { icon: 'sun', color: '#d48a00', bg: '#fff4d6', label: 'Siang' };
+      if (h >= 15 && h < 18) return { icon: 'sun', color: '#c2601a', bg: '#fde9dc', label: 'Sore' };
+      return { icon: 'moon', color: '#4b55a8', bg: '#e9ebf8', label: 'Malam' };
+    }
 
-    function computeAggregates() {
-      const totalConsumed = state.journal.reduce((s, e) => s + e.calories, 0);
-      const totalProtein = state.journal.reduce((s, e) => s + e.protein, 0);
-      const totalCarbs = state.journal.reduce((s, e) => s + e.carbs, 0);
-      const totalFat = state.journal.reduce((s, e) => s + e.fat, 0);
-      const remainingCalories = state.targetCalories - totalConsumed;
-      const progressPercent = Math.min(100, Math.round((totalConsumed / state.targetCalories) * 100));
+    /* Helper: SVG Icons */
+    function renderIcon(name, size = 18, color = 'currentColor', strokeWidth = 2) {
+      const icons = {
+        home: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
+        utensils: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2v6a3 3 0 0 1-3 3 3 3 0 0 1-3-3V2"/><path d="M15 2v14a4 4 0 0 1-8 0V2"/><line x1="21" y1="15" x2="21" y2="22"/><line x1="18" y1="22" x2="22" y2="22"/></svg>`,
+        book: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`,
+        user: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
+        bell: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>`,
+        chart: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`,
+        flame: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>`,
+        droplet: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>`,
+        steps: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16v-2.38C4 11.5 6 9 9 9h6c3 0 5 2.5 5 4.62V16"/><path d="M9 9V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4"/><circle cx="8" cy="18" r="2"/><circle cx="16" cy="18" r="2"/></svg>`,
+        plus: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`,
+        arrowLeft: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>`,
+        arrowUpRight: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>`,
+        chevronRight: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`,
+        sunrise: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v6"/><path d="m4.93 10.93 4.24-4.24"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-4.24-4.24"/><path d="M22 22H2"/><path d="m8 6 4-4 4 4"/><path d="M16 18a4 4 0 0 0-8 0"/></svg>`,
+        sun: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`,
+        moon: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`,
+        apple: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.94c1.5 0 2.75 1.06 4 1.06 3 0 6-8 6-12.22A4.91 4.91 0 0 0 17 5c-2.22 0-4 1.44-5 2-1-.56-2.78-2-5-2a4.9 4.9 0 0 0-5 4.78C2 14 5 22 8 22c1.25 0 2.5-1.06 4-1.06Z"/><path d="M10 2c1 .5 2 2 2 5"/></svg>`,
+        crown: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/></svg>`,
+        trash: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>`,
+        edit: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`,
+        clock: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
+        calendar: `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,
+      };
+      return icons[name] || icons.bell;
+    }
+
+    /* Aggregates Calculation */
+    function getAggregates() {
+      const consumedKcal = appState.journal.reduce((sum, item) => sum + item.calories, 0);
+      const consumedProtein = appState.journal.reduce((sum, item) => sum + (item.protein || 0), 0);
+      const consumedCarbs = appState.journal.reduce((sum, item) => sum + (item.carbs || 0), 0);
+      const consumedFat = appState.journal.reduce((sum, item) => sum + (item.fat || 0), 0);
+      
+      const target = appState.personalization.targetCalories;
+      const remainingKcal = target - consumedKcal;
+      const progressPct = Math.min(100, Math.round((consumedKcal / target) * 100));
+
       return {
-        totalConsumed,
-        totalProtein,
-        totalCarbs,
-        totalFat,
-        remainingCalories,
-        progressPercent,
-        entryCount: state.journal.length,
+        consumedKcal,
+        consumedProtein,
+        consumedCarbs,
+        consumedFat,
+        target,
+        remainingKcal,
+        progressPct,
+        entryCount: appState.journal.length,
       };
     }
 
     /* =====================================================================
-       ICONS (Pure authored inline SVGs, zero decorative emoji)
+       SCREEN 1: BERANDA (HOME SCREEN - PERSIS mobile/app/(app)/(tabs)/index.tsx)
        ===================================================================== */
-    function slotIconSvg(slotId) {
-      if (slotId === 'Breakfast') {
-        return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#153e28" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" x2="6" y1="2" y2="4"/><line x1="10" x2="10" y1="2" y2="4"/><line x1="14" x2="14" y1="2" y2="4"/></svg>`;
-      }
-      if (slotId === 'Lunch') {
-        return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#153e28" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>`;
-      }
-      if (slotId === 'Dinner') {
-        return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#153e28" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>`;
-      }
-      return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#153e28" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.94c1.5 0 2.75 1.06 4 1.06 3 0 6-8 6-12.22A4.91 4.91 0 0 0 17 5c-2.22 0-4 1.44-5 2-1-.56-2.78-2-5-2a4.9 4.9 0 0 0-5 4.78C2 14 5 22 8 22c1.25 0 2.5-1.06 4-1.06Z"/><path d="M10 2c1 .5 2 2 2 5"/></svg>`;
-    }
+    function renderHomeScreen() {
+      const agg = getAggregates();
+      const p = appState.personalization;
+      const act = appState.activity;
 
-    function navIconSvg(tab, active) {
-      const color = active ? '#153e28' : '#6b736c';
-      if (tab === 'index') {
-        return `<svg width="20" height="20" viewBox="0 0 24 24" fill="${color}"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>`;
-      }
-      if (tab === 'meals') {
-        return `<svg width="20" height="20" viewBox="0 0 24 24" fill="${color}"><path d="M8.5 4.5v-3a.75.75 0 0 1 1.5 0v3a.75.75 0 0 1-1.5 0zm3.5 0v-3a.75.75 0 0 1 1.5 0v3a.75.75 0 0 1-1.5 0zm3.5 0v-3a.75.75 0 0 1 1.5 0v3a.75.75 0 0 1-1.5 0zm7.85 4.8l-1.85 1.4V8.5a1.5 1.5 0 0 0-1.5-1.5H4a1.5 1.5 0 0 0-1.5 1.5v2.2L.65 9.3a.75.75 0 0 0-.15.95l2.5 3.75v5.5A2.5 2.5 0 0 0 5.5 22h13a2.5 2.5 0 0 0 2.5-2.5V14l2.5-3.75a.75.75 0 0 0-.15-.95z"/></svg>`;
-      }
-      if (tab === 'recipes') {
-        return `<svg width="20" height="20" viewBox="0 0 24 24" fill="${color}"><path d="M19 2H6c-1.2 0-2 .8-2 2v16c0 1.2.8 2 2 2h13c.55 0 1-.45 1-1V3c0-.55-.45-1-1-1zm-1 18H6c-.55 0-1-.45-1-1s.45-1 1-1h12v2zm0-4H6V4h5v6l2-1.2 2 1.2V4h3v12z"/></svg>`;
-      }
-      return `<svg width="20" height="20" viewBox="0 0 24 24" fill="${color}"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm-7 18a7 7 0 0 1 14 0H5z"/></svg>`;
-    }
+      const waterPct = Math.min(100, Math.round((act.waterGlasses / act.waterGoal) * 100));
+      const stepsPct = Math.min(100, Math.round((act.steps / act.stepGoal) * 100));
+      const mealsPct = Math.min(100, Math.round((agg.entryCount / 4) * 100));
 
-    /* =====================================================================
-       SCREEN 1: BERANDA (HOME)
-       ===================================================================== */
-    function renderHomeScreen(isDesktopLayout) {
-      const agg = computeAggregates();
-      const isOver = agg.remainingCalories < 0;
-      const ringSize = 90;
-      const stroke = 8;
-      const radius = (ringSize - stroke) / 2;
-      const circumference = 2 * Math.PI * radius;
-      const dashOffset = circumference - (agg.progressPercent / 100) * circumference;
+      const isOver = agg.remainingKcal < 0;
 
-      const proteinPct = Math.min(100, Math.round((agg.totalProtein / state.targetProtein) * 100));
-      const carbsPct = Math.min(100, Math.round((agg.totalCarbs / state.targetCarbs) * 100));
-      const fatPct = Math.min(100, Math.round((agg.totalFat / state.targetFat) * 100));
-
-      const statusLine = agg.totalConsumed === 0
-        ? 'Belum ada catatan hari ini'
-        : isOver
-        ? `Lewat ${fmt(Math.abs(agg.remainingCalories))} kcal dari target`
-        : `${fmt(agg.totalConsumed)} dari ${fmt(state.targetCalories)} kcal tercatat`;
-
-      const stepsPct = Math.min(100, Math.round((state.steps / state.stepGoal) * 100));
-
-      const energyHubHtml = `
-        <div class="bg-white rounded-[22px] border border-[#ebe9e2] p-5">
-          <div class="flex items-center justify-between">
-            <div class="flex-1 pr-4 min-w-0">
-              <p class="text-[13px] font-medium text-neutral-muted">${isOver ? 'Kalori berlebih' : 'Kalori tersisa'}</p>
-              <div class="flex items-baseline mt-1">
-                <span class="text-[42px] leading-none font-black tabular-nums tracking-tight ${isOver ? 'text-[#b45309]' : 'text-neutral-dark'}">
-                  ${fmt(Math.abs(agg.remainingCalories))}
-                </span>
-                <span class="text-sm font-bold text-neutral-muted ml-1.5">kcal</span>
-              </div>
-              <p class="text-[13px] font-medium mt-2 tabular-nums ${isOver ? 'text-[#8a4106]' : 'text-neutral-muted'}">
-                ${statusLine}
-              </p>
-            </div>
-
-            <div class="relative flex items-center justify-center flex-shrink-0" style="width:${ringSize}px;height:${ringSize}px">
-              <svg width="${ringSize}" height="${ringSize}" style="transform: rotate(-90deg)">
-                <circle cx="${ringSize / 2}" cy="${ringSize / 2}" r="${radius}" stroke="#eef1ec" stroke-width="${stroke}" fill="none" />
-                <circle
-                  class="ring-progress"
-                  cx="${ringSize / 2}"
-                  cy="${ringSize / 2}"
-                  r="${radius}"
-                  stroke="${isOver ? '#b45309' : '#153e28'}"
-                  stroke-width="${stroke}"
-                  stroke-dasharray="${circumference} ${circumference}"
-                  stroke-dashoffset="${dashOffset}"
-                  stroke-linecap="round"
-                  fill="none"
-                />
-              </svg>
-              <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span class="text-base font-black text-neutral-dark tabular-nums">${agg.progressPercent}%</span>
-                <span class="text-[9px] font-medium text-neutral-muted">terpenuhi</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="h-px bg-[#f0eee8] my-4"></div>
-
-          <div class="grid grid-cols-3 gap-4">
-            <div>
-              <p class="text-xs font-medium text-neutral-muted">Protein</p>
-              <p class="text-[15px] font-bold text-neutral-dark mt-0.5 tabular-nums">
-                ${Math.round(agg.totalProtein)} <span class="text-xs font-medium text-neutral-muted">/ ${state.targetProtein} g</span>
-              </p>
-              <div class="w-full h-1 rounded-full bg-[#eef1ec] overflow-hidden mt-2">
-                <div class="bar-fill h-full rounded-full bg-[#153e28]" style="width:${proteinPct}%"></div>
-              </div>
-            </div>
-            <div>
-              <p class="text-xs font-medium text-neutral-muted">Karbo</p>
-              <p class="text-[15px] font-bold text-neutral-dark mt-0.5 tabular-nums">
-                ${Math.round(agg.totalCarbs)} <span class="text-xs font-medium text-neutral-muted">/ ${state.targetCarbs} g</span>
-              </p>
-              <div class="w-full h-1 rounded-full bg-[#eef1ec] overflow-hidden mt-2">
-                <div class="bar-fill h-full rounded-full bg-[#52796f]" style="width:${carbsPct}%"></div>
-              </div>
-            </div>
-            <div>
-              <p class="text-xs font-medium text-neutral-muted">Lemak</p>
-              <p class="text-[15px] font-bold text-neutral-dark mt-0.5 tabular-nums">
-                ${Math.round(agg.totalFat)} <span class="text-xs font-medium text-neutral-muted">/ ${state.targetFat} g</span>
-              </p>
-              <div class="w-full h-1 rounded-full bg-[#eef1ec] overflow-hidden mt-2">
-                <div class="bar-fill h-full rounded-full bg-[#b45309]" style="width:${fatPct}%"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
-
-      const actionsHtml = `
-        <div class="flex gap-2">
-          <button onclick="switchTab('meals')" class="press-btn flex-[1.4] h-12 rounded-2xl bg-primary text-white font-bold text-sm flex items-center justify-center gap-2">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg>
-            Catat makan
-          </button>
-          <button onclick="switchTab('recipes')" class="press-btn press-btn-secondary flex-1 h-12 rounded-2xl bg-white border border-[#ebe9e2] text-neutral-dark font-bold text-sm flex items-center justify-center gap-1.5">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#153e28" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-            Resep
-          </button>
-          <button onclick="openSlotQuickLog('Lunch')" class="press-btn press-btn-secondary flex-1 h-12 rounded-2xl bg-white border border-[#ebe9e2] text-neutral-dark font-bold text-sm flex items-center justify-center gap-1.5">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#153e28" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
-            Rencana
-          </button>
-        </div>
-      `;
-
-      const journalSlotsHtml = MEAL_SLOTS.map((slot, idx) => {
-        const entries = state.journal.filter((e) => e.category === slot.id);
-        const slotCalories = entries.reduce((s, e) => s + e.calories, 0);
-        const hasEntries = entries.length > 0;
-
-        const entriesHtml = entries.map((item) => `
-          <div class="flex items-center pl-[52px] pb-3">
-            <img src="${item.imageUrl}" alt="${item.title}" class="w-8 h-8 rounded-lg object-cover bg-[#f3f6f2]" />
-            <div class="flex-1 min-w-0 ml-2.5 mr-2">
-              <p class="text-[13px] font-semibold text-neutral-dark truncate">
-                ${item.quantity > 1 ? `${item.quantity}x ` : ''}${item.title}
-              </p>
-              <p class="text-[11px] font-medium text-neutral-muted tabular-nums">
-                ${item.calories} kcal · P ${item.protein} · K ${item.carbs} · L ${item.fat}
-              </p>
-            </div>
-            <button onclick="removeJournalEntry('${item.id}')" class="press-btn w-8 h-8 rounded-full flex items-center justify-center text-neutral-muted hover:bg-[#f4f3ee]" aria-label="Hapus ${item.title}">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5a625b" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
-            </button>
-          </div>
-        `).join('');
-
-        return `
-          <div class="${idx > 0 ? 'border-t border-[#f0eee8]' : ''}">
-            <div class="flex items-center py-3">
-              <div class="w-10 h-10 rounded-xl bg-[#f3f6f2] flex items-center justify-center flex-shrink-0">
-                ${slotIconSvg(slot.id)}
-              </div>
-              <div class="flex-1 min-w-0 ml-3 mr-2">
-                <p class="text-[15px] font-bold text-neutral-dark">${slot.label}</p>
-                <p class="text-xs font-medium text-neutral-muted mt-0.5 tabular-nums">
-                  ${hasEntries ? `${entries.length} menu · ${fmt(slotCalories)} kcal` : 'Belum dicatat'}
-                </p>
-              </div>
-              <button onclick="openSlotQuickLog('${slot.id}')" class="press-btn w-10 h-10 rounded-full border border-[#dfe6e0] flex items-center justify-center flex-shrink-0" aria-label="Catat ${slot.label}">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#153e28" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-              </button>
-            </div>
-            ${entriesHtml}
-          </div>
-        `;
-      }).join('');
-
-      const journalHtml = `
-        <div>
-          <div class="flex items-end justify-between mb-2.5 px-0.5">
-            <div>
-              <h2 class="text-[17px] font-bold text-neutral-dark tracking-tight">Jurnal hari ini</h2>
-              <p class="text-xs font-medium text-neutral-muted mt-0.5">
-                ${agg.entryCount === 0 ? 'Ketuk + di tiap waktu makan untuk mencatat' : `${agg.entryCount} makanan tercatat`}
-              </p>
-            </div>
-            <button onclick="switchTab('meals')" class="press-btn text-[13px] font-bold text-primary">Lihat menu</button>
-          </div>
-          <div class="bg-white rounded-[22px] border border-[#ebe9e2] px-4">
-            ${journalSlotsHtml}
-          </div>
-        </div>
-      `;
-
-      const activityHtml = `
-        <div>
-          <div class="mb-2.5 px-0.5">
-            <h2 class="text-[17px] font-bold text-neutral-dark tracking-tight">Aktivitas</h2>
-          </div>
-          <div class="px-0.5">
-            <div class="flex items-end justify-between">
-              <div class="flex items-baseline">
-                <span class="text-[28px] font-black text-neutral-dark leading-none tabular-nums tracking-tight">${fmt(state.steps)}</span>
-                <span class="text-[13px] font-medium text-neutral-muted ml-1.5 tabular-nums">/ ${fmt(state.stepGoal)} langkah</span>
-              </div>
-              <button onclick="addSteps(500)" class="press-btn press-btn-secondary h-10 px-4 rounded-full bg-white border border-[#dfe6e0] text-[13px] font-bold text-primary">
-                +500
-              </button>
-            </div>
-            <div class="w-full h-1.5 rounded-full bg-[#e9ede7] overflow-hidden mt-3">
-              <div class="bar-fill h-full rounded-full bg-primary" style="width:${stepsPct}%"></div>
-            </div>
-            <p class="text-xs font-medium text-neutral-muted mt-2">
-              ${state.steps === 0 ? 'Belum ada langkah tercatat. Tambah manual dengan +500.' : `${stepsPct}% dari target harian`}
-            </p>
-          </div>
-        </div>
-      `;
-
-      const planningHtml = `
-        <div>
-          <div class="mb-2.5 px-0.5">
-            <h2 class="text-[17px] font-bold text-neutral-dark tracking-tight">Rencanakan</h2>
-          </div>
-          <div class="border-t border-[#ebe9e2]">
-            <button onclick="switchTab('meals')" class="press-card w-full flex items-center py-3.5 border-b border-[#ebe9e2] text-left">
-              <div class="w-10 h-10 rounded-xl bg-primary-light flex items-center justify-center flex-shrink-0">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#153e28" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
-              </div>
-              <div class="flex-1 min-w-0 ml-3 mr-2">
-                <div class="flex items-center gap-2">
-                  <span class="text-[15px] font-bold text-neutral-dark">Rencana makan 7 hari</span>
-                  <span class="px-1.5 py-0.5 rounded-md bg-[#fdf3e3] text-[#8a4106] font-bold text-[10px]">Premium</span>
-                </div>
-                <p class="text-xs font-medium text-neutral-muted mt-0.5 truncate">Menu bergizi sesuai target dan budget</p>
-              </div>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8b938c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-            </button>
-
-            <button onclick="switchTab('profile')" class="press-card w-full flex items-center py-3.5 border-b border-[#ebe9e2] text-left">
-              <div class="w-10 h-10 rounded-xl bg-primary-light flex items-center justify-center flex-shrink-0">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#153e28" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><line x1="18" x2="18" y1="20" y2="10"/><line x1="12" x2="12" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="14"/></svg>
-              </div>
-              <div class="flex-1 min-w-0 ml-3 mr-2">
-                <div class="flex items-center gap-2">
-                  <span class="text-[15px] font-bold text-neutral-dark">Tren nutrisi</span>
-                  <span class="px-1.5 py-0.5 rounded-md bg-[#fdf3e3] text-[#8a4106] font-bold text-[10px]">Premium</span>
-                </div>
-                <p class="text-xs font-medium text-neutral-muted mt-0.5 truncate">Kalori dan makro 7 sampai 30 hari</p>
-              </div>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8b938c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-            </button>
-          </div>
-        </div>
-      `;
-
-      const inspirationCardsHtml = CATALOG.slice(0, 5).map((meal) => `
-        <div class="w-[196px] flex-shrink-0 bg-white rounded-2xl overflow-hidden border border-[#ebe9e2] flex flex-col justify-between">
-          <div onclick="openLogModal('${meal.id}')" class="press-card cursor-pointer">
-            <div class="h-[124px] w-full bg-[#f2f1ec]">
-              <img src="${meal.imageUrl}" alt="${meal.title}" class="w-full h-full object-cover" />
-            </div>
-            <div class="px-3.5 pt-3">
-              <p class="text-[11px] font-medium text-neutral-muted">${CATEGORY_LABELS[meal.category]} · ${meal.prepTimeMinutes} mnt</p>
-              <p class="text-[14px] font-bold text-neutral-dark leading-snug mt-0.5 truncate">${meal.title}</p>
-            </div>
-          </div>
-          <div class="px-3.5 pb-3 pt-2 flex items-center justify-between">
-            <span class="text-[13px] font-bold text-neutral-dark tabular-nums">${meal.calories} kcal</span>
-            <button onclick="openLogModal('${meal.id}')" class="press-btn w-8 h-8 rounded-full bg-primary flex items-center justify-center" aria-label="Catat ${meal.title}">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-            </button>
-          </div>
-        </div>
-      `).join('');
-
-      const inspirationHtml = `
-        <div>
-          <div class="flex items-end justify-between mb-2.5 px-0.5">
-            <h2 class="text-[17px] font-bold text-neutral-dark tracking-tight">Inspirasi menu</h2>
-            <button onclick="switchTab('recipes')" class="press-btn text-[13px] font-bold text-primary">Semua resep</button>
-          </div>
-          <div class="flex gap-3 overflow-x-auto no-scrollbar pb-1">
-            ${inspirationCardsHtml}
-          </div>
-        </div>
-      `;
-
-      const headerHtml = `
-        <div class="stagger-item stagger-1 flex items-center justify-between mb-5">
-          <div>
-            <p class="text-[13px] font-medium text-neutral-muted">Minggu, 8 November</p>
-            <h1 class="text-[26px] font-black text-neutral-dark tracking-tight mt-0.5">Selamat pagi, Daffa</h1>
-          </div>
-          <button onclick="switchTab('profile')" class="press-btn w-11 h-11 rounded-full bg-primary-light flex items-center justify-center text-sm font-bold text-primary" aria-label="Buka profil">
-            DP
-          </button>
-        </div>
-      `;
-
-      if (isDesktopLayout) {
-        return `
-          ${headerHtml}
-          <div class="grid grid-cols-12 gap-6 items-start">
-            <div class="col-span-7 space-y-6">
-              <div class="stagger-item stagger-2">${energyHubHtml}</div>
-              <div class="stagger-item stagger-3">${actionsHtml}</div>
-              <div class="stagger-item stagger-4">${inspirationHtml}</div>
-              <div class="stagger-item stagger-5">${planningHtml}</div>
-            </div>
-            <div class="col-span-5 space-y-6">
-              <div class="stagger-item stagger-3">${journalHtml}</div>
-              <div class="stagger-item stagger-4">${activityHtml}</div>
-            </div>
-          </div>
-        `;
-      }
-
-      return `
-        ${headerHtml}
-        <div class="space-y-3">
-          <div class="stagger-item stagger-2">${energyHubHtml}</div>
-          <div class="stagger-item stagger-3">${actionsHtml}</div>
-          <div class="stagger-item stagger-4 pt-3">${journalHtml}</div>
-          <div class="stagger-item stagger-5 pt-4">${activityHtml}</div>
-          <div class="stagger-item stagger-6 pt-4">${planningHtml}</div>
-          <div class="stagger-item stagger-6 pt-4">${inspirationHtml}</div>
-        </div>
-      `;
-    }
-
-    /* =====================================================================
-       SCREEN 2: MAKAN (MEALS CATALOGUE & LOGGING)
-       ===================================================================== */
-    function renderMealsScreen(isDesktopLayout) {
-      const agg = computeAggregates();
-      const slots = ['Semua', 'Breakfast', 'Lunch', 'Dinner', 'Snack'];
-      const budgets = [
-        { id: 'all', label: 'Semua harga', max: Infinity },
-        { id: '20', label: '≤ Rp 20rb', max: 20000 },
-        { id: '35', label: '≤ Rp 35rb', max: 35000 },
+      // Grouped entries per meal slot
+      const slots = [
+        { id: 'Breakfast', label: 'Sarapan', sub: 'Energi pagi', icon: 'sunrise', bg: '#fdf8ee', border: '#f3e3be', color: '#c77d0a' },
+        { id: 'Lunch', label: 'Makan siang', sub: 'Nutrisi utama', icon: 'sun', bg: '#f2faf5', border: '#cde8d8', color: '#0e7a52' },
+        { id: 'Dinner', label: 'Makan malam', sub: 'Menu hangat', icon: 'moon', bg: '#f4f6f8', border: '#dce2e8', color: '#4b55a8' },
+        { id: 'Snack', label: 'Camilan', sub: 'Selingan sehat', icon: 'apple', bg: '#f5f8f2', border: '#dce6d3', color: '#2e3a33' },
       ];
 
-      const selectedBudgetObj = budgets.find((b) => b.id === state.mealBudget) || budgets[0];
-      const q = state.mealSearch.trim().toLowerCase();
-
-      const filtered = CATALOG.filter((m) => {
-        const matchSearch = !q || m.title.toLowerCase().includes(q) || m.description.toLowerCase().includes(q);
-        const matchSlot = state.mealCategory === 'Semua' || m.category === state.mealCategory;
-        const matchBudget = m.estimatedCostIdr <= selectedBudgetObj.max;
-        return matchSearch && matchSlot && matchBudget;
-      });
-
-      const listHtml = filtered.length === 0 ? `
-        <div class="py-12 px-6 text-center">
-          <p class="text-base font-bold text-neutral-dark">Tidak ada menu yang cocok</p>
-          <p class="text-[13px] font-medium text-neutral-muted mt-1 mb-4">Kombinasi waktu makan dan filter harga ini belum punya menu.</p>
-          <button onclick="resetMealFilters()" class="press-btn h-10 px-5 rounded-full border border-[#dfe6e0] text-sm font-bold text-primary">
-            Hapus semua filter
-          </button>
-        </div>
-      ` : isDesktopLayout ? `
-        <div class="grid grid-cols-3 gap-4">
-          ${filtered.map((meal) => `
-            <div class="bg-white rounded-2xl overflow-hidden border border-[#ebe9e2] flex flex-col justify-between">
-              <div onclick="openLogModal('${meal.id}')" class="press-card cursor-pointer">
-                <div class="h-[140px] w-full bg-[#f2f1ec]">
-                  <img src="${meal.imageUrl}" alt="${meal.title}" class="w-full h-full object-cover" />
-                </div>
-                <div class="px-3.5 pt-3">
-                  <p class="text-[11px] font-medium text-neutral-muted">${CATEGORY_LABELS[meal.category]} · ${meal.prepTimeMinutes} mnt</p>
-                  <p class="text-[15px] font-bold text-neutral-dark leading-snug mt-0.5 truncate">${meal.title}</p>
-                  <p class="text-xs font-normal text-neutral-muted line-clamp-2 mt-1">${meal.description}</p>
-                </div>
+      return `
+        <!-- Minimalist Mobile Header -->
+        <header class="flex items-center justify-between gap-3 mb-4">
+          <div class="min-w-0 flex-1">
+            <p class="text-[12.5px] font-medium text-ink-muted capitalize">Sabtu, 14 November</p>
+            <h1 class="text-[28px] font-semibold text-ink tracking-tight leading-none mt-0.5">Hari ini</h1>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="switchTab('meals')" class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white shadow-sm pressable" aria-label="Catat makanan">
+              ${renderIcon('plus', 18, '#ffffff', 2.3)}
+            </button>
+            <button onclick="switchTab('profile')" class="w-10 h-10 rounded-full bg-card border border-line flex items-center justify-center pressable" aria-label="Buka profil">
+              <div class="w-[34px] h-[34px] rounded-full bg-primary-light flex items-center justify-center font-bold text-[11.5px] text-primary-text">
+                ${appState.user.initials}
               </div>
-              <div class="px-3.5 pb-3 pt-2.5 flex items-center justify-between">
-                <div class="tabular-nums">
-                  <span class="text-[13px] font-bold text-neutral-dark">${meal.calories} kcal</span>
-                  <span class="text-xs font-medium text-neutral-muted ml-1.5">Rp ${fmt(meal.estimatedCostIdr)}</span>
-                </div>
-                <button onclick="openLogModal('${meal.id}')" class="press-btn w-9 h-9 rounded-full bg-primary flex items-center justify-center" aria-label="Catat ${meal.title}">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-                </button>
+            </button>
+          </div>
+        </header>
+
+        <!-- 4-Ring Daily Progress Grid (2x2) -->
+        <div class="grid grid-cols-2 gap-2.5 mb-3.5">
+          <!-- Ring 1: Kalori Tersisa -->
+          <div onclick="navigateToStack('analytics')" class="bg-card border border-line rounded-[20px] p-3.5 shadow-surface pressable flex flex-col justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-[26px] h-[26px] rounded-full flex items-center justify-center ${isOver ? 'bg-[#fde2e2]' : 'bg-[#fde8e3]'}">
+                ${renderIcon('flame', 14, isOver ? '#b91c1c' : '#e04f38')}
+              </div>
+              <span class="text-[12px] font-semibold text-ink-muted truncate">${isOver ? 'Kcal lewat' : 'Kcal tersisa'}</span>
+            </div>
+            <div class="flex items-end justify-between mt-2.5">
+              <div>
+                <p class="text-[21px] font-black text-ink tabular-nums leading-none">${Math.abs(agg.remainingKcal).toLocaleString('id-ID')}</p>
+                <p class="text-[10px] font-medium text-ink-muted mt-0.5">Target ${p.targetCalories.toLocaleString('id-ID')} kcal</p>
+              </div>
+              <div class="relative w-11 h-11 flex items-center justify-center">
+                <svg class="w-11 h-11 -rotate-90" viewBox="0 0 36 36">
+                  <path class="text-[#fde8e3]" stroke-width="4" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                  <path class="${isOver ? 'text-[#b91c1c]' : 'text-[#e04f38]'}" stroke-width="4" stroke-dasharray="${agg.progressPct}, 100" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                </svg>
+                <span class="absolute text-[9.5px] font-bold ${isOver ? 'text-[#b91c1c]' : 'text-[#e04f38]'}">${agg.progressPct}%</span>
               </div>
             </div>
-          `).join('')}
+          </div>
+
+          <!-- Ring 2: Makanan Tercatat -->
+          <div onclick="switchTab('meals')" class="bg-card border border-line rounded-[20px] p-3.5 shadow-surface pressable flex flex-col justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-[26px] h-[26px] rounded-full flex items-center justify-center bg-[#f7ecd8]">
+                ${renderIcon('utensils', 14, '#d98218')}
+              </div>
+              <span class="text-[12px] font-semibold text-ink-muted truncate">Makanan</span>
+            </div>
+            <div class="flex items-end justify-between mt-2.5">
+              <div>
+                <p class="text-[21px] font-black text-ink tabular-nums leading-none">${agg.entryCount} <span class="text-xs text-ink-muted font-bold">menu</span></p>
+                <p class="text-[10px] font-medium text-ink-muted mt-0.5">${Math.min(4, agg.entryCount)}/4 waktu makan</p>
+              </div>
+              <div class="relative w-11 h-11 flex items-center justify-center">
+                <svg class="w-11 h-11 -rotate-90" viewBox="0 0 36 36">
+                  <path class="text-[#f7ecd8]" stroke-width="4" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                  <path class="text-[#d98218]" stroke-width="4" stroke-dasharray="${mealsPct}, 100" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                </svg>
+                <span class="absolute text-[9.5px] font-bold text-[#d98218]">${mealsPct}%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ring 3: Langkah -->
+          <div class="bg-card border border-line rounded-[20px] p-3.5 shadow-surface flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <div class="w-[26px] h-[26px] rounded-full flex items-center justify-center bg-[#dfece5]">
+                  ${renderIcon('steps', 14, '#0e7a52')}
+                </div>
+                <span class="text-[12px] font-semibold text-ink-muted">Langkah</span>
+              </div>
+              <button onclick="addDailySteps(500)" class="w-6 h-6 rounded-full bg-[#0e7a52] text-white flex items-center justify-center pressable shadow-sm" title="Tambah 500 langkah">
+                ${renderIcon('plus', 11, '#ffffff', 2.5)}
+              </button>
+            </div>
+            <div class="flex items-end justify-between mt-2.5">
+              <div>
+                <p class="text-[21px] font-black text-ink tabular-nums leading-none">${act.steps.toLocaleString('id-ID')}</p>
+                <p class="text-[10px] font-medium text-ink-muted mt-0.5">Target ${act.stepGoal.toLocaleString('id-ID')}</p>
+              </div>
+              <div class="relative w-11 h-11 flex items-center justify-center">
+                <svg class="w-11 h-11 -rotate-90" viewBox="0 0 36 36">
+                  <path class="text-[#dfece5]" stroke-width="4" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                  <path class="text-[#0e7a52]" stroke-width="4" stroke-dasharray="${stepsPct}, 100" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                </svg>
+                <span class="absolute text-[9.5px] font-bold text-[#0e7a52]">${stepsPct}%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ring 4: Air Minum -->
+          <div class="bg-card border border-line rounded-[20px] p-3.5 shadow-surface flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <div class="w-[26px] h-[26px] rounded-full flex items-center justify-center bg-[#dfeaf2]">
+                  ${renderIcon('droplet', 14, '#1e6f9f')}
+                </div>
+                <span class="text-[12px] font-semibold text-ink-muted">Air minum</span>
+              </div>
+              <button onclick="addDailyWater(1)" class="w-6 h-6 rounded-full bg-[#1e6f9f] text-white flex items-center justify-center pressable shadow-sm" title="Tambah 1 gelas air">
+                ${renderIcon('plus', 11, '#ffffff', 2.5)}
+              </button>
+            </div>
+            <div class="flex items-end justify-between mt-2.5">
+              <div>
+                <p class="text-[21px] font-black text-ink tabular-nums leading-none">${act.waterGlasses} <span class="text-xs text-ink-muted font-bold">gelas</span></p>
+                <p class="text-[10px] font-medium text-ink-muted mt-0.5">Target ${act.waterGoal} gelas (2L)</p>
+              </div>
+              <div class="relative w-11 h-11 flex items-center justify-center">
+                <svg class="w-11 h-11 -rotate-90" viewBox="0 0 36 36">
+                  <path class="text-[#dfeaf2]" stroke-width="4" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                  <path class="text-[#1e6f9f]" stroke-width="4" stroke-dasharray="${waterPct}, 100" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                </svg>
+                <span class="absolute text-[9.5px] font-bold text-[#1e6f9f]">${waterPct}%</span>
+              </div>
+            </div>
+          </div>
         </div>
-      ` : `
-        <div class="space-y-2.5">
-          ${filtered.map((meal) => `
-            <div class="w-full flex items-center bg-white rounded-2xl border border-[#ebe9e2] p-2.5">
-              <div onclick="openLogModal('${meal.id}')" class="press-card flex-1 flex items-center min-w-0 cursor-pointer">
-                <img src="${meal.imageUrl}" alt="${meal.title}" class="w-[72px] h-[72px] rounded-xl object-cover bg-[#f2f1ec] border border-black/[0.05] flex-shrink-0" />
-                <div class="flex-1 min-w-0 ml-3 mr-2">
-                  <p class="text-[11px] font-medium text-neutral-muted">${CATEGORY_LABELS[meal.category]} · ${meal.prepTimeMinutes} mnt</p>
-                  <p class="text-[15px] font-bold text-neutral-dark leading-snug mt-0.5 truncate">${meal.title}</p>
-                  <div class="mt-1 tabular-nums">
-                    <span class="text-[13px] font-bold text-neutral-dark">${meal.calories} kcal</span>
-                    <span class="text-xs font-medium text-neutral-muted ml-1.5">Rp ${fmt(meal.estimatedCostIdr)}</span>
-                  </div>
+
+        <!-- Energi & Makro Card (Surface) -->
+        <div class="bg-card border border-line rounded-[22px] p-4 shadow-surface mb-3.5">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h2 class="text-base font-semibold text-ink leading-none">Energi & makro</h2>
+              <p class="text-[12px] font-medium text-ink-muted mt-1">Target kalori & distribusi gizi harian</p>
+            </div>
+            <button onclick="navigateToStack('analytics')" class="w-8 h-8 rounded-full border border-line flex items-center justify-center pressable">
+              ${renderIcon('arrowUpRight', 15, '#121a16')}
+            </button>
+          </div>
+
+          <div class="flex items-center gap-4">
+            <!-- Donut Progress -->
+            <div class="relative w-28 h-28 flex items-center justify-center flex-shrink-0">
+              <svg class="w-28 h-28 -rotate-90" viewBox="0 0 36 36">
+                <path class="text-line-2" stroke-width="4.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                <path class="text-primary" stroke-width="4.5" stroke-dasharray="${agg.progressPct}, 100" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+              </svg>
+              <div class="absolute text-center">
+                <p class="text-[20px] font-black text-ink tabular-nums leading-none">${agg.consumedKcal.toLocaleString('id-ID')}</p>
+                <p class="text-[9.5px] font-bold text-ink-muted mt-0.5">dari ${p.targetCalories.toLocaleString('id-ID')}</p>
+              </div>
+            </div>
+
+            <!-- 3 Macro Progress Bars -->
+            <div class="flex-1 space-y-2.5">
+              <div>
+                <div class="flex justify-between text-[11.5px] font-semibold mb-1">
+                  <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-macro-protein"></span>Protein</span>
+                  <span class="tabular-nums text-ink">${agg.consumedProtein}<span class="text-ink-muted font-normal">/${p.targetProtein}g</span></span>
+                </div>
+                <div class="w-full h-1.5 bg-line rounded-full overflow-hidden">
+                  <div class="h-full bg-macro-protein rounded-full" style="width: ${Math.min(100, Math.round((agg.consumedProtein / p.targetProtein) * 100))}%"></div>
                 </div>
               </div>
-              <button onclick="openLogModal('${meal.id}')" class="press-btn w-9 h-9 rounded-full bg-primary flex items-center justify-center flex-shrink-0" aria-label="Catat ${meal.title}">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+
+              <div>
+                <div class="flex justify-between text-[11.5px] font-semibold mb-1">
+                  <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-macro-carbs"></span>Karbo</span>
+                  <span class="tabular-nums text-ink">${agg.consumedCarbs}<span class="text-ink-muted font-normal">/${p.targetCarbs}g</span></span>
+                </div>
+                <div class="w-full h-1.5 bg-line rounded-full overflow-hidden">
+                  <div class="h-full bg-macro-carbs rounded-full" style="width: ${Math.min(100, Math.round((agg.consumedCarbs / p.targetCarbs) * 100))}%"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-[11.5px] font-semibold mb-1">
+                  <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-macro-fat"></span>Lemak</span>
+                  <span class="tabular-nums text-ink">${agg.consumedFat}<span class="text-ink-muted font-normal">/${p.targetFat}g</span></span>
+                </div>
+                <div class="w-full h-1.5 bg-line rounded-full overflow-hidden">
+                  <div class="h-full bg-macro-fat rounded-full" style="width: ${Math.min(100, Math.round((agg.consumedFat / p.targetFat) * 100))}%"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between pt-3 mt-3 border-t border-line text-xs font-semibold">
+            <span class="text-ink-muted">${agg.progressPct}% target tercapai</span>
+            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold ${isOver ? 'bg-[#fde8e3] text-[#b91c1c]' : 'bg-primary-light text-primary-text'}">
+              ${isOver ? `Lewat ${Math.abs(agg.remainingKcal).toLocaleString('id-ID')} kcal` : `Sisa ${agg.remainingKcal.toLocaleString('id-ID')} kcal`}
+            </span>
+          </div>
+        </div>
+
+        <!-- Jurnal Hari Ini Card -->
+        <div class="bg-card border border-line rounded-[22px] p-4 shadow-surface mb-3.5">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h2 class="text-base font-semibold text-ink leading-none">Jurnal hari ini</h2>
+              <p class="text-[12px] font-medium text-ink-muted mt-1">${agg.entryCount} menu tercatat hari ini</p>
+            </div>
+            <button onclick="switchTab('meals')" class="w-8 h-8 rounded-full border border-line flex items-center justify-center pressable">
+              ${renderIcon('arrowUpRight', 15, '#121a16')}
+            </button>
+          </div>
+
+          <!-- 2x2 Meal Slot Grid -->
+          <div class="grid grid-cols-2 gap-2.5">
+            ${slots.map(s => {
+              const entriesInSlot = appState.journal.filter(j => j.category === s.id);
+              const slotKcal = entriesInSlot.reduce((sum, item) => sum + item.calories, 0);
+              return `
+                <div onclick="openQuickSlotLog('${s.id}')" class="rounded-[18px] border p-3 flex flex-col justify-between min-h-[88px] pressable" style="background-color: ${s.bg}; border-color: ${s.border};">
+                  <div class="flex items-center justify-between">
+                    <div class="w-7 h-7 rounded-full bg-white/80 flex items-center justify-center" style="color:${s.color}">
+                      ${renderIcon(s.icon, 15, s.color)}
+                    </div>
+                    <span class="text-[12px] font-bold text-ink tabular-nums">${slotKcal > 0 ? `${slotKcal} kcal` : '+ Catat'}</span>
+                  </div>
+                  <div class="mt-2">
+                    <p class="text-[13px] font-bold text-ink leading-tight">${s.label}</p>
+                    <p class="text-[11px] text-ink-muted leading-tight">${entriesInSlot.length > 0 ? `${entriesInSlot.length} menu` : s.sub}</p>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+
+        <!-- Quick Access Stack Rows -->
+        <div class="bg-card border border-line rounded-[22px] p-1 shadow-surface divide-y divide-line">
+          <div onclick="navigateToStack('reminders')" class="p-3 flex items-center justify-between pressable">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-full bg-primary-light flex items-center justify-center">
+                ${renderIcon('bell', 16, '#0e7a52')}
+              </div>
+              <div>
+                <p class="text-[13.5px] font-bold text-ink">Pengingat Minum & Jam Makan</p>
+                <p class="text-[11px] text-ink-muted">Alarm makan & target 8 gelas air</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-[#e0ede6] text-[#0e7a52]">Aktif</span>
+              ${renderIcon('chevronRight', 16, '#8a948e')}
+            </div>
+          </div>
+
+          <div onclick="navigateToStack('analytics')" class="p-3 flex items-center justify-between pressable">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-full bg-[#fdebd0] flex items-center justify-center">
+                ${renderIcon('chart', 16, '#8f4e00')}
+              </div>
+              <div>
+                <p class="text-[13.5px] font-bold text-ink">Monitoring & Target BB</p>
+                <p class="text-[11px] text-ink-muted">Tren nutrisi & progres selisih berat</p>
+              </div>
+            </div>
+            ${renderIcon('chevronRight', 16, '#8a948e')}
+          </div>
+
+          <div onclick="navigateToStack('community')" class="p-3 flex items-center justify-between pressable">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-full bg-[#e0e8f3] flex items-center justify-center">
+                ${renderIcon('user', 16, '#285c9c')}
+              </div>
+              <div>
+                <p class="text-[13.5px] font-bold text-ink">Komunitas & Ahli Gizi</p>
+                <p class="text-[11px] text-ink-muted">Diskusi, tanya dokter & edukasi</p>
+              </div>
+            </div>
+            ${renderIcon('chevronRight', 16, '#8a948e')}
+          </div>
+        </div>
+      `;
+    }
+
+    /* =====================================================================
+       SCREEN 2: MAKAN (MEALS CATALOG & LOG - PERSIS (tabs)/meals.tsx)
+       ===================================================================== */
+    function renderMealsScreen() {
+      return `
+        <!-- Meals Header -->
+        <header class="flex items-center justify-between gap-3 mb-4">
+          <div>
+            <h1 class="text-[28px] font-semibold text-ink tracking-tight leading-none">Makan</h1>
+            <p class="text-xs font-medium text-ink-muted mt-1">Pilih makanan dan catat ke jurnal harian</p>
+          </div>
+          <button onclick="openCreateRecipeModal()" class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white shadow-sm pressable" title="Tambah resep baru">
+            ${renderIcon('plus', 18, '#ffffff', 2.3)}
+          </button>
+        </header>
+
+        <!-- Search Bar -->
+        <div class="relative mb-3.5">
+          <input type="text" placeholder="Cari menu, misal ayam atau yogurt..." class="w-full h-11 pl-10 pr-4 bg-card border border-line rounded-full text-xs font-semibold text-ink outline-none focus:border-primary shadow-surface" />
+          <div class="absolute left-3.5 top-3 text-ink-muted">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </div>
+        </div>
+
+        <!-- Horizontal Meal Category Badges -->
+        <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1 mb-4">
+          <button class="px-3.5 py-1.5 rounded-full bg-ink text-white text-xs font-bold whitespace-nowrap pressable">Semua</button>
+          <button class="px-3.5 py-1.5 rounded-full bg-card border border-line text-ink text-xs font-bold whitespace-nowrap pressable">Sarapan</button>
+          <button class="px-3.5 py-1.5 rounded-full bg-card border border-line text-ink text-xs font-bold whitespace-nowrap pressable">Makan Siang</button>
+          <button class="px-3.5 py-1.5 rounded-full bg-card border border-line text-ink text-xs font-bold whitespace-nowrap pressable">Makan Malam</button>
+          <button class="px-3.5 py-1.5 rounded-full bg-card border border-line text-ink text-xs font-bold whitespace-nowrap pressable">Camilan</button>
+        </div>
+
+        <!-- Meals List (Row Layout persis MealCard.tsx) -->
+        <div class="space-y-2.5">
+          ${appState.recipes.map(r => `
+            <div class="w-full flex items-center bg-card rounded-[18px] border border-line p-2.5 pr-3 shadow-surface">
+              <div onclick="openRecipeDetail('${r.id}')" class="flex-1 flex items-center min-w-0 mr-2.5 cursor-pointer pressable">
+                <img src="${r.imageUrl}" alt="${r.title}" class="w-16 h-16 rounded-[13px] object-cover flex-shrink-0 border border-line bg-card-2" />
+                <div class="ml-3 min-w-0">
+                  <p class="text-[14px] font-bold text-ink leading-snug truncate">${r.title}</p>
+                  <p class="text-[12px] font-extrabold text-primary tabular-nums mt-0.5">${r.calories} kcal</p>
+                  <p class="text-[11px] font-medium text-ink-muted truncate">${r.category} · ${r.prepTimeMinutes} mnt · Rp ${r.price.toLocaleString('id-ID')}</p>
+                </div>
+              </div>
+              <button onclick="openMealLogModal('${r.id}')" class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center flex-shrink-0 pressable shadow-sm" title="Catat makanan ini">
+                ${renderIcon('plus', 14, '#ffffff', 2.5)}
               </button>
             </div>
           `).join('')}
         </div>
       `;
-
-      return `
-        <div class="stagger-item stagger-1 mb-4">
-          <h1 class="text-[26px] font-black text-neutral-dark tracking-tight">Catat makan</h1>
-          <p class="text-[13px] font-medium text-neutral-muted mt-0.5 tabular-nums">
-            ${fmt(agg.totalConsumed)} dari ${fmt(state.targetCalories)} kcal hari ini
-          </p>
-        </div>
-
-        <div class="stagger-item stagger-2">
-          <div class="flex items-center bg-white rounded-2xl px-3.5 h-12 border border-[#e3e1da] focus-within:border-primary">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#5a625b" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-            <input
-              type="text"
-              value="${state.mealSearch}"
-              oninput="updateMealSearch(this.value)"
-              placeholder="Cari menu, misal tempe atau oatmeal"
-              class="flex-1 ml-2.5 text-base font-medium text-neutral-dark bg-transparent outline-none"
-            />
-          </div>
-        </div>
-
-        <div class="stagger-item stagger-3 flex gap-2 overflow-x-auto no-scrollbar mt-3 pb-1">
-          ${slots.map((slot) => {
-            const active = state.mealCategory === slot;
-            return `<button onclick="setMealCategory('${slot}')" class="press-chip h-10 px-4 rounded-full text-[13px] flex-shrink-0 ${active ? 'bg-primary text-white font-bold' : 'bg-white border border-[#e3e1da] text-neutral-dark font-medium'}">${CATEGORY_LABELS[slot]}</button>`;
-          }).join('')}
-          <div class="w-px h-5 bg-[#e3e1da] self-center mx-1 flex-shrink-0"></div>
-          ${budgets.map((b) => {
-            const active = state.mealBudget === b.id;
-            return `<button onclick="setMealBudget('${b.id}')" class="press-chip h-10 px-4 rounded-full text-[13px] flex-shrink-0 ${active ? 'bg-primary text-white font-bold' : 'bg-white border border-[#e3e1da] text-neutral-dark font-medium'}">${b.label}</button>`;
-          }).join('')}
-        </div>
-
-        <div class="stagger-item stagger-4 flex items-center justify-between mt-5 mb-3 px-0.5">
-          <h2 class="text-[17px] font-bold text-neutral-dark">${state.mealCategory === 'Semua' ? 'Semua menu' : CATEGORY_LABELS[state.mealCategory]}</h2>
-          <span class="text-xs font-medium text-neutral-muted tabular-nums">${filtered.length} menu</span>
-        </div>
-
-        <div class="stagger-item stagger-5">
-          ${listHtml}
-        </div>
-
-        <p class="text-xs font-medium text-neutral-muted leading-relaxed mt-6 px-0.5">
-          Harga adalah perkiraan biaya bahan di pasar lokal, untuk membantu menyusun menu sesuai budget.
-        </p>
-      `;
     }
 
     /* =====================================================================
-       SCREEN 3: RESEP (RECIPES CATALOGUE)
+       SCREEN 3: RESEP (RECIPES SCREEN - PERSIS (tabs)/recipes.tsx)
        ===================================================================== */
-    function renderRecipesScreen(isDesktopLayout) {
-      const categories = ['Semua', 'Breakfast', 'Lunch', 'Dinner', 'Snack'];
-      const q = state.recipeSearch.trim().toLowerCase();
-      const filtered = CATALOG.filter((r) => {
-        const matchCat = state.recipeCategory === 'Semua' || r.category === state.recipeCategory;
-        const matchSearch = !q || r.title.toLowerCase().includes(q);
-        return matchCat && matchSearch;
-      });
-
+    function renderRecipesScreen() {
       return `
-        <div class="stagger-item stagger-1 flex items-end justify-between mb-4">
+        <!-- Recipes Header -->
+        <header class="flex items-center justify-between gap-3 mb-4">
           <div>
-            <h1 class="text-[26px] font-black text-neutral-dark tracking-tight">Resep sehat</h1>
-            <p class="text-[13px] font-medium text-neutral-muted mt-0.5">Takaran bahan jelas dan kalori terhitung per porsi</p>
+            <h1 class="text-[28px] font-semibold text-ink tracking-tight leading-none">Resep</h1>
+            <p class="text-xs font-medium text-ink-muted mt-1">Inspirasi menu sehat dengan timer memasak</p>
           </div>
-          <span class="text-xs font-bold text-primary tabular-nums">${CATALOG.length} resep</span>
-        </div>
+          <button onclick="openCreateRecipeModal()" class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white shadow-sm pressable" title="Tambah resep dari galeri">
+            ${renderIcon('plus', 18, '#ffffff', 2.3)}
+          </button>
+        </header>
 
-        <div class="stagger-item stagger-2">
-          <div class="flex items-center bg-white rounded-2xl px-3.5 h-12 border border-[#e3e1da] focus-within:border-primary">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#5a625b" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-            <input
-              type="text"
-              value="${state.recipeSearch}"
-              oninput="updateRecipeSearch(this.value)"
-              placeholder="Cari resep, misal salad, sup, atau salmon"
-              class="flex-1 ml-2.5 text-base font-medium text-neutral-dark bg-transparent outline-none"
-            />
+        <!-- Search Bar -->
+        <div class="relative mb-3.5">
+          <input type="text" placeholder="Cari resep atau bahan..." class="w-full h-11 pl-10 pr-4 bg-card border border-line rounded-full text-xs font-semibold text-ink outline-none focus:border-primary shadow-surface" />
+          <div class="absolute left-3.5 top-3 text-ink-muted">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           </div>
         </div>
 
-        <div class="stagger-item stagger-3 flex gap-2 overflow-x-auto no-scrollbar mt-3 pb-1">
-          ${categories.map((cat) => {
-            const active = state.recipeCategory === cat;
-            return `<button onclick="setRecipeCategory('${cat}')" class="press-chip h-10 px-4 rounded-full text-[13px] flex-shrink-0 ${active ? 'bg-primary text-white font-bold' : 'bg-white border border-[#e3e1da] text-neutral-dark font-medium'}">${CATEGORY_LABELS[cat]}</button>`;
-          }).join('')}
-        </div>
-
-        <div class="stagger-item stagger-4 mt-5 grid ${isDesktopLayout ? 'grid-cols-3' : 'grid-cols-1 sm:grid-cols-2'} gap-4">
-          ${filtered.map((r) => `
-            <div onclick="openLogModal('${r.id}')" class="press-card bg-white rounded-2xl border border-[#ebe9e2] overflow-hidden cursor-pointer">
-              <div class="h-[150px] w-full bg-[#f2f1ec] relative">
+        <!-- Recipe Cards Grid -->
+        <div class="grid grid-cols-2 gap-3">
+          ${appState.recipes.map(r => `
+            <div onclick="openRecipeDetail('${r.id}')" class="bg-card border border-line rounded-[20px] overflow-hidden shadow-surface pressable flex flex-col justify-between">
+              <div class="w-full h-28 bg-card-2 relative overflow-hidden">
                 <img src="${r.imageUrl}" alt="${r.title}" class="w-full h-full object-cover" />
-                ${r.isPremium ? `
-                  <div class="absolute top-2.5 left-2.5 bg-white px-2 py-1 rounded-md flex items-center gap-1">
-                    <span class="text-[10px] font-bold text-[#8a4106]">Premium</span>
-                  </div>
-                ` : ''}
+                <span class="absolute top-2 right-2 px-2 py-0.5 rounded-full text-[10px] font-bold bg-black/60 text-white backdrop-blur-sm">${r.prepTimeMinutes}m</span>
               </div>
-              <div class="px-3.5 pt-3 pb-3.5">
-                <p class="text-[11px] font-medium text-neutral-muted">${CATEGORY_LABELS[r.category]} · ${r.prepTimeMinutes} mnt · ${r.difficulty}</p>
-                <p class="text-[15px] font-bold text-neutral-dark leading-snug mt-0.5">${r.title}</p>
-                <p class="text-[13px] font-bold text-primary mt-1.5 tabular-nums">${r.calories} kcal</p>
+              <div class="p-3">
+                <p class="text-[13px] font-bold text-ink leading-tight line-clamp-2">${r.title}</p>
+                <div class="flex items-center justify-between mt-2 pt-1.5 border-t border-line text-[11px] font-bold">
+                  <span class="text-primary tabular-nums">${r.calories} kcal</span>
+                  <span class="text-ink-muted font-medium">${r.difficulty}</span>
+                </div>
               </div>
             </div>
           `).join('')}
@@ -1006,85 +1079,393 @@
     }
 
     /* =====================================================================
-       SCREEN 4: PROFIL & TARGET
+       SCREEN 4: PROFIL (PROFILE & SETTINGS - PERSIS (tabs)/profile.tsx)
        ===================================================================== */
-    function renderProfileScreen(isDesktopLayout) {
+    function renderProfileScreen() {
+      const p = appState.personalization;
+      const u = appState.user;
+
       return `
-        <div class="stagger-item stagger-1 flex items-center justify-between mb-5">
-          <div>
-            <h1 class="text-[26px] font-black text-neutral-dark tracking-tight">Profil & target</h1>
-            <p class="text-[13px] font-medium text-neutral-muted mt-0.5">Kalibrasi kebutuhan energi dan preferensi makan</p>
-          </div>
-          <button onclick="openTokensModal()" class="press-btn px-3.5 h-10 rounded-full bg-white border border-[#e3e1da] text-xs font-bold text-primary">
-            Token Desain
+        <!-- Minimalist Header -->
+        <header class="flex items-center justify-between mb-4">
+          <h1 class="text-[28px] font-semibold text-ink tracking-tight leading-none">Profil</h1>
+          <button onclick="openEditProfileModal()" class="w-9 h-9 rounded-full bg-card border border-line flex items-center justify-center pressable shadow-surface" title="Ubah target">
+            ${renderIcon('edit', 16, '#121a16')}
           </button>
+        </header>
+
+        <!-- 1. Minimalist Identity & Core Metrics Card -->
+        <div class="bg-card border border-line rounded-[24px] p-4 shadow-surface mb-3.5">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-13 h-13 rounded-full bg-primary-light flex items-center justify-center font-bold text-base text-primary-text border border-primary/20">
+                ${u.initials}
+              </div>
+              <div>
+                <p class="text-[17px] font-bold text-ink leading-tight">${u.name}</p>
+                <p class="text-[12px] font-medium text-ink-muted">${u.email}</p>
+              </div>
+            </div>
+            <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-primary-light text-primary-text">Gratis</span>
+          </div>
+
+          <!-- Clean 2x2 Minimalist Personalization Grid (Zero Text Truncation) -->
+          <div onclick="openEditProfileModal()" class="bg-card-2 border border-line rounded-[18px] p-3.5 mt-3.5 pressable">
+            <div class="flex items-center">
+              <div class="flex-1 pr-3">
+                <span class="text-[11px] font-medium text-ink-muted block">Target energi</span>
+                <span class="text-[15px] font-extrabold text-ink tabular-nums mt-0.5 block">${p.targetCalories.toLocaleString('id-ID')} <span class="text-xs text-ink-muted font-semibold">kcal</span></span>
+              </div>
+              <div class="w-px h-8 bg-line"></div>
+              <div class="flex-1 pl-3.5">
+                <span class="text-[11px] font-medium text-ink-muted block">Fokus utama</span>
+                <span class="text-[14px] font-extrabold text-ink mt-0.5 block">${p.goal === 'Lose weight' ? 'Turun berat' : 'Gizi seimbang'}</span>
+              </div>
+            </div>
+
+            <div class="h-px bg-line my-3"></div>
+
+            <div class="flex items-center">
+              <div class="flex-1 pr-3">
+                <span class="text-[11px] font-medium text-ink-muted block">Berat & target BB</span>
+                <span class="text-[14px] font-extrabold text-ink tabular-nums mt-0.5 block">${p.weight} → ${p.targetWeight} kg</span>
+              </div>
+              <div class="w-px h-8 bg-line"></div>
+              <div class="flex-1 pl-3.5">
+                <span class="text-[11px] font-medium text-ink-muted block">Profil fisik</span>
+                <span class="text-[14px] font-extrabold text-ink tabular-nums mt-0.5 block">${p.height} cm · ${p.age} thn</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Clean 3-Column Macro Target Pills -->
+          <div class="mt-3">
+            <span class="text-[11.5px] font-medium text-ink-muted block mb-1.5 px-0.5">Target makro harian</span>
+            <div class="flex gap-2">
+              <div class="flex-1 bg-card-2 border border-line rounded-[13px] px-2.5 py-1.5 flex items-center justify-between">
+                <span class="text-[11px] font-semibold text-ink-muted flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-macro-protein"></span>Prot</span>
+                <span class="text-xs font-bold text-ink tabular-nums">${p.targetProtein}g</span>
+              </div>
+              <div class="flex-1 bg-card-2 border border-line rounded-[13px] px-2.5 py-1.5 flex items-center justify-between">
+                <span class="text-[11px] font-semibold text-ink-muted flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-macro-carbs"></span>Karbo</span>
+                <span class="text-xs font-bold text-ink tabular-nums">${p.targetCarbs}g</span>
+              </div>
+              <div class="flex-1 bg-card-2 border border-line rounded-[13px] px-2.5 py-1.5 flex items-center justify-between">
+                <span class="text-[11px] font-semibold text-ink-muted flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-macro-fat"></span>Lemak</span>
+                <span class="text-xs font-bold text-ink tabular-nums">${p.targetFat}g</span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div class="${isDesktopLayout ? 'grid grid-cols-12 gap-6 items-start' : 'space-y-5'}">
-          <div class="${isDesktopLayout ? 'col-span-5 space-y-5' : 'space-y-5'}">
-            <div class="stagger-item stagger-2 bg-white p-5 rounded-[22px] border border-[#ebe9e2]">
-              <div class="flex items-center">
-                <div class="w-14 h-14 rounded-full bg-primary-light flex items-center justify-center text-lg font-black text-primary mr-3.5">
-                  DP
-                </div>
-                <div>
-                  <p class="text-xl font-black text-neutral-dark tracking-tight">${state.userName}</p>
-                  <p class="text-xs font-medium text-neutral-muted mt-0.5">Akun tersimpan di perangkat</p>
-                </div>
+        <!-- 2. Settings Group ListRows (PERSIS DENGAN GAMBAR USER) -->
+        <div class="bg-card border border-line rounded-[24px] divide-y divide-line shadow-surface">
+          <!-- Gambar 1: Pengingat Minum & Jam Makan dengan pill lencana Aktif -->
+          <div onclick="navigateToStack('reminders')" class="p-3.5 flex items-center justify-between pressable">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-full bg-card-2 border border-line flex items-center justify-center flex-shrink-0">
+                ${renderIcon('bell', 17, '#0e7a52')}
               </div>
-              <div class="h-px bg-[#f0eee8] my-4"></div>
-              <div class="flex items-center justify-between">
-                <div>
-                  <p class="text-xs font-medium text-neutral-muted">Target harian</p>
-                  <p class="text-xl font-black text-primary mt-0.5 tabular-nums">${fmt(state.targetCalories)} kcal</p>
-                </div>
-                <div class="text-right">
-                  <p class="text-xs font-medium text-neutral-muted">Fokus</p>
-                  <p class="text-sm font-bold text-neutral-dark mt-0.5">${state.goalLabel}</p>
-                </div>
+              <div>
+                <p class="text-[14px] font-bold text-ink">Pengingat minum & jam makan</p>
+                <p class="text-[11.5px] font-medium text-ink-muted">Notifikasi harian untuk target 8 gelas air & waktu makan</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <span class="px-2.5 py-1 rounded-full text-xs font-bold ${appState.reminders.masterEnabled ? 'bg-[#e0ede6] text-[#0e7a52]' : 'bg-card-2 text-ink-muted'} flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full ${appState.reminders.masterEnabled ? 'bg-[#0e7a52]' : 'bg-[#9aa39e]'}"></span>
+                ${appState.reminders.masterEnabled ? 'Aktif' : 'Nonaktif'}
+              </span>
+              ${renderIcon('chevronRight', 16, '#7d8781')}
+            </div>
+          </div>
+
+          <div onclick="navigateToStack('analytics')" class="p-3.5 flex items-center justify-between pressable">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-full bg-primary-light flex items-center justify-center flex-shrink-0">
+                ${renderIcon('chart', 17, '#0e7a52')}
+              </div>
+              <div>
+                <p class="text-[14px] font-bold text-ink">Monitoring & analitik nutrisi</p>
+                <p class="text-[11.5px] font-medium text-ink-muted">Statistik berat badan, histori menu & progres kalori</p>
+              </div>
+            </div>
+            ${renderIcon('chevronRight', 16, '#7d8781')}
+          </div>
+
+          <div onclick="navigateToStack('community')" class="p-3.5 flex items-center justify-between pressable">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-full bg-primary-light flex items-center justify-center flex-shrink-0">
+                ${renderIcon('user', 17, '#0e7a52')}
+              </div>
+              <div>
+                <p class="text-[14px] font-bold text-ink">Komunitas & konsultasi gizi</p>
+                <p class="text-[11.5px] font-medium text-ink-muted">Postingan, tanya jawab ahli gizi & artikel kesehatan</p>
+              </div>
+            </div>
+            ${renderIcon('chevronRight', 16, '#7d8781')}
+          </div>
+
+          <div onclick="openEditProfileModal()" class="p-3.5 flex items-center justify-between pressable">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-full bg-card-2 border border-line flex items-center justify-center flex-shrink-0">
+                ${renderIcon('crown', 17, '#8f4e00')}
+              </div>
+              <div>
+                <p class="text-[14px] font-bold text-ink">Kalibrasi ulang personalisasi</p>
+                <p class="text-[11.5px] font-medium text-ink-muted">Hitung ulang target berdasarkan tujuan baru</p>
+              </div>
+            </div>
+            ${renderIcon('chevronRight', 16, '#7d8781')}
+          </div>
+
+          <div onclick="resetAllData()" class="p-3.5 flex items-center justify-between pressable text-red-600">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-full bg-red-50 flex items-center justify-center flex-shrink-0 text-red-600">
+                ${renderIcon('trash', 17, '#dc2626')}
+              </div>
+              <div>
+                <p class="text-[14px] font-bold text-red-600">Reset data jurnal</p>
+                <p class="text-[11.5px] font-medium text-red-400">Hapus catatan hari ini ke kondisi awal</p>
+              </div>
+            </div>
+            ${renderIcon('chevronRight', 16, '#dc2626')}
+          </div>
+        </div>
+      `;
+    }
+
+    /* =====================================================================
+       STACK SCREEN 1: PENGINGAT (PERSIS mobile/app/(app)/reminders.tsx)
+       DENGAN IKON MATAHARI & BULAN, TOGGLE SWITCH, DAN RODA GESER JAM
+       ===================================================================== */
+    function renderRemindersStack() {
+      const r = appState.reminders;
+      const isMasterOn = r.masterEnabled;
+      const activeCount = isMasterOn ? (r.waterReminderEnabled ? 1 : 0) + (r.morningWaterEnabled ? 1 : 0) + r.meals.filter(m => m.enabled).length : 0;
+
+      return `
+        <!-- Header with Back Button (PERSIS mobile Header.tsx) -->
+        <header class="w-full pt-1 pb-3 flex items-center justify-between min-h-[44px] gap-3">
+          <button onclick="navigateBack()" class="w-10 h-10 rounded-full bg-card border border-line flex items-center justify-center pressable shadow-surface" aria-label="Kembali">
+            ${renderIcon('arrowLeft', 18, '#121a16')}
+          </button>
+          <div class="flex-1 min-w-0">
+            <h1 class="text-[19px] font-semibold text-ink leading-tight">Pengingat</h1>
+            <p class="text-[12.5px] font-medium text-ink-muted mt-0.5">Jadwal minum air & jam makan harian</p>
+          </div>
+          <span class="px-2.5 py-1 rounded-full text-xs font-bold ${activeCount > 0 ? 'bg-[#e0ede6] text-[#0e7a52]' : 'bg-card-2 text-ink-muted'}">
+            ${activeCount > 0 ? `${activeCount} aktif` : 'Nonaktif'}
+          </span>
+        </header>
+
+        <div class="space-y-3.5">
+          <!-- Master Switch Card -->
+          <div class="bg-card border border-line rounded-[22px] p-4 shadow-surface flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-full ${isMasterOn ? 'bg-primary-light text-primary-text' : 'bg-card-2 text-ink-muted border border-line'} flex items-center justify-center">
+                ${renderIcon('bell', 17, isMasterOn ? '#0e7a52' : '#8a948e')}
+              </div>
+              <div>
+                <p class="text-[15px] font-semibold text-ink">Semua pengingat</p>
+                <p class="text-[12.5px] font-medium text-ink-muted mt-0.5">${isMasterOn ? 'Ketuk jam untuk mengubah waktu' : 'Semua notifikasi dijeda'}</p>
+              </div>
+            </div>
+            <!-- Native Reanimated Toggle Switch (Pill) -->
+            <button onclick="toggleReminderMaster()" class="w-12 h-7 rounded-full p-1 transition-colors pressable ${isMasterOn ? 'bg-primary' : 'bg-[#c6d0ca]'}" aria-label="Sakelar master">
+              <div class="w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${isMasterOn ? 'translate-x-5' : 'translate-x-0'}"></div>
+            </button>
+          </div>
+
+          <!-- Hydration Card -->
+          <div class="bg-card border border-line rounded-[22px] p-4 shadow-surface" style="opacity: ${isMasterOn ? 1 : 0.6}">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <h2 class="text-base font-semibold text-ink leading-none">Air minum</h2>
+                <p class="text-[12.5px] font-medium text-ink-muted mt-1">Target 8 gelas · 07:00–21:00 WIB</p>
               </div>
             </div>
 
-            <div class="stagger-item stagger-3">
-              <div class="flex items-end justify-between mb-2.5 px-0.5">
-                <h2 class="text-[17px] font-bold text-neutral-dark tracking-tight">Biometrik & metabolisme</h2>
+            <!-- Minum Berkala Row -->
+            <div class="py-3 flex items-center justify-between border-t border-line">
+              <div>
+                <p class="text-[14px] font-semibold ${isMasterOn && r.waterReminderEnabled ? 'text-ink' : 'text-ink-muted'}">Minum berkala</p>
+                <p class="text-[12px] font-medium text-ink-muted mt-0.5">1 gelas (250 ml) setiap ${r.waterIntervalHours} jam</p>
               </div>
-              <div class="bg-white rounded-[22px] border border-[#ebe9e2] px-4 py-1">
-                <div class="flex items-center justify-between py-3">
-                  <span class="text-[13px] font-medium text-neutral-muted">Berat badan</span>
-                  <span class="text-[14px] font-bold text-neutral-dark tabular-nums">${state.weight} kg</span>
+              <button onclick="toggleWaterReminder()" class="w-12 h-7 rounded-full p-1 transition-colors pressable ${isMasterOn && r.waterReminderEnabled ? 'bg-[#1e6f9f]' : 'bg-[#c6d0ca]'}" aria-label="Sakelar air">
+                <div class="w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${isMasterOn && r.waterReminderEnabled ? 'translate-x-5' : 'translate-x-0'}"></div>
+              </button>
+            </div>
+
+            <!-- Segmented Interval (1 Jam, 2 Jam, 3 Jam) -->
+            ${isMasterOn && r.waterReminderEnabled ? `
+              <div class="flex bg-card-2 p-1 rounded-full border border-line mb-3">
+                <button onclick="setWaterInterval(1)" class="flex-1 py-1 rounded-full text-xs font-bold transition-all ${r.waterIntervalHours === 1 ? 'bg-card text-ink shadow-sm' : 'text-ink-muted'}">1 jam</button>
+                <button onclick="setWaterInterval(2)" class="flex-1 py-1 rounded-full text-xs font-bold transition-all ${r.waterIntervalHours === 2 ? 'bg-card text-ink shadow-sm' : 'text-ink-muted'}">2 jam</button>
+                <button onclick="setWaterInterval(3)" class="flex-1 py-1 rounded-full text-xs font-bold transition-all ${r.waterIntervalHours === 3 ? 'bg-card text-ink shadow-sm' : 'text-ink-muted'}">3 jam</button>
+              </div>
+            ` : ''}
+
+            <!-- Bangun Tidur Row -->
+            <div class="pt-3 flex items-center justify-between border-t border-line">
+              <div onclick="openTimePickerModal('morningWater', 'Bangun Tidur', '${r.morningWaterTime}')" class="flex-1 flex items-center gap-3 pressable">
+                <div class="w-11 h-11 rounded-full flex items-center justify-center bg-[#fdf1dc]">
+                  ${renderIcon('sunrise', 20, '#c77d0a')}
                 </div>
-                <div class="flex items-center justify-between py-3 border-t border-[#f0eee8]">
-                  <span class="text-[13px] font-medium text-neutral-muted">Tinggi badan</span>
-                  <span class="text-[14px] font-bold text-neutral-dark tabular-nums">${state.height} cm</span>
+                <div>
+                  <div class="flex items-baseline gap-1.5">
+                    <span class="text-[28px] font-semibold tracking-tight text-ink tabular-nums leading-none">${r.morningWaterTime}</span>
+                    <span class="text-xs font-semibold text-ink-muted">WIB</span>
+                  </div>
+                  <p class="text-[14px] font-semibold text-ink mt-0.5">Bangun tidur</p>
+                  <p class="text-[12px] font-medium text-ink-muted">Segelas air untuk awali pagi</p>
                 </div>
-                <div class="flex items-center justify-between py-3 border-t border-[#f0eee8]">
-                  <span class="text-[13px] font-medium text-neutral-muted">Usia & jenis kelamin</span>
-                  <span class="text-[14px] font-bold text-neutral-dark tabular-nums">${state.age} thn · Laki-laki</span>
+              </div>
+              <button onclick="toggleMorningWater()" class="w-12 h-7 rounded-full p-1 transition-colors pressable ${isMasterOn && r.morningWaterEnabled ? 'bg-[#1e6f9f]' : 'bg-[#c6d0ca]'}">
+                <div class="w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${isMasterOn && r.morningWaterEnabled ? 'translate-x-5' : 'translate-x-0'}"></div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Jam Makan Card (PERSIS SEPERTI GAMBAR 4 USER) -->
+          <div class="bg-card border border-line rounded-[22px] p-4 shadow-surface" style="opacity: ${isMasterOn ? 1 : 0.6}">
+            <div class="mb-3">
+              <h2 class="text-base font-semibold text-ink leading-none">Jam makan</h2>
+              <p class="text-[12.5px] font-medium text-ink-muted mt-1">Pengingat makan & catat jurnal</p>
+            </div>
+
+            <!-- Alarm Rows -->
+            <div class="divide-y divide-line">
+              ${r.meals.map(m => {
+                const phase = getDayPhase(m.time);
+                const active = isMasterOn && m.enabled;
+                return `
+                  <div class="py-3.5 flex items-center justify-between">
+                    <div onclick="openTimePickerModal('meal-${m.id}', '${m.label}', '${m.time}')" class="flex-1 flex items-center gap-3 pressable min-w-0 pr-3">
+                      <!-- Dynamic Sun/Moon Icon matching time -->
+                      <div class="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0" style="background-color: ${active ? phase.bg : '#eef1ef'}">
+                        ${renderIcon(phase.icon, 20, active ? phase.color : '#9aa39e')}
+                      </div>
+                      <div class="min-w-0">
+                        <div class="flex items-baseline gap-1.5">
+                          <span class="text-[30px] font-semibold tracking-tight tabular-nums leading-none ${active ? 'text-ink' : 'text-ink-muted'}">${m.time}</span>
+                          <span class="text-xs font-semibold text-ink-muted">WIB</span>
+                          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold" style="background-color:${phase.bg}; color:${phase.color}">${phase.label}</span>
+                        </div>
+                        <p class="text-[14px] font-semibold mt-0.5 ${active ? 'text-ink' : 'text-ink-muted'}">${m.label}</p>
+                        <p class="text-[12px] font-medium text-ink-muted truncate">${m.subtitle}</p>
+                      </div>
+                    </div>
+
+                    <!-- Toggle Switch -->
+                    <button onclick="toggleMealSlot('${m.id}')" class="w-12 h-7 rounded-full p-1 transition-colors pressable flex-shrink-0 ${active ? 'bg-primary' : 'bg-[#c6d0ca]'}" aria-label="Sakelar ${m.label}">
+                      <div class="w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${active ? 'translate-x-5' : 'translate-x-0'}"></div>
+                    </button>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <!-- Evaluasi Card -->
+          <div class="bg-card border border-line rounded-[22px] p-4 shadow-surface" style="opacity: ${isMasterOn ? 1 : 0.6}">
+            <div class="mb-3">
+              <h2 class="text-base font-semibold text-ink leading-none">Evaluasi</h2>
+              <p class="text-[12.5px] font-medium text-ink-muted mt-1">Jurnal harian & berat badan</p>
+            </div>
+
+            <div class="py-2.5 flex items-center justify-between border-t border-line">
+              <div onclick="openTimePickerModal('eveningJournal', 'Evaluasi Jurnal Malam', '${r.eveningJournalTime}')" class="flex-1 flex items-center gap-3 pressable">
+                <div class="w-11 h-11 rounded-full flex items-center justify-center bg-[#e9ebf8]">
+                  ${renderIcon('moon', 18, '#4b55a8')}
                 </div>
-                <div class="flex items-center justify-between py-3 border-t border-[#f0eee8]">
-                  <span class="text-[13px] font-medium text-neutral-muted">Target Makro</span>
-                  <span class="text-[14px] font-bold text-primary tabular-nums">P ${state.targetProtein}g · K ${state.targetCarbs}g · L ${state.targetFat}g</span>
+                <div>
+                  <div class="flex items-baseline gap-1.5">
+                    <span class="text-[28px] font-semibold tracking-tight text-ink tabular-nums leading-none">${r.eveningJournalTime}</span>
+                    <span class="text-xs font-semibold text-ink-muted">WIB</span>
+                  </div>
+                  <p class="text-[14px] font-semibold text-ink mt-0.5">Evaluasi jurnal malam</p>
+                  <p class="text-[12px] font-medium text-ink-muted">Lengkapi catatan makan hari ini</p>
                 </div>
+              </div>
+              <button onclick="toggleEveningJournal()" class="w-12 h-7 rounded-full p-1 transition-colors pressable ${isMasterOn && r.eveningJournalEnabled ? 'bg-primary' : 'bg-[#c6d0ca]'}">
+                <div class="w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${isMasterOn && r.eveningJournalEnabled ? 'translate-x-5' : 'translate-x-0'}"></div>
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    /* =====================================================================
+       STACK SCREEN 2: MONITORING & TARGET BB (PERSIS (app)/analytics.tsx)
+       ===================================================================== */
+    function renderAnalyticsStack() {
+      const p = appState.personalization;
+      const remainingWeight = (p.weight - p.targetWeight).toFixed(1);
+
+      return `
+        <header class="w-full pt-1 pb-3 flex items-center justify-between min-h-[44px] gap-3">
+          <button onclick="navigateBack()" class="w-10 h-10 rounded-full bg-card border border-line flex items-center justify-center pressable shadow-surface">
+            ${renderIcon('arrowLeft', 18, '#121a16')}
+          </button>
+          <div class="flex-1 min-w-0">
+            <h1 class="text-[19px] font-semibold text-ink leading-tight">Monitoring & Target BB</h1>
+            <p class="text-[12.5px] font-medium text-ink-muted mt-0.5">Analitik kalori dan evaluasi berat badan</p>
+          </div>
+          <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-primary-light text-primary-text">92% target</span>
+        </header>
+
+        <div class="space-y-3.5">
+          <!-- Weight Progress Card -->
+          <div class="bg-card border border-line rounded-[22px] p-4 shadow-surface">
+            <h2 class="text-base font-semibold text-ink mb-1">Evaluasi Berat Badan</h2>
+            <p class="text-xs text-ink-muted mb-4">Sisa <span class="font-bold text-primary">${remainingWeight} kg</span> lagi menuju target ideal</p>
+
+            <div class="bg-card-2 border border-line rounded-2xl p-4 flex items-center justify-between">
+              <div>
+                <span class="text-[11px] font-bold text-ink-muted block">Saat Ini</span>
+                <span class="text-2xl font-black text-ink tabular-nums">${p.weight} kg</span>
+              </div>
+              <div class="text-center font-bold text-xs text-primary">
+                ➔ ${remainingWeight} kg
+              </div>
+              <div class="text-right">
+                <span class="text-[11px] font-bold text-ink-muted block">Target BB</span>
+                <span class="text-2xl font-black text-primary tabular-nums">${p.targetWeight} kg</span>
+              </div>
+            </div>
+
+            <!-- Quick Adjuster -->
+            <div class="flex items-center justify-between mt-3 pt-3 border-t border-line">
+              <span class="text-xs font-semibold text-ink-muted">Timbang hari ini:</span>
+              <div class="flex gap-2">
+                <button onclick="adjustWeight(-0.5)" class="px-3 py-1 bg-card border border-line rounded-full text-xs font-bold text-ink pressable">-0.5 kg</button>
+                <button onclick="adjustWeight(0.5)" class="px-3 py-1 bg-card border border-line rounded-full text-xs font-bold text-ink pressable">+0.5 kg</button>
               </div>
             </div>
           </div>
 
-          <div class="stagger-item stagger-4 ${isDesktopLayout ? 'col-span-7' : ''}">
-            <div class="mb-2.5 px-0.5">
-              <h2 class="text-[17px] font-bold text-neutral-dark tracking-tight">Resep Tersimpan</h2>
-            </div>
-            <div class="space-y-2.5">
-              ${CATALOG.slice(0, 3).map((r) => `
-                <div onclick="openLogModal('${r.id}')" class="press-card bg-white p-3 rounded-2xl border border-[#ebe9e2] flex items-center justify-between cursor-pointer">
-                  <div class="flex items-center min-w-0 pr-3">
-                    <img src="${r.imageUrl}" alt="${r.title}" class="w-12 h-12 rounded-xl object-cover mr-3 flex-shrink-0" />
-                    <div class="min-w-0">
-                      <p class="text-[15px] font-bold text-neutral-dark truncate">${r.title}</p>
-                      <p class="text-xs font-medium text-neutral-muted mt-0.5 tabular-nums">${r.calories} kcal · ${r.prepTimeMinutes} mnt</p>
-                    </div>
+          <!-- 7-Day Trend Chart Bar -->
+          <div class="bg-card border border-line rounded-[22px] p-4 shadow-surface">
+            <h2 class="text-base font-semibold text-ink mb-1">Tren Kalori 7 Hari</h2>
+            <p class="text-xs text-ink-muted mb-4">Konsistensi defisit kalori mingguan</p>
+
+            <div class="h-32 flex items-end justify-between gap-2 px-2 pt-4">
+              ${[
+                { day: 'Sen', kcal: 2100, pct: 90 },
+                { day: 'Sel', kcal: 2250, pct: 100 },
+                { day: 'Rab', kcal: 2180, pct: 95 },
+                { day: 'Kam', kcal: 2320, pct: 102 },
+                { day: 'Jum', kcal: 2050, pct: 88 },
+                { day: 'Sab', kcal: 2253, pct: 100 },
+                { day: 'Min', kcal: 1980, pct: 84 },
+              ].map(d => `
+                <div class="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
+                  <div class="w-full rounded-t-lg bg-primary/20 relative group" style="height: ${d.pct * 0.9}%">
+                    <div class="w-full h-full bg-primary rounded-t-lg"></div>
                   </div>
-                  <span class="px-2 py-0.5 rounded-md bg-primary-light text-primary font-bold text-[11px] flex-shrink-0">${CATEGORY_LABELS[r.category]}</span>
+                  <span class="text-[10px] font-bold text-ink-muted">${d.day}</span>
                 </div>
               `).join('')}
             </div>
@@ -1094,336 +1475,660 @@
     }
 
     /* =====================================================================
-       VIEWPORT SHELL RENDERER (Mobile 390px Frame vs Responsive Desktop Web)
+       STACK SCREEN 3: KOMUNITAS & KONSULTASI (PERSIS (app)/community.tsx)
        ===================================================================== */
-    function renderActiveScreen(isDesktopLayout) {
-      if (state.activeTab === 'meals') return renderMealsScreen(isDesktopLayout);
-      if (state.activeTab === 'recipes') return renderRecipesScreen(isDesktopLayout);
-      if (state.activeTab === 'profile') return renderProfileScreen(isDesktopLayout);
-      return renderHomeScreen(isDesktopLayout);
-    }
-
-    function renderBottomTabs() {
-      const tabs = [
-        { id: 'index', label: 'Beranda' },
-        { id: 'meals', label: 'Makan' },
-        { id: 'recipes', label: 'Resep' },
-        { id: 'profile', label: 'Profil' },
-      ];
+    function renderCommunityStack() {
       return `
-        <nav class="w-full bg-white border-t border-[#ebe9e2] pt-1.5 pb-2.5 px-2 flex items-center justify-around" aria-label="Navigasi utama">
-          ${tabs.map((t) => {
-            const active = state.activeTab === t.id;
-            return `
-              <button onclick="switchTab('${t.id}')" class="press-chip flex-1 flex flex-col items-center justify-center min-h-[48px]" aria-label="${t.label}">
-                <div class="w-14 h-8 rounded-full flex items-center justify-center ${active ? 'bg-primary-light' : ''}">
-                  ${navIconSvg(t.id, active)}
+        <header class="w-full pt-1 pb-3 flex items-center justify-between min-h-[44px] gap-3">
+          <button onclick="navigateBack()" class="w-10 h-10 rounded-full bg-card border border-line flex items-center justify-center pressable shadow-surface">
+            ${renderIcon('arrowLeft', 18, '#121a16')}
+          </button>
+          <div class="flex-1 min-w-0">
+            <h1 class="text-[19px] font-semibold text-ink leading-tight">Komunitas & Ahli Gizi</h1>
+            <p class="text-[12.5px] font-medium text-ink-muted mt-0.5">Diskusi, tanya dokter & artikel</p>
+          </div>
+          <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-primary-light text-primary-text">Sesi aktif</span>
+        </header>
+
+        <!-- Segmented Tab Switcher -->
+        <div class="flex bg-card-2 p-1 rounded-full border border-line mb-3.5">
+          <button onclick="setCommunityTab('feed')" class="flex-1 py-1.5 rounded-full text-xs font-bold transition-all ${appState.communityTab === 'feed' ? 'bg-card text-ink shadow-sm' : 'text-ink-muted'}">Postingan</button>
+          <button onclick="setCommunityTab('consult')" class="flex-1 py-1.5 rounded-full text-xs font-bold transition-all ${appState.communityTab === 'consult' ? 'bg-card text-ink shadow-sm' : 'text-ink-muted'}">Konsultasi Dokter</button>
+          <button onclick="setCommunityTab('articles')" class="flex-1 py-1.5 rounded-full text-xs font-bold transition-all ${appState.communityTab === 'articles' ? 'bg-card text-ink shadow-sm' : 'text-ink-muted'}">Artikel</button>
+        </div>
+
+        ${appState.communityTab === 'feed' ? `
+          <div class="space-y-3">
+            <div class="bg-card border border-line rounded-[22px] p-4 shadow-surface">
+              <div class="flex items-center gap-2.5 mb-2.5">
+                <div class="w-9 h-9 rounded-full bg-primary-light flex items-center justify-center font-bold text-xs text-primary-text">DP</div>
+                <div>
+                  <p class="text-[13px] font-bold text-ink">Daffa Pratama</p>
+                  <p class="text-[10.5px] text-ink-muted">Baru saja · Tips Diet</p>
                 </div>
-                <span class="text-[11px] mt-0.5 ${active ? 'font-bold text-primary' : 'font-medium text-neutral-muted'}">${t.label}</span>
-              </button>
-            `;
-          }).join('')}
-        </nav>
-      `;
-    }
-
-    function renderSidebarTabs() {
-      const tabs = [
-        { id: 'index', label: 'Beranda' },
-        { id: 'meals', label: 'Makan' },
-        { id: 'recipes', label: 'Resep' },
-        { id: 'profile', label: 'Profil' },
-      ];
-      return `
-        <aside class="w-[230px] flex-shrink-0 bg-[#faf9f5] border-r border-[#ebe9e2] p-5 flex flex-col justify-between min-h-[760px]">
-          <div>
-            <div class="flex items-center gap-2.5 px-2 mb-8">
-              <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
-                  <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
-                </svg>
               </div>
-              <span class="font-black text-[17px] text-neutral-dark tracking-tight">Better Life</span>
-            </div>
-
-            <div class="space-y-1">
-              ${tabs.map((t) => {
-                const active = state.activeTab === t.id;
-                return `
-                  <button onclick="switchTab('${t.id}')" class="press-chip w-full h-11 px-3 rounded-xl flex items-center gap-3 text-left ${active ? 'bg-primary-light font-bold text-primary' : 'font-medium text-neutral-muted hover:bg-[#f1f0ea]'}">
-                    ${navIconSvg(t.id, active)}
-                    <span class="text-sm">${t.label}</span>
-                  </button>
-                `;
-              }).join('')}
+              <p class="text-xs text-ink leading-relaxed">Menu sarapan greek yogurt + berries beneran bikin kenyang tahan lama sampai siang, rekomendasi banget buat yang lagi defisit kalori!</p>
+              <div class="flex items-center gap-4 mt-3 pt-2.5 border-t border-line text-xs font-semibold text-ink-muted">
+                <button onclick="toggleLikePost(this)" class="flex items-center gap-1.5 pressable text-primary">❤️ <span class="like-cnt">24</span> Suka</button>
+                <span>💬 5 Komentar</span>
+              </div>
             </div>
           </div>
-
-          <div onclick="openTokensModal()" class="press-card rounded-2xl border border-[#ebe9e2] bg-white p-3.5 cursor-pointer">
-            <p class="text-[13px] font-bold text-neutral-dark">Better Life Premium</p>
-            <p class="text-xs font-medium text-neutral-muted mt-1">Rencana makan dan tren 30 hari</p>
+        ` : appState.communityTab === 'consult' ? `
+          <div class="bg-card border border-line rounded-[22px] p-4 shadow-surface space-y-3">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-bold text-lg">Dr</div>
+              <div>
+                <p class="text-[15px] font-bold text-ink">dr. Nurul Amanda, Sp.GK</p>
+                <p class="text-[11.5px] text-primary font-bold">Spesialis Gizi Klinis · Tersedia</p>
+              </div>
+            </div>
+            <div class="bg-card-2 p-3 rounded-2xl border border-line text-xs text-ink leading-relaxed">
+              "Halo Daffa! Untuk target turun berat dari 68 ke 65 kg, pertahankan asupan protein di 140g agar massa otot tetap terjaga ya."
+            </div>
+            <div class="flex gap-2">
+              <input type="text" placeholder="Tulis pertanyaan ke dokter..." class="flex-1 h-10 px-3 bg-card-2 border border-line rounded-full text-xs font-medium outline-none" />
+              <button onclick="alert('Pesan berhasil terkirim ke dr. Nurul Amanda!')" class="px-4 h-10 rounded-full bg-primary text-white text-xs font-bold pressable">Kirim</button>
+            </div>
           </div>
-        </aside>
+        ` : `
+          <div class="space-y-3">
+            <div class="bg-card border border-line rounded-[20px] p-3.5 shadow-surface">
+              <p class="text-[10px] font-bold text-primary uppercase">Edukasi Hidrasi</p>
+              <h3 class="text-sm font-bold text-ink mt-0.5">Kenapa Harus Target 8 Gelas Air Sehari?</h3>
+              <p class="text-xs text-ink-muted mt-1 leading-relaxed">Air memperlancar metabolisme tubuh dan membantu pembakaran kalori 3% lebih efektif saat beraktivitas...</p>
+            </div>
+          </div>
+        `}
       `;
-    }
-
-    function renderViewport() {
-      const ws = document.getElementById('workspace');
-      const btnMobile = document.getElementById('btn-mode-mobile');
-      const btnWeb = document.getElementById('btn-mode-web');
-
-      if (state.viewport === 'mobile') {
-        btnMobile.className = 'press-chip px-3.5 py-1 rounded-full text-xs font-bold bg-primary text-white';
-        btnWeb.className = 'press-chip px-3.5 py-1 rounded-full text-xs font-medium text-neutral-dark';
-
-        ws.innerHTML = `
-          <div class="w-[390px] h-[844px] bg-[#faf9f5] rounded-[44px] border-[8px] border-[#1c201d] shadow-[0_24px_60px_rgba(20,30,22,0.14)] overflow-hidden flex flex-col relative">
-            <!-- Status Bar -->
-            <div class="h-10 px-6 flex items-center justify-between text-xs font-bold text-neutral-dark bg-[#faf9f5] flex-shrink-0">
-              <span class="tabular-nums">09:41</span>
-              <div class="w-20 h-4 rounded-full bg-[#1c201d]"></div>
-              <span class="tabular-nums">100%</span>
-            </div>
-
-            <!-- Scrollable Content -->
-            <div class="flex-1 overflow-y-auto no-scrollbar px-4 pt-2 pb-8">
-              ${renderActiveScreen(false)}
-            </div>
-
-            <!-- Solid Bottom Navigation Bar -->
-            ${renderBottomTabs()}
-          </div>
-        `;
-      } else {
-        btnWeb.className = 'press-chip px-3.5 py-1 rounded-full text-xs font-bold bg-primary text-white';
-        btnMobile.className = 'press-chip px-3.5 py-1 rounded-full text-xs font-medium text-neutral-dark';
-
-        ws.innerHTML = `
-          <div class="w-full max-w-[1220px] bg-[#faf9f5] rounded-[28px] border border-[#ebe9e2] shadow-[0_16px_48px_rgba(20,30,22,0.06)] overflow-hidden flex min-h-[780px]">
-            ${renderSidebarTabs()}
-            <div class="flex-1 p-6 sm:p-8 overflow-y-auto">
-              ${renderActiveScreen(true)}
-            </div>
-          </div>
-        `;
-      }
     }
 
     /* =====================================================================
-       INTERACTIONS & MODAL CONTROLLERS
+       STACK SCREEN 4: DETAIL RESEP & COOKING TIMER (PERSIS recipe-detail.tsx)
        ===================================================================== */
-    function setViewportMode(mode) {
-      state.viewport = mode;
-      renderViewport();
-    }
+    function renderRecipeDetailStack() {
+      const r = appState.recipes.find(item => item.id === appState.selectedRecipeId) || appState.recipes[0];
+      const m = Math.floor(appState.timerSeconds / 60);
+      const s = appState.timerSeconds % 60;
+      const timerStr = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 
-    function switchTab(tabId) {
-      state.activeTab = tabId;
-      renderViewport();
-    }
-
-    function addSteps(amount) {
-      state.steps = Math.min(state.stepGoal + 2000, state.steps + amount);
-      renderViewport();
-    }
-
-    function removeJournalEntry(entryId) {
-      state.journal = state.journal.filter((e) => e.id !== entryId);
-      renderViewport();
-    }
-
-    function updateMealSearch(val) {
-      state.mealSearch = val;
-      renderViewport();
-    }
-
-    function setMealCategory(cat) {
-      state.mealCategory = cat;
-      renderViewport();
-    }
-
-    function setMealBudget(b) {
-      state.mealBudget = b;
-      renderViewport();
-    }
-
-    function resetMealFilters() {
-      state.mealSearch = '';
-      state.mealCategory = 'Semua';
-      state.mealBudget = 'all';
-      renderViewport();
-    }
-
-    function updateRecipeSearch(val) {
-      state.recipeSearch = val;
-      renderViewport();
-    }
-
-    function setRecipeCategory(cat) {
-      state.recipeCategory = cat;
-      renderViewport();
-    }
-
-    function openSlotQuickLog(slotId) {
-      const defaultMeal = CATALOG.find((m) => m.category === slotId) || CATALOG[0];
-      state.modalMeal = defaultMeal;
-      state.modalPortion = 1;
-      state.modalCategory = slotId;
-      renderLogModalBody();
-      document.getElementById('log-modal').classList.add('open');
-    }
-
-    function openLogModal(mealId) {
-      const meal = CATALOG.find((m) => m.id === mealId) || CATALOG[0];
-      state.modalMeal = meal;
-      state.modalPortion = 1;
-      state.modalCategory = meal.category;
-      renderLogModalBody();
-      document.getElementById('log-modal').classList.add('open');
-    }
-
-    function closeLogModal() {
-      document.getElementById('log-modal').classList.remove('open');
-    }
-
-    function setModalPortion(p) {
-      state.modalPortion = Math.max(0.5, Math.min(10, Math.round(p * 10) / 10));
-      renderLogModalBody();
-    }
-
-    function setModalCategory(cat) {
-      state.modalCategory = cat;
-      renderLogModalBody();
-    }
-
-    function confirmModalLog() {
-      const m = state.modalMeal;
-      if (!m) return;
-      const q = state.modalPortion;
-      state.journal.push({
-        id: 'j-' + Date.now(),
-        mealId: m.id,
-        title: m.title,
-        category: state.modalCategory,
-        quantity: q,
-        calories: Math.round(m.calories * q),
-        protein: Math.round(m.protein * q),
-        carbs: Math.round(m.carbs * q),
-        fat: Math.round(m.fat * q),
-        imageUrl: m.imageUrl,
-      });
-      closeLogModal();
-      renderViewport();
-    }
-
-    function renderLogModalBody() {
-      const m = state.modalMeal;
-      if (!m) return;
-      const q = state.modalPortion;
-      const totalCalories = Math.round(m.calories * q);
-      const p = Math.round(m.protein * q * 10) / 10;
-      const c = Math.round(m.carbs * q * 10) / 10;
-      const f = Math.round(m.fat * q * 10) / 10;
-      const portions = [0.5, 1, 1.5, 2, 3];
-      const categories = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
-
-      document.getElementById('log-modal-body').innerHTML = `
-        <div class="flex items-center py-4 border-b border-[#f0eee8]">
-          <img src="${m.imageUrl}" alt="${m.title}" class="w-14 h-14 rounded-2xl object-cover mr-3 border border-black/[0.05]" />
-          <div class="flex-1 min-w-0 mr-2">
-            <p class="text-base font-bold text-neutral-dark truncate">${m.title}</p>
-            <p class="text-xs font-medium text-neutral-muted mt-0.5 tabular-nums">${m.calories} kcal per porsi standar</p>
+      return `
+        <header class="w-full pt-1 pb-3 flex items-center justify-between min-h-[44px] gap-3">
+          <button onclick="navigateBack()" class="w-10 h-10 rounded-full bg-card border border-line flex items-center justify-center pressable shadow-surface">
+            ${renderIcon('arrowLeft', 18, '#121a16')}
+          </button>
+          <div class="flex-1 min-w-0">
+            <h1 class="text-[19px] font-semibold text-ink leading-tight truncate">${r.title}</h1>
+            <p class="text-[12.5px] font-medium text-ink-muted mt-0.5">${r.category} · ${r.prepTimeMinutes} Menit</p>
           </div>
-          <div class="text-right tabular-nums">
-            <span class="text-2xl font-black text-primary">${totalCalories}</span>
-            <span class="text-xs font-semibold text-neutral-muted ml-0.5">kcal</span>
-          </div>
-        </div>
+          <button onclick="openMealLogModal('${r.id}')" class="px-3.5 py-1.5 rounded-full bg-primary text-white text-xs font-bold shadow-sm pressable">
+            + Catat
+          </button>
+        </header>
 
-        <div class="py-3 px-3 bg-[#f7f6f1] rounded-2xl my-3 flex items-center justify-around tabular-nums">
-          <div class="text-center">
-            <p class="text-[11px] font-medium text-neutral-muted">Protein</p>
-            <p class="text-sm font-bold text-primary mt-0.5">${p} g</p>
+        <div class="space-y-3.5">
+          <!-- Hero Artwork -->
+          <div class="w-full h-48 rounded-[24px] overflow-hidden border border-line bg-card-2 relative shadow-surface">
+            <img src="${r.imageUrl}" alt="${r.title}" class="w-full h-full object-cover" />
+            <span class="absolute bottom-3 left-3 px-3 py-1 rounded-full text-xs font-bold bg-black/60 text-white backdrop-blur-md">${r.calories} kcal · ${r.difficulty}</span>
           </div>
-          <div class="w-px h-6 bg-[#e5e3dc]"></div>
-          <div class="text-center">
-            <p class="text-[11px] font-medium text-neutral-muted">Karbo</p>
-            <p class="text-sm font-bold text-[#52796f] mt-0.5">${c} g</p>
-          </div>
-          <div class="w-px h-6 bg-[#e5e3dc]"></div>
-          <div class="text-center">
-            <p class="text-[11px] font-medium text-neutral-muted">Lemak</p>
-            <p class="text-sm font-bold text-[#b45309] mt-0.5">${f} g</p>
-          </div>
-        </div>
 
-        <div class="py-3 border-b border-[#f0eee8]">
-          <div class="flex items-center justify-between mb-2.5">
-            <div>
-              <p class="text-sm font-bold text-neutral-dark">Jumlah porsi</p>
-              <p class="text-xs font-medium text-neutral-muted">Sesuaikan dengan porsi makan Anda</p>
-            </div>
-            <div class="flex items-center bg-[#f4f3ee] rounded-2xl p-1">
-              <button onclick="setModalPortion(${q - 0.5})" class="press-btn w-10 h-10 rounded-xl bg-white flex items-center justify-center font-bold text-neutral-dark">−</button>
-              <div class="w-14 text-center tabular-nums">
-                <p class="text-base font-black text-neutral-dark">${q}x</p>
-                <p class="text-[10px] font-medium text-neutral-muted -mt-0.5">porsi</p>
-              </div>
-              <button onclick="setModalPortion(${q + 0.5})" class="press-btn w-10 h-10 rounded-xl bg-white flex items-center justify-center font-bold text-neutral-dark">+</button>
+          <!-- Live Interactive Cooking Timer (PERSIS recipe-detail.tsx) -->
+          <div class="bg-card border border-line rounded-[22px] p-4 shadow-surface text-center">
+            <span class="text-xs font-bold text-ink-muted block mb-1">⏱️ TIMER MEMASAK</span>
+            <div id="live-timer-text" class="text-4xl font-black text-ink tabular-nums tracking-tight my-1">${timerStr}</div>
+            <div class="flex justify-center gap-2 mt-3">
+              <button onclick="toggleCookingTimer()" id="btn-timer-toggle" class="px-5 py-2 rounded-full ${appState.timerRunning ? 'bg-status-bad text-white' : 'bg-primary text-white'} text-xs font-bold shadow-sm pressable">
+                ${appState.timerRunning ? 'Jeda Timer' : 'Mulai Timer'}
+              </button>
+              <button onclick="resetCookingTimer()" class="px-4 py-2 rounded-full bg-card-2 border border-line text-xs font-bold text-ink pressable">Reset</button>
             </div>
           </div>
 
-          <div class="flex gap-1.5 pt-1">
-            ${portions.map((val) => `
-              <button onclick="setModalPortion(${val})" class="press-chip flex-1 h-9 rounded-xl text-xs tabular-nums border ${q === val ? 'bg-primary border-primary text-white font-bold' : 'bg-white border-[#e3e1da] text-neutral-dark font-medium'}">${val}x</button>
-            `).join('')}
+          <!-- Ingredients List -->
+          <div class="bg-card border border-line rounded-[22px] p-4 shadow-surface">
+            <h2 class="text-base font-semibold text-ink mb-2">Bahan-Bahan</h2>
+            <ul class="divide-y divide-line text-xs text-ink font-medium">
+              ${r.ingredients.map(ing => `<li class="py-2 flex items-center justify-between"><span>• ${ing}</span></li>`).join('')}
+            </ul>
           </div>
-        </div>
 
-        <div class="py-3.5">
-          <p class="text-sm font-bold text-neutral-dark mb-2">Waktu makan</p>
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            ${categories.map((cat) => `
-              <button onclick="setModalCategory('${cat}')" class="press-chip min-h-[42px] rounded-xl text-xs border ${state.modalCategory === cat ? 'bg-primary border-primary text-white font-bold' : 'bg-white border-[#e3e1da] text-neutral-dark font-medium'}">${CATEGORY_LABELS[cat]}</button>
-            `).join('')}
+          <!-- Step by Step Instructions -->
+          <div class="bg-card border border-line rounded-[22px] p-4 shadow-surface">
+            <h2 class="text-base font-semibold text-ink mb-2">Langkah Memasak</h2>
+            <div class="space-y-2.5">
+              ${r.instructions.map(inst => `
+                <div class="p-3 bg-card-2 border border-line rounded-xl text-xs flex gap-3">
+                  <span class="w-5 h-5 rounded-full bg-primary text-white font-bold flex items-center justify-center flex-shrink-0 text-[11px]">${inst.step}</span>
+                  <div class="flex-1">
+                    <p class="font-medium text-ink leading-relaxed">${inst.text}</p>
+                    ${inst.timer ? `
+                      <button onclick="setTimerCountdown(${inst.timer * 60})" class="mt-1.5 px-2.5 py-0.5 rounded-full bg-card border border-line text-[10.5px] font-bold text-primary pressable">
+                        ⏱️ Pasang Timer ${inst.timer} Menit
+                      </button>
+                    ` : ''}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
           </div>
-        </div>
-
-        <div class="pt-2 space-y-2">
-          <button onclick="confirmModalLog()" class="press-btn w-full min-h-[48px] rounded-full bg-primary text-white font-bold text-sm">
-            Catat ${totalCalories} kcal ke ${CATEGORY_LABELS[state.modalCategory]}
-          </button>
-          <button onclick="closeLogModal()" class="press-btn w-full min-h-[40px] rounded-full text-xs font-bold text-neutral-muted">
-            Batal
-          </button>
         </div>
       `;
     }
 
-    function openTokensModal() {
-      document.getElementById('tokens-modal').classList.add('open');
+    /* =====================================================================
+       RENDER ROUTER (SWITCH TABS & STACK SCREENS)
+       ===================================================================== */
+    function renderActiveScreen() {
+      const viewport = document.getElementById('screen-viewport');
+      const dock = document.getElementById('mobile-floating-dock');
+
+      if (appState.stackScreen) {
+        dock.style.display = 'none'; // Hide dock on subpages
+        switch (appState.stackScreen) {
+          case 'reminders': viewport.innerHTML = renderRemindersStack(); break;
+          case 'analytics': viewport.innerHTML = renderAnalyticsStack(); break;
+          case 'community': viewport.innerHTML = renderCommunityStack(); break;
+          case 'recipe-detail': viewport.innerHTML = renderRecipeDetailStack(); break;
+          default: viewport.innerHTML = renderHomeScreen();
+        }
+      } else {
+        dock.style.display = 'flex'; // Show dock on main 4 tabs
+        switch (appState.activeTab) {
+          case 'meals': viewport.innerHTML = renderMealsScreen(); break;
+          case 'recipes': viewport.innerHTML = renderRecipesScreen(); break;
+          case 'profile': viewport.innerHTML = renderProfileScreen(); break;
+          default: viewport.innerHTML = renderHomeScreen();
+        }
+      }
+
+      updateDockHighlight();
     }
 
-    function closeTokensModal() {
-      document.getElementById('tokens-modal').classList.remove('open');
+    function switchTab(tabKey) {
+      appState.activeTab = tabKey;
+      appState.stackScreen = null;
+      renderActiveScreen();
+      document.getElementById('screen-viewport').scrollTo({ top: 0, behavior: 'smooth' });
     }
 
+    function navigateToStack(screenKey) {
+      appState.stackScreen = screenKey;
+      renderActiveScreen();
+      document.getElementById('screen-viewport').scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function navigateBack() {
+      appState.stackScreen = null;
+      renderActiveScreen();
+    }
+
+    function updateDockHighlight() {
+      const tabs = ['index', 'meals', 'recipes', 'profile'];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`dock-btn-${t}`);
+        if (!btn) return;
+        if (appState.activeTab === t && !appState.stackScreen) {
+          btn.className = 'h-12 rounded-full flex items-center justify-center pressable transition-all bg-white pl-3.5 pr-4 gap-2 shadow-sm';
+          btn.innerHTML = `
+            ${renderIcon(t === 'index' ? 'home' : t === 'meals' ? 'utensils' : t === 'recipes' ? 'book' : 'user', 18, '#0e7a52')}
+            <span class="text-[13.5px] font-semibold text-ink capitalize">${t === 'index' ? 'Beranda' : t === 'meals' ? 'Makan' : t === 'recipes' ? 'Resep' : 'Profil'}</span>
+          `;
+        } else {
+          btn.className = 'w-12 h-12 rounded-full flex items-center justify-center pressable transition-all text-white/85 hover:bg-white/10';
+          btn.innerHTML = `${renderIcon(t === 'index' ? 'home' : t === 'meals' ? 'utensils' : t === 'recipes' ? 'book' : 'user', 20, '#ffffff')}`;
+        }
+      });
+    }
+
+    /* Actions & Interactions */
+    function addDailyWater(count = 1) {
+      appState.activity.waterGlasses = Math.min(12, appState.activity.waterGlasses + count);
+      renderActiveScreen();
+    }
+
+    function addDailySteps(steps = 500) {
+      appState.activity.steps += steps;
+      renderActiveScreen();
+    }
+
+    function adjustWeight(diff) {
+      appState.personalization.weight = Math.round((appState.personalization.weight + diff) * 10) / 10;
+      renderActiveScreen();
+    }
+
+    function setCommunityTab(t) {
+      appState.communityTab = t;
+      renderActiveScreen();
+    }
+
+    function toggleLikePost(btn) {
+      const cntSpan = btn.querySelector('.like-cnt');
+      let val = parseInt(cntSpan.innerText, 10);
+      cntSpan.innerText = val + 1;
+    }
+
+    /* Cooking Timer Functions */
+    function toggleCookingTimer() {
+      appState.timerRunning = !appState.timerRunning;
+      if (appState.timerRunning) {
+        appState.timerInterval = setInterval(() => {
+          if (appState.timerSeconds > 0) {
+            appState.timerSeconds -= 1;
+            const el = document.getElementById('live-timer-text');
+            if (el) {
+              const m = Math.floor(appState.timerSeconds / 60);
+              const s = appState.timerSeconds % 60;
+              el.innerText = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            }
+          } else {
+            clearInterval(appState.timerInterval);
+            appState.timerRunning = false;
+            alert('Timer selesai! Masakan siap dihidangkan.');
+            renderActiveScreen();
+          }
+        }, 1000);
+      } else {
+        clearInterval(appState.timerInterval);
+      }
+      renderActiveScreen();
+    }
+
+    function resetCookingTimer() {
+      clearInterval(appState.timerInterval);
+      appState.timerRunning = false;
+      appState.timerSeconds = 600;
+      renderActiveScreen();
+    }
+
+    function setTimerCountdown(seconds) {
+      clearInterval(appState.timerInterval);
+      appState.timerRunning = false;
+      appState.timerSeconds = seconds;
+      renderActiveScreen();
+    }
+
+    /* Time Picker Wheel Modal Logic */
+    function openTimePickerModal(key, label, initialTime) {
+      appState.editingPickerKey = key;
+      const parts = initialTime.split(':');
+      appState.pickerHour = parseInt(parts[0] || '7', 10);
+      appState.pickerMinute = parseInt(parts[1] || '0', 10);
+      
+      document.getElementById('picker-target-label').innerText = label;
+      updatePickerModalUI();
+      document.getElementById('time-picker-modal').classList.add('open');
+    }
+
+    function closeTimePickerModal() {
+      document.getElementById('time-picker-modal').classList.remove('open');
+    }
+
+    function changeHourBy(diff) {
+      appState.pickerHour = (appState.pickerHour + diff + 24) % 24;
+      updatePickerModalUI();
+    }
+
+    function changeMinuteBy(diff) {
+      appState.pickerMinute = (appState.pickerMinute + diff + 60) % 60;
+      updatePickerModalUI();
+    }
+
+    function updatePickerModalUI() {
+      const hStr = String(appState.pickerHour).padStart(2, '0');
+      const mStr = String(appState.pickerMinute).padStart(2, '0');
+      const timeStr = `${hStr}:${mStr}`;
+      const phase = getDayPhase(timeStr);
+
+      document.getElementById('picker-hour-val').innerText = hStr;
+      document.getElementById('picker-minute-val').innerText = mStr;
+      document.getElementById('picker-time-display').innerHTML = `${timeStr} <span class="text-xs text-ink-muted font-bold">WIB</span>`;
+      
+      const pill = document.getElementById('picker-phase-pill');
+      pill.style.backgroundColor = phase.bg;
+      pill.style.color = phase.color;
+      document.getElementById('picker-phase-icon').innerText = phase.icon === 'sunrise' ? '🌅' : phase.icon === 'sun' ? '☀️' : '🌙';
+      document.getElementById('picker-phase-label').innerText = phase.label;
+    }
+
+    function saveTimePickerResult() {
+      const hStr = String(appState.pickerHour).padStart(2, '0');
+      const mStr = String(appState.pickerMinute).padStart(2, '0');
+      const formatted = `${hStr}:${mStr}`;
+      const k = appState.editingPickerKey;
+
+      if (k === 'morningWater') {
+        appState.reminders.morningWaterTime = formatted;
+        appState.reminders.morningWaterEnabled = true;
+      } else if (k === 'eveningJournal') {
+        appState.reminders.eveningJournalTime = formatted;
+        appState.reminders.eveningJournalEnabled = true;
+      } else if (k && k.startsWith('meal-')) {
+        const slotId = k.replace('meal-', '');
+        const targetMeal = appState.reminders.meals.find(m => m.id === slotId);
+        if (targetMeal) {
+          targetMeal.time = formatted;
+          targetMeal.enabled = true;
+        }
+      }
+
+      closeTimePickerModal();
+      renderActiveScreen();
+    }
+
+    /* Reminders Toggles */
+    function toggleReminderMaster() {
+      appState.reminders.masterEnabled = !appState.reminders.masterEnabled;
+      renderActiveScreen();
+    }
+
+    function toggleWaterReminder() {
+      appState.reminders.waterReminderEnabled = !appState.reminders.waterReminderEnabled;
+      renderActiveScreen();
+    }
+
+    function setWaterInterval(hrs) {
+      appState.reminders.waterIntervalHours = hrs;
+      renderActiveScreen();
+    }
+
+    function toggleMorningWater() {
+      appState.reminders.morningWaterEnabled = !appState.reminders.morningWaterEnabled;
+      renderActiveScreen();
+    }
+
+    function toggleMealSlot(slotId) {
+      const m = appState.reminders.meals.find(item => item.id === slotId);
+      if (m) m.enabled = !m.enabled;
+      renderActiveScreen();
+    }
+
+    function toggleEveningJournal() {
+      appState.reminders.eveningJournalEnabled = !appState.reminders.eveningJournalEnabled;
+      renderActiveScreen();
+    }
+
+    /* Meal Log Modal (Portion Multiplier) */
+    let tempLogRecipe = null;
+    let tempMultiplier = 1;
+    let tempLogCategory = 'Lunch';
+
+    function openMealLogModal(recipeId) {
+      tempLogRecipe = appState.recipes.find(r => r.id === recipeId) || appState.recipes[0];
+      tempMultiplier = 1;
+      tempLogCategory = tempLogRecipe.category;
+      renderMealLogModalUI();
+      document.getElementById('meal-log-modal').classList.add('open');
+    }
+
+    function openQuickSlotLog(slotId) {
+      tempLogRecipe = {
+        id: `custom-${slotId}`,
+        title: `Menu ${slotId === 'Breakfast' ? 'Sarapan' : slotId === 'Lunch' ? 'Makan Siang' : slotId === 'Dinner' ? 'Makan Malam' : 'Camilan'}`,
+        category: slotId,
+        calories: 320,
+        nutrition: { protein: 20, carbs: 35, fat: 10 }
+      };
+      tempMultiplier = 1;
+      tempLogCategory = slotId;
+      renderMealLogModalUI();
+      document.getElementById('meal-log-modal').classList.add('open');
+    }
+
+    function closeMealLogModal() {
+      document.getElementById('meal-log-modal').classList.remove('open');
+    }
+
+    function setMultiplier(val) {
+      tempMultiplier = val;
+      renderMealLogModalUI();
+    }
+
+    function renderMealLogModalUI() {
+      if (!tempLogRecipe) return;
+      const totalKcal = Math.round(tempLogRecipe.calories * tempMultiplier);
+      const prot = Math.round(tempLogRecipe.nutrition.protein * tempMultiplier);
+      const carbs = Math.round(tempLogRecipe.nutrition.carbs * tempMultiplier);
+      const fat = Math.round(tempLogRecipe.nutrition.fat * tempMultiplier);
+
+      document.getElementById('meal-log-body').innerHTML = `
+        <h2 class="text-lg font-bold text-ink mb-1">Catat ke Jurnal Harian</h2>
+        <p class="text-xs text-ink-muted mb-4">${tempLogRecipe.title}</p>
+
+        <!-- Multiplier Segment -->
+        <div class="mb-4">
+          <label class="text-xs font-bold text-ink block mb-1.5">Porsi Makanan</label>
+          <div class="flex bg-card-2 p-1 rounded-full border border-line">
+            ${[0.5, 1, 1.5, 2].map(m => `
+              <button onclick="setMultiplier(${m})" class="flex-1 py-1.5 rounded-full text-xs font-bold transition-all ${tempMultiplier === m ? 'bg-primary text-white shadow-sm' : 'text-ink-muted'}">${m}x</button>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- Calculated Summary -->
+        <div class="bg-card-2 border border-line rounded-2xl p-3.5 mb-4 flex items-center justify-between">
+          <div>
+            <span class="text-[11px] font-bold text-ink-muted block">Kalori Terhitung</span>
+            <span class="text-2xl font-black text-ink tabular-nums">${totalKcal} kcal</span>
+          </div>
+          <div class="text-right text-xs font-bold text-primary tabular-nums">
+            P ${prot}g · K ${carbs}g · L ${fat}g
+          </div>
+        </div>
+
+        <div class="flex gap-2">
+          <button onclick="closeMealLogModal()" class="flex-1 h-12 rounded-full bg-card-2 border border-line text-xs font-bold text-ink pressable">Batal</button>
+          <button onclick="confirmLogMeal()" class="flex-1 h-12 rounded-full bg-primary text-white text-xs font-bold shadow-md pressable">Catat ${totalKcal} kcal</button>
+        </div>
+      `;
+    }
+
+    function confirmLogMeal() {
+      if (!tempLogRecipe) return;
+      appState.journal.push({
+        id: `log-${Date.now()}`,
+        title: tempLogRecipe.title,
+        category: tempLogCategory,
+        calories: Math.round(tempLogRecipe.calories * tempMultiplier),
+        protein: Math.round(tempLogRecipe.nutrition.protein * tempMultiplier),
+        carbs: Math.round(tempLogRecipe.nutrition.carbs * tempMultiplier),
+        fat: Math.round(tempLogRecipe.nutrition.fat * tempMultiplier),
+        time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+      });
+      closeMealLogModal();
+      renderActiveScreen();
+    }
+
+    /* Create Recipe & Local Photo Upload */
+    function openCreateRecipeModal() {
+      document.getElementById('create-recipe-modal').classList.add('open');
+    }
+
+    function closeCreateRecipeModal() {
+      document.getElementById('create-recipe-modal').classList.remove('open');
+    }
+
+    function handleRecipeImageUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        appState.tempUploadedImg = e.target.result;
+        const imgEl = document.getElementById('recipe-preview-img');
+        const placeholder = document.getElementById('recipe-preview-placeholder');
+        imgEl.src = e.target.result;
+        imgEl.classList.remove('hidden');
+        placeholder.classList.add('hidden');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function saveNewRecipe() {
+      const title = document.getElementById('recipe-input-title').value.trim();
+      if (!title) {
+        alert('Mohon masukkan nama resep terlebih dahulu.');
+        return;
+      }
+
+      const category = document.getElementById('recipe-input-cat').value;
+      const prepTime = parseInt(document.getElementById('recipe-input-prep').value || '15', 10);
+      const kcal = parseInt(document.getElementById('recipe-input-kcal').value || '350', 10);
+      const prot = parseInt(document.getElementById('recipe-input-prot').value || '25', 10);
+      const carbs = parseInt(document.getElementById('recipe-input-carbs').value || '30', 10);
+      const fat = parseInt(document.getElementById('recipe-input-fat').value || '10', 10);
+      const desc = document.getElementById('recipe-input-desc').value.trim() || 'Resep lezat sehat buatan sendiri.';
+      const img = appState.tempUploadedImg || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80';
+
+      const newR = {
+        id: `custom-${Date.now()}`,
+        title,
+        category,
+        calories: kcal,
+        prepTimeMinutes: prepTime,
+        difficulty: 'Mudah',
+        imageUrl: img,
+        description: desc,
+        price: 25000,
+        nutrition: { protein: prot, carbs, fat, fiber: 5 },
+        ingredients: ['Bahan pilihan segar sesuai selera', 'Bumbu rempah dapur'],
+        instructions: [
+          { step: 1, text: 'Siapkan seluruh bahan segar di atas meja masak.' },
+          { step: 2, text: 'Masak sesuai selera dengan api sedang.', timer: prepTime }
+        ]
+      };
+
+      appState.recipes.unshift(newR);
+      closeCreateRecipeModal();
+      renderActiveScreen();
+      alert(`Resep "${title}" berhasil ditambahkan dengan foto dari galeri Anda!`);
+    }
+
+    function openRecipeDetail(id) {
+      appState.selectedRecipeId = id;
+      navigateToStack('recipe-detail');
+    }
+
+    /* Edit Profile Modal & Calculation */
+    function openEditProfileModal() {
+      const p = appState.personalization;
+      document.getElementById('edit-weight-input').value = p.weight;
+      document.getElementById('edit-target-weight-input').value = p.targetWeight;
+      document.getElementById('edit-height-input').value = p.height;
+      document.getElementById('edit-age-input').value = p.age;
+      recalcProfilePlan();
+      document.getElementById('edit-profile-modal').classList.add('open');
+    }
+
+    function closeEditProfileModal() {
+      document.getElementById('edit-profile-modal').classList.remove('open');
+    }
+
+    function setEditGoal(g) {
+      appState.personalization.goal = g;
+      ['lose', 'bal', 'gain'].forEach(opt => {
+        const el = document.getElementById(`goal-opt-${opt}`);
+        if (!el) return;
+        const matches = (opt === 'lose' && g === 'Lose weight') || (opt === 'bal' && g === 'Eat balanced') || (opt === 'gain' && g === 'Gain muscle');
+        el.className = matches ? 'py-2 rounded-xl text-xs font-bold border bg-primary border-primary text-white' : 'py-2 rounded-xl text-xs font-semibold border bg-card-2 border-line text-ink';
+      });
+      recalcProfilePlan();
+    }
+
+    function recalcProfilePlan() {
+      const w = parseFloat(document.getElementById('edit-weight-input')?.value || '68');
+      const h = parseFloat(document.getElementById('edit-height-input')?.value || '172');
+      const a = parseInt(document.getElementById('edit-age-input')?.value || '24', 10);
+      
+      // Mifflin-St Jeor formula
+      let bmr = (10 * w) + (6.25 * h) - (5 * a) + 5;
+      let tdee = Math.round(bmr * 1.375);
+      
+      let targetKcal = tdee;
+      if (appState.personalization.goal === 'Lose weight') targetKcal = Math.round(tdee - 450);
+      if (appState.personalization.goal === 'Gain muscle') targetKcal = Math.round(tdee + 300);
+
+      const targetP = Math.round(w * 2.0);
+      const targetF = Math.round((targetKcal * 0.25) / 9);
+      const targetC = Math.round((targetKcal - (targetP * 4) - (targetF * 9)) / 4);
+
+      const kcalEl = document.getElementById('preview-calc-kcal');
+      const macroEl = document.getElementById('preview-calc-macros');
+      if (kcalEl) kcalEl.innerText = `${targetKcal.toLocaleString('id-ID')} kcal`;
+      if (macroEl) macroEl.innerText = `P ${targetP}g · K ${targetC}g · L ${targetF}g`;
+    }
+
+    function saveProfileChanges() {
+      const w = parseFloat(document.getElementById('edit-weight-input').value);
+      const tw = parseFloat(document.getElementById('edit-target-weight-input').value);
+      const h = parseFloat(document.getElementById('edit-height-input').value);
+      const a = parseInt(document.getElementById('edit-age-input').value, 10);
+
+      appState.personalization.weight = w;
+      appState.personalization.targetWeight = tw;
+      appState.personalization.height = h;
+      appState.personalization.age = a;
+
+      let bmr = (10 * w) + (6.25 * h) - (5 * a) + 5;
+      let tdee = Math.round(bmr * 1.375);
+      let targetKcal = tdee;
+      if (appState.personalization.goal === 'Lose weight') targetKcal = Math.round(tdee - 450);
+      if (appState.personalization.goal === 'Gain muscle') targetKcal = Math.round(tdee + 300);
+
+      appState.personalization.targetCalories = targetKcal;
+      appState.personalization.targetProtein = Math.round(w * 2.0);
+      appState.personalization.targetFat = Math.round((targetKcal * 0.25) / 9);
+      appState.personalization.targetCarbs = Math.round((targetKcal - (appState.personalization.targetProtein * 4) - (appState.personalization.targetFat * 9)) / 4);
+
+      closeEditProfileModal();
+      renderActiveScreen();
+    }
+
+    function resetAllData() {
+      if (confirm('Apakah Anda yakin ingin mereset seluruh catatan jurnal harian hari ini?')) {
+        appState.journal = [];
+        appState.activity.waterGlasses = 0;
+        appState.activity.steps = 0;
+        renderActiveScreen();
+      }
+    }
+
+    /* Modal Backdrop Closer */
     function handleBackdropClick(e, modalId) {
       if (e.target.id === modalId) {
         document.getElementById(modalId).classList.remove('open');
       }
     }
 
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        closeLogModal();
-        closeTokensModal();
-      }
-    });
+    /* Viewport Frame Mode Switcher */
+    function setDeviceView(mode) {
+      appState.viewMode = mode;
+      const htmlEl = document.documentElement;
+      const btnPhone = document.getElementById('btn-view-phone');
+      const btnFull = document.getElementById('btn-view-full');
 
-    // Initial render
-    renderViewport();
+      if (mode === 'full') {
+        htmlEl.classList.add('viewport-mode-desktop');
+        btnFull.className = 'px-2.5 py-1 rounded-full bg-primary text-white font-bold transition-all';
+        btnPhone.className = 'px-2.5 py-1 rounded-full text-white/80 hover:text-white transition-all';
+      } else {
+        htmlEl.classList.remove('viewport-mode-desktop');
+        btnPhone.className = 'px-2.5 py-1 rounded-full bg-primary text-white font-bold transition-all';
+        btnFull.className = 'px-2.5 py-1 rounded-full text-white/80 hover:text-white transition-all';
+      }
+    }
+
+    /* Clock updater */
+    setInterval(() => {
+      const now = new Date();
+      const clockEl = document.getElementById('status-clock');
+      if (clockEl) {
+        clockEl.innerText = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace('.', ':');
+      }
+    }, 1000);
+
+    /* Initial Render */
+    renderActiveScreen();
   </script>
 </body>
 </html>
