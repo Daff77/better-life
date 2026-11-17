@@ -26,19 +26,25 @@ export default function GoogleAuthCallback() {
 
         const params = new URLSearchParams(hash || search);
         const accessToken = params.get("access_token");
+        const idToken = params.get("id_token");
+        const state = params.get("state");
+        const expectedState = window.sessionStorage.getItem("betterlife_google_state");
+        if (!state || state !== expectedState) throw new Error("Google authentication state is invalid. Start sign-in again.");
+        window.sessionStorage.removeItem("betterlife_google_state");
+        window.history.replaceState(null, "", window.location.pathname);
         const error = params.get("error");
 
         if (error) {
           const desc = params.get("error_description") || error;
           setErrorMessage(desc);
           if (window.opener) {
-            window.opener.postMessage({ type: "GOOGLE_AUTH_ERROR", error: desc }, "*");
+            window.opener.postMessage({ type: "GOOGLE_AUTH_ERROR", error: desc, state }, window.location.origin);
             setTimeout(() => window.close(), 1000);
           }
           return;
         }
 
-        if (!accessToken) {
+        if (!accessToken || !idToken) {
           setErrorMessage("No access token found in callback response.");
           return;
         }
@@ -62,7 +68,16 @@ export default function GoogleAuthCallback() {
           email: profile.email,
           photoUrl: profile.picture,
           googleId: profile.sub,
+          idToken,
         };
+
+        if (!window.opener && typeof BroadcastChannel !== "undefined") {
+          const channel = new BroadcastChannel(`betterlife_google_${state}`);
+          channel.postMessage({ type: "GOOGLE_AUTH_SUCCESS", user: googleUser, idToken, state });
+          setStatusMessage("Authentication complete. Returning to Better Life...");
+          setTimeout(() => { channel.close(); window.close(); }, 400);
+          return;
+        }
 
         // Notify parent window if opened as popup
         if (window.opener) {
@@ -71,8 +86,10 @@ export default function GoogleAuthCallback() {
               type: "GOOGLE_AUTH_SUCCESS",
               user: googleUser,
               accessToken,
+              idToken,
+              state,
             },
-            "*"
+            window.location.origin
           );
           setStatusMessage("Authentication successful! Closing window...");
           setTimeout(() => {
@@ -84,6 +101,7 @@ export default function GoogleAuthCallback() {
         // Direct same-window redirect fallback
         setStatusMessage("Signing in to Better Life...");
         const result = await loginWithGoogle(googleUser);
+        if (!result.success) throw new Error(result.error || "Google login failed");
 
         if (result.isNewUser || !useAuthStore.getState().onboardingCompleted) {
           router.replace("/(onboarding)");

@@ -9,6 +9,7 @@ import {
 import { mealPlannerApi } from "../lib/api/mealPlannerApi";
 import { sessionStorage } from "../lib/sessionStorage";
 import { useAuthStore } from "./useAuthStore";
+import { accountRevision } from "../lib/accountScope";
 
 interface SubstitutionModalState {
   isOpen: boolean;
@@ -77,11 +78,13 @@ export const useMealPlannerStore = create<MealPlannerState>((set, get) => ({
     })),
 
   loadSavedPlan: async () => {
+    const revision = accountRevision();
     set({ isLoading: true, error: null });
     try {
       const session = await sessionStorage.getSession();
       const token = session?.token;
       const plan = await mealPlannerApi.getSavedPlan(token);
+      if (revision !== accountRevision()) return;
 
       if (plan) {
         set({
@@ -101,6 +104,7 @@ export const useMealPlannerStore = create<MealPlannerState>((set, get) => ({
   },
 
   generatePlan: async () => {
+    const revision = accountRevision();
     set({ isGenerating: true, error: null });
     try {
       const session = await sessionStorage.getSession();
@@ -108,6 +112,7 @@ export const useMealPlannerStore = create<MealPlannerState>((set, get) => ({
       const { preferences } = get();
 
       const newPlan = await mealPlannerApi.generatePlan(preferences, token);
+      if (revision !== accountRevision()) return;
       set({
         activePlan: newPlan,
         hasUnsavedChanges: false,
@@ -121,6 +126,7 @@ export const useMealPlannerStore = create<MealPlannerState>((set, get) => ({
   },
 
   savePlan: async () => {
+    const revision = accountRevision();
     const { activePlan } = get();
     if (!activePlan) return;
 
@@ -130,6 +136,7 @@ export const useMealPlannerStore = create<MealPlannerState>((set, get) => ({
       const token = session?.token;
 
       const saved = await mealPlannerApi.savePlan(activePlan, token);
+      if (revision !== accountRevision()) return;
       set({
         activePlan: saved,
         hasUnsavedChanges: false,

@@ -1,4 +1,5 @@
 import { PersonalizationMetrics } from "./schemas";
+import { accountStorageKey } from "./accountScope";
 
 export interface StoredUser {
   id?: string;
@@ -184,7 +185,7 @@ export const sessionStorage = {
 
   // Personalization data persistence
   async getPersonalization(): Promise<PersonalizationMetrics | null> {
-    const raw = await getStorageItem(PERSONALIZATION_KEY);
+    const raw = await getStorageItem(accountStorageKey(PERSONALIZATION_KEY));
     if (!raw) return null;
     try {
       return JSON.parse(raw) as PersonalizationMetrics;
@@ -194,10 +195,10 @@ export const sessionStorage = {
   },
 
   async savePersonalization(metrics: PersonalizationMetrics): Promise<void> {
-    await setStorageItem(PERSONALIZATION_KEY, JSON.stringify(metrics));
+    await setStorageItem(accountStorageKey(PERSONALIZATION_KEY), JSON.stringify(metrics));
   },
 
   async clearPersonalization(): Promise<void> {
-    await deleteStorageItem(PERSONALIZATION_KEY);
+    await deleteStorageItem(accountStorageKey(PERSONALIZATION_KEY));
   },
 };

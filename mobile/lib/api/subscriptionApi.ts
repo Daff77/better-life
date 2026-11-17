@@ -1,4 +1,5 @@
 import { API_BASE_URL } from "./config";
+import { accountRevision } from "../accountScope";
 import {
   SubscriptionPlan,
   SubscriptionStatusResponse,
@@ -21,6 +22,8 @@ let localSubscriptionState: SubscriptionStatusResponse = {
   entitlements: FREE_ENTITLEMENTS,
 };
 
+const emptySubscriptionState = { ...localSubscriptionState };
+export function resetSubscriptionCache() { localSubscriptionState = { ...emptySubscriptionState }; }
 export const subscriptionApi = {
   /**
    * Fetch available subscription plans
@@ -44,6 +47,7 @@ export const subscriptionApi = {
    * Fetch user's current verified subscription status
    */
   async getStatus(token?: string | null): Promise<SubscriptionStatusResponse> {
+    const revision = accountRevision();
     if (token) {
       try {
         const res = await fetch(`${API_BASE_URL}/subscription/status`, {
@@ -54,7 +58,7 @@ export const subscriptionApi = {
         });
         if (res.ok) {
           const data = await res.json();
-          localSubscriptionState = data;
+          if (revision === accountRevision()) localSubscriptionState = data;
           return data;
         }
       } catch {

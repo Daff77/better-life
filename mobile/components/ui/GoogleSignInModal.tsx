@@ -34,7 +34,7 @@ export const GoogleSignInModal: React.FC<GoogleSignInModalProps> = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [clientIdInput, setClientIdInput] = useState("");
   const [hasConfiguredId, setHasConfiguredId] = useState(false);
-  const [viewMode, setViewMode] = useState<"connecting" | "setup" | "quickTest">("connecting");
+  const [viewMode, setViewMode] = useState<"connecting" | "setup">("connecting");
 
   useEffect(() => {
     if (visible) {
@@ -56,6 +56,7 @@ export const GoogleSignInModal: React.FC<GoogleSignInModalProps> = ({
     if (result.success && result.user) {
       const authResult = await loginWithGoogle(result.user);
       setIsLoading(false);
+      if (!authResult.success) { setErrorMessage(authResult.error || "Login Google gagal."); return; }
       onClose();
 
       if (onSuccess) {
@@ -104,23 +105,6 @@ export const GoogleSignInModal: React.FC<GoogleSignInModalProps> = ({
     setViewMode("connecting");
   };
 
-  const handleQuickDemoLogin = async (email: string, name: string) => {
-    setIsLoading(true);
-    try {
-      const result = await loginWithGoogle({ name, email });
-      setIsLoading(false);
-      onClose();
-
-      const onboardingCompleted = useAuthStore.getState().onboardingCompleted;
-      if (!onboardingCompleted || result.isNewUser) {
-        router.replace("/(onboarding)");
-      } else {
-        router.replace("/(app)/(tabs)");
-      }
-    } catch {
-      setIsLoading(false);
-    }
-  };
 
   const handleModalClose = () => {
     if (isLoading) return;
@@ -190,12 +174,6 @@ export const GoogleSignInModal: React.FC<GoogleSignInModalProps> = ({
                       className="w-full"
                     />
 
-                    <Button
-                      title="Masuk Cepat Akun Google"
-                      variant="social"
-                      onPress={() => handleQuickDemoLogin("daffa.google@gmail.com", "Daffa (Google)")}
-                      className="w-full"
-                    />
 
                     <PressableScale
                       onPress={handleModalClose}
@@ -278,16 +256,6 @@ export const GoogleSignInModal: React.FC<GoogleSignInModalProps> = ({
                 </PressableScale>
 
                 <View className="flex-row items-center justify-between pt-1">
-                  <PressableScale
-                    onPress={() => setViewMode("quickTest")}
-                    pressedScale={0.96}
-                    className="py-1 flex-row items-center gap-x-1"
-                  >
-                    <ZapIconSvg size={13} color="#56605a" />
-                    <AppText weight="semibold" className="text-xs text-neutral-muted">
-                      Mode Uji Coba Cepat
-                    </AppText>
-                  </PressableScale>
 
                   {hasConfiguredId && (
                     <PressableScale
@@ -304,51 +272,6 @@ export const GoogleSignInModal: React.FC<GoogleSignInModalProps> = ({
               </FadeInView>
             )}
 
-            {/* Mode 3: Quick Test Account (for immediate testing without waiting for Cloud Console) */}
-            {viewMode === "quickTest" && (
-              <FadeInView key="mode-quicktest" duration={180} translateY={4} className="mb-2">
-                <AppText weight="semibold" className="text-xs text-neutral-muted mb-3 text-center">
-                  Pilih akun instan untuk mencoba alur aplikasi sebelum Google Client ID dibuat:
-                </AppText>
-
-                <PressableScale
-                  disabled={isLoading}
-                  onPress={() => handleQuickDemoLogin("daffa@gmail.com", "Daffa Pratama")}
-                  pressedScale={0.98}
-                  className="flex-row items-center p-3 rounded-2xl border border-neutral-border mb-2"
-                >
-                  <View className="w-10 h-10 rounded-full bg-blue-600 items-center justify-center mr-3">
-                    <AppText weight="bold" className="text-white text-base">D</AppText>
-                  </View>
-                  <View className="flex-1">
-                    <AppText weight="bold" className="text-sm text-neutral-dark">Daffa Pratama</AppText>
-                    <AppText weight="medium" className="text-xs text-neutral-muted">daffa@gmail.com</AppText>
-                  </View>
-                </PressableScale>
-
-                <PressableScale
-                  disabled={isLoading}
-                  onPress={() => handleQuickDemoLogin("johndoe25@gmail.com", "John Doe")}
-                  pressedScale={0.98}
-                  className="flex-row items-center p-3 rounded-2xl border border-neutral-border mb-3"
-                >
-                  <View className="w-10 h-10 rounded-full bg-emerald-600 items-center justify-center mr-3">
-                    <AppText weight="bold" className="text-white text-base">J</AppText>
-                  </View>
-                  <View className="flex-1">
-                    <AppText weight="bold" className="text-sm text-neutral-dark">John Doe</AppText>
-                    <AppText weight="medium" className="text-xs text-neutral-muted">johndoe25@gmail.com</AppText>
-                  </View>
-                </PressableScale>
-
-                <Button
-                  title="Kembali ke Setup Client ID"
-                  variant="outline"
-                  onPress={() => setViewMode("setup")}
-                  className="w-full"
-                />
-              </FadeInView>
-            )}
 
             {/* Footer Close */}
             <PressableScale

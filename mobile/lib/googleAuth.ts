@@ -1,6 +1,7 @@
 import { Platform } from "react-native";
 import * as WebBrowser from "expo-web-browser";
 import * as AuthSession from "expo-auth-session";
+import * as Crypto from "expo-crypto";
 
 // Required for web and native auth session redirects to complete cleanly
 WebBrowser.maybeCompleteAuthSession();
@@ -10,6 +11,7 @@ export interface GoogleUser {
   email: string;
   photoUrl?: string;
   googleId?: string;
+  idToken?: string;
 }
 
 export const DEFAULT_WEB_CLIENT_ID = "340702974194-mqp84cjopen5b8rh4jaqt06g8o2t1c0g.apps.googleusercontent.com";
@@ -77,10 +79,14 @@ export const googleAuthService = {
       clientId === KNOWN_ANDROID_CLIENT_ID ? DEFAULT_WEB_CLIENT_ID : (clientId || DEFAULT_WEB_CLIENT_ID);
 
     const redirectUri = this.getRedirectUri();
+    const state = Crypto.randomUUID();
+    if (Platform.OS === "web" && typeof window !== "undefined") window.sessionStorage.setItem("betterlife_google_state", state);
     const params = new URLSearchParams({
       client_id: safeClientId,
       redirect_uri: redirectUri,
-      response_type: "token",
+      response_type: "id_token token",
+      nonce: Crypto.randomUUID(),
+      state,
       scope: "openid https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email",
       prompt: "select_account",
     });
@@ -136,21 +142,26 @@ export const googleAuthService = {
       }
 
       let isResolved = false;
+      const expectedState = new URL(authUrl).searchParams.get("state");
+      const channel = typeof BroadcastChannel !== "undefined" ? new BroadcastChannel(`betterlife_google_${expectedState}`) : null;
 
       const messageListener = (event: MessageEvent) => {
+        if (event.origin !== window.location.origin || event.source !== popup || event.data?.state !== expectedState) return;
         if (!event.data || typeof event.data !== "object") return;
 
         if (event.data.type === "GOOGLE_AUTH_SUCCESS") {
           isResolved = true;
           window.removeEventListener("message", messageListener);
+          channel?.close();
           clearInterval(checkPopupClosed);
           resolve({
             success: true,
-            user: event.data.user,
+            user: { ...event.data.user, idToken: event.data.idToken },
           });
         } else if (event.data.type === "GOOGLE_AUTH_ERROR") {
           isResolved = true;
           window.removeEventListener("message", messageListener);
+          channel?.close();
           clearInterval(checkPopupClosed);
           resolve({
             success: false,
@@ -160,12 +171,14 @@ export const googleAuthService = {
       };
 
       window.addEventListener("message", messageListener);
+      if (channel) channel.onmessage = (event) => messageListener({ origin: window.location.origin, source: popup, data: event.data } as MessageEvent);
 
       // Check if user manually closed popup
       const checkPopupClosed = setInterval(() => {
         if (popup.closed) {
           clearInterval(checkPopupClosed);
           window.removeEventListener("message", messageListener);
+          channel?.close();
           if (!isResolved) {
             resolve({
               success: false,
@@ -201,6 +214,10 @@ export const googleAuthService = {
         }
 
         const accessToken = params.get("access_token");
+        const idToken = params.get("id_token");
+        if (params.get("state") !== new URL(authUrl).searchParams.get("state") || !idToken) {
+          return { success: false, error: "Invalid Google authentication response." };
+        }
         if (!accessToken) {
           return {
             success: false,
@@ -224,6 +241,7 @@ export const googleAuthService = {
             email: profile.email,
             photoUrl: profile.picture,
             googleId: profile.sub,
+            idToken,
           },
         };
       }

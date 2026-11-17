@@ -1,4 +1,5 @@
 import { API_BASE_URL } from "./config";
+import { accountRevision } from "../accountScope";
 import {
   MealPlanPreferences,
   MealPlanRecord,
@@ -17,6 +18,7 @@ export interface MealPlanPreviewResponse {
 }
 
 let cachedLocalPlan: MealPlanRecord | null = null;
+export function resetMealPlanCache() { cachedLocalPlan = null; }
 
 const DAYS_OF_WEEK = [
   "Monday",
@@ -192,6 +194,7 @@ export const mealPlannerApi = {
    * Fetch user's saved active meal plan
    */
   async getSavedPlan(token?: string | null): Promise<MealPlanRecord | null> {
+    const revision = accountRevision();
     if (token) {
       try {
         const res = await fetch(`${API_BASE_URL}/meal-plans/saved`, {
@@ -207,6 +210,7 @@ export const mealPlannerApi = {
 
         if (res.ok) {
           const plan = await res.json();
+          if (revision !== accountRevision()) return null;
           cachedLocalPlan = plan;
           return plan;
         }

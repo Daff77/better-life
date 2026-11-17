@@ -7,9 +7,6 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { queryClient } from "@/lib/queryClient";
 import { useAuthStore } from "@/stores/useAuthStore";
-import { useJournalStore } from "@/stores/useJournalStore";
-import { useOnboardingStore } from "@/stores/useOnboardingStore";
-import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
 import "../styles/global.css";
 import "@/lib/nativewindInterop";
 
@@ -53,9 +50,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     useAuthStore.getState().initializeAuth();
-    useOnboardingStore.getState().initializePersonalization();
-    useJournalStore.getState().initialize();
-    useSubscriptionStore.getState().fetchStatus();
+    // Account-specific hydration is completed by initializeAuth before screens receive the session.
   }, []);
 
   useEffect(() => {

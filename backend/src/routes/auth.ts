@@ -9,6 +9,7 @@ import {
 import { inMemoryStore } from "../services/store.js";
 import { env } from "../config/env.js";
 import { authMiddleware } from "../middleware/auth.js";
+import { googleIdentity } from "../services/googleIdentity.js";
 
 export const authRouter = Router();
 
@@ -144,13 +145,26 @@ authRouter.post("/google", async (req: Request, res: Response) => {
     });
   }
 
-  const { email, name, photoUrl } = parseResult.data;
-  const normalizedEmail = email.toLowerCase().trim();
+  let identity;
+  try {
+    identity = await googleIdentity.verify(parseResult.data.idToken);
+  } catch {
+    return res.status(401).json({ error: "Unauthorized", message: "Google identity could not be verified." });
+  }
+  const normalizedEmail = identity.email!.toLowerCase().trim();
+  const name = identity.name;
+  const photoUrl = identity.picture;
 
   let matchedUser = Array.from(inMemoryStore.users.values()).find(
     (u) => u.email.toLowerCase() === normalizedEmail
   );
 
+  if (matchedUser?.googleSubject && matchedUser.googleSubject !== identity.sub) {
+    return res.status(401).json({ error: "Unauthorized", message: "Google account does not match." });
+  }
+  if (matchedUser && !matchedUser.googleSubject && !normalizedEmail.endsWith("@gmail.com") && !identity.hd) {
+    return res.status(401).json({ error: "Unauthorized", message: "Sign in with your password to link this account." });
+  }
   if (!matchedUser) {
     const dummyHash = await bcrypt.hash(`oauth_google_${Date.now()}`, 10);
     matchedUser = {
@@ -164,6 +178,7 @@ authRouter.post("/google", async (req: Request, res: Response) => {
     inMemoryStore.users.set(matchedUser.id, matchedUser);
   }
 
+  matchedUser.googleSubject = identity.sub;
   const token = generateAuthToken(matchedUser.id, matchedUser.email);
 
   return res.json({

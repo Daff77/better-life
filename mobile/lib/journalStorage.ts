@@ -1,4 +1,5 @@
 import { DailyJournal, DailyJournalSchema } from "./schemas";
+import { accountStorageKey } from "./accountScope";
 
 const JOURNALS_KEY = "betterlife_journals_v1";
 
@@ -88,8 +89,8 @@ async function deleteStorageItem(key: string): Promise<void> {
 }
 
 export const journalStorage = {
-  async getJournals(): Promise<Record<string, DailyJournal>> {
-    const raw = await getStorageItem(JOURNALS_KEY);
+  async getJournals(key = accountStorageKey(JOURNALS_KEY)): Promise<Record<string, DailyJournal>> {
+    const raw = await getStorageItem(key);
     if (!raw) return {};
     try {
       return JSON.parse(raw) as Record<string, DailyJournal>;
@@ -98,8 +99,8 @@ export const journalStorage = {
     }
   },
 
-  async saveJournals(journals: Record<string, DailyJournal>): Promise<void> {
-    await setStorageItem(JOURNALS_KEY, JSON.stringify(journals));
+  async saveJournals(journals: Record<string, DailyJournal>, key = accountStorageKey(JOURNALS_KEY)): Promise<void> {
+    await setStorageItem(key, JSON.stringify(journals));
   },
 
   async getDailyJournal(date: string): Promise<DailyJournal | null> {
@@ -108,12 +109,13 @@ export const journalStorage = {
   },
 
   async saveDailyJournal(journal: DailyJournal): Promise<void> {
-    const journals = await this.getJournals();
+    const key = accountStorageKey(JOURNALS_KEY);
+    const journals = await this.getJournals(key);
     journals[journal.date] = journal;
-    await this.saveJournals(journals);
+    await this.saveJournals(journals, key);
   },
 
   async clearAllJournals(): Promise<void> {
-    await deleteStorageItem(JOURNALS_KEY);
+    await deleteStorageItem(accountStorageKey(JOURNALS_KEY));
   },
 };

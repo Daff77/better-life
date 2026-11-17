@@ -13,10 +13,7 @@ export const LoginInputSchema = z.object({
 });
 
 export const GoogleAuthInputSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  name: z.string().optional(),
-  photoUrl: z.string().optional(),
-  idToken: z.string().optional(),
+  idToken: z.string().min(1).max(16000),
 });
 
 export const UpdateProfileInputSchema = z.object({

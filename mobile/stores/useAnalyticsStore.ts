@@ -5,6 +5,7 @@ import {
   DailyAnalyticsPoint,
 } from "../lib/analyticsDomain";
 import { analyticsApi } from "../lib/api/analyticsApi";
+import { accountRevision } from "../lib/accountScope";
 
 interface AnalyticsState {
   range: DateRangeOption;
@@ -40,10 +41,12 @@ export const useAnalyticsStore = create<AnalyticsState>((set, get) => ({
   },
 
   fetchAnalytics: async () => {
+    const revision = accountRevision();
     set({ isLoading: true, error: null });
     try {
       const { range, startDate, endDate } = get();
       const data = await analyticsApi.getAdvancedAnalytics(range, startDate, endDate);
+      if (revision !== accountRevision()) return;
       
       // Auto-select latest day or first point with data if no point is currently selected
       let selectedPoint = get().selectedPoint;

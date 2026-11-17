@@ -3,6 +3,7 @@ import { PersonalizationMetrics, PersonalizationSchema } from "@/lib/schemas";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { sessionStorage } from "@/lib/sessionStorage";
 import { API_BASE_URL } from "@/lib/api/config";
+import { accountRevision } from "@/lib/accountScope";
 
 export interface PlanCalculationResult {
   bmr: number;
@@ -105,14 +106,17 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
   personalization: DEFAULT_PERSONALIZATION,
 
   initializePersonalization: async () => {
+    const revision = accountRevision();
     try {
       const persisted = await sessionStorage.getPersonalization();
+      if (revision !== accountRevision()) return;
       if (persisted) {
         set({ personalization: persisted, isHydrated: true });
       } else {
         set({ personalization: DEFAULT_PERSONALIZATION, isHydrated: true });
       }
     } catch {
+      if (revision !== accountRevision()) return;
       set({ personalization: DEFAULT_PERSONALIZATION, isHydrated: true });
     }
   },
@@ -125,6 +129,7 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
     }),
 
   savePersonalization: async (data: Partial<PersonalizationMetrics>) => {
+    const revision = accountRevision();
     const current = get().personalization;
     const merged = { ...current, ...data };
 
@@ -183,6 +188,7 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
 
     // Persist to storage
     await sessionStorage.savePersonalization(updatedMetrics);
+    if (revision !== accountRevision()) return { success: false, error: "Akun telah berubah. Silakan ulangi." };
 
     // Synchronize with backend profile if token exists
     try {
@@ -225,11 +231,13 @@ export const useOnboardingStore = create<OnboardingState>((set, get) => ({
   },
 
   completeOnboarding: async () => {
+    const revision = accountRevision();
     const current = get().personalization;
     set(() => ({
       onboardingCompleted: true,
     }));
     await sessionStorage.savePersonalization(current);
+    if (revision !== accountRevision()) return;
     await useAuthStore.getState().setOnboardingCompleted(true);
     try {
       const { useJournalStore, getTodayDateKey } = require("@/stores/useJournalStore");

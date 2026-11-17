@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { FoodItem } from "@/data/mockRecipes";
+import { accountStorageKey, accountRevision } from "@/lib/accountScope";
 
 const CUSTOM_RECIPES_KEY = "betterlife_custom_recipes_v1";
 
@@ -47,10 +48,12 @@ export const useCustomRecipesStore = create<CustomRecipesState>((set, get) => ({
   isHydrated: false,
 
   hydrate: async () => {
+    const revision = accountRevision();
     if (get().isHydrated) return;
     try {
       const storage = getPlatformStorage();
-      const raw = await storage.getItem(CUSTOM_RECIPES_KEY);
+      const raw = await storage.getItem(accountStorageKey(CUSTOM_RECIPES_KEY));
+      if (revision !== accountRevision()) return;
       if (raw) {
         const parsed = JSON.parse(raw) as FoodItem[];
         if (Array.isArray(parsed)) {
@@ -69,7 +72,7 @@ export const useCustomRecipesStore = create<CustomRecipesState>((set, get) => ({
     set({ customRecipes: updated });
     try {
       const storage = getPlatformStorage();
-      await storage.setItem(CUSTOM_RECIPES_KEY, JSON.stringify(updated));
+      await storage.setItem(accountStorageKey(CUSTOM_RECIPES_KEY), JSON.stringify(updated));
     } catch {
       // Ignore storage error
     }
@@ -80,7 +83,7 @@ export const useCustomRecipesStore = create<CustomRecipesState>((set, get) => ({
     set({ customRecipes: updated });
     try {
       const storage = getPlatformStorage();
-      await storage.setItem(CUSTOM_RECIPES_KEY, JSON.stringify(updated));
+      await storage.setItem(accountStorageKey(CUSTOM_RECIPES_KEY), JSON.stringify(updated));
     } catch {
       // Ignore storage error
     }

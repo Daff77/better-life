@@ -11,6 +11,7 @@ import {
 } from "../lib/subscriptionDomain";
 import { subscriptionApi } from "../lib/api/subscriptionApi";
 import { sessionStorage } from "../lib/sessionStorage";
+import { accountRevision } from "../lib/accountScope";
 
 interface SubscriptionState {
   tier: MembershipTier;
@@ -48,11 +49,13 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
   error: null,
 
   fetchStatus: async () => {
+    const revision = accountRevision();
     set({ isLoading: true, error: null });
     try {
       const session = await sessionStorage.getSession();
       const token = (session as any)?.token || null;
       const data = await subscriptionApi.getStatus(token);
+      if (revision !== accountRevision()) return;
 
       set({
         tier: data.tier,

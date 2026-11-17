@@ -2,6 +2,8 @@ import { create } from "zustand";
 import { AuthUser, AuthUserSchema } from "@/lib/schemas";
 import { sessionStorage, StoredAccount } from "@/lib/sessionStorage";
 import { API_BASE_URL } from "@/lib/api/config";
+import { activateAccount } from "@/lib/accountLifecycle";
+import { accountRevision } from "@/lib/accountScope";
 
 interface AuthState {
   user: AuthUser | null;
@@ -14,6 +16,7 @@ interface AuthState {
     name?: string;
     email: string;
     photoUrl?: string;
+    idToken?: string;
   }) => Promise<{ success: boolean; error?: string; isNewUser?: boolean }>;
   signup: (data: {
     name: string;
@@ -36,6 +39,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       const session = await sessionStorage.getSession();
       if (session && session.isAuthenticated && session.user) {
+        await activateAccount(session.user.email);
         const user: AuthUser = {
           ...session.user,
           isAuthenticated: true,
@@ -47,6 +51,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           isLoading: false,
         });
       } else {
+        await activateAccount();
         set({
           user: null,
           isAuthenticated: false,
@@ -65,6 +70,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   login: async (identifier: string, password?: string) => {
+    if (!password) return { success: false, error: "Kata sandi wajib diisi." };
     const trimmed = identifier.trim().toLowerCase();
     const accounts = await sessionStorage.getAccounts();
     const account = accounts.find(
@@ -106,9 +112,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (res.ok) {
         const authData = await res.json();
         token = authData.token;
-      }
+      } else return { success: false, error: "Login ditolak server. Periksa email dan kata sandi." };
     } catch {
-      // Backend offline or unreachable, proceed locally
+      return { success: false, error: "Server login tidak dapat dihubungi." };
     }
 
     await sessionStorage.saveSession({
@@ -117,6 +123,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       onboardingCompleted: account.onboardingCompleted,
       token,
     });
+
+    await activateAccount(sessionUser.email);
 
     set({
       user: sessionUser,
@@ -132,8 +140,20 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     name?: string;
     email: string;
     photoUrl?: string;
+    idToken?: string;
   }) => {
-    const trimmedEmail = data.email.trim().toLowerCase();
+    if (!data.idToken) return { success: false, error: "Token Google tidak tersedia. Silakan login ulang melalui Google." };
+    let verified;
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/google`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken: data.idToken }),
+      });
+      if (!response.ok) return { success: false, error: "Identitas Google ditolak server. Silakan login ulang." };
+      verified = await response.json();
+      if (!verified.token || !AuthUserSchema.safeParse(verified.user).success) throw new Error("Invalid response");
+    } catch { return { success: false, error: "Login Google belum dapat diverifikasi. Periksa koneksi lalu coba lagi." }; }
+    const trimmedEmail = verified.user.email.trim().toLowerCase();
     const accounts = await sessionStorage.getAccounts();
     let account = accounts.find((a) => a.email.toLowerCase() === trimmedEmail);
     let isNew = false;
@@ -141,8 +161,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (!account) {
       isNew = true;
       account = {
-        id: `google-${Date.now()}`,
-        name: data.name?.trim() || trimmedEmail.split("@")[0] || "Google User",
+        id: verified.user.id,
+        name: verified.user.name,
         email: trimmedEmail,
         password: "google_oauth_authenticated",
         phone: undefined,
@@ -152,31 +172,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
 
     const sessionUser: AuthUser = {
-      id: account.id,
-      name: account.name,
-      email: account.email,
-      phone: account.phone,
+      ...verified.user,
       isAuthenticated: true,
     };
 
-    let token: string | undefined = undefined;
-    try {
-      const res = await fetch(`${API_BASE_URL}/auth/google`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: sessionUser.email,
-          name: sessionUser.name,
-          photoUrl: data.photoUrl,
-        }),
-      });
-      if (res.ok) {
-        const authData = await res.json();
-        token = authData.token;
-      }
-    } catch {
-      // Local session works seamlessly even without backend
-    }
+    const token: string = verified.token;
 
     await sessionStorage.saveSession({
       user: sessionUser,
@@ -184,6 +184,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       onboardingCompleted: account.onboardingCompleted,
       token,
     });
+
+    await activateAccount(sessionUser.email);
 
     set({
       user: sessionUser,
@@ -258,6 +260,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       token,
     });
 
+    await activateAccount(sessionUser.email);
+
     set({
       user: sessionUser,
       isAuthenticated: true,
@@ -270,6 +274,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   logout: async () => {
     await sessionStorage.clearSession();
+    await activateAccount();
     set({
       user: null,
       isAuthenticated: false,
@@ -279,15 +284,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   setOnboardingCompleted: async (completed: boolean) => {
-    set({ onboardingCompleted: completed });
+    const revision = accountRevision();
+    const session = await sessionStorage.getSession();
     const { user } = get();
-    if (user && user.email) {
+    if (user && session?.user.email === user.email && revision === accountRevision()) {
       await sessionStorage.updateAccountOnboarding(user.email, completed);
+      if (revision !== accountRevision()) return;
       await sessionStorage.saveSession({
+        ...session,
         user,
         isAuthenticated: true,
         onboardingCompleted: completed,
       });
+      if (revision === accountRevision()) set({ onboardingCompleted: completed });
     }
   },
 

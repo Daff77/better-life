@@ -4,6 +4,7 @@ import { journalStorage } from "@/lib/journalStorage";
 import { useOnboardingStore } from "@/stores/useOnboardingStore";
 import { sessionStorage } from "@/lib/sessionStorage";
 import { API_BASE_URL } from "@/lib/api/config";
+import { accountRevision } from "@/lib/accountScope";
 
 export function getTodayDateKey(): string {
   const d = new Date();
@@ -141,8 +142,10 @@ export const useJournalStore = create<JournalState>((set, get) => ({
   isHydrated: false,
 
   initialize: async () => {
+    const revision = accountRevision();
     try {
       const persisted = await journalStorage.getJournals();
+      if (revision !== accountRevision()) return;
       const today = getTodayDateKey();
       const target = resolveDefaultTarget();
 
@@ -156,12 +159,15 @@ export const useJournalStore = create<JournalState>((set, get) => ({
         await journalStorage.saveDailyJournal(persisted[today]);
       }
 
+      if (revision !== accountRevision()) return;
+
       set({
         journals: persisted,
         activeDate: today,
         isHydrated: true,
       });
     } catch {
+      if (revision !== accountRevision()) return;
       const today = getTodayDateKey();
       set({
         journals: {
@@ -207,6 +213,7 @@ export const useJournalStore = create<JournalState>((set, get) => ({
   },
 
   addEntry: async (entryInput: AddJournalEntryInput, date?: string) => {
+    const revision = accountRevision();
     const targetDate = date || get().activeDate;
     const journals = { ...get().journals };
     let dayJournal = journals[targetDate];
@@ -268,6 +275,8 @@ export const useJournalStore = create<JournalState>((set, get) => ({
     set({ journals });
     await journalStorage.saveDailyJournal(updatedDay);
 
+    if (revision !== accountRevision()) return newEntry;
+
     // Sync to backend if token is available
     try {
       const session = await sessionStorage.getSession();
@@ -300,6 +309,7 @@ export const useJournalStore = create<JournalState>((set, get) => ({
   },
 
   removeEntry: async (entryId: string, date?: string) => {
+    const revision = accountRevision();
     const targetDate = date || get().activeDate;
     const journals = { ...get().journals };
     const dayJournal = journals[targetDate];
@@ -321,6 +331,8 @@ export const useJournalStore = create<JournalState>((set, get) => ({
     journals[targetDate] = updatedDay;
     set({ journals });
     await journalStorage.saveDailyJournal(updatedDay);
+
+    if (revision !== accountRevision()) return true;
 
     try {
       const session = await sessionStorage.getSession();
