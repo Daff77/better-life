@@ -286,7 +286,7 @@ export default function HomeScreen() {
       className="flex-1 min-w-0 bg-card border border-line rounded-[20px] p-3.5"
       style={{ boxShadow: SURFACE_SHADOW } as ViewStyle}
       accessibilityRole="button"
-      accessibilityLabel={`${item.title}: ${item.numericValue} ${item.unit}, ${item.caption}`}
+      accessibilityLabel={`${item.title}: ${item.numericValue} ${item.unit}, ${item.caption}${item.hasAddAction ? `, ${item.actionLabel}` : ""}`}
     >
       <View className="flex-row items-center gap-2">
         <View
@@ -299,20 +299,14 @@ export default function HomeScreen() {
           {item.title}
         </AppText>
         {item.hasAddAction && (
-          <PressableScale
-            onPress={(e) => {
-              e.stopPropagation?.();
-              item.onActionPress?.();
-            }}
-            pressedScale={0.9}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          <View
             className="w-[24px] h-[24px] rounded-full items-center justify-center flex-shrink-0"
             style={{ backgroundColor: item.color }}
-            accessibilityRole="button"
-            accessibilityLabel={(item as any).actionLabel || `Tambah ${item.title}`}
+            accessible={false}
+            pointerEvents="none"
           >
             <LineIcon name="plus" size={12} color="#ffffff" strokeWidth={2.5} />
-          </PressableScale>
+          </View>
         )}
       </View>
 
