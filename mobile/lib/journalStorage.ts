@@ -29,7 +29,7 @@ function getSecureStore() {
   }
 }
 
-async function getStorageItem(key: string): Promise<string | null> {
+export async function getStorageItem(key: string): Promise<string | null> {
   try {
     const { isWeb, hasSecureStore } = getPlatformInfo();
     const SecureStore = hasSecureStore ? getSecureStore() : null;
@@ -48,7 +48,7 @@ async function getStorageItem(key: string): Promise<string | null> {
   }
 }
 
-async function setStorageItem(key: string, value: string): Promise<void> {
+export async function setStorageItem(key: string, value: string): Promise<void> {
   try {
     const { isWeb, hasSecureStore } = getPlatformInfo();
     const SecureStore = hasSecureStore ? getSecureStore() : null;

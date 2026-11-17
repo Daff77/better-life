@@ -156,15 +156,18 @@ describe("Backend Meals API Integration", () => {
       .get("/api/meals")
       .set("Authorization", `Bearer ${userAToken}`);
     assert.equal(beforeReset.body.length, 2);
+    await request(app).post("/api/meals").set("Authorization", `Bearer ${userAToken}`).send({ id: "other-day", type: "Lunch", name: "Yesterday", calories: 200, dateKey: "2000-01-01" });
 
     const resetRes = await request(app)
       .post("/api/meals/reset")
-      .set("Authorization", `Bearer ${userAToken}`);
+      .set("Authorization", `Bearer ${userAToken}`)
+      .send({ dateKey: new Date().toISOString().slice(0, 10) });
     assert.equal(resetRes.status, 200);
 
     const afterReset = await request(app)
       .get("/api/meals")
       .set("Authorization", `Bearer ${userAToken}`);
-    assert.equal(afterReset.body.length, 0);
+    assert.equal(afterReset.body.length, 1);
+    assert.equal(afterReset.body[0].id, "other-day");
   });
 });

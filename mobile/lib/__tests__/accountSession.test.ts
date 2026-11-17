@@ -149,6 +149,35 @@ test("verified Google session, onboarding token, account isolation, reload and f
       (await useAuthStore.getState().login("daffa@gmail.com", "password123")).success,
       false
     );
+    const journal = useJournalStore.getState();
+    const half = await journal.addEntry({ title: "Half serving", category: "Lunch", baseCalories: 400, calories: 200, quantity: 0.5, proteinGrams: 10 });
+    await journal.updateEntry(half.id, { title: "Renamed" });
+    assert.equal(useJournalStore.getState().getJournal().entries.find(e => e.id === half.id)?.calories, 200);
+    await journal.updateEntry(half.id, { quantity: 1 });
+    assert.equal(useJournalStore.getState().getJournal().entries.find(e => e.id === half.id)?.proteinGrams, 20);
+    const { calculatePersonalizedPlan: actualCalculate } = require("../../stores/useOnboardingStore");
+    const { calculatePersonalizedPlan: domainCalculate } = require("../nutritionDomain");
+    assert.equal(actualCalculate, domainCalculate);
+    const { mealPlannerApi } = require("../api/mealPlannerApi");
+    const { MOCK_RECIPES } = require("../../data/mockRecipes");
+    await assert.rejects(() => mealPlannerApi.generatePlan({ preferredMealSlots: ["Lunch"], allergies: MOCK_RECIPES.flatMap((r: any) => r.ingredients.map((i: any) => i.name)), dietaryRestrictions: [] }), /No recipes/);
+    const { subscriptionApi } = require("../api/subscriptionApi");
+    await assert.rejects(() => subscriptionApi.checkout("monthly", "stripe", "rejected-token"));
+    assert.equal((await subscriptionApi.getStatus()).isPremium, false);
+    const { syncJournal } = require("../journalSync");
+    const delivered: any[] = [];
+    const online = mock.method(globalThis, "fetch", async (url: any, init: any) => {
+      delivered.push({ url: String(url), method: init.method, body: init.body ? JSON.parse(init.body) : undefined });
+      return { ok: true, status: 200 } as Response;
+    });
+    try {
+      await syncJournal();
+      assert.ok(delivered.some(item => item.body?.id === half.id && item.body.quantity === 0.5));
+      assert.ok(delivered.some(item => item.body?.id === half.id && item.body.quantity === 1 && item.body.proteinGrams === 20));
+      delivered.length = 0;
+      await syncJournal();
+      assert.equal(delivered.length, 0);
+    } finally { online.mock.restore(); }
   } finally {
     modules.mock.restore();
     fetchMock.mock.restore();

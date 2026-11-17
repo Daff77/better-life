@@ -50,7 +50,7 @@ function logMealHandler(req: Request, res: Response) {
   const dateKey = inputDateKey || loggedAt.toISOString().split("T")[0];
 
   const newMeal = {
-    id: `meal-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+    id: parseResult.data.id || `meal-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
     userId,
     type,
     name,
@@ -67,7 +67,7 @@ function logMealHandler(req: Request, res: Response) {
   };
 
   const current = inMemoryStore.loggedMeals.get(userId) || [];
-  inMemoryStore.loggedMeals.set(userId, [newMeal, ...current]);
+  inMemoryStore.loggedMeals.set(userId, [newMeal, ...current.filter(m => m.id !== newMeal.id)]);
 
   return res.status(201).json(newMeal);
 }
@@ -102,6 +102,8 @@ mealsRouter.delete("/:id", (req: Request, res: Response) => {
 // 4. POST /api/meals/reset — Clear today's logged meals for authenticated user
 mealsRouter.post("/reset", (req: Request, res: Response) => {
   const userId = req.user!.userId;
-  inMemoryStore.loggedMeals.set(userId, []);
+  const dateKey = req.body?.dateKey;
+  if (typeof dateKey !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) return res.status(400).json({ error: "dateKey is required" });
+  inMemoryStore.loggedMeals.set(userId, (inMemoryStore.loggedMeals.get(userId) || []).filter(m => m.dateKey !== dateKey));
   return res.json({ message: "Meals cleared successfully" });
 });

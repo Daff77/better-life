@@ -4,6 +4,8 @@ import { useAuthStore } from "@/stores/useAuthStore";
 import { sessionStorage } from "@/lib/sessionStorage";
 import { API_BASE_URL } from "@/lib/api/config";
 import { accountRevision } from "@/lib/accountScope";
+import { calculatePersonalizedPlan } from "@/lib/nutritionDomain";
+export { calculatePersonalizedPlan } from "@/lib/nutritionDomain";
 
 export interface PlanCalculationResult {
   bmr: number;
@@ -12,58 +14,6 @@ export interface PlanCalculationResult {
   targetProteinGrams: number;
   targetCarbGrams: number;
   targetFatGrams: number;
-}
-
-/**
- * Reusable Mifflin-St Jeor calculation engine (Milestone 2 & 7)
- * Product estimate calculation, not medical advice.
- */
-export function calculatePersonalizedPlan(input: {
-  weight: number;
-  height: number;
-  gender: "Female" | "Male";
-  birthDate?: { day: number; month: string; year: number };
-  age?: number;
-  goal: "Eat balanced" | "Lose weight" | "Gain muscle";
-}): PlanCalculationResult {
-  const currentYear = new Date().getFullYear();
-  let age = input.age;
-  if (age === undefined && input.birthDate) {
-    age = currentYear - input.birthDate.year;
-  }
-  age = Math.max(14, Math.min(100, age || 25));
-
-  // Mifflin-St Jeor Formula
-  let bmr = 10 * input.weight + 6.25 * input.height - 5 * age;
-  bmr += input.gender === "Male" ? 5 : -161;
-  bmr = Math.round(bmr);
-
-  // Total Daily Energy Expenditure (TDEE) with moderate activity factor 1.35
-  const tdee = Math.round(bmr * 1.35);
-
-  // Goal-adjusted target calories
-  let target = tdee;
-  if (input.goal === "Lose weight") {
-    target = Math.round(tdee * 0.82);
-  } else if (input.goal === "Gain muscle") {
-    target = Math.round(tdee * 1.15);
-  } else {
-    target = Math.round(tdee * 1.00);
-  }
-
-  // Macronutrient targets (Protein 25%, Carbs 50%, Fat 25%)
-  const proteinGrams = Math.round((target * 0.25) / 4);
-  const carbGrams = Math.round((target * 0.50) / 4);
-  const fatGrams = Math.round((target * 0.25) / 9);
-
-  return {
-    bmr,
-    tdee,
-    targetCalories: target,
-    targetProteinGrams: proteinGrams,
-    targetCarbGrams: carbGrams,
-    targetFatGrams: fatGrams,
-  };
 }
 
 interface OnboardingState {

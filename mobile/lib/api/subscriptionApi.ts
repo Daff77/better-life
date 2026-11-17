@@ -65,7 +65,7 @@ export const subscriptionApi = {
         // Fallback silently to cached state
       }
     }
-    return localSubscriptionState;
+    return { ...emptySubscriptionState };
   },
 
   /**
@@ -95,36 +95,11 @@ export const subscriptionApi = {
           throw new Error(errData.message || "Checkout failed");
         }
       } catch (err: any) {
-        if (!token) throw err;
+        throw err;
       }
     }
 
-    // Local sandbox simulation for demo / offline
-    const plan = SUBSCRIPTION_PLANS[planId];
-    const now = new Date();
-    const periodEnd =
-      plan.interval === "month"
-        ? new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString()
-        : plan.interval === "year"
-        ? new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000).toISOString()
-        : null;
-
-    localSubscriptionState = {
-      tier: "premium",
-      status: "premium_active",
-      isPremium: true,
-      planId,
-      billingProvider: provider,
-      currentPeriodEnd: periodEnd,
-      cancelAtPeriodEnd: false,
-      entitlements: PREMIUM_ENTITLEMENTS,
-    };
-
-    return {
-      success: true,
-      subscription: localSubscriptionState,
-      message: `Upgraded to ${plan.name}`,
-    };
+    throw new Error("Verified checkout requires a connection to the payment server.");
   },
 
   /**
@@ -156,7 +131,7 @@ export const subscriptionApi = {
       }
     }
 
-    return this.checkout(planId, provider, token);
+    throw new Error("Purchase could not be verified by the payment server.");
   },
 
   /**
@@ -185,23 +160,11 @@ export const subscriptionApi = {
           throw new Error(errData.message || "Failed to cancel subscription");
         }
       } catch (err: any) {
-        if (!token) throw err;
+        throw err;
       }
     }
 
-    // Local simulation
-    localSubscriptionState = {
-      ...localSubscriptionState,
-      status: "canceled",
-      cancelAtPeriodEnd: true,
-      isPremium: true, // Still entitled until period end!
-    };
-
-    return {
-      success: true,
-      subscription: localSubscriptionState,
-      message: "Subscription auto-renewal canceled. Access remains active until period ends.",
-    };
+    throw new Error("Cancellation requires a connection to the payment server.");
   },
 
   /**
@@ -233,12 +196,6 @@ export const subscriptionApi = {
       }
     }
 
-    return {
-      restored: localSubscriptionState.isPremium,
-      statusResponse: localSubscriptionState,
-      message: localSubscriptionState.isPremium
-        ? "Existing active Premium membership verified and restored."
-        : "No previous active subscriptions found for this account.",
-    };
+    throw new Error("Restoring purchases requires verification by the payment server.");
   },
 };

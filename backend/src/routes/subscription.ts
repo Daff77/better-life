@@ -136,27 +136,5 @@ subscriptionRouter.post("/restore", authMiddleware, (req: Request, res: Response
 
 // 7. POST /api/subscription/webhook — Idempotent provider webhook handler
 subscriptionRouter.post("/webhook", (req: Request, res: Response) => {
-  const parseResult = WebhookEventInputSchema.safeParse(req.body);
-  if (!parseResult.success) {
-    return res.status(400).json({
-      error: "Invalid Webhook Payload",
-      details: parseResult.error.flatten(),
-    });
-  }
-
-  const { eventId, eventType, provider, userId, subscriptionId, planId, currentPeriodEnd, payload } =
-    parseResult.data;
-
-  const result = subscriptionService.processWebhookEvent({
-    eventId,
-    eventType,
-    provider,
-    userId,
-    subscriptionId,
-    planId,
-    currentPeriodEnd,
-    payload,
-  });
-
-  return res.status(result.duplicate ? 200 : 201).json(result);
+  return res.status(503).json({ error: "Verified provider webhook integration is not configured." });
 });

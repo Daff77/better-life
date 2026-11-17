@@ -38,6 +38,7 @@ export const PersonalizationInputSchema = z.object({
 });
 
 export const LogMealInputSchema = z.object({
+  id: z.string().min(1).max(200).optional(),
   type: z.enum(["Breakfast", "Lunch", "Dinner", "Snack", "Drink"]),
   name: z.string().min(1, "Meal name cannot be empty"),
   calories: z.number().nonnegative(),

@@ -38,6 +38,12 @@ function isRecipeSafeLocal(recipe: FoodItem, allergies: string[], restrictions: 
   if (normAllergies.length > 0) {
     const ingText = recipe.ingredients.map((i) => i.name.toLowerCase()).join(" ");
     for (const a of normAllergies) {
+      const aliases: Record<string, RegExp> = {
+        lactose: /milk|cheese|yogurt|butter|cream|dairy|lactose/i,
+        nuts: /almond|walnut|cashew|pecan|pistachio|peanut|nuts/i,
+        seafood: /fish|salmon|tuna|cod|shrimp|prawn|crab|lobster|shellfish/i,
+      };
+      if (aliases[a]?.test(ingText)) return false;
       if (ingText.includes(a)) return false;
       if (a === "dairy" && /milk|cheese|yogurt|butter/i.test(ingText)) return false;
       if (a === "eggs" && /egg/i.test(ingText)) return false;
@@ -64,7 +70,8 @@ function generateLocalPlan(preferences: MealPlanPreferences): MealPlanRecord {
     isRecipeSafeLocal(r, preferences.allergies, preferences.dietaryRestrictions)
   );
 
-  const pool = safeRecipes.length > 0 ? safeRecipes : MOCK_RECIPES;
+  if (!safeRecipes.length) throw new Error("No recipes match your allergy and dietary restrictions.");
+  const pool = safeRecipes;
 
   const days = DAYS_OF_WEEK.map((dayName, dayIdx) => {
     const dayMeals = slots.map((slot, sIdx) => {
@@ -377,6 +384,7 @@ export const mealPlannerApi = {
     // Local replacement calculation
     const newRecipe = MOCK_RECIPES.find((r) => r.id === newRecipeId);
     if (!newRecipe) return currentPlan;
+    if (!isRecipeSafeLocal(newRecipe, currentPlan.preferences.allergies, currentPlan.preferences.dietaryRestrictions)) throw new Error("Recipe conflicts with dietary restrictions.");
 
     const updatedDays = currentPlan.days.map((day, idx) => {
       if (idx !== dayIndex) return day;

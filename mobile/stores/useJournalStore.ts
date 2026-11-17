@@ -5,6 +5,7 @@ import { useOnboardingStore } from "@/stores/useOnboardingStore";
 import { sessionStorage } from "@/lib/sessionStorage";
 import { API_BASE_URL } from "@/lib/api/config";
 import { accountRevision } from "@/lib/accountScope";
+import { syncJournal } from "@/lib/journalSync";
 
 export function getTodayDateKey(): string {
   const d = new Date();
@@ -85,7 +86,7 @@ export function computeJournalAggregates(
   const target = journal?.targetCalories ?? fallbackTarget ?? 1950;
   const entries = journal?.entries ?? [];
   const totalConsumed = entries.reduce((sum, entry) => sum + (entry.calories || 0), 0);
-  const remainingCalories = Math.max(0, target - totalConsumed);
+  const remainingCalories = target - totalConsumed;
   const progressRatio = target > 0 ? Math.min(1.0, totalConsumed / target) : 0;
 
   const totalProteinGrams = Math.round(entries.reduce((sum, entry) => sum + (entry.proteinGrams || 0), 0) * 10) / 10;
@@ -166,6 +167,7 @@ export const useJournalStore = create<JournalState>((set, get) => ({
         activeDate: today,
         isHydrated: true,
       });
+      void syncJournal();
     } catch {
       if (revision !== accountRevision()) return;
       const today = getTodayDateKey();
@@ -230,7 +232,7 @@ export const useJournalStore = create<JournalState>((set, get) => ({
       throw new Error("Invalid quantity: quantity must be at least 1.");
     }
 
-    const quantity = Math.max(1, entryInput.quantity || 1);
+    const quantity = entryInput.quantity ?? 1;
     let baseCalories = entryInput.baseCalories;
     let totalCalories = entryInput.calories;
 
@@ -277,33 +279,7 @@ export const useJournalStore = create<JournalState>((set, get) => ({
 
     if (revision !== accountRevision()) return newEntry;
 
-    // Sync to backend if token is available
-    try {
-      const session = await sessionStorage.getSession();
-      if (session?.token) {
-        await fetch(`${API_BASE_URL}/meals`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${session.token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            type: newEntry.category,
-            name: newEntry.title,
-            calories: newEntry.calories,
-            proteinGrams: newEntry.proteinGrams,
-            carbsGrams: newEntry.carbsGrams,
-            fatGrams: newEntry.fatGrams,
-            fiberGrams: newEntry.fiberGrams,
-            quantity: newEntry.quantity,
-            dateKey: targetDate,
-            loggedAt: newEntry.loggedAt,
-          }),
-        });
-      }
-    } catch {
-      // Backend offline or unreachable
-    }
+    await syncJournal({ path: "/meals", method: "POST", body: { ...newEntry, name: newEntry.title, type: newEntry.category, dateKey: targetDate } });
 
     return newEntry;
   },
@@ -334,24 +310,13 @@ export const useJournalStore = create<JournalState>((set, get) => ({
 
     if (revision !== accountRevision()) return true;
 
-    try {
-      const session = await sessionStorage.getSession();
-      if (session?.token) {
-        await fetch(`${API_BASE_URL}/meals/${entryId}`, {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${session.token}`,
-          },
-        });
-      }
-    } catch {
-      // Backend offline
-    }
+    await syncJournal({ path: `/meals/${entryId}`, method: "DELETE" });
 
     return true;
   },
 
   updateEntry: async (entryId: string, updates: UpdateJournalEntryInput, date?: string) => {
+    const revision = accountRevision();
     const targetDate = date || get().activeDate;
     const journals = { ...get().journals };
     const dayJournal = journals[targetDate];
@@ -362,7 +327,9 @@ export const useJournalStore = create<JournalState>((set, get) => ({
     if (entryIndex === -1) return false;
 
     const currentEntry = dayJournal.entries[entryIndex];
-    const newQuantity = updates.quantity !== undefined ? Math.max(1, updates.quantity) : currentEntry.quantity;
+    const newQuantity = updates.quantity ?? currentEntry.quantity;
+    if (!Number.isFinite(newQuantity) || newQuantity <= 0) throw new Error("Quantity must be positive.");
+    const scale = newQuantity / currentEntry.quantity;
 
     let newBaseCalories = updates.baseCalories !== undefined ? updates.baseCalories : currentEntry.baseCalories;
     let newTotalCalories = updates.calories;
@@ -382,10 +349,10 @@ export const useJournalStore = create<JournalState>((set, get) => ({
       quantity: newQuantity,
       baseCalories: newBaseCalories,
       calories: Math.max(0, newTotalCalories),
-      proteinGrams: updates.proteinGrams !== undefined ? updates.proteinGrams : currentEntry.proteinGrams,
-      carbsGrams: updates.carbsGrams !== undefined ? updates.carbsGrams : currentEntry.carbsGrams,
-      fatGrams: updates.fatGrams !== undefined ? updates.fatGrams : currentEntry.fatGrams,
-      fiberGrams: updates.fiberGrams !== undefined ? updates.fiberGrams : currentEntry.fiberGrams,
+      proteinGrams: updates.proteinGrams ?? currentEntry.proteinGrams * scale,
+      carbsGrams: updates.carbsGrams ?? currentEntry.carbsGrams * scale,
+      fatGrams: updates.fatGrams ?? currentEntry.fatGrams * scale,
+      fiberGrams: updates.fiberGrams ?? currentEntry.fiberGrams * scale,
     };
 
     const newEntries = [...dayJournal.entries];
@@ -399,10 +366,12 @@ export const useJournalStore = create<JournalState>((set, get) => ({
     journals[targetDate] = updatedDay;
     set({ journals });
     await journalStorage.saveDailyJournal(updatedDay);
+    if (revision === accountRevision()) await syncJournal({ path: "/meals", method: "POST", body: { ...updatedEntry, name: updatedEntry.title, type: updatedEntry.category, dateKey: targetDate } });
     return true;
   },
 
   clearDay: async (date?: string) => {
+    const revision = accountRevision();
     const targetDate = date || get().activeDate;
     const journals = { ...get().journals };
     const dayJournal = journals[targetDate];
@@ -418,19 +387,7 @@ export const useJournalStore = create<JournalState>((set, get) => ({
     set({ journals });
     await journalStorage.saveDailyJournal(clearedDay);
 
-    try {
-      const session = await sessionStorage.getSession();
-      if (session?.token) {
-        await fetch(`${API_BASE_URL}/meals/reset`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${session.token}`,
-          },
-        });
-      }
-    } catch {
-      // Backend offline
-    }
+    if (revision === accountRevision()) await syncJournal({ path: "/meals/reset", method: "POST", body: { dateKey: targetDate } });
   },
 
   setTargetCalories: async (target: number, date?: string) => {

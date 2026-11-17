@@ -131,6 +131,7 @@ export class SubscriptionService {
     checkoutUrl?: string;
     message: string;
   } {
+    if (provider !== "mock_sandbox" || process.env.NODE_ENV === "production" || process.env.ENABLE_PAYMENT_SANDBOX !== "true") throw new Error("Payment provider verification is not configured. Checkout is unavailable.");
     const plan = SUBSCRIPTION_PLANS[planId];
     if (!plan) {
       throw new Error(`Invalid plan identifier: ${planId}`);
@@ -203,6 +204,7 @@ export class SubscriptionService {
     effectiveStatus: SubscriptionStatus;
     message: string;
   } {
+    if (provider !== "mock_sandbox" || process.env.NODE_ENV === "production" || process.env.ENABLE_PAYMENT_SANDBOX !== "true") throw new Error("Receipt verification is not configured.");
     // 1. Enforce strict idempotency: check if transactionId was already processed
     if (inMemoryStore.paymentEvents.has(transactionId)) {
       const existing = inMemoryStore.subscriptions.get(userId);

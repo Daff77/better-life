@@ -19,6 +19,9 @@ const DAYS_OF_WEEK = [
 ];
 
 const ALLERGEN_KEYWORD_MAP: Record<string, string[]> = {
+  lactose: ["milk", "cheese", "yogurt", "butter", "cream", "dairy", "lactose"],
+  nuts: ["almond", "walnut", "cashew", "pecan", "pistachio", "peanut", "nuts"],
+  seafood: ["fish", "salmon", "tuna", "cod", "shrimp", "prawn", "crab", "lobster", "shellfish"],
   dairy: ["dairy", "lactose", "milk", "yogurt", "cheese", "butter", "cream"],
   eggs: ["egg", "eggs"],
   fish: ["fish", "salmon", "cod", "tuna", "snapper", "sea bass"],
