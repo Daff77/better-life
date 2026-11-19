@@ -39,6 +39,7 @@ export default function AppLayout() {
         <Stack.Screen name="recipe-detail" options={{ headerShown: false }} />
         <Stack.Screen name="meal-planner" options={{ headerShown: false }} />
         <Stack.Screen name="analytics" options={{ headerShown: false }} />
+        <Stack.Screen name="assistant" options={{ headerShown: false }} />
         <Stack.Screen name="community" options={{ headerShown: false }} />
         <Stack.Screen name="reminders" options={{ headerShown: false }} />
         <Stack.Screen name="steps" options={{ headerShown: false }} />

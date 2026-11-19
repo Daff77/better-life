@@ -34,6 +34,7 @@ export const Entitlement = {
   BUDGET_RECOMMENDATIONS: "BUDGET_RECOMMENDATIONS",
   PREMIUM_RECIPES: "PREMIUM_RECIPES",
   ADVANCED_TRENDS: "ADVANCED_TRENDS",
+  AI_FOOD_PHOTO: "AI_FOOD_PHOTO",
 } as const;
 
 export type Entitlement = (typeof Entitlement)[keyof typeof Entitlement];
@@ -55,6 +56,7 @@ export const PREMIUM_ENTITLEMENTS: readonly Entitlement[] = [
   Entitlement.BUDGET_RECOMMENDATIONS,
   Entitlement.PREMIUM_RECIPES,
   Entitlement.ADVANCED_TRENDS,
+  Entitlement.AI_FOOD_PHOTO,
 ] as const;
 
 export const TIER_ENTITLEMENTS: Record<MembershipTier, readonly Entitlement[]> = {

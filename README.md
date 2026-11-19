@@ -385,3 +385,19 @@ A full deep-dive production audit report is maintained in [`REPORT.md`](REPORT.m
 ## 📄 License
 
 This project is licensed under the [MIT License](LICENSE).
+
+## Asisten AI
+
+Buka Asisten AI dari bagian perencanaan dashboard. Chat nutrisi dan foto kamera/galeri tersedia; hasil foto dapat dikoreksi sebelum ditambahkan ke jurnal hari ini. Kalori dan makro mengikuti jumlah porsi serta antrean sinkronisasi jurnal existing.
+
+Atur `OPENAI_API_KEY` dan opsional `OPENAI_MODEL=gpt-4.1-mini` di `backend/.env`, lalu restart backend. Jangan menaruh key di variabel EXPO_PUBLIC_. Tanpa key, UI menampilkan pesan konfigurasi, tanpa hasil palsu.
+
+Endpoint terautentikasi: POST /api/assistant/chat dan POST /api/assistant/photo, dibatasi 10 permintaan/menit per akun. Foto JPEG/PNG/WebP maksimal sekitar 4 MB. Pesan/foto dikirim ke OpenAI saat pengguna menjalankan aksi, tanpa otomatis mengirim profil kesehatan. Chat dan foto tidak disimpan ke database aplikasi. Chat memberi informasi umum; estimasi foto tidak memastikan keamanan alergi.
+
+Referensi integrasi: https://developers.openai.com/api/reference/resources/chat
+
+Provider kompatibel OpenAI juga didukung melalui `AI_BASE_URL`, `AI_API_KEY`, dan `AI_MODEL` di backend/.env. `AI_VISION_MODEL` dapat diisi dengan model penerima gambar yang berbeda. Dukungan gambar bergantung provider/model.
+
+Chat Asisten AI menggunakan gelembung pesan dan composer di bawah. Riwayat percakapan disimpan per akun pada perangkat melalui penyimpanan existing, dengan chat baru, buka ulang, hapus, serta kirim ulang pesan yang belum mendapat jawaban. Riwayat belum disinkronkan antarperangkat; data lokal hilang jika penyimpanan aplikasi dihapus. Pesan pengguna disimpan sebelum request AI.
+
+Riwayat Asisten AI kini disimpan di tabel assistant_chats (migrasi 0005), diakses melalui GET /api/assistant/history, PUT/DELETE /api/assistant/history/:id dengan autentikasi dan isolasi akun. Saat membuka halaman, riwayat dimuat dari server; riwayat lokal lama dimigrasikan sekali. Cache lokal digunakan ketika server tidak terjangkau. Perubahan chat membutuhkan koneksi server agar sinkronisasi terkonfirmasi.

@@ -1025,6 +1025,7 @@ export default function HomeScreen() {
   /* ------------------------------------------------------------ Planning */
   const renderPlanning = () => {
     const rows = [
+      { title: "Asisten AI", caption: "Tanya nutrisi dan estimasi kalori dari foto", icon: "heart" as const, premiumBadge: false, onPress: () => router.push("/(app)/assistant") },
       {
         title: "Rencana makan 7 hari",
         caption: "Kalender menu sesuai target kalori dan budget",

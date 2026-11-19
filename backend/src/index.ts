@@ -14,6 +14,8 @@ import { analyticsRouter } from "./routes/analytics.js";
 import { mealPlansRouter } from "./routes/mealPlans.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
+import { assistantRouter } from "./routes/assistant.js";
+
 export const app: Express = express();
 
 // 1. Security HTTP Headers
@@ -40,6 +42,8 @@ app.use(
     credentials: true,
   })
 );
+
+app.use("/api/assistant", assistantRouter);
 
 // 3. Body Parser with Raw Buffer Capture for Webhook Signature Verification
 app.use(

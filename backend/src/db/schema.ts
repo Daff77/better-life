@@ -179,3 +179,12 @@ export const userFavorites = pgTable("user_favorites", {
   imageUrl: text("image_url"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const assistantChats = pgTable("assistant_chats", {
+ id: text("id").primaryKey(),
+ userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+ threadId: text("thread_id").notNull(),
+ data: jsonb("data").notNull(),
+ updatedAt: text("updated_at").notNull(),
+ deleted: boolean("deleted").notNull().default(false),
+});
