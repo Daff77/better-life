@@ -18,6 +18,9 @@ import { assistantRouter } from "./routes/assistant.js";
 
 export const app: Express = express();
 
+// Hosted reverse proxies forward the original client IP for rate limiting.
+if (process.env.TRUST_PROXY_HOPS === "1") app.set("trust proxy", 1);
+
 // 1. Security HTTP Headers
 app.use(
   helmet({
