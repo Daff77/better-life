@@ -510,8 +510,8 @@ export const RefreshIconSvg = ({ size = 16, color, stroke, strokeWidth = 2, ...p
 );
 
 export const BrandImages = {
-  logoPng: require("../assets/images/Better Life.png"),
-  logoSmallPng: require("../assets/images/Better Life 1.png"),
+  logoPng: require("../assets/images/better-life-symbol.png"),
+  wordmarkPng: require("../assets/images/better-life-wordmark.png"),
   onboardingPng: require("../assets/images/get started 1.png"),
 };
 

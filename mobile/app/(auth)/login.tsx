@@ -133,8 +133,8 @@ export default function LoginScreen() {
       <FadeInView index={0}>
         <View className="flex-row items-center gap-2.5 mb-4">
           <Image
-            source={BrandImages.logoPng}
-            style={{ width: 42, height: 42, marginLeft: -4 }}
+            source={BrandImages.wordmarkPng}
+            style={{ width: 132, height: 42 }}
             resizeMode="contain"
             accessibilityLabel="Better Life Logo"
           />

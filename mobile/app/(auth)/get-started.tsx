@@ -51,8 +51,8 @@ export default function GetStartedScreen() {
       <FadeInView index={0}>
         <View className="flex-row items-center justify-between mb-5">
           <Image
-            source={BrandImages.logoPng}
-            style={{ width: 52, height: 52, marginLeft: -6 }}
+            source={BrandImages.wordmarkPng}
+            style={{ width: 132, height: 42 }}
             resizeMode="contain"
             accessibilityLabel="Better Life"
           />

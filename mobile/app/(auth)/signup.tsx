@@ -262,8 +262,8 @@ export default function SignupScreen() {
     >
       <View className="flex-row items-center gap-2.5 mb-3">
         <Image
-          source={BrandImages.logoPng}
-          style={{ width: 38, height: 38, marginLeft: -4 }}
+          source={BrandImages.wordmarkPng}
+          style={{ width: 122, height: 38 }}
           resizeMode="contain"
           accessibilityLabel="Better Life Logo"
         />

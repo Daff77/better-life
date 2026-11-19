@@ -155,8 +155,8 @@ export default function SplashScreen() {
         ]}
       >
         <Image
-          source={BrandImages.logoPng}
-          style={{ width: 192, height: 192 }}
+          source={BrandImages.wordmarkPng}
+          style={{ width: 248, height: 82 }}
           resizeMode="contain"
           accessibilityLabel="Better Life Logo"
         />
