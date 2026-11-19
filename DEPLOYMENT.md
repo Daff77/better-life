@@ -1,11 +1,11 @@
 # Deploy Better Life ke Render
 
-Blueprint `render.yaml` menyiapkan backend Node dan PostgreSQL di Singapore. Backend Starter dan database Basic berbayar. Periksa biaya di Render sebelum aktivasi.
+Blueprint `render.yaml` menyiapkan backend Node di Render Free, region Singapore. Buat database PostgreSQL terpisah melalui Neon Free karena Render Postgres Free kedaluwarsa setelah 30 hari. Setelah 15 menit tanpa trafik, backend Render tidur dan permintaan berikutnya bisa menunggu sekitar satu menit.
 
 1. Hubungkan akun Render dan GitHub. Pilih New > Blueprint dan repo Daff77/better-life.
 2. Pilih branch berisi render.yaml. Build berjalan dari root agar paket shared tersedia.
-3. Isi AI_API_KEY secara privat di Render. JWT_SECRET dibuat otomatis dan DATABASE_URL terhubung otomatis.
-4. Tinjau biaya lalu aktifkan layanan. Migrasi SQL berjalan otomatis sebelum server menerima request. Production tidak membuat akun demo.
+3. Buat proyek Neon Free. Salin URL koneksi langsung (non-pooled) dari Neon ke `DATABASE_URL` di Render, termasuk parameter SSL. Isi `AI_API_KEY` secara privat di Render. `JWT_SECRET` dibuat otomatis.
+4. Pastikan paket layanan Render adalah Free, lalu aktifkan. Migrasi SQL berjalan otomatis sebelum server menerima request. Production tidak membuat akun demo.
 5. Pastikan URL HTTPS layanan pada /health memberi status ok dan database pg.
 
 ## Aplikasi
