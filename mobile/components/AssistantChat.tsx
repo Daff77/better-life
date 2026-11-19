@@ -6,6 +6,24 @@ import { ChatMessage, ChatThread, chatHistoryKey, loadChatHistory, saveChatHisto
 import { accountRevision } from "@/lib/accountScope";
 
 const green = "#0e7a52";
+
+function formatAssistantReply(reply: string) {
+  const content = reply
+    .replace(/^ {0,3}#{1,6}[ \t]+(.+)$/gm, "**$1**")
+    .replace(/^([ \t]*)[-+*][ \t]+(?=\S)/gm, "$1• ");
+
+  return content.split(/(\*{1,2}[^*\r\n]+\*{1,2})/g).map((part, index) => {
+    const emphasis = /^(\*{1,2})([^*\r\n]+)\1$/.exec(part);
+    if (!emphasis) return part;
+
+    return (
+      <AppText key={index} style={{ fontFamily: "Urbanist-Bold" }}>
+        {emphasis[2]}
+      </AppText>
+    );
+  });
+}
+
 const makeId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 type Props = { request: (path: string, body: unknown) => Promise<{ reply: string }> };
 export function AssistantChat({ request }: Props) {
@@ -62,7 +80,7 @@ export function AssistantChat({ request }: Props) {
       {ready && !messages.length && <View style={{ flex: 1, justifyContent: "center", padding: 20, gap: 16 }}><View style={{ width: 56, height: 56, backgroundColor: "#e0ede6", borderRadius: 18, alignItems: "center", justifyContent: "center" }}><LineIcon name="leaf" size={28} color={green} /></View><AppText weight="bold" style={{ fontSize: 28, color: "#121a16" }}>Mau makan lebih baik hari ini?</AppText><AppText style={{ color: "#56605a", lineHeight: 23 }}>Tanya soal menu, kandungan gizi, atau kebiasaan sehat Anda.</AppText>{["Ide sarapan tinggi protein", "Menu sehat dengan budget Rp 20.000"].map(text => <Pressable key={text} accessibilityRole="button" onPress={() => setDraft(text)} style={{ padding: 16, borderWidth: 1, borderColor: "#d5dbd7", borderRadius: 16 }}><AppText>{text}</AppText></Pressable>)}</View>}
       {messages.map(message => <View key={message.id} style={{ alignSelf: message.role === "user" ? "flex-end" : "flex-start", maxWidth: "90%", gap: 5 }}>
         <AppText style={{ fontSize: 11, color: "#56605a", marginHorizontal: 5 }}>{message.role === "user" ? "Anda" : "Better Life"}</AppText>
-        <View style={{ backgroundColor: message.role === "user" ? green : "#fbfdfc", padding: 16, borderRadius: 20, borderBottomRightRadius: message.role === "user" ? 4 : 20, borderBottomLeftRadius: message.role === "assistant" ? 4 : 20 }}><AppText selectable style={{ color: message.role === "user" ? "#fff" : "#121a16", lineHeight: 24 }}>{message.content}</AppText></View>
+        <View style={{ backgroundColor: message.role === "user" ? green : "#fbfdfc", padding: 16, borderRadius: 20, borderBottomRightRadius: message.role === "user" ? 4 : 20, borderBottomLeftRadius: message.role === "assistant" ? 4 : 20 }}><AppText selectable style={{ color: message.role === "user" ? "#fff" : "#121a16", lineHeight: 24 }}>{message.role === "assistant" ? formatAssistantReply(message.content) : message.content}</AppText></View>
         <AppText style={{ fontSize: 11, color: "#56605a", marginHorizontal: 5 }}>{new Date(message.time).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}</AppText>
       </View>)}
       {busy && <View accessibilityLiveRegion="polite" style={{ flexDirection: "row", gap: 10, alignItems: "center", padding: 12 }}><ActivityIndicator size="small" color={green} /><AppText style={{ color: "#56605a" }}>Asisten sedang menjawab...</AppText></View>}
