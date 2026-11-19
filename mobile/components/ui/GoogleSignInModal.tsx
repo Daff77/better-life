@@ -144,8 +144,8 @@ export const GoogleSignInModal: React.FC<GoogleSignInModalProps> = ({
             {/* Error Message */}
             {!!errorMessage && (
               <FadeInView duration={180} translateY={4}>
-                <View className="mb-4 p-3 bg-status-error/10 border border-status-error/20 rounded-xl">
-                  <AppText weight="medium" className="text-xs text-status-error text-center">
+                <View className="mb-4 p-3 bg-bad-soft border border-bad/25 rounded-xl">
+                  <AppText weight="medium" className="text-xs text-bad text-center">
                     {errorMessage}
                   </AppText>
                 </View>
@@ -178,7 +178,7 @@ export const GoogleSignInModal: React.FC<GoogleSignInModalProps> = ({
                     <PressableScale
                       onPress={handleModalClose}
                       pressedScale={0.97}
-                      className="py-2.5 items-center justify-center rounded-xl bg-neutral-surface border border-neutral-border mt-1"
+                      className="py-2.5 min-h-[44px] items-center justify-center rounded-xl bg-card-2 border border-neutral-border mt-1"
                     >
                       <AppText weight="bold" className="text-xs text-neutral-dark">
                         Batal / Kembali ke Form Login
@@ -203,12 +203,12 @@ export const GoogleSignInModal: React.FC<GoogleSignInModalProps> = ({
             {/* Mode 2: Client ID Setup Guide & Input */}
             {viewMode === "setup" && (
               <FadeInView key="mode-setup" duration={180} translateY={4} className="mb-2">
-                <View className="bg-neutral-surface border border-neutral-border rounded-2xl p-3.5 mb-4">
+                <View className="bg-card-2 border border-neutral-border rounded-2xl p-3.5 mb-4">
                   <AppText weight="bold" className="text-xs text-neutral-dark mb-1">
                     Petunjuk Google OAuth Web Client ID:
                   </AppText>
                   <AppText weight="medium" className="text-[11px] text-neutral-muted leading-4">
-                    Google mewajibkan Client ID bertipe <AppText weight="bold" className="text-neutral-dark">Web Application</AppText>. Client ID bertipe Android/Desktop ditolak Google dengan error <AppText weight="bold" className="text-status-error">invalid_request</AppText>.
+                    Google mewajibkan Client ID bertipe <AppText weight="bold" className="text-neutral-dark">Web Application</AppText>. Client ID bertipe Android/Desktop ditolak Google dengan error <AppText weight="bold" className="text-bad">invalid_request</AppText>.
                   </AppText>
                   <View className="mt-2 bg-white rounded-lg p-2 border border-neutral-border-light">
                     <AppText weight="semibold" className="text-[10px] text-neutral-dark">

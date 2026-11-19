@@ -180,13 +180,18 @@ export const analyticsApi = {
       }
     }
 
+    const sanitizeCsvCell = (val: unknown) => {
+      const raw = String(val ?? "");
+      const neutralized = /^[\s]*[=+\-@\t\r]/.test(raw) ? `'${raw}` : raw;
+      return neutralized.replace(/"/g, '""');
+    };
+
     const journals = await journalStorage.getJournals();
     if (format === "csv") {
       let csv = "ID,Name,Type,Calories,Protein(g),Carbs(g),Fat(g),Fiber(g),Quantity,Date\n";
       Object.values(journals).forEach((j) => {
         j.entries.forEach((m) => {
-          const safeTitle = String(m.title || "").replace(/"/g, '""');
-          csv += `"${m.id}","${safeTitle}","${m.category}",${m.calories},${m.proteinGrams || 0},${m.carbsGrams || 0},${m.fatGrams || 0},${m.fiberGrams || 0},${m.quantity || 1},"${j.date}"\n`;
+          csv += `"${sanitizeCsvCell(m.id)}","${sanitizeCsvCell(m.title)}","${sanitizeCsvCell(m.category)}",${m.calories},${m.proteinGrams || 0},${m.carbsGrams || 0},${m.fatGrams || 0},${m.fiberGrams || 0},${m.quantity || 1},"${sanitizeCsvCell(j.date)}"\n`;
         });
       });
       return csv;

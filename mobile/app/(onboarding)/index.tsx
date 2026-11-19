@@ -164,16 +164,19 @@ export default function OnboardingScreen() {
         const y = parseInt(birthYear, 10);
         const currentYear = new Date().getFullYear();
         const age = currentYear - y;
-        if (isNaN(d) || d < 1 || d > 31) {
-          setStepError("Masukkan tanggal lahir antara 1 hingga 31.");
-          return false;
-        }
-        if (!birthMonth.trim()) {
+        const monthIdx = MONTHS_LIST.indexOf(birthMonth.trim());
+        if (!birthMonth.trim() || monthIdx === -1) {
           setStepError("Pilih bulan kelahiran Anda.");
           return false;
         }
         if (isNaN(y) || age < 14 || age > 100) {
           setStepError("Usia harus berada di antara 14 hingga 100 tahun.");
+          return false;
+        }
+        const maxDaysInMonth = new Date(y, monthIdx + 1, 0).getDate();
+        if (isNaN(d) || d < 1 || d > maxDaysInMonth) {
+          const monthLabel = MONTHS_ID[birthMonth.trim()] || birthMonth;
+          setStepError(`Tanggal lahir untuk bulan ${monthLabel} ${y} harus antara 1 hingga ${maxDaysInMonth}.`);
           return false;
         }
         return true;
@@ -360,23 +363,23 @@ export default function OnboardingScreen() {
           <View className="gap-4">
             {/* Weight Card */}
             <Surface>
-              <View className="flex-row items-center justify-between mb-2.5">
-                <View className="flex-row items-center gap-2">
-                  <View className="w-8 h-8 rounded-full bg-primary-light items-center justify-center">
+              <View className="flex-row items-center justify-between gap-2 mb-2.5">
+                <View className="flex-row items-center gap-2 flex-1 min-w-0">
+                  <View className="w-8 h-8 rounded-full bg-primary-light items-center justify-center flex-shrink-0">
                     <LineIcon name="scale" size={16} color="#0b6b47" />
                   </View>
-                  <AppText weight="semibold" className="text-[15px] text-ink">
+                  <AppText weight="semibold" numberOfLines={1} className="text-[15px] text-ink flex-1">
                     Berat Badan
                   </AppText>
                 </View>
-                <AppText weight="medium" className="text-[12px] text-muted">
-                  Rentang 30 – 250 kg
+                <AppText weight="medium" className="text-[12px] text-muted flex-shrink-0">
+                  30–300 kg
                 </AppText>
               </View>
 
               <View className="flex-row items-center gap-3">
                 <PressableScale
-                  onPress={() => adjustMetric(weight, -1, 30, 250, setWeight)}
+                  onPress={() => adjustMetric(weight, -1, 30, 300, setWeight)}
                   pressedScale={0.93}
                   className="w-12 h-12 rounded-2xl bg-card-2 border border-line items-center justify-center"
                   accessibilityRole="button"
@@ -402,7 +405,7 @@ export default function OnboardingScreen() {
                 </View>
 
                 <PressableScale
-                  onPress={() => adjustMetric(weight, 1, 30, 250, setWeight)}
+                  onPress={() => adjustMetric(weight, 1, 30, 300, setWeight)}
                   pressedScale={0.93}
                   className="w-12 h-12 rounded-2xl bg-card-2 border border-line items-center justify-center"
                   accessibilityRole="button"
@@ -415,23 +418,23 @@ export default function OnboardingScreen() {
 
             {/* Target Weight Card */}
             <Surface>
-              <View className="flex-row items-center justify-between mb-2.5">
-                <View className="flex-row items-center gap-2">
-                  <View className="w-8 h-8 rounded-full bg-primary-light items-center justify-center">
+              <View className="flex-row items-center justify-between gap-2 mb-2.5">
+                <View className="flex-row items-center gap-2 flex-1 min-w-0">
+                  <View className="w-8 h-8 rounded-full bg-primary-light items-center justify-center flex-shrink-0">
                     <LineIcon name="target" size={16} color="#0b6b47" />
                   </View>
-                  <AppText weight="semibold" className="text-[15px] text-ink">
-                    Target Berat Badan (Target BB)
+                  <AppText weight="semibold" numberOfLines={1} className="text-[15px] text-ink flex-1">
+                    Target Berat Badan
                   </AppText>
                 </View>
-                <AppText weight="medium" className="text-[12px] text-muted">
-                  Rentang 30 – 250 kg
+                <AppText weight="medium" className="text-[12px] text-muted flex-shrink-0">
+                  30–300 kg
                 </AppText>
               </View>
 
               <View className="flex-row items-center gap-3">
                 <PressableScale
-                  onPress={() => adjustMetric(targetWeight, -1, 30, 250, setTargetWeight)}
+                  onPress={() => adjustMetric(targetWeight, -1, 30, 300, setTargetWeight)}
                   pressedScale={0.93}
                   className="w-12 h-12 rounded-2xl bg-card-2 border border-line items-center justify-center"
                   accessibilityRole="button"
@@ -457,7 +460,7 @@ export default function OnboardingScreen() {
                 </View>
 
                 <PressableScale
-                  onPress={() => adjustMetric(targetWeight, 1, 30, 250, setTargetWeight)}
+                  onPress={() => adjustMetric(targetWeight, 1, 30, 300, setTargetWeight)}
                   pressedScale={0.93}
                   className="w-12 h-12 rounded-2xl bg-card-2 border border-line items-center justify-center"
                   accessibilityRole="button"
@@ -470,17 +473,17 @@ export default function OnboardingScreen() {
 
             {/* Height Card */}
             <Surface>
-              <View className="flex-row items-center justify-between mb-2.5">
-                <View className="flex-row items-center gap-2">
-                  <View className="w-8 h-8 rounded-full bg-primary-light items-center justify-center">
+              <View className="flex-row items-center justify-between gap-2 mb-2.5">
+                <View className="flex-row items-center gap-2 flex-1 min-w-0">
+                  <View className="w-8 h-8 rounded-full bg-primary-light items-center justify-center flex-shrink-0">
                     <LineIcon name="ruler" size={16} color="#0b6b47" />
                   </View>
-                  <AppText weight="semibold" className="text-[15px] text-ink">
+                  <AppText weight="semibold" numberOfLines={1} className="text-[15px] text-ink flex-1">
                     Tinggi Badan
                   </AppText>
                 </View>
-                <AppText weight="medium" className="text-[12px] text-muted">
-                  Rentang 100 – 250 cm
+                <AppText weight="medium" className="text-[12px] text-muted flex-shrink-0">
+                  100–250 cm
                 </AppText>
               </View>
 

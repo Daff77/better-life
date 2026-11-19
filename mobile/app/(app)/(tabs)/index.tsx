@@ -132,6 +132,7 @@ export default function HomeScreen() {
   const { width } = useWindowDimensions();
   const hasDesktopNav = width >= NAV_DESKTOP_BREAKPOINT;
   const isWide = width >= 1100;
+  const isUltraCompact = width < 360;
 
   const user = useAuthStore((state) => state.user);
   const personalization = useOnboardingStore((state) => state.personalization);
@@ -368,10 +369,10 @@ export default function HomeScreen() {
       key: "steps",
       title: "Langkah",
       caption: activityQuery.isError
-        ? "Gagal memuat data"
+        ? "Gagal memuat"
         : trackingStatus === "tracking"
-        ? `Otomatis · ${fmt(stepGoal)} target`
-        : `Target ${fmt(stepGoal)} · Atur`,
+        ? `Otomatis · ${fmt(stepGoal)}`
+        : `Target ${fmt(stepGoal)}`,
       numericValue: steps,
       unit: "",
       progress: stepsPct,
@@ -383,7 +384,7 @@ export default function HomeScreen() {
     {
       key: "water",
       title: "Air minum",
-      caption: `Target ${waterGoal} gelas (2L)`,
+      caption: `Target ${waterGoal} gelas`,
       numericValue: waterGlasses,
       unit: "gelas",
       progress: waterPct,
@@ -401,7 +402,9 @@ export default function HomeScreen() {
       key={item.key}
       onPress={item.onPress || item.onActionPress}
       pressedScale={0.98}
-      className="flex-1 min-w-0 bg-card border border-line rounded-[20px] p-3.5"
+      className={`flex-1 min-w-0 bg-card border border-line rounded-[20px] ${
+        isUltraCompact ? "p-3" : "p-3.5"
+      }`}
       style={{ boxShadow: SURFACE_SHADOW } as ViewStyle}
       accessibilityRole="button"
       accessibilityLabel={`${item.title}: ${item.numericValue} ${item.unit}, ${item.caption}${item.hasAddAction ? `, ${item.actionLabel}` : ""}`}
@@ -428,16 +431,16 @@ export default function HomeScreen() {
         )}
       </View>
 
-      <View className="flex-row items-end justify-between gap-2 mt-3">
+      <View className="flex-row items-end justify-between gap-1.5 mt-3">
         <View className="flex-1 min-w-0">
-          <View className="flex-row items-baseline gap-1">
+          <View className="flex-row flex-wrap items-baseline gap-x-1">
             <AnimatedNumber
               value={item.numericValue}
               formatter={fmt}
               animateOnMount
               weight="bold"
-              className="text-[21px] sm:text-[23px] text-ink"
-              style={[tnum, { letterSpacing: -0.6, lineHeight: 25 }]}
+              className={isUltraCompact ? "text-[18px] text-ink" : "text-[21px] sm:text-[23px] text-ink"}
+              style={[tnum, { letterSpacing: -0.6, lineHeight: isUltraCompact ? 22 : 25 }]}
             />
             {Boolean(item.unit) && (
               <AppText weight="semibold" className="text-[11px] text-muted">
@@ -450,19 +453,25 @@ export default function HomeScreen() {
           </AppText>
         </View>
 
-        <ProgressRing
-          progress={item.progress}
-          size={48}
-          strokeWidth={5}
-          color={item.color}
-          backgroundColor={item.trackColor}
-          showPercent={false}
-          label=""
-        >
-          <AppText weight="bold" className="text-[11px]" style={[tnum, { color: item.color }]}>
-            {item.progress}%
-          </AppText>
-        </ProgressRing>
+        <View className="flex-shrink-0">
+          <ProgressRing
+            progress={item.progress}
+            size={isUltraCompact ? 38 : 48}
+            strokeWidth={isUltraCompact ? 4 : 5}
+            color={item.color}
+            backgroundColor={item.trackColor}
+            showPercent={false}
+            label=""
+          >
+            <AppText
+              weight="bold"
+              className={isUltraCompact ? "text-[10px]" : "text-[11px]"}
+              style={[tnum, { color: item.color }]}
+            >
+              {item.progress}%
+            </AppText>
+          </ProgressRing>
+        </View>
       </View>
     </PressableScale>
   );

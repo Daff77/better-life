@@ -303,7 +303,7 @@ export default function CommunityScreen() {
     const expertReply = {
       id: `e-${Date.now() + 1}`,
       sender: "expert" as const,
-      text: `${replyText} — ${expert.name}`,
+      text: `${replyText} · ${expert.name}`,
     };
 
     setChatHistory((prev) => ({

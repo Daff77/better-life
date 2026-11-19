@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Better Life - Mobile App Prototype</title>
   
   <!-- Urbanist Font (Exact font used in Better Life React Native Mobile App) -->
@@ -1787,7 +1787,7 @@
       const pill = document.getElementById('picker-phase-pill');
       pill.style.backgroundColor = phase.bg;
       pill.style.color = phase.color;
-      document.getElementById('picker-phase-icon').innerText = phase.icon === 'sunrise' ? '🌅' : phase.icon === 'sun' ? '☀️' : '🌙';
+      document.getElementById('picker-phase-icon').innerHTML = renderIcon(phase.icon, 14, phase.color);
       document.getElementById('picker-phase-label').innerText = phase.label;
     }
 
@@ -1964,12 +1964,22 @@
       reader.readAsDataURL(file);
     }
 
+    function escapeHtml(value) {
+      return String(value == null ? '' : value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
     function saveNewRecipe() {
-      const title = document.getElementById('recipe-input-title').value.trim();
-      if (!title) {
+      const rawTitle = document.getElementById('recipe-input-title').value.trim();
+      if (!rawTitle) {
         alert('Mohon masukkan nama resep terlebih dahulu.');
         return;
       }
+      const title = escapeHtml(rawTitle);
 
       const category = document.getElementById('recipe-input-cat').value;
       const prepTime = parseInt(document.getElementById('recipe-input-prep').value || '15', 10);
@@ -1977,7 +1987,7 @@
       const prot = parseInt(document.getElementById('recipe-input-prot').value || '25', 10);
       const carbs = parseInt(document.getElementById('recipe-input-carbs').value || '30', 10);
       const fat = parseInt(document.getElementById('recipe-input-fat').value || '10', 10);
-      const desc = document.getElementById('recipe-input-desc').value.trim() || 'Resep lezat sehat buatan sendiri.';
+      const desc = escapeHtml(document.getElementById('recipe-input-desc').value.trim() || 'Resep lezat sehat buatan sendiri.');
       const img = appState.tempUploadedImg || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80';
 
       const newR = {

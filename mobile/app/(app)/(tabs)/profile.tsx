@@ -37,6 +37,8 @@ import { useJournalStore } from "@/stores/useJournalStore";
 import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
 import { journalStorage } from "@/lib/journalStorage";
 import { sessionStorage } from "@/lib/sessionStorage";
+import { clearJournalSyncQueueForCurrentAccount } from "@/lib/journalSync";
+import { mealsApi } from "@/lib/api/mealsApi";
 import { useResetMealsMutation } from "@/hooks/useMealsQuery";
 import { confirmDestructive } from "@/lib/confirm";
 import {
@@ -110,9 +112,19 @@ export default function ProfileScreen() {
     }
   }, [editModalVisible, personalization, userAge]);
 
-  const previewWeight = parseFloat(editWeight) || personalization.weight;
-  const previewHeight = parseFloat(editHeight) || personalization.height;
-  const previewAge = parseInt(editAge, 10) || userAge;
+  const parsedPreviewWeight = parseFloat(editWeight);
+  const parsedPreviewHeight = parseFloat(editHeight);
+  const parsedPreviewAge = parseInt(editAge, 10);
+  const previewWeight =
+    Number.isFinite(parsedPreviewWeight) && parsedPreviewWeight > 0
+      ? parsedPreviewWeight
+      : personalization.weight;
+  const previewHeight =
+    Number.isFinite(parsedPreviewHeight) && parsedPreviewHeight > 0
+      ? parsedPreviewHeight
+      : personalization.height;
+  const previewAge =
+    Number.isFinite(parsedPreviewAge) && parsedPreviewAge > 0 ? parsedPreviewAge : userAge;
   const previewPlan = calculatePersonalizedPlan({
     weight: previewWeight,
     height: previewHeight,
@@ -193,9 +205,15 @@ export default function ProfileScreen() {
       "Reset",
       async () => {
         resetMealsMutation.mutate();
+        await clearJournalSyncQueueForCurrentAccount();
+        try {
+          await mealsApi.resetMeals();
+        } catch {
+          // Offline reset still clears local journal and logs out cleanly
+        }
         await journalStorage.clearAllJournals();
         await sessionStorage.clearPersonalization();
-        useJournalStore.setState({ journals: {} });
+        useJournalStore.setState({ journals: {}, lastUndoAction: null });
         useOnboardingStore.setState({ personalization: DEFAULT_PERSONALIZATION });
         await logout();
         router.replace("/(auth)/get-started");

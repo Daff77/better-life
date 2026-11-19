@@ -759,3 +759,12 @@ export async function getJournalSyncQueueSnapshot(): Promise<JournalSyncQueueIte
   const legacyKey = accountStorageKey(LEGACY_QUEUE_BASE_KEY);
   return readQueueForKey(queueKey, legacyKey);
 }
+
+export async function clearJournalSyncQueueForCurrentAccount(): Promise<void> {
+  abortActiveJournalSync();
+  const queueKey = accountStorageKey(QUEUE_BASE_KEY);
+  const legacyKey = accountStorageKey(LEGACY_QUEUE_BASE_KEY);
+  await writeQueueForKey(queueKey, []);
+  await setStorageItem(legacyKey, "[]");
+  useJournalSyncStore.setState({ ...INITIAL_SYNC_STATE });
+}

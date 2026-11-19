@@ -4,6 +4,8 @@ import { recipesApi } from "@/lib/api/recipesApi";
 import { FoodItem } from "@/lib/schemas";
 import { MOCK_RECIPES } from "@/data/mockRecipes";
 import { useCustomRecipesStore } from "@/stores/useCustomRecipesStore";
+import { useAuthStore } from "@/stores/useAuthStore";
+import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
 
 export const RECIPES_QUERY_KEY = ["recipes"];
 
@@ -11,6 +13,8 @@ export function useRecipes() {
   const customRecipes = useCustomRecipesStore((state) => state.customRecipes);
   const isHydrated = useCustomRecipesStore((state) => state.isHydrated);
   const hydrate = useCustomRecipesStore((state) => state.hydrate);
+  const userId = useAuthStore((state) => state.user?.id ?? "guest");
+  const isPremium = useSubscriptionStore((state) => state.isPremium);
 
   useEffect(() => {
     if (!isHydrated) {
@@ -19,9 +23,9 @@ export function useRecipes() {
   }, [isHydrated, hydrate]);
 
   const query = useQuery<FoodItem[]>({
-    queryKey: RECIPES_QUERY_KEY,
+    queryKey: [...RECIPES_QUERY_KEY, userId, isPremium ? "premium" : "free"],
     queryFn: () => recipesApi.getRecipes(),
-    initialData: MOCK_RECIPES,
+    placeholderData: MOCK_RECIPES,
   });
 
   const mergedData = useMemo(() => {
@@ -40,6 +44,8 @@ export function useRecipe(id: string) {
   const customRecipes = useCustomRecipesStore((state) => state.customRecipes);
   const isHydrated = useCustomRecipesStore((state) => state.isHydrated);
   const hydrate = useCustomRecipesStore((state) => state.hydrate);
+  const userId = useAuthStore((state) => state.user?.id ?? "guest");
+  const isPremium = useSubscriptionStore((state) => state.isPremium);
 
   useEffect(() => {
     if (!isHydrated) {
@@ -53,10 +59,10 @@ export function useRecipe(id: string) {
   );
 
   const query = useQuery<FoodItem | null>({
-    queryKey: [...RECIPES_QUERY_KEY, id],
+    queryKey: [...RECIPES_QUERY_KEY, id, userId, isPremium ? "premium" : "free"],
     queryFn: () => recipesApi.getRecipeById(id),
-    initialData: () => customMatch ?? MOCK_RECIPES.find((r) => r.id === id) ?? null,
-    enabled: !customMatch,
+    placeholderData: () => customMatch ?? MOCK_RECIPES.find((r) => r.id === id) ?? null,
+    enabled: Boolean(id) && !id.startsWith("custom-recipe-") && !customMatch,
   });
 
   return {

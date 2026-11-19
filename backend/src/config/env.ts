@@ -84,7 +84,13 @@ export function isOriginAllowed(
       normalizedOrigin.startsWith("http://localhost:") ||
       normalizedOrigin === "http://localhost" ||
       normalizedOrigin.startsWith("http://127.0.0.1:") ||
-      normalizedOrigin === "http://127.0.0.1"
+      normalizedOrigin === "http://127.0.0.1" ||
+      /^http:\/\/(192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3})(:\d+)?$/.test(
+        normalizedOrigin
+      ) ||
+      /^https?:\/\/[a-z0-9-]+(\.[a-z0-9-]+)*\.(exp\.direct|ngrok-free\.app|ngrok-free\.dev|ngrok\.io)$/i.test(
+        normalizedOrigin
+      )
     ) {
       return true;
     }

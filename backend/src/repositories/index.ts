@@ -1,4 +1,5 @@
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { formatLocalDateKey } from "@better-life/shared";
 import { ensureDbReady } from "../db/index.js";
 import * as schema from "../db/schema.js";
 import { FoodItemData } from "../data/seedData.js";
@@ -103,7 +104,7 @@ function fromScopedMealPk(userId: string, rowId: string): string {
 function mapMealRow(row: typeof schema.loggedMeals.$inferSelect): LoggedMealEntity {
   const loggedAt = row.loggedAt instanceof Date ? row.loggedAt : new Date(row.loggedAt);
   const updatedAt = row.updatedAt instanceof Date ? row.updatedAt : new Date(row.updatedAt);
-  const fallbackDateKey = loggedAt.toISOString().slice(0, 10);
+  const fallbackDateKey = formatLocalDateKey(loggedAt);
   return {
     id: fromScopedMealPk(row.userId, row.id),
     userId: row.userId,
@@ -473,7 +474,7 @@ export const mealRepository = {
     const pk = toScopedMealPk(userId, rawId);
     const loggedAt = input.loggedAt ?? now;
     const updatedAt = input.updatedAt ?? now;
-    const dateKey = input.dateKey || loggedAt.toISOString().slice(0, 10);
+    const dateKey = input.dateKey || formatLocalDateKey(loggedAt);
     const timeStr =
       input.time ||
       loggedAt.toLocaleTimeString([], {

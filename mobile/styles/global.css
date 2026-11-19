@@ -19,11 +19,36 @@ input, textarea, select {
   min-width: 0 !important;
 }
 
-input:focus, textarea:focus, select:focus,
-input:focus-visible, textarea:focus-visible, select:focus-visible {
+input:focus, textarea:focus, select:focus {
   outline: none !important;
   outline-style: none !important;
   box-shadow: none !important;
+}
+
+input:focus-visible, textarea:focus-visible, select:focus-visible {
+  outline: none !important;
+  outline-style: none !important;
+}
+
+/* Keyboard accessibility: crisp emerald focus ring on interactive controls & standalone inputs */
+[role="button"]:focus-visible,
+[role="tab"]:focus-visible,
+[role="radio"]:focus-visible,
+[role="switch"]:focus-visible,
+[role="checkbox"]:focus-visible,
+[role="link"]:focus-visible,
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid #0e7a52 !important;
+  outline-offset: 2px !important;
+}
+
+input[class*="border"]:focus-visible,
+textarea[class*="border"]:focus-visible,
+select:focus-visible {
+  border-color: #0e7a52 !important;
+  outline: 2px solid #0e7a52 !important;
+  outline-offset: 0px !important;
 }
 
 /* Apple Design: Reduced Motion & Accessibility Overrides */

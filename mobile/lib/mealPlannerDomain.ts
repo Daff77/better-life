@@ -129,6 +129,7 @@ export const DIETARY_RESTRICTION_OPTIONS = [
 export const COMMON_ALLERGENS = [
   "Dairy",
   "Eggs",
+  "Seafood",
   "Fish",
   "Shellfish",
   "Tree Nuts",

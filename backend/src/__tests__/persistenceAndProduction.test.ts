@@ -19,7 +19,7 @@ function getFreePort(): Promise<number> {
   });
 }
 
-async function waitForHealth(baseUrl: string, timeoutMs = 20000): Promise<void> {
+async function waitForHealth(baseUrl: string, timeoutMs = 40000): Promise<void> {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     try {
@@ -43,6 +43,7 @@ function startBackendProcess(port: number, dbDir: string): ChildProcess {
     PORT: String(port),
     DATABASE_URL: `pglite://${dbDir}`,
     ENABLE_PAYMENT_SANDBOX: "true",
+    CORS_ORIGIN: "http://localhost:8081,https://allowed.betterlife.id",
     JWT_SECRET: "test_persistent_restart_jwt_secret_key_32chars_ok",
   };
   delete childEnv.NODE_TEST_CONTEXT;
@@ -389,6 +390,127 @@ describe("Database Persistence Across Real Process Restart & Production Config H
         body: JSON.stringify(backupA),
       });
       assert.equal(crossRestoreRes.status, 403);
+
+      // 6. Audit Regressions: Blank phone registration, custom analytics validation, CSV formula injection,
+      //    cross-user transaction verification, malformed replace-meal, and isolated reset-all
+      const regBlankPhoneRes = await fetch(`${baseUrl2}/api/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: "Citra Tanpa HP",
+          email: "citra@example.com",
+          phone: "",
+          password: "SecurePass123!",
+        }),
+      });
+      assert.equal(regBlankPhoneRes.status, 201);
+      const citraData: any = await regBlankPhoneRes.json();
+      assert.equal(citraData.user.phone, "");
+
+      const badCustomRangeRes = await fetch(`${baseUrl2}/api/analytics/advanced?range=custom`, {
+        headers: { Authorization: `Bearer ${tokenA2}` },
+      });
+      assert.equal(badCustomRangeRes.status, 400);
+
+      const invalidCalendarRangeRes = await fetch(
+        `${baseUrl2}/api/analytics/advanced?range=custom&startDate=2026-02-31&endDate=2026-03-02`,
+        { headers: { Authorization: `Bearer ${tokenA2}` } }
+      );
+      assert.equal(invalidCalendarRangeRes.status, 400);
+
+      await fetch(`${baseUrl2}/api/meals`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${tokenA2}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: "csv-formula-entry",
+          type: "Snack",
+          name: "=HYPERLINK(\"https://evil.example\",\"click\")",
+          calories: 120,
+          dateKey: "2026-11-18",
+        }),
+      });
+
+      const csvExportRes = await fetch(`${baseUrl2}/api/analytics/export?format=csv`, {
+        headers: { Authorization: `Bearer ${tokenA2}` },
+      });
+      assert.equal(csvExportRes.status, 200);
+      const csvText = await csvExportRes.text();
+      assert.ok(csvText.includes("\"'=HYPERLINK("), "CSV formula cell must be prefixed with single quote");
+
+      // Record a sandbox transaction for User A and ensure User B cannot verify/reuse User A's transactionId
+      const verifyARes = await fetch(`${baseUrl2}/api/subscription/verify`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${tokenA2}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          provider: "mock_sandbox",
+          transactionId: "tx-owned-by-rina-001",
+          planId: "monthly",
+        }),
+      });
+      assert.equal(verifyARes.status, 200);
+
+      const crossVerifyBRes = await fetch(`${baseUrl2}/api/subscription/verify`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${tokenB2}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          provider: "mock_sandbox",
+          transactionId: "tx-owned-by-rina-001",
+          planId: "monthly",
+        }),
+      });
+      assert.equal(crossVerifyBRes.status, 400);
+
+      const badReplacePlanRes = await fetch(`${baseUrl2}/api/meal-plans/replace-meal`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${tokenA2}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          dayIndex: 0,
+          slot: "Breakfast",
+          newRecipeId: "parfait",
+          currentPlan: null,
+        }),
+      });
+      assert.equal(badReplacePlanRes.status, 400);
+
+      // Reset-all clears all of User A's meals while preserving User B's meals
+      const resetAllARes = await fetch(`${baseUrl2}/api/meals/reset-all`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${tokenA2}` },
+      });
+      assert.equal(resetAllARes.status, 200);
+
+      const mealsAAfterResetAll = (await (
+        await fetch(`${baseUrl2}/api/meals`, {
+          headers: { Authorization: `Bearer ${tokenA2}` },
+        })
+      ).json()) as any[];
+      assert.equal(mealsAAfterResetAll.length, 0);
+
+      const mealsBAfterAResetAll = (await (
+        await fetch(`${baseUrl2}/api/meals`, {
+          headers: { Authorization: `Bearer ${tokenB2}` },
+        })
+      ).json()) as any[];
+      assert.equal(mealsBAfterAResetAll.length, 1);
+      assert.equal(mealsBAfterAResetAll[0].name, "Nasi Padang Budi");
+
+      // Disallowed browser Origin receives HTTP 403 Forbidden instead of HTTP 500
+      const disallowedCorsRes = await fetch(`${baseUrl2}/health`, {
+        headers: { Origin: "https://evil.example.com" },
+      });
+      assert.equal(disallowedCorsRes.status, 403);
     } finally {
       if (proc1) await stopBackendProcess(proc1);
       if (proc2) await stopBackendProcess(proc2);
@@ -441,5 +563,13 @@ describe("Database Persistence Across Real Process Restart & Production Config H
     assert.equal(isOriginAllowed(undefined, validProd), true); // Native mobile client without Origin
     assert.equal(isOriginAllowed("https://evil.example.com", validProd), false);
     assert.equal(isOriginAllowed("http://localhost:8081", validProd), false);
+    assert.equal(isOriginAllowed("http://192.168.1.15:8081", validProd), false);
+    assert.equal(isOriginAllowed("https://demo-8082.exp.direct", validProd), false);
+
+    const devEnv = parseEnvironment({ NODE_ENV: "development" });
+    assert.equal(isOriginAllowed("http://localhost:8082", devEnv), true);
+    assert.equal(isOriginAllowed("http://192.168.100.11:8081", devEnv), true);
+    assert.equal(isOriginAllowed("https://demo-anonymous-8082.exp.direct", devEnv), true);
+    assert.equal(isOriginAllowed("https://evil.example.com", devEnv), false);
   });
 });

@@ -359,6 +359,9 @@ export class SubscriptionService {
     if (provider === "stripe" && readiness.stripeConfigured) {
       const existingEvent = await subscriptionRepository.findPaymentEvent(transactionId);
       if (existingEvent) {
+        if (existingEvent.userId && existingEvent.userId !== userId) {
+          throw new Error("Transaction belongs to a different account.");
+        }
         const current = await this.getSubscriptionByUserId(userId);
         return {
           success: true,
@@ -439,6 +442,9 @@ export class SubscriptionService {
     if (provider === "mock_sandbox" && readiness.sandboxEnabled) {
       const existingEvent = await subscriptionRepository.findPaymentEvent(transactionId);
       if (existingEvent) {
+        if (existingEvent.userId && existingEvent.userId !== userId) {
+          throw new Error("Transaction belongs to a different account.");
+        }
         const current = await this.getSubscriptionByUserId(userId);
         return {
           success: true,

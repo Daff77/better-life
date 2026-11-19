@@ -23,7 +23,9 @@ describe("Mobile Meal Planner Domain Unit Tests", () => {
       assert.equal(DEFAULT_MEAL_PLAN_PREFERENCES.dailyBudgetIdr, 50000);
       assert.equal(DEFAULT_MEAL_PLAN_PREFERENCES.mealsPerDay, 4);
       assert.equal(DEFAULT_MEAL_PLAN_PREFERENCES.preferredMealSlots.length, 4);
-      assert.ok(DEFAULT_MEAL_PLAN_PREFERENCES.macroTargets);
+      if (!DEFAULT_MEAL_PLAN_PREFERENCES.macroTargets) {
+        assert.fail("Expected macroTargets in DEFAULT_MEAL_PLAN_PREFERENCES");
+      }
       assert.equal(DEFAULT_MEAL_PLAN_PREFERENCES.macroTargets.proteinGrams, 140);
     });
 

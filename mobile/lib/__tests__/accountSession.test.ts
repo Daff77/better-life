@@ -152,9 +152,9 @@ test("verified Google session, onboarding token, account isolation, reload and f
     const journal = useJournalStore.getState();
     const half = await journal.addEntry({ title: "Half serving", category: "Lunch", baseCalories: 400, calories: 200, quantity: 0.5, proteinGrams: 10 });
     await journal.updateEntry(half.id, { title: "Renamed" });
-    assert.equal(useJournalStore.getState().getJournal().entries.find(e => e.id === half.id)?.calories, 200);
+    assert.equal(useJournalStore.getState().getJournal().entries.find((e: { id: string }) => e.id === half.id)?.calories, 200);
     await journal.updateEntry(half.id, { quantity: 1 });
-    assert.equal(useJournalStore.getState().getJournal().entries.find(e => e.id === half.id)?.proteinGrams, 20);
+    assert.equal(useJournalStore.getState().getJournal().entries.find((e: { id: string }) => e.id === half.id)?.proteinGrams, 20);
     const { calculatePersonalizedPlan: actualCalculate } = require("../../stores/useOnboardingStore");
     const { calculatePersonalizedPlan: domainCalculate } = require("../nutritionDomain");
     assert.equal(actualCalculate, domainCalculate);

@@ -167,6 +167,7 @@ export default function MealsScreen() {
       carbsGrams: recent.carbsGrams,
       fatGrams: recent.fatGrams,
       fiberGrams: recent.fiberGrams,
+      estimatedCostIdr: recent.estimatedCostIdr ?? 0,
     });
     setQuickNotice(`${entry.title} (+${entry.calories} kcal) dicatat ulang ke jurnal hari ini.`);
     setTimeout(() => setQuickNotice(null), 3500);

@@ -473,6 +473,11 @@ export const useJournalStore = create<JournalState>((set, get) => ({
     }
 
     const nowIso = new Date().toISOString();
+    const scaledCostIdr =
+      quantityChanged && currentEntry.estimatedCostIdr && currentEntry.quantity > 0
+        ? Math.max(0, Math.round((currentEntry.estimatedCostIdr / currentEntry.quantity) * newQuantity))
+        : currentEntry.estimatedCostIdr;
+
     const updatedEntry: JournalEntry = {
       ...currentEntry,
       title:
@@ -503,6 +508,7 @@ export const useJournalStore = create<JournalState>((set, get) => ({
       carbsGrams: nextCarbs,
       fatGrams: nextFat,
       fiberGrams: nextFiber,
+      estimatedCostIdr: scaledCostIdr,
       updatedAt: nowIso,
     };
 

@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
-import { View, Alert, Image } from "react-native";
+import { View, Image } from "react-native";
 import { useRouter } from "expo-router";
+import { showAlert } from "@/lib/confirm";
 import {
   AppText,
   Button,
@@ -214,7 +215,7 @@ export default function LoginScreen() {
           <TextLink
             label="Lupa kata sandi?"
             onPress={() =>
-              Alert.alert(
+              showAlert(
                 "Pemulihan Kata Sandi",
                 "Untuk akun demo gunakan email 'daffa@gmail.com' dan kata sandi 'password123', atau gunakan kata sandi yang Anda buat saat pendaftaran."
               )

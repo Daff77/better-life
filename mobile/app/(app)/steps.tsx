@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Linking, Platform, ScrollView, View } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
-import { AppText, Button, Input, ProgressBar } from "@/components/ui";
+import { AppText, Button, Header, Input, ProgressBar, Surface } from "@/components/ui";
 import {
   useActivityIdentity,
   useActivityStats,
@@ -42,13 +42,15 @@ function ManualStepsForm({ disabled }: { disabled: boolean }) {
 
   const save = async () => {
     setMessage(null);
-    if (!/^\d+$/.test(input.trim()) || !Number.isSafeInteger(Number(input))) {
-      setValidation("Isi total langkah dengan angka bulat, misalnya 4350.");
+    const trimmed = input.trim();
+    const numeric = Number(trimmed);
+    if (!/^\d+$/.test(trimmed) || !Number.isSafeInteger(numeric) || numeric > 200000) {
+      setValidation("Isi total langkah dengan angka bulat antara 0 hingga 200.000.");
       return;
     }
     setValidation(null);
     try {
-      const updated = await mutation.mutateAsync(Number(input));
+      const updated = await mutation.mutateAsync(numeric);
       setMessage(
         `Tersimpan. Total hari ini ${updated.steps.toLocaleString("id-ID")} langkah.`
       );
@@ -111,51 +113,48 @@ export default function StepsScreen() {
     status === "unavailable" || status === "build-required" || Platform.OS === "web";
   const description = trackingDescription(status, historyAvailable, error);
 
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace("/(app)/(tabs)");
+    }
+  };
+
   return (
-    <ScreenWrapper>
+    <ScreenWrapper maxWidth="narrow" className="flex-1 bg-canvas">
+      <Header
+        onBack={handleBack}
+        title="Langkah hari ini"
+        subtitle="Perbanyak langkah, sedikit demi sedikit"
+      />
       <ScrollView
         contentContainerStyle={{
-          padding: 24,
-          gap: 24,
-          maxWidth: 560,
+          paddingVertical: 12,
+          gap: 20,
           width: "100%",
-          alignSelf: "center",
-          paddingBottom: 48,
+          paddingBottom: 64,
         }}
+        showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <Button
-          title="Kembali"
-          variant="ghost"
-          onPress={() => router.back()}
-          style={{ alignSelf: "flex-start" }}
-        />
-        <View style={{ gap: 8 }}>
+        <Surface style={{ gap: 12 }}>
           <AppText
             weight="bold"
-            className="text-[28px] text-ink"
-            accessibilityRole="header"
+            className="text-[36px] text-ink"
+            style={{ fontVariant: ["tabular-nums"] }}
           >
-            Langkah hari ini
-          </AppText>
-          <AppText className="text-muted">
-            Perbanyak langkah, sedikit demi sedikit.
-          </AppText>
-        </View>
-        <View
-          className="bg-card border border-line rounded-[20px] p-5"
-          style={{ gap: 12 }}
-        >
-          <AppText weight="bold" className="text-[36px] text-ink">
             {activity.isPending ? "Memuat…" : steps.toLocaleString("id-ID")}
           </AppText>
-          <AppText className="text-muted">
+          <AppText className="text-muted" style={{ fontVariant: ["tabular-nums"] }}>
             Target {goal.toLocaleString("id-ID")} langkah per hari
           </AppText>
-          <ProgressBar progress={Math.min(100, (steps / goal) * 100)} />
+          <ProgressBar progress={Math.min(100, (steps / Math.max(1, goal)) * 100)} />
           {activity.isError && (
             <>
-              <AppText accessibilityRole="alert">Data belum bisa dimuat.</AppText>
+              <AppText accessibilityRole="alert" className="text-bad text-sm">
+                Data belum bisa dimuat.
+              </AppText>
               <Button
                 title="Muat ulang"
                 variant="outline"
@@ -163,12 +162,12 @@ export default function StepsScreen() {
               />
             </>
           )}
-        </View>
-        <View style={{ gap: 12 }}>
+        </Surface>
+        <Surface style={{ gap: 12 }}>
           <AppText weight="semibold" className="text-[18px] text-ink">
             {status === "tracking" ? "Pelacakan aktif" : "Pelacakan otomatis"}
           </AppText>
-          <AppText className="text-muted" accessibilityLiveRegion="polite">
+          <AppText className="text-muted leading-5" accessibilityLiveRegion="polite">
             {busy ? "Memeriksa izin dan sensor…" : description}
           </AppText>
           {!unsupported && (
@@ -193,19 +192,25 @@ export default function StepsScreen() {
               }}
             />
           )}
-          {settingsError && <AppText accessibilityRole="alert">{settingsError}</AppText>}
+          {settingsError && (
+            <AppText accessibilityRole="alert" className="text-bad text-sm">
+              {settingsError}
+            </AppText>
+          )}
           {status === "tracking" && (
             <Button title="Hentikan pelacakan" variant="ghost" onPress={stopTracking} />
           )}
-          <AppText className="text-[12px] text-muted">
+          <AppText className="text-[12px] text-muted leading-4">
             Data langkah disimpan di perangkat ini untuk akun Anda, per hari. Better Life
             hanya membaca langkah; tidak menulis data ke Health Connect.
           </AppText>
-        </View>
-        <ManualStepsForm
-          key={`${account}-${date}`}
-          disabled={activity.isPending || activity.isError}
-        />
+        </Surface>
+        <Surface>
+          <ManualStepsForm
+            key={`${account}-${date}`}
+            disabled={activity.isPending || activity.isError}
+          />
+        </Surface>
       </ScrollView>
     </ScreenWrapper>
   );

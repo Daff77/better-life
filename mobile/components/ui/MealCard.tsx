@@ -71,8 +71,8 @@ export const MealCard: React.FC<MealCardProps> = ({
   const favoriteButton = onToggleFavorite ? (
     <PressableScale
       onPress={onToggleFavorite}
-      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-      className={`w-8 h-8 rounded-full items-center justify-center flex-shrink-0 border ${
+      hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+      className={`w-9 h-9 rounded-full items-center justify-center flex-shrink-0 border ${
         isFavorite ? "bg-[#fde9e7] border-[#f5c2be]" : "bg-card-2 border-line"
       }`}
       accessibilityRole="button"
@@ -94,8 +94,8 @@ export const MealCard: React.FC<MealCardProps> = ({
     <PressableScale
       onPress={onLogMeal}
       disabled={isLogging}
-      hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-      className="w-8 h-8 rounded-full bg-primary items-center justify-center flex-shrink-0"
+      hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+      className="w-9 h-9 rounded-full bg-primary items-center justify-center flex-shrink-0"
       accessibilityRole="button"
       accessibilityLabel={`Catat ${displayTitle}`}
     >
@@ -142,7 +142,7 @@ export const MealCard: React.FC<MealCardProps> = ({
             </View>
           </View>
         </PressableScale>
-        <View className="flex-row items-center gap-1.5 flex-shrink-0">
+        <View className="flex-row items-center gap-2 flex-shrink-0">
           {favoriteButton}
           {logButton}
         </View>
@@ -198,7 +198,7 @@ export const MealCard: React.FC<MealCardProps> = ({
         <AppText weight="semibold" numberOfLines={1} className="text-[12px] text-muted flex-1 mr-2" style={tnum}>
           {estimatedCostIdr !== undefined ? `Rp ${estimatedCostIdr.toLocaleString("id-ID")}` : `${calories} kcal`}
         </AppText>
-        <View className="flex-row items-center gap-1.5">
+        <View className="flex-row items-center gap-2">
           {favoriteButton}
           {logButton}
         </View>

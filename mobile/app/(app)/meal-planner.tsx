@@ -4,7 +4,8 @@ import {
   ScrollView,
   TextInput,
   ActivityIndicator,
-  Alert,
+  Modal,
+  Pressable,
   Image,
 } from "react-native";
 import { useRouter } from "expo-router";
@@ -41,6 +42,20 @@ import {
   explainRecipeSelection,
   inspectIngredientsToVerify,
 } from "@better-life/shared";
+
+const DAY_NAME_ID: Record<string, string> = {
+  Monday: "Senin",
+  Tuesday: "Selasa",
+  Wednesday: "Rabu",
+  Thursday: "Kamis",
+  Friday: "Jumat",
+  Saturday: "Sabtu",
+  Sunday: "Minggu",
+};
+
+function formatDayNameId(day: string): string {
+  return DAY_NAME_ID[day] || day;
+}
 
 export default function MealPlannerScreen() {
   const router = useRouter();
@@ -91,6 +106,10 @@ export default function MealPlannerScreen() {
   const [pantryInput, setPantryInput] = useState<string>(
     (preferences.availableIngredients || []).join(", ")
   );
+  const [plannerNotice, setPlannerNotice] = useState<{
+    tone: "ok" | "bad";
+    text: string;
+  } | null>(null);
 
   useEffect(() => {
     if (isPremium) {
@@ -98,9 +117,22 @@ export default function MealPlannerScreen() {
     }
   }, [isPremium]);
 
+  useEffect(() => {
+    setCalorieInput(String(preferences.dailyCalorieTarget || 2000));
+    setBudgetInput(String(preferences.dailyBudgetIdr || 50000));
+    setSelectedRestrictions(preferences.dietaryRestrictions || []);
+    setSelectedAllergies(preferences.allergies || []);
+    setPantryInput((preferences.availableIngredients || []).join(", "));
+  }, [preferences]);
+
+  const showPlannerFeedback = (tone: "ok" | "bad", text: string) => {
+    setPlannerNotice({ tone, text });
+    setTimeout(() => setPlannerNotice((curr) => (curr?.text === text ? null : curr)), 4500);
+  };
+
   const handleGenerateSubmit = async () => {
-    const cals = parseInt(calorieInput, 10) || 2000;
-    const budget = parseInt(budgetInput, 10) || 50000;
+    const cals = Math.min(6000, Math.max(800, parseInt(calorieInput, 10) || 2000));
+    const budget = Math.max(0, parseInt(budgetInput, 10) || 50000);
     const pantry = pantryInput
       .split(",")
       .map((s) => s.trim())
@@ -118,21 +150,21 @@ export default function MealPlannerScreen() {
 
     try {
       await generatePlan();
-      Alert.alert(
-        "Rencana Makan Siap",
+      showPlannerFeedback(
+        "ok",
         "Jadwal menu 7 hari telah disusun sesuai target nutrisi dan anggaran Anda."
       );
     } catch (err: any) {
-      Alert.alert("Gagal Menyusun", err.message || "Gagal menyusun rencana makan.");
+      showPlannerFeedback("bad", err.message || "Gagal menyusun rencana makan.");
     }
   };
 
   const handleSavePlan = async () => {
     try {
       await savePlan();
-      Alert.alert("Rencana Tersimpan", "Jadwal makan 7 hari Anda telah disimpan ke akun.");
+      showPlannerFeedback("ok", "Jadwal makan 7 hari Anda telah disimpan ke akun.");
     } catch (err: any) {
-      Alert.alert("Gagal Menyimpan", err.message || "Tidak dapat menyimpan rencana makan.");
+      showPlannerFeedback("bad", err.message || "Tidak dapat menyimpan rencana makan.");
     }
   };
 
@@ -321,6 +353,31 @@ export default function MealPlannerScreen() {
         contentContainerStyle={{ paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
       >
+        {plannerNotice && (
+          <View
+            accessibilityLiveRegion="polite"
+            className={`mb-3 px-4 py-3 rounded-[16px] border flex-row items-center gap-2.5 ${
+              plannerNotice.tone === "ok"
+                ? "bg-good-soft border-good/25"
+                : "bg-bad-soft border-bad/25"
+            }`}
+          >
+            <LineIcon
+              name={plannerNotice.tone === "ok" ? "check" : "close"}
+              size={16}
+              color={plannerNotice.tone === "ok" ? "#12714f" : "#b3301b"}
+            />
+            <AppText
+              weight="semibold"
+              className={`text-xs flex-1 ${
+                plannerNotice.tone === "ok" ? "text-good" : "text-bad"
+              }`}
+            >
+              {plannerNotice.text}
+            </AppText>
+          </View>
+        )}
+
         {/* If no plan generated yet, show prompt to generate */}
         {!activePlan && !isLoading && (
           <Surface className="my-4 py-10 items-center">
@@ -409,7 +466,7 @@ export default function MealPlannerScreen() {
                             weight="bold"
                             className={`text-xs ${isSelected ? "text-white" : "text-[#121a16]"}`}
                           >
-                            {day.day}
+                            {formatDayNameId(day.day)}
                           </AppText>
                           <AppText
                             weight="semibold"
@@ -440,7 +497,7 @@ export default function MealPlannerScreen() {
                   <FadeInView key={`day-summary-${selectedDayIndex}`} index={0}>
                     <Surface>
                       <CardHead
-                        title={`Ringkasan ${currentDay.day}`}
+                        title={`Ringkasan ${formatDayNameId(currentDay.day)}`}
                         subtitle={`Target ${preferences.dailyCalorieTarget} kcal · Anggaran ${formatIdr(preferences.dailyBudgetIdr)}`}
                         right={
                           <View className="items-end">
@@ -519,7 +576,7 @@ export default function MealPlannerScreen() {
                   <FadeInView key={`day-meals-${selectedDayIndex}`} index={1}>
                     <Surface>
                       <CardHead
-                        title={`Susunan menu ${currentDay.day}`}
+                        title={`Susunan menu ${formatDayNameId(currentDay.day)}`}
                         subtitle="Ketuk hidangan untuk melihat resep atau ganti sesuai selera"
                       />
 
@@ -771,11 +828,18 @@ export default function MealPlannerScreen() {
       </ScrollView>
 
       {/* Preferences Configuration Modal */}
-      {preferenceModalOpen && (
-        <View className="absolute inset-0 bg-[#121a16]/50 items-center justify-center px-4 py-8 z-50">
-          <FadeInView
-            duration={220}
-            translateY={12}
+      <Modal
+        visible={preferenceModalOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setPreferenceModalOpen(false)}
+      >
+        <Pressable
+          className="flex-1 bg-[#121a16]/50 items-center justify-center px-4 py-8"
+          onPress={() => setPreferenceModalOpen(false)}
+        >
+          <Pressable
+            onPress={(e) => e.stopPropagation()}
             style={{ boxShadow: SURFACE_SHADOW } as any}
             className="w-full max-w-[500px] bg-[#fbfdfc] rounded-[24px] border border-[#e6eae7] p-5 max-h-[90%] flex-col"
           >
@@ -871,7 +935,7 @@ export default function MealPlannerScreen() {
                   Alergen yang dihindari
                 </AppText>
                 <View className="flex-row flex-wrap gap-1.5">
-                  {COMMON_ALLERGENS.map((allergen) => {
+                  {Array.from(new Set([...COMMON_ALLERGENS, ...selectedAllergies])).map((allergen) => {
                     const isSelected = selectedAllergies.includes(allergen);
                     return (
                       <PressableScale
@@ -931,16 +995,23 @@ export default function MealPlannerScreen() {
                 disabled={isGenerating}
               />
             </View>
-          </FadeInView>
-        </View>
-      )}
+          </Pressable>
+        </Pressable>
+      </Modal>
 
       {/* Substitution Modal */}
-      {substitutionModal.isOpen && (
-        <View className="absolute inset-0 bg-[#121a16]/50 items-center justify-center px-4 py-8 z-50">
-          <FadeInView
-            duration={220}
-            translateY={12}
+      <Modal
+        visible={substitutionModal.isOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={closeSubstitutionModal}
+      >
+        <Pressable
+          className="flex-1 bg-[#121a16]/50 items-center justify-center px-4 py-8"
+          onPress={closeSubstitutionModal}
+        >
+          <Pressable
+            onPress={(e) => e.stopPropagation()}
             style={{ boxShadow: SURFACE_SHADOW } as any}
             className="w-full max-w-[480px] bg-[#fbfdfc] rounded-[24px] border border-[#e6eae7] p-5 max-h-[85%] flex-col"
           >
@@ -995,9 +1066,9 @@ export default function MealPlannerScreen() {
                 ))}
               </ScrollView>
             )}
-          </FadeInView>
-        </View>
-      )}
+          </Pressable>
+        </Pressable>
+      </Modal>
     </ScreenWrapper>
   );
 }

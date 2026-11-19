@@ -456,6 +456,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       return { success: false, error: "Kata sandi minimal 6 karakter." };
     }
 
+    const trimmedPhone = data.phone?.trim() || "";
+    if (trimmedPhone && trimmedPhone.length < 6) {
+      return { success: false, error: "Nomor telepon minimal 6 karakter bila diisi." };
+    }
+
     let resData: any;
     try {
       const res = await fetchWithTimeout(`${API_BASE_URL}/auth/register`, {
@@ -464,7 +469,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         body: JSON.stringify({
           name: trimmedName,
           email: trimmedEmail,
-          phone: data.phone?.trim() || "+62 812-0000-0000",
+          phone: trimmedPhone,
           password: data.password,
         }),
       });

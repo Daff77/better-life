@@ -1,4 +1,5 @@
 import { Router, Request, Response } from "express";
+import { isValidDateKey } from "@better-life/shared";
 import { authMiddleware } from "../middleware/auth.js";
 import { requireEntitlement } from "../middleware/entitlement.js";
 import { asyncHandler } from "../middleware/asyncHandler.js";
@@ -11,8 +12,14 @@ export const analyticsRouter = Router();
 
 analyticsRouter.use(authMiddleware);
 
+function sanitizeCsvCell(value: unknown): string {
+  const raw = String(value ?? "");
+  const neutralized = /^[\s]*[=+\-@\t\r]/.test(raw) ? `'${raw}` : raw;
+  return neutralized.replace(/"/g, '""');
+}
+
 function resolveReferenceDate(todayParam?: string): string {
-  if (todayParam && /^\d{4}-\d{2}-\d{2}$/.test(todayParam)) {
+  if (todayParam && isValidDateKey(todayParam)) {
     return todayParam;
   }
   return AnalyticsEngine.formatDateKey(new Date());
@@ -83,11 +90,19 @@ analyticsRouter.get(
     }
 
     const { range = "7d", startDate, endDate, today } = parseResult.data;
-    if (range === "custom" && startDate && endDate && startDate > endDate) {
-      return res.status(400).json({
-        error: "INVALID_QUERY_PARAMS",
-        message: "startDate must not be after endDate.",
-      });
+    if (range === "custom") {
+      if (!startDate || !endDate || !isValidDateKey(startDate) || !isValidDateKey(endDate)) {
+        return res.status(400).json({
+          error: "INVALID_QUERY_PARAMS",
+          message: "Valid startDate and endDate (YYYY-MM-DD) are required when range is custom.",
+        });
+      }
+      if (startDate > endDate) {
+        return res.status(400).json({
+          error: "INVALID_QUERY_PARAMS",
+          message: "startDate must not be after endDate.",
+        });
+      }
     }
 
     const [meals, profile] = await Promise.all([
@@ -188,8 +203,7 @@ analyticsRouter.get(
       let csv =
         "ID,Name,Type,Calories,Protein(g),Carbs(g),Fat(g),Fiber(g),Quantity,DateKey,Time,LoggedAt\n";
       meals.forEach((m) => {
-        const safeName = String(m.name).replace(/"/g, '""');
-        csv += `"${m.id}","${safeName}","${m.type}",${m.calories},${m.proteinGrams || 0},${m.carbsGrams || 0},${m.fatGrams || 0},${m.fiberGrams || 0},${m.quantity || 1},"${m.dateKey}","${m.time}","${new Date(m.loggedAt).toISOString()}"\n`;
+        csv += `"${sanitizeCsvCell(m.id)}","${sanitizeCsvCell(m.name)}","${sanitizeCsvCell(m.type)}",${m.calories},${m.proteinGrams || 0},${m.carbsGrams || 0},${m.fatGrams || 0},${m.fiberGrams || 0},${m.quantity || 1},"${sanitizeCsvCell(m.dateKey)}","${sanitizeCsvCell(m.time)}","${new Date(m.loggedAt).toISOString()}"\n`;
       });
       return res.send(csv);
     }

@@ -55,6 +55,14 @@ jobs:
         working-directory: mobile
         run: npm ci
 
+      - name: TypeScript Type Check (Mobile)
+        working-directory: mobile
+        run: npm run typecheck
+
+      - name: ESLint Static Analysis (Mobile)
+        working-directory: mobile
+        run: npm run lint
+
       - name: Run Nutrition Domain Unit Tests
         working-directory: mobile
         run: npm test

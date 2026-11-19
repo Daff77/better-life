@@ -403,8 +403,10 @@ export default function AnalyticsScreen() {
   );
 
   useEffect(() => {
-    fetchAnalytics();
-  }, [range]);
+    if (isPremium) {
+      fetchAnalytics();
+    }
+  }, [range, isPremium, fetchAnalytics]);
 
   const handleExport = async (format: "csv" | "json") => {
     try {
@@ -415,22 +417,29 @@ export default function AnalyticsScreen() {
           ? "Laporan nutrisi berhasil diekspor dalam format CSV."
           : "Laporan nutrisi berhasil diekspor dalam format JSON.";
 
-      if (Platform.OS === "web") {
-        if (format === "csv" && typeof res === "string") {
-          const blob = new Blob([res], { type: "text/csv;charset=utf-8;" });
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement("a");
-          link.href = url;
-          link.setAttribute("download", `better_life_nutrition_${range}.csv`);
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-        }
+      if (Platform.OS === "web" && typeof document !== "undefined") {
+        const isCsv = format === "csv";
+        const content =
+          isCsv && typeof res === "string" ? res : JSON.stringify(res, null, 2);
+        const mime = isCsv
+          ? "text/csv;charset=utf-8;"
+          : "application/json;charset=utf-8;";
+        const ext = isCsv ? "csv" : "json";
+        const blob = new Blob([content], { type: mime });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", `better_life_nutrition_${range}.${ext}`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
       }
       setExportNotice(msg);
       setTimeout(() => setExportNotice(null), 4000);
     } catch {
-      Alert.alert("Ekspor Gagal", "Tidak dapat mengekspor data nutrisi saat ini.");
+      setExportNotice("Gagal mengekspor data nutrisi saat ini.");
+      setTimeout(() => setExportNotice(null), 4000);
     } finally {
       setExporting(false);
     }
@@ -726,10 +735,14 @@ export default function AnalyticsScreen() {
                     </View>
                     <AppText
                       weight="semibold"
-                      className="text-2xl text-[#1b1406]"
-                      style={{ fontVariant: ["tabular-nums"], letterSpacing: -0.6 }}
+                      className="text-xl text-[#1b1406]"
+                      style={{ fontVariant: ["tabular-nums"], letterSpacing: -0.5 }}
                     >
-                      {analyticsData?.summary.fiberScore}
+                      {analyticsData?.summary.fiberScore === "Optimal"
+                        ? "Optimal"
+                        : analyticsData?.summary.fiberScore === "Needs Improvement"
+                        ? "Perlu ditambah"
+                        : analyticsData?.summary.fiberScore || "Belum tercatat"}
                     </AppText>
                     <AppText weight="regular" className="text-[11px] text-[#1b1406]/80 mt-0.5">
                       Standar 25g serat / hari
@@ -1239,7 +1252,15 @@ export default function AnalyticsScreen() {
                       </RowIcon>
                     }
                     title="Total estimasi periode"
-                    subtitle={`Akumulasi selama periode ${range === "7d" ? "7 hari" : "30 hari"}`}
+                    subtitle={`Akumulasi selama periode ${
+                      range === "7d"
+                        ? "7 hari"
+                        : range === "30d"
+                        ? "30 hari"
+                        : analyticsData?.startDate && analyticsData?.endDate
+                        ? `${analyticsData.startDate} s/d ${analyticsData.endDate}`
+                        : "rentang khusus"
+                    }`}
                     right={
                       <AppText
                         weight="semibold"

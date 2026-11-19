@@ -21,10 +21,38 @@ import { useAuthStore } from "@/stores/useAuthStore";
  *  - once each time the app is opened, and
  *  - again after a fresh login (cleared when the user logs out).
  */
+const SESSION_GREETED_KEY = "betterlife_welcome_greeted_user";
 let greetedUserKey: string | null = null;
 
+function readSessionGreetedUser(): string | null {
+  if (greetedUserKey) return greetedUserKey;
+  if (typeof window !== "undefined" && window.sessionStorage) {
+    try {
+      return window.sessionStorage.getItem(SESSION_GREETED_KEY);
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
+function writeSessionGreetedUser(key: string | null): void {
+  greetedUserKey = key;
+  if (typeof window !== "undefined" && window.sessionStorage) {
+    try {
+      if (key) {
+        window.sessionStorage.setItem(SESSION_GREETED_KEY, key);
+      } else {
+        window.sessionStorage.removeItem(SESSION_GREETED_KEY);
+      }
+    } catch {
+      // ignore storage quota/privacy mode errors
+    }
+  }
+}
+
 useAuthStore.subscribe((state) => {
-  if (!state.user) greetedUserKey = null;
+  if (!state.user) writeSessionGreetedUser(null);
 });
 
 const EASE_OUT = Easing.bezier(0.22, 1, 0.36, 1);
@@ -41,7 +69,9 @@ function greetingForNow() {
 export const WelcomeSplash: React.FC = () => {
   const user = useAuthStore((state) => state.user);
   const userKey = user ? (user as any).id ?? user.email ?? user.name ?? "user" : null;
-  const [visible, setVisible] = useState(() => Boolean(userKey) && greetedUserKey !== userKey);
+  const [visible, setVisible] = useState(
+    () => Boolean(userKey) && readSessionGreetedUser() !== userKey
+  );
   const reduceMotion = useReducedMotion();
 
   const overlay = useSharedValue(1);
@@ -51,7 +81,7 @@ export const WelcomeSplash: React.FC = () => {
 
   useEffect(() => {
     if (!visible || !userKey) return;
-    greetedUserKey = userKey;
+    writeSessionGreetedUser(userKey);
 
     const finish = () => setVisible(false);
     const exitDelay = reduceMotion ? 900 : HOLD_MS + 500;

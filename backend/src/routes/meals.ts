@@ -171,3 +171,15 @@ mealsRouter.post(
     });
   })
 );
+
+// 5. POST /api/meals/reset-all — Permanently clear all logged meals owned by the authenticated user
+mealsRouter.post(
+  "/reset-all",
+  asyncHandler(async (req: Request, res: Response) => {
+    const userId = req.user!.userId;
+    await mealRepository.clearAllByUser(userId);
+    return res.json({
+      message: "All logged meals cleared successfully",
+    });
+  })
+);

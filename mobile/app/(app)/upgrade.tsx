@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import {
   View,
   ScrollView,
+  Modal,
+  Pressable,
   Alert,
   Platform,
   Linking,
@@ -640,11 +642,18 @@ export default function UpgradeScreen() {
       </ScrollView>
 
       {/* Cancellation Confirmation Dialog */}
-      {cancelModalVisible && (
-        <View className="absolute inset-0 bg-[#121a16]/50 items-center justify-center px-6 z-50">
-          <FadeInView
-            duration={220}
-            translateY={12}
+      <Modal
+        visible={cancelModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setCancelModalVisible(false)}
+      >
+        <Pressable
+          className="flex-1 bg-[#121a16]/50 items-center justify-center px-6"
+          onPress={() => setCancelModalVisible(false)}
+        >
+          <Pressable
+            onPress={(e) => e.stopPropagation()}
             style={{ boxShadow: SURFACE_SHADOW } as any}
             className="w-full max-w-[380px] bg-[#fbfdfc] rounded-[24px] border border-[#e6eae7] p-5"
           >
@@ -663,17 +672,18 @@ export default function UpgradeScreen() {
               />
               <PressableScale
                 onPress={handleCancelAutoRenew}
-                className="px-4 py-2 rounded-full bg-[#b92d26] items-center justify-center"
+                className="px-4 min-h-[44px] rounded-full bg-[#b3301b] items-center justify-center"
                 accessibilityRole="button"
+                accessibilityLabel="Konfirmasi batalkan perpanjangan otomatis"
               >
                 <AppText weight="semibold" className="text-xs text-white">
                   Ya, batalkan
                 </AppText>
               </PressableScale>
             </View>
-          </FadeInView>
-        </View>
-      )}
+          </Pressable>
+        </Pressable>
+      </Modal>
     </ScreenWrapper>
   );
 }

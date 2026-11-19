@@ -1,8 +1,14 @@
 import React, { useState } from "react";
 import { View, TextInput, Text, StyleSheet } from "react-native";
+import { Redirect } from "expo-router";
 
 export default function TestInputScreen() {
   const [text, setText] = useState("");
+
+  if (!__DEV__) {
+    return <Redirect href="/" />;
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.label}>Plain TextInput Test Screen</Text>

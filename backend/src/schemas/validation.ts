@@ -1,17 +1,26 @@
 import { z } from "zod";
 
 export const RegisterInputSchema = z.object({
-  name: z.string().min(2, "Name must have at least 2 characters"),
-  email: z.string().email("Invalid email address"),
-  phone: z.string().min(6, "Phone number is too short").optional().default(""),
-  password: z.string().min(6, "Password must have at least 6 characters"),
+  name: z.string().trim().min(2, "Name must have at least 2 characters").max(120, "Name is too long"),
+  email: z.string().trim().email("Invalid email address").max(254, "Email is too long"),
+  phone: z
+    .union([
+      z.literal(""),
+      z.string().trim().min(6, "Phone number is too short").max(30, "Phone number is too long"),
+    ])
+    .optional()
+    .default(""),
+  password: z
+    .string()
+    .min(6, "Password must have at least 6 characters")
+    .max(72, "Password must not exceed 72 characters"),
 });
 
 export const LoginInputSchema = z
   .object({
-    email: z.string().min(2).optional(),
-    identifier: z.string().min(2).optional(),
-    password: z.string().min(6, "Password must have at least 6 characters"),
+    email: z.string().min(2).max(254).optional(),
+    identifier: z.string().min(2).max(254).optional(),
+    password: z.string().min(6, "Password must have at least 6 characters").max(128),
   })
   .refine((val) => Boolean(val.email?.trim() || val.identifier?.trim()), {
     message: "Email or username is required",
@@ -19,7 +28,7 @@ export const LoginInputSchema = z
   });
 
 export const CheckEmailInputSchema = z.object({
-  email: z.string().email("Invalid email address"),
+  email: z.string().trim().email("Invalid email address").max(254),
 });
 
 export const GoogleAuthInputSchema = z.object({
@@ -27,8 +36,8 @@ export const GoogleAuthInputSchema = z.object({
 });
 
 export const UpdateProfileInputSchema = z.object({
-  name: z.string().min(2).optional(),
-  phone: z.string().min(6).optional(),
+  name: z.string().trim().min(2).max(120).optional(),
+  phone: z.union([z.literal(""), z.string().trim().min(6).max(30)]).optional(),
 });
 
 export const PersonalizationInputSchema = z.object({
@@ -40,29 +49,29 @@ export const PersonalizationInputSchema = z.object({
   birthDate: z
     .object({
       day: z.number().min(1).max(31),
-      month: z.string(),
-      year: z.number().min(1920).max(2026),
+      month: z.string().max(24),
+      year: z.number().min(1920).max(new Date().getFullYear()),
     })
     .optional(),
   age: z.number().int().min(14).max(100).optional(),
   cookingSkill: z.enum(["Low", "Middle", "High"]).default("Middle"),
-  dietType: z.string().default("Omnivore"),
-  allergies: z.array(z.string()).default([]),
-  targetCalories: z.number().positive(),
+  dietType: z.string().max(60).default("Omnivore"),
+  allergies: z.array(z.string().max(60)).max(30).default([]),
+  targetCalories: z.number().positive().max(15000),
   onboardingCompleted: z.boolean().optional(),
 });
 
 export const LogMealInputSchema = z.object({
   id: z.string().min(1).max(200).optional(),
   type: z.enum(["Breakfast", "Lunch", "Dinner", "Snack", "Drink"]),
-  name: z.string().min(1, "Meal name cannot be empty"),
-  calories: z.number().nonnegative(),
-  proteinGrams: z.number().nonnegative().optional().default(0),
-  carbsGrams: z.number().nonnegative().optional().default(0),
-  fatGrams: z.number().nonnegative().optional().default(0),
-  fiberGrams: z.number().nonnegative().optional().default(0),
-  estimatedCostIdr: z.number().nonnegative().optional().default(0),
-  quantity: z.number().positive().optional().default(1),
+  name: z.string().trim().min(1, "Meal name cannot be empty").max(200, "Meal name is too long"),
+  calories: z.number().nonnegative().max(50000),
+  proteinGrams: z.number().nonnegative().max(5000).optional().default(0),
+  carbsGrams: z.number().nonnegative().max(5000).optional().default(0),
+  fatGrams: z.number().nonnegative().max(5000).optional().default(0),
+  fiberGrams: z.number().nonnegative().max(5000).optional().default(0),
+  estimatedCostIdr: z.number().nonnegative().max(100000000).optional().default(0),
+  quantity: z.number().positive().max(100).optional().default(1),
   dateKey: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   time: z.string().max(40).optional(),
   loggedAt: z.string().datetime().optional(),
@@ -71,14 +80,14 @@ export const LogMealInputSchema = z.object({
 
 export const UpdateMealInputSchema = z.object({
   type: z.enum(["Breakfast", "Lunch", "Dinner", "Snack", "Drink"]).optional(),
-  name: z.string().min(1, "Meal name cannot be empty").optional(),
-  calories: z.number().nonnegative().optional(),
-  proteinGrams: z.number().nonnegative().optional(),
-  carbsGrams: z.number().nonnegative().optional(),
-  fatGrams: z.number().nonnegative().optional(),
-  fiberGrams: z.number().nonnegative().optional(),
-  estimatedCostIdr: z.number().nonnegative().optional(),
-  quantity: z.number().positive().optional(),
+  name: z.string().trim().min(1, "Meal name cannot be empty").max(200, "Meal name is too long").optional(),
+  calories: z.number().nonnegative().max(50000).optional(),
+  proteinGrams: z.number().nonnegative().max(5000).optional(),
+  carbsGrams: z.number().nonnegative().max(5000).optional(),
+  fatGrams: z.number().nonnegative().max(5000).optional(),
+  fiberGrams: z.number().nonnegative().max(5000).optional(),
+  estimatedCostIdr: z.number().nonnegative().max(100000000).optional(),
+  quantity: z.number().positive().max(100).optional(),
   dateKey: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   updatedAt: z.string().datetime().optional(),
 });
@@ -273,15 +282,22 @@ export const SubstituteMealInputSchema = z.object({
   preferences: MealPlanPreferencesInputSchema.optional(),
 });
 
+const CurrentPlanObjectSchema = z
+  .object({
+    days: z.array(z.any()),
+    preferences: z.any().optional(),
+  })
+  .passthrough();
+
 export const ReplaceMealInputSchema = z.object({
   dayIndex: z.number().min(0).max(6),
   slot: z.enum(["Breakfast", "Lunch", "Dinner", "Snack"]),
-  newRecipeId: z.string().min(1),
-  currentPlan: z.any(),
+  newRecipeId: z.string().min(1).max(200),
+  currentPlan: CurrentPlanObjectSchema,
 });
 
 export const RegenerateDayInputSchema = z.object({
   dayIndex: z.number().min(0).max(6),
   preferences: MealPlanPreferencesInputSchema.optional(),
-  currentPlan: z.any(),
+  currentPlan: CurrentPlanObjectSchema,
 });

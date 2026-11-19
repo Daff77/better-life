@@ -1,13 +1,34 @@
 import React from "react";
-import { View, Platform } from "react-native";
-import { Stack } from "expo-router";
+import { View, Platform, ActivityIndicator } from "react-native";
+import { Redirect, Stack } from "expo-router";
 import { WelcomeSplash } from "@/components/ui/WelcomeSplash";
 import { useStepTracking } from "@/hooks/useStepTracking";
+import { useAuthStore } from "@/stores/useAuthStore";
+
+function AuthenticatedStepTracking() {
+  useStepTracking();
+  return null;
+}
 
 export default function AppLayout() {
-  useStepTracking();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isLoading = useAuthStore((state) => state.isLoading);
+
+  if (isLoading) {
+    return (
+      <View className="flex-1 bg-canvas items-center justify-center">
+        <ActivityIndicator size="large" color="#0e7a52" />
+      </View>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Redirect href="/(auth)/get-started" />;
+  }
+
   return (
     <View style={{ flex: 1 }}>
+      <AuthenticatedStepTracking />
       <Stack
         screenOptions={{
           headerShown: false,
@@ -20,6 +41,7 @@ export default function AppLayout() {
         <Stack.Screen name="analytics" options={{ headerShown: false }} />
         <Stack.Screen name="community" options={{ headerShown: false }} />
         <Stack.Screen name="reminders" options={{ headerShown: false }} />
+        <Stack.Screen name="steps" options={{ headerShown: false }} />
         <Stack.Screen name="upgrade" options={{ headerShown: false, presentation: "modal" }} />
       </Stack>
       <WelcomeSplash />

@@ -42,7 +42,7 @@ export const NutritionCard: React.FC<NutritionCardProps> = ({
   const router = useRouter();
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
-  const profile = useOnboardingStore.getState().personalization;
+  const profile = useOnboardingStore((state) => state.personalization);
   const activeTargetProtein = targetProteinGrams ?? profile?.targetProteinGrams ?? 161;
   const activeTargetCarbs = targetCarbsGrams ?? profile?.targetCarbGrams ?? 323;
   const activeTargetFat = targetFatGrams ?? profile?.targetFatGrams ?? 72;
@@ -110,7 +110,7 @@ export const NutritionCard: React.FC<NutritionCardProps> = ({
         }
       />
 
-      <View className="flex-row items-baseline gap-2 mb-3">
+      <View className="flex-row flex-wrap items-baseline gap-x-2 gap-y-1 mb-3">
         <AppText
           weight="semibold"
           className="text-[32px] text-ink"

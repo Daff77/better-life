@@ -202,9 +202,11 @@ export const TextField = React.forwardRef<any, TextFieldProps>(
 
     return (
       <View>
-        <AppText weight="semibold" className="text-[13.5px] text-ink-2 mb-2">
-          {label}
-        </AppText>
+        {label ? (
+          <AppText weight="semibold" className="text-[13.5px] text-ink-2 mb-2">
+            {label}
+          </AppText>
+        ) : null}
         <View
           className={`flex-row items-center bg-card rounded-[16px] px-4 ${big ? "h-[68px]" : "h-[54px]"} ${
             editable ? "" : "opacity-60"

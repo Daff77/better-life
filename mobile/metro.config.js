@@ -4,9 +4,11 @@ const { getDefaultConfig } = require("expo/metro-config");
 const { withNativeWind } = require("nativewind/metro");
 
 const config = getDefaultConfig(__dirname);
-config.watchFolders = [path.resolve(__dirname, "../shared")];
+const sharedDir = path.resolve(__dirname, "../shared");
+config.watchFolders = [sharedDir];
 
 const { transformer, resolver, server } = config;
+const defaultResolveRequest = resolver.resolveRequest;
 
 config.transformer = {
   ...transformer,
@@ -16,29 +18,47 @@ config.resolver = {
   ...resolver,
   assetExts: resolver.assetExts.filter((ext) => ext !== "svg"),
   sourceExts: [...resolver.sourceExts, "svg"],
+  extraNodeModules: {
+    ...(resolver.extraNodeModules || {}),
+    "@better-life/shared": sharedDir,
+  },
+  resolveRequest: (context, moduleName, platform) => {
+    if (moduleName === "@better-life/shared") {
+      return {
+        filePath: path.join(sharedDir, "index.js"),
+        type: "sourceFile",
+      };
+    }
+    if (defaultResolveRequest) {
+      return defaultResolveRequest(context, moduleName, platform);
+    }
+    return context.resolveRequest(context, moduleName, platform);
+  },
 };
+
 let androidPrewarmStarted = false;
 
 config.server = {
   ...server,
   enhanceMiddleware: (middleware) => {
-    if (!androidPrewarmStarted) {
-      androidPrewarmStarted = true;
-      const timer = setTimeout(() => {
-        const prewarmReq = http.get(
-          "http://127.0.0.1:8081/node_modules/expo-router/entry.bundle?platform=android&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.bytecode=1&transform.routerRoot=app&unstable_transformProfile=hermes-stable",
-          (res) => {
-            res.resume();
-          }
-        );
-        prewarmReq.on("error", () => {});
-      }, 1500);
-      if (typeof timer.unref === "function") {
-        timer.unref();
-      }
-    }
-
     return (req, res, next) => {
+      if (!androidPrewarmStarted && req.socket && req.socket.localPort) {
+        androidPrewarmStarted = true;
+        const activePort = req.socket.localPort;
+        const timer = setTimeout(() => {
+          const prewarmReq = http.get(
+            `http://127.0.0.1:${activePort}/node_modules/expo-router/entry.bundle?platform=android&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.bytecode=1&transform.routerRoot=app&unstable_transformProfile=hermes-stable`,
+            (prewarmRes) => {
+              prewarmRes.resume();
+            }
+          );
+          prewarmReq.on("error", () => {});
+        }, 1200);
+        if (typeof timer.unref === "function") {
+          timer.unref();
+        }
+      }
+
       if (
         req.url &&
         (req.url.startsWith("/api/") ||

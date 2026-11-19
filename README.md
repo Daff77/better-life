@@ -5,11 +5,11 @@
 [![React Native](https://img.shields.io/badge/React%20Native-0.88-blue.svg)](https://reactnative.dev/)
 [![Expo](https://img.shields.io/badge/Expo%20SDK-58-black.svg)](https://expo.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x%20%2F%20Strict-blue.svg)](https://www.typescriptlang.org/)
-[![Tests](https://img.shields.io/badge/Tests-99%20Passed%20(100%25)-success.svg)](REPORT.md)
+[![Tests](https://img.shields.io/badge/Tests-114%20Passed%20(100%25)-success.svg)](PROJECT_AUDIT_REPORT.md)
 [![Design System](https://img.shields.io/badge/Design%20System-Impeccable%20Craft-emerald.svg)](DESIGN.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> **Better Life** is a full-stack, clinically grounded health, nutrition, and daily calorie management ecosystem built with **React Native (Expo SDK 58)**, **Express**, **TypeScript (Strict)**, and **PostgreSQL with Drizzle ORM**. It features validated Mifflin-St Jeor metabolic calculations, budget-aware local meal planning, tactile spring animations, security-hardened authentication, and an award-winning design system architecture.
+> **Better Life** is a full-stack, clinically grounded health, nutrition, and daily calorie management ecosystem built with **React Native (Expo SDK 54 / RN 0.81)**, **Express**, **TypeScript (Strict)**, and **PostgreSQL with Drizzle ORM**. It features validated Mifflin-St Jeor metabolic calculations, budget-aware local meal planning, tactile spring animations, security-hardened authentication, and a calm Vialo-inspired design system architecture.
 
 ---
 
@@ -113,8 +113,8 @@ graph TD
 ## 🎨 Design System & AI Craft Integration
 
 Better Life follows a Scandinavian organic health aesthetic documented in [`DESIGN.md`](DESIGN.md):
-- **Brand Colors:** Primary Emerald (`#1b7a53`), Deep Pine (`#145c3e`), Sage Mist (`#eaf5ef`), Canvas Base (`#f8faf8`).
-- **Typography:** `Akatab` font family with strictly enforced `fontVariant: ["tabular-nums"]` on all calories, timers, macro grams, and currency amounts to eliminate layout jitter.
+- **Brand Colors:** Primary Emerald (`#0e7a52`), Deep Pine (`#0a6544`), Sage Mist (`#e0ede6`), Canvas Base (`#edf1ee`), Warm Card (`#fbfdfc`), Ink Block (`#141c18`), Amber Block (`#f3b23c`).
+- **Typography:** `Urbanist` font family (`Regular` to `ExtraBold`) with strictly enforced `fontVariant: ["tabular-nums"]` on all calories, timers, macro grams, and currency amounts to eliminate layout jitter.
 - **Physics & Motion:** Critically damped spring curves (`damping: 22, stiffness: 300`) on touch down (`scale: 0.96`), following Apple Fluid Motion and Emil Kowalski design engineering principles.
 - **Impeccable Skill Integration:** Integrated [`pbakaus/impeccable`](https://github.com/pbakaus/impeccable) (`.agents/skills/impeccable`) with cross-platform compiled Rust engine and 28 specialized reference playbooks (`shape`, `critique`, `audit`, `polish`, `craft-floor`).
 - **Antislop Rules (R-01 to R-38):**
@@ -283,17 +283,20 @@ Migrations also run automatically on backend server startup before accepting HTT
 The test suite runs using Node's native test runner without peer-dependency friction:
 
 ```bash
-# Run all tests (65 backend + 34 mobile = 99 tests total)
+# Run all tests (68 backend + 46 mobile = 114 tests total)
 npm test
 
 # Run backend API integration tests only
 npm run test:backend
 
-# Run mobile domain unit tests only
+# Run mobile domain & store unit tests only
 npm run test:mobile
 
 # Perform full monorepo TypeScript typecheck (0 errors)
 npm run typecheck
+
+# Run mobile ESLint static analysis
+npm run lint --prefix mobile
 ```
 
 ### Test Suite Highlights
@@ -309,31 +312,40 @@ npm run typecheck
 All backend endpoints are prefixed with `/api`. Protected routes require an `Authorization: Bearer <token>` header.
 
 ### Authentication
-- `POST /api/auth/register` — Create account with `{ name, email, phone, password }`.
+- `POST /api/auth/register` — Create account with `{ name, email, phone?, password }`.
 - `POST /api/auth/login` — Login with `{ email, password }`.
-- `GET /api/auth/me` — *(Protected)* Fetch authenticated user profile.
+- `POST /api/auth/google` — Verify Google ID token signature, audience, and expiry.
+- `GET /api/auth/me` — *(Protected)* Fetch authenticated user profile and onboarding status.
 
 ### Meals & Nutrition Journal
-- `GET /api/meals` — *(Protected)* Retrieve today's logged meals.
-- `POST /api/meals` — *(Protected)* Log a meal with `{ type, name, calories, proteinGrams?, carbsGrams?, fatGrams?, fiberGrams?, quantity? }`.
+- `GET /api/meals` — *(Protected)* Retrieve logged meals (optional `?dateKey=YYYY-MM-DD`).
+- `POST /api/meals` — *(Protected)* Idempotent meal upsert with Last-Write-Wins conflict handling.
+- `PUT /api/meals/:id` — *(Protected)* Update an entry owned by the authenticated user.
 - `DELETE /api/meals/:id` — *(Protected)* Delete an entry owned by the authenticated user.
-- `POST /api/meals/reset` — *(Protected)* Clear all meals logged today.
+- `POST /api/meals/reset` — *(Protected)* Clear meals logged for a specific `dateKey`.
+- `POST /api/meals/reset-all` — *(Protected)* Permanently clear all logged meals owned by the authenticated user.
 
-### Profile & Personalization
-- `GET /api/profile/me` — *(Protected)* Retrieve user details and metrics.
-- `PUT /api/profile/personalization` — *(Protected)* Update metrics `{ goal, weight, height, gender, birthDate, cookingSkill, dietType, allergies, targetCalories }`.
+### Profile, Reminders, Favorites & Backup
+- `GET /api/profile/me` — *(Protected)* Retrieve user details and personalization metrics.
+- `PUT /api/profile/personalization` — *(Protected)* Update biometric & dietary targets.
+- `GET / PUT /api/profile/reminders` — *(Protected)* Read/update per-account reminder schedules.
+- `GET / POST / DELETE /api/profile/favorites` — *(Protected)* Manage favorite food items.
+- `GET /api/profile/backup` & `POST /api/profile/restore` — *(Protected)* Export/restore validated account backup JSON with strict user isolation.
 
 ### Recipes & Suggestions
-- `GET /api/recipes` — Fetch culinary catalog recipes with nutritional profiles and budget estimates.
+- `GET /api/recipes` — Fetch culinary catalog recipes (unlocks Premium chef steps when Bearer token has active Premium entitlement).
 - `GET /api/recipes/:id` — Fetch full recipe details, ingredients list, and instructions.
 
-### Analytics & Reports
-- `GET /api/analytics/advanced` — *(Protected)* Fetch 7d/30d/custom calorie and macro trends.
-- `GET /api/analytics/reports` — *(Protected)* Generate summarized nutritional compliance reports.
+### Analytics, Meal Plans & Subscriptions
+- `GET /api/analytics/weekly-summary` — *(Protected)* Real 7-day nutrition and activity summary.
+- `GET /api/analytics/advanced` — *(Protected, Premium)* Fetch 7d/30d/custom calorie, macro, and spending trends.
+- `GET /api/analytics/reports` & `GET /api/analytics/export` — *(Protected, Premium)* Generate reports and sanitized CSV/JSON exports.
+- `GET /api/meal-plans/preview` & `POST /api/meal-plans/generate` — Sample preview & Premium 7-day allergen-safe meal plan engine.
+- `GET /api/subscription/plans`, `GET /api/subscription/status`, `POST /api/subscription/checkout`, `POST /api/subscription/verify`, `POST /api/subscription/webhook` — Membership & verified payment lifecycle.
 
 ### Activity & Steps
-- `GET /api/activity` — *(Protected)* Fetch daily steps, step goal, and calorie expenditure.
-- `POST /api/activity/steps` — *(Protected)* Log step increments `{ steps: number }`.
+- `GET /api/activity` — *(Protected)* Fetch daily steps, hydration glasses, and calorie expenditure.
+- `POST /api/activity/sync`, `POST /api/activity/steps`, `POST /api/activity/water` — *(Protected)* Sync daily steps and water intake.
 
 ---
 

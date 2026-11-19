@@ -20,3 +20,17 @@ export function confirmDestructive(
   ]);
 }
 
+/**
+ * Cross-platform informational alert.
+ * react-native-web's Alert.alert is a no-op on browsers, so web falls back to window.alert.
+ */
+export function showAlert(title: string, message: string) {
+  if (Platform.OS === "web") {
+    if (typeof window !== "undefined") {
+      window.alert(`${title}\n\n${message}`);
+    }
+    return;
+  }
+  Alert.alert(title, message);
+}
+

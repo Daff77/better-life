@@ -30,7 +30,11 @@ app.use(
       if (isOriginAllowed(origin, env)) {
         callback(null, true);
       } else {
-        callback(new Error("Origin not allowed by CORS policy"));
+        const corsErr = new Error("Origin not allowed by CORS policy") as Error & {
+          status?: number;
+        };
+        corsErr.status = 403;
+        callback(corsErr);
       }
     },
     credentials: true,
@@ -59,7 +63,19 @@ app.use(async (_req, _res, next) => {
   }
 });
 
-// 5. Rate Limiting for Sensitive Auth Endpoints
+// 5. Rate Limiting for API and Sensitive Auth Endpoints
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 600,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    error: "Too Many Requests",
+    message: "Too many API requests from this client. Please try again shortly.",
+  },
+  skip: () => env.NODE_ENV === "test",
+});
+
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
@@ -69,7 +85,7 @@ const authLimiter = rateLimit({
     error: "Too Many Requests",
     message: "Too many authentication attempts. Please try again after 15 minutes.",
   },
-  skip: () => env.NODE_ENV === "test",
+  skip: (req) => env.NODE_ENV === "test" || (req.method === "GET" && req.path === "/me"),
 });
 
 // 6. Health Check Endpoint
@@ -85,6 +101,7 @@ app.get("/health", (_req: Request, res: Response) => {
 });
 
 // 7. Modular Route Registrations
+app.use("/api", apiLimiter);
 app.use("/api/auth", authLimiter, authRouter);
 app.use("/api/profile", profileRouter);
 app.use("/api/meals", mealsRouter);

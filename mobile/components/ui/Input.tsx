@@ -166,7 +166,7 @@ export const Input = React.forwardRef<TextInput, InputProps>(
         </View>
 
         {hasError ? (
-          <AppText weight="medium" className="text-xs text-status-error mt-1 ml-1">
+          <AppText weight="medium" className="text-xs text-bad mt-1 ml-1">
             {error}
           </AppText>
         ) : helperText ? (

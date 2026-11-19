@@ -8,7 +8,7 @@ import {
 } from "../lib/mealPlannerDomain";
 import { mealPlannerApi } from "../lib/api/mealPlannerApi";
 import { sessionStorage } from "../lib/sessionStorage";
-import { useAuthStore } from "./useAuthStore";
+import { useOnboardingStore } from "./useOnboardingStore";
 import { accountRevision } from "../lib/accountScope";
 
 interface SubstitutionModalState {
@@ -94,9 +94,26 @@ export const useMealPlannerStore = create<MealPlannerState>((set, get) => ({
           isLoading: false,
         });
       } else {
-        // Automatically populate profile calories if available
-        const user = useAuthStore.getState().user;
-        set({ isLoading: false });
+        // Hydrate default planner preferences from the user's onboarding profile (calories, diet, allergies)
+        const profile = useOnboardingStore.getState().personalization;
+        const profileDiet = profile?.dietType?.trim();
+        const derivedRestrictions =
+          profileDiet && profileDiet !== "Omnivore" ? [profileDiet] : [];
+        const derivedAllergies = Array.isArray(profile?.allergies) ? [...profile.allergies] : [];
+        const derivedCalories =
+          profile?.targetCalories && profile.targetCalories >= 800
+            ? Math.min(6000, Math.round(profile.targetCalories))
+            : DEFAULT_MEAL_PLAN_PREFERENCES.dailyCalorieTarget;
+
+        set((state) => ({
+          preferences: {
+            ...state.preferences,
+            dailyCalorieTarget: derivedCalories,
+            allergies: derivedAllergies,
+            dietaryRestrictions: derivedRestrictions,
+          },
+          isLoading: false,
+        }));
       }
     } catch (err: any) {
       set({ error: err.message, isLoading: false });

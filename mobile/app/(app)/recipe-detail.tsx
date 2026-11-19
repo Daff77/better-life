@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { View, Image, ScrollView, ActivityIndicator, Platform } from "react-native";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { View, Image, ScrollView, ActivityIndicator, Platform, AppState } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
@@ -58,15 +58,44 @@ export default function RecipeDetailScreen() {
   const isCustomRecipe = Boolean(recipe?.id.startsWith("custom-recipe-"));
   const isLocked = Boolean((recipe as any)?.isPremium && !hasEntitlement(Entitlement.PREMIUM_RECIPES));
 
-  // Interactive Cooking Timer state (main recipe timer + per-step timers)
+  // Interactive Cooking Timer state (deadline-based to prevent drift in background tabs/lock screen)
   const defaultMainSeconds = Math.max(1, recipe?.prepTimeMinutes || 15) * 60;
   const [timerSeconds, setTimerSeconds] = useState<number>(defaultMainSeconds);
   const [timerTotalSeconds, setTimerTotalSeconds] = useState<number>(defaultMainSeconds);
   const [isTimerRunning, setIsTimerRunning] = useState<boolean>(false);
   const [activeStepTimer, setActiveStepTimer] = useState<number | null>(null);
+  const timerDeadlineRef = useRef<number | null>(null);
+
+  const syncTimerRemaining = useCallback(() => {
+    const deadline = timerDeadlineRef.current;
+    if (!deadline) return;
+    const remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+    setTimerSeconds(remaining);
+    if (remaining <= 0) {
+      timerDeadlineRef.current = null;
+      setIsTimerRunning(false);
+    }
+  }, []);
+
+  const startTimerWithDuration = useCallback((seconds: number) => {
+    const clamped = Math.max(1, Math.round(seconds));
+    timerDeadlineRef.current = Date.now() + clamped * 1000;
+    setTimerSeconds(clamped);
+    setIsTimerRunning(true);
+  }, []);
+
+  const pauseTimer = useCallback(() => {
+    if (timerDeadlineRef.current) {
+      const remaining = Math.max(0, Math.ceil((timerDeadlineRef.current - Date.now()) / 1000));
+      setTimerSeconds(remaining);
+      timerDeadlineRef.current = null;
+    }
+    setIsTimerRunning(false);
+  }, []);
 
   useEffect(() => {
     const secs = Math.max(1, recipe?.prepTimeMinutes || 15) * 60;
+    timerDeadlineRef.current = null;
     setTimerSeconds(secs);
     setTimerTotalSeconds(secs);
     setIsTimerRunning(false);
@@ -75,17 +104,29 @@ export default function RecipeDetailScreen() {
 
   useEffect(() => {
     if (!isTimerRunning) return;
-    const interval = setInterval(() => {
-      setTimerSeconds((prev) => {
-        if (prev <= 1) {
-          setIsTimerRunning(false);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [isTimerRunning]);
+    syncTimerRemaining();
+    const interval = setInterval(syncTimerRemaining, 500);
+    const appSub = AppState.addEventListener("change", (nextState) => {
+      if (nextState === "active") {
+        syncTimerRemaining();
+      }
+    });
+    const onVisibility = () => {
+      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+        syncTimerRemaining();
+      }
+    };
+    if (Platform.OS === "web" && typeof document !== "undefined") {
+      document.addEventListener("visibilitychange", onVisibility);
+    }
+    return () => {
+      clearInterval(interval);
+      appSub.remove();
+      if (Platform.OS === "web" && typeof document !== "undefined") {
+        document.removeEventListener("visibilitychange", onVisibility);
+      }
+    };
+  }, [isTimerRunning, syncTimerRemaining]);
 
   const formatTimer = (sec: number) => {
     const m = Math.floor(sec / 60);
@@ -96,16 +137,20 @@ export default function RecipeDetailScreen() {
   const handleStartStepTimer = (stepNumber: number, minutes: number) => {
     const secs = Math.max(1, minutes) * 60;
     if (activeStepTimer === stepNumber) {
-      setIsTimerRunning((r) => !r);
+      if (isTimerRunning) {
+        pauseTimer();
+      } else {
+        startTimerWithDuration(timerSeconds > 0 ? timerSeconds : secs);
+      }
     } else {
       setActiveStepTimer(stepNumber);
       setTimerTotalSeconds(secs);
-      setTimerSeconds(secs);
-      setIsTimerRunning(true);
+      startTimerWithDuration(secs);
     }
   };
 
   const handleResetTimer = () => {
+    timerDeadlineRef.current = null;
     setIsTimerRunning(false);
     setActiveStepTimer(null);
     const secs = Math.max(1, recipe?.prepTimeMinutes || 15) * 60;
@@ -436,15 +481,16 @@ export default function RecipeDetailScreen() {
                       <View className="flex-row items-center gap-2">
                         <PressableScale
                           onPress={() => {
-                            if (timerSeconds === 0) {
-                              setTimerSeconds(timerTotalSeconds);
-                              setIsTimerRunning(true);
+                            if (isTimerRunning) {
+                              pauseTimer();
                             } else {
-                              setIsTimerRunning((r) => !r);
+                              startTimerWithDuration(
+                                timerSeconds === 0 ? timerTotalSeconds : timerSeconds
+                              );
                             }
                           }}
                           pressedScale={0.94}
-                          className={`px-3.5 h-9 rounded-full items-center justify-center ${
+                          className={`px-3.5 h-11 rounded-full items-center justify-center ${
                             isTimerRunning ? "bg-block-amber" : "bg-primary"
                           }`}
                           accessibilityRole="button"

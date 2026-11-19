@@ -24,6 +24,8 @@ if (__DEV__) {
     "Sending `onAnimatedValueUpdate`",
     "Overriding previous layout animation",
     "Support for defaultProps",
+    "expo-notifications",
+    "Value being stored in SecureStore",
   ];
 
   const originalWarn = console.warn;

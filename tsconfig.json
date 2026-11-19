@@ -21,6 +21,9 @@
     "node_modules",
     "mobile/node_modules",
     "backend/node_modules",
+    "mobile/dist",
+    "backend/dist",
+    "_legacy_archive",
     "mobile/lib/__tests__/**/*",
     "backend/src/__tests__/**/*"
   ]

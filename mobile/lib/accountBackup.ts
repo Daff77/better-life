@@ -154,7 +154,7 @@ export async function buildAccountBackupPayload(): Promise<AccountBackupPayload>
         carbsGrams: entry.carbsGrams ?? 0,
         fatGrams: entry.fatGrams ?? 0,
         fiberGrams: entry.fiberGrams ?? 0,
-        estimatedCostIdr: 0,
+        estimatedCostIdr: entry.estimatedCostIdr ?? 0,
         quantity: entry.quantity ?? 1,
         dateKey,
         loggedAt: entry.loggedAt,

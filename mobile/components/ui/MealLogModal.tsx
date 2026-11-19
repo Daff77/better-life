@@ -406,6 +406,9 @@ export const MealLogModal: React.FC<MealLogModalProps> = ({
     setErrorMessage(null);
 
     try {
+      const baseCostIdr = isCustomMode ? 0 : currentMeal.estimatedCostIdr ?? 0;
+      const scaledCostIdr = Math.max(0, Math.round(baseCostIdr * quantity));
+
       const entry = await useJournalStore.getState().addEntry({
         mealId: isCustomMode ? `custom-${Date.now()}` : currentMeal.id,
         title: resolvedTitle,
@@ -417,6 +420,7 @@ export const MealLogModal: React.FC<MealLogModalProps> = ({
         carbsGrams: scaledCarbs,
         fatGrams: scaledFat,
         fiberGrams: scaledFiber,
+        estimatedCostIdr: scaledCostIdr,
       });
 
       setConfirmation({
@@ -641,7 +645,7 @@ export const MealLogModal: React.FC<MealLogModalProps> = ({
                               placeholder="Contoh: Nasi Ayam Bakar"
                               placeholderTextColor="#8c9690"
                               className="h-10 px-3 rounded-[12px] bg-card border border-line text-[13.5px] text-ink"
-                              style={{ fontFamily: "Urbanist_600SemiBold" }}
+                              style={{ fontFamily: "Urbanist-SemiBold" }}
                             />
                           </View>
                           <View className="flex-1">
@@ -655,7 +659,7 @@ export const MealLogModal: React.FC<MealLogModalProps> = ({
                               placeholder="250"
                               placeholderTextColor="#8c9690"
                               className="h-10 px-3 rounded-[12px] bg-card border border-line text-[13.5px] text-ink"
-                              style={[{ fontFamily: "Urbanist_700Bold" }, tnum]}
+                              style={[{ fontFamily: "Urbanist-Bold" }, tnum]}
                             />
                           </View>
                         </View>

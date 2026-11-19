@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
-import { AppText } from "@/components/ui";
+import { AppText, Button } from "@/components/ui";
 import { CloseIconSvg } from "@/constants/Assets";
 import { useAuthStore } from "@/stores/useAuthStore";
 
@@ -117,22 +117,30 @@ export default function GoogleAuthCallback() {
   }, []);
 
   return (
-    <View className="flex-1 bg-white items-center justify-center p-6">
-      <View className="w-16 h-16 rounded-full bg-primary/10 items-center justify-center mb-4">
+    <View className="flex-1 bg-canvas items-center justify-center p-6">
+      <View className="w-16 h-16 rounded-full bg-primary-light items-center justify-center mb-4">
         {errorMessage ? (
-          <CloseIconSvg size={28} color="#c8402a" strokeWidth={2.6} />
+          <CloseIconSvg size={28} color="#b3301b" strokeWidth={2.6} />
         ) : (
-          <ActivityIndicator size="large" color="#4285F4" />
+          <ActivityIndicator size="large" color="#0e7a52" />
         )}
       </View>
 
-      <AppText weight="bold" className="text-lg text-neutral-dark text-center mb-2">
-        {errorMessage ? "Authentication Failed" : "Google Authentication"}
+      <AppText weight="bold" className="text-lg text-ink text-center mb-2">
+        {errorMessage ? "Autentikasi Google Gagal" : "Memverifikasi Akun Google"}
       </AppText>
 
-      <AppText weight="medium" className="text-sm text-neutral-muted text-center max-w-xs">
+      <AppText weight="medium" className="text-sm text-muted text-center max-w-xs mb-6">
         {errorMessage || statusMessage}
       </AppText>
+
+      {errorMessage ? (
+        <Button
+          title="Kembali ke Halaman Masuk"
+          variant="primary"
+          onPress={() => router.replace("/(auth)/login")}
+        />
+      ) : null}
     </View>
   );
 }

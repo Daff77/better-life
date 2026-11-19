@@ -41,6 +41,7 @@ export default function SignupScreen() {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [fullNameError, setFullNameError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
   const phoneRef = useRef<any>(null);
 
   // Step 4: Password & Confirmation
@@ -142,12 +143,20 @@ export default function SignupScreen() {
 
   const handleStep3Continue = () => {
     setFullNameError("");
+    setPhoneError("");
     setGeneralError("");
     const trimmedName = fullName.trim();
+    const trimmedPhone = phone.trim();
+    let valid = true;
     if (!trimmedName || trimmedName.length < 2) {
       setFullNameError("Username / nama lengkap minimal 2 karakter.");
-      return;
+      valid = false;
     }
+    if (trimmedPhone && (trimmedPhone.length < 6 || trimmedPhone.length > 30)) {
+      setPhoneError("Nomor telepon harus 6 hingga 30 karakter, atau kosongkan bila tidak digunakan.");
+      valid = false;
+    }
+    if (!valid) return;
     setStep(4);
   };
 
@@ -163,6 +172,9 @@ export default function SignupScreen() {
       valid = false;
     } else if (password.length < 6) {
       setPasswordError("Kata sandi minimal 6 karakter.");
+      valid = false;
+    } else if (password.length > 72) {
+      setPasswordError("Kata sandi maksimal 72 karakter.");
       valid = false;
     }
 
@@ -448,7 +460,11 @@ export default function SignupScreen() {
               label="Nomor Telepon (Opsional)"
               placeholder="contoh: +62 812-3456-7890"
               value={phone}
-              onChangeText={setPhone}
+              onChangeText={(val) => {
+                setPhone(val);
+                if (phoneError) setPhoneError("");
+              }}
+              error={phoneError}
               keyboardType="phone-pad"
               returnKeyType="done"
               onSubmitEditing={handleStep3Continue}

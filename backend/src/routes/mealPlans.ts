@@ -283,7 +283,7 @@ mealPlansRouter.post(
     try {
       const userId = req.user!.userId;
       const updatedPlan = MealPlannerEngine.replaceMeal(
-        { ...(currentPlan as MealPlanRecord), userId },
+        { ...(currentPlan as unknown as MealPlanRecord), userId },
         dayIndex,
         slot,
         newRecipeId,

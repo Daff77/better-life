@@ -17,12 +17,34 @@ import { useAuthStore } from "@/stores/useAuthStore";
 
 const easeOut = Easing.bezier(...MotionCurves.out);
 
+const SPLASH_SEEN_KEY = "betterlife_entry_splash_seen";
+
+function hasSeenEntrySplash(): boolean {
+  if (typeof window !== "undefined" && window.sessionStorage) {
+    try {
+      return window.sessionStorage.getItem(SPLASH_SEEN_KEY) === "1";
+    } catch {
+      return false;
+    }
+  }
+  return false;
+}
+
+function markEntrySplashSeen(): void {
+  if (typeof window !== "undefined" && window.sessionStorage) {
+    try {
+      window.sessionStorage.setItem(SPLASH_SEEN_KEY, "1");
+    } catch {
+      // ignore
+    }
+  }
+}
+
 export default function SplashScreen() {
   const router = useRouter();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const isLoading = useAuthStore((state) => state.isLoading);
   const onboardingCompleted = useAuthStore((state) => state.onboardingCompleted);
-  const initializeAuth = useAuthStore((state) => state.initializeAuth);
 
   // Reanimated shared values running on the UI thread
   const logoScale = useSharedValue(0.88);
@@ -36,6 +58,7 @@ export default function SplashScreen() {
   const navigateNext = () => {
     if (isLoading || hasNavigated.current) return;
     hasNavigated.current = true;
+    markEntrySplashSeen();
 
     if (!isAuthenticated) {
       router.replace("/(auth)/get-started");
@@ -45,11 +68,6 @@ export default function SplashScreen() {
       router.replace("/(app)/(tabs)");
     }
   };
-
-  // Ensure auth is initialized
-  useEffect(() => {
-    initializeAuth();
-  }, [initializeAuth]);
 
   useEffect(() => {
     // Run entrance sequence matching original splash.html CSS animations
@@ -78,10 +96,10 @@ export default function SplashScreen() {
   useEffect(() => {
     if (isLoading) return;
 
-    // Auto transition after entrance completes and session is determined
+    const delayMs = hasSeenEntrySplash() ? 0 : 950;
     const timer = setTimeout(() => {
       navigateNext();
-    }, 950);
+    }, delayMs);
 
     return () => clearTimeout(timer);
   }, [isLoading, isAuthenticated, onboardingCompleted]);
