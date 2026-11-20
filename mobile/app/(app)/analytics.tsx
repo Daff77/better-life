@@ -1261,7 +1261,7 @@ export default function AnalyticsScreen() {
                 <Surface className="flex-1">
                   <CardHead
                     title="Estimasi biaya konsumsi"
-                    subtitle="Berdasarkan patokan harga bahan pangan lokal"
+                    info="Harga memakai patokan bahan pangan lokal. Rata-rata harian hanya menghitung hari dengan catatan. Rata-rata per porsi hanya menghitung makanan yang memiliki harga."
                     right={
                       <StatusPill
                         tone="ok"
@@ -1304,7 +1304,6 @@ export default function AnalyticsScreen() {
                       </RowIcon>
                     }
                     title="Rata-rata biaya harian"
-                    subtitle="Dihitung pada hari dengan jurnal aktif"
                     right={
                       <AppText
                         weight="semibold"
@@ -1323,7 +1322,6 @@ export default function AnalyticsScreen() {
                       </RowIcon>
                     }
                     title="Rata-rata biaya per porsi"
-                    subtitle="Berdasarkan entri makanan yang memiliki harga"
                     right={
                       <AppText
                         weight="semibold"

@@ -14,6 +14,7 @@ import { AppText } from "./AppText";
 import { PressableScale } from "./PressableScale";
 import { LineIcon, LineIconName } from "./LineIcon";
 import { Colors } from "@/constants/DesignTokens";
+import { showAlert } from "@/lib/confirm";
 import {
   AnimationEasings,
   MotionCurves,
@@ -119,6 +120,7 @@ export const RingButton: React.FC<RingButtonProps> = ({
 /* ---------------------------------------------------------------- CardHead */
 
 export interface CardHeadProps {
+  info?: string;
   title: string;
   caption?: string;
   subtitle?: string;
@@ -129,6 +131,7 @@ export interface CardHeadProps {
 /** Title row inside a surface: title, optional muted caption/subtitle, tools on the right. */
 export const CardHead: React.FC<CardHeadProps> = ({
   title,
+  info,
   caption,
   subtitle,
   right,
@@ -147,7 +150,23 @@ export const CardHead: React.FC<CardHeadProps> = ({
           </AppText>
         ) : null}
       </View>
-      {right ? <View className="flex-row items-center gap-2 flex-shrink-0">{right}</View> : null}
+      {right || info ? (
+        <View className="flex-row items-center gap-2">
+          {right}
+          {info && (
+            <PressableScale
+              accessibilityRole="button"
+              accessibilityLabel={`Info: ${title}`}
+              onPress={() => showAlert(title, info)}
+              className="min-w-[48px] min-h-[48px] items-center justify-center"
+            >
+              <View accessible={false} className="w-5 h-5 rounded-full border border-primary items-center justify-center">
+                <AppText weight="bold" maxFontSizeMultiplier={1} className="text-xs text-primary-text">i</AppText>
+              </View>
+            </PressableScale>
+          )}
+        </View>
+      ) : null}
     </View>
   );
 };

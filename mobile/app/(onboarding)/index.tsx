@@ -570,7 +570,6 @@ export default function OnboardingScreen() {
           <View className="gap-3.5">
             <ChoiceTile
               title="Perempuan (Female)"
-              caption="Kalibrasi laju metabolisme basal biologis perempuan"
               leading={
                 <View className="w-11 h-11 rounded-2xl bg-primary-light items-center justify-center">
                   <FemaleIconSvg size={22} color="#0b6b47" strokeWidth={2.3} />
@@ -582,7 +581,6 @@ export default function OnboardingScreen() {
 
             <ChoiceTile
               title="Laki-laki (Male)"
-              caption="Kalibrasi laju metabolisme basal biologis laki-laki"
               leading={
                 <View className="w-11 h-11 rounded-2xl bg-primary-light items-center justify-center">
                   <MaleIconSvg size={22} color="#0b6b47" strokeWidth={2.3} />
@@ -774,7 +772,6 @@ export default function OnboardingScreen() {
           <View className="gap-2.5">
             <ChoiceTile
               title="Tidak ada alergi makanan"
-              caption="Saya dapat mengonsumsi semua bahan makanan dengan aman"
               selected={allergies.length === 0}
               onPress={() => setAllergies([])}
             />

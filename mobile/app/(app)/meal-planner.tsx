@@ -295,7 +295,6 @@ export default function MealPlannerScreen() {
             <Surface>
               <CardHead
                 title="Keunggulan Meal Planner Premium"
-                subtitle="Dirancang untuk konsistensi jangka panjang"
               />
               {[
                 "Jadwal 7 hari bervariasi tanpa pengulangan menu yang membosankan",
@@ -710,7 +709,6 @@ export default function MealPlannerScreen() {
                 <Surface>
                   <CardHead
                     title="Catatan kalibrasi & nutrisi"
-                    subtitle="Disusun berdasarkan preferensi dan target Anda"
                   />
                   {activePlan.summary.tradeOffNotes.map((note, idx) => (
                     <ListRow
