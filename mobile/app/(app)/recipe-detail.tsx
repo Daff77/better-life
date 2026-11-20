@@ -2,8 +2,19 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { View, Image, ScrollView, ActivityIndicator, Platform, AppState } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Animated, {
+  Easing,
+  cancelAnimation,
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from "react-native-reanimated";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
 import {
+  AnimatedHeart,
   AppText,
   Header,
   NutritionCard,
@@ -39,6 +50,53 @@ import {
   explainRecipeSelection,
   inspectIngredientsToVerify,
 } from "@better-life/shared";
+
+const timerDotEase = Easing.bezier(0.77, 0, 0.175, 1);
+
+const LiveTimerDot: React.FC<{ active: boolean }> = ({ active }) => {
+  const reduceMotion = useReducedMotion();
+  const pulse = useSharedValue(1);
+
+  useEffect(() => {
+    if (!active || reduceMotion) {
+      cancelAnimation(pulse);
+      pulse.value = active ? 1 : 0.6;
+      return;
+    }
+
+    pulse.value = withRepeat(
+      withSequence(
+        withTiming(0.38, { duration: 600, easing: timerDotEase }),
+        withTiming(1, { duration: 600, easing: timerDotEase })
+      ),
+      -1,
+      false
+    );
+
+    return () => {
+      cancelAnimation(pulse);
+    };
+  }, [active, reduceMotion, pulse]);
+
+  const dotStyle = useAnimatedStyle(() => ({
+    opacity: pulse.value,
+    transform: [{ scale: reduceMotion || !active ? 1 : 0.85 + pulse.value * 0.2 }],
+  }));
+
+  return (
+    <Animated.View
+      style={[
+        {
+          width: 8,
+          height: 8,
+          borderRadius: 999,
+          backgroundColor: active ? "#0e7a52" : "#9ba6a0",
+        },
+        dotStyle,
+      ]}
+    />
+  );
+};
 
 export default function RecipeDetailScreen() {
   const router = useRouter();
@@ -229,15 +287,25 @@ export default function RecipeDetailScreen() {
                   : mealLabel(recipe.category)
               }
             />
-            <RingButton
-              icon="heart"
-              size="sm"
-              variant={isFavorited ? "solid" : "ring"}
+            <PressableScale
               onPress={() => void toggleFavorite(recipe)}
+              pressedScale={0.93}
+              className={`w-9 h-9 rounded-full items-center justify-center border ${
+                isFavorited ? "bg-[#fde9e7] border-[#f5c2be]" : "bg-card border-line"
+              }`}
+              accessibilityRole="button"
+              accessibilityState={{ selected: isFavorited }}
               accessibilityLabel={
                 isFavorited ? `Hapus ${recipe.title} dari favorit` : `Simpan ${recipe.title} ke favorit`
               }
-            />
+            >
+              <AnimatedHeart
+                filled={isFavorited}
+                size={15}
+                activeColor="#b92d26"
+                inactiveColor="#121a16"
+              />
+            </PressableScale>
             {isCustomRecipe && (
               <RingButton
                 icon="trash"
@@ -454,7 +522,7 @@ export default function RecipeDetailScreen() {
               </View>
 
               {activeTab === "instructions" ? (
-                <View className="gap-3">
+                <FadeInView key="tab-instructions" duration={180} translateY={4} className="gap-3">
                   {/* Interactive Cooking Timer Panel */}
                   <View className="bg-card-2 border border-line rounded-[18px] p-3.5 mb-1">
                     <View className="flex-row items-center justify-between gap-2 mb-2.5">
@@ -463,11 +531,14 @@ export default function RecipeDetailScreen() {
                           <LineIcon name="clock" size={17} color="#0e7a52" />
                         </View>
                         <View className="flex-1 min-w-0">
-                          <AppText weight="semibold" numberOfLines={1} className="text-[13px] text-ink">
-                            {activeStepTimer
-                              ? `Timer Langkah ${activeStepTimer}`
-                              : "Timer Memasak"}
-                          </AppText>
+                          <View className="flex-row items-center gap-1.5">
+                            {isTimerRunning && <LiveTimerDot active />}
+                            <AppText weight="semibold" numberOfLines={1} className="text-[13px] text-ink">
+                              {activeStepTimer
+                                ? `Timer Langkah ${activeStepTimer}`
+                                : "Timer Memasak"}
+                            </AppText>
+                          </View>
                           <AppText
                             weight="bold"
                             className="text-[20px] text-primary-text"
@@ -584,9 +655,9 @@ export default function RecipeDetailScreen() {
                       </View>
                     );
                   })}
-                </View>
+                </FadeInView>
               ) : (
-                <View>
+                <FadeInView key="tab-ingredients" duration={180} translateY={4}>
                   {recipe.ingredients.map((ing, idx) => (
                     <ListRow
                       key={idx}
@@ -612,7 +683,7 @@ export default function RecipeDetailScreen() {
                       }
                     />
                   ))}
-                </View>
+                </FadeInView>
               )}
             </Surface>
           </FadeInView>

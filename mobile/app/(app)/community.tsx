@@ -9,6 +9,7 @@ import {
 import { useRouter } from "expo-router";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
 import {
+  AnimatedHeart,
   AppText,
   Avatar,
   FadeInView,
@@ -469,10 +470,11 @@ export default function CommunityScreen() {
                               : "bg-card-2 border-line"
                           }`}
                         >
-                          <LineIcon
-                            name="heart"
+                          <AnimatedHeart
+                            filled={Boolean(post.likedByMe)}
                             size={14}
-                            color={post.likedByMe ? "#0e7a52" : "#56605a"}
+                            activeColor="#0e7a52"
+                            inactiveColor="#56605a"
                           />
                           <AppText
                             weight="semibold"

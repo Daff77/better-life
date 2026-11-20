@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Modal, Pressable, ScrollView, TextInput, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, TextInput, View } from "react-native";
 import { AppText } from "./ui/AppText";
 import { LineIcon } from "./ui/LineIcon";
+import { ModalSheet } from "./ui/ModalSheet";
 import { ChatMessage, ChatThread, chatHistoryKey, loadChatHistory, saveChatHistory } from "@/lib/chatHistory";
 import { accountRevision } from "@/lib/accountScope";
 
@@ -94,12 +95,18 @@ export function AssistantChat({ request }: Props) {
       </View>
       <AppText style={{ color: "#56605a", fontSize: 11, textAlign: "center" }}>AI bisa keliru. Informasi umum, bukan diagnosis. Riwayat tersinkron ke akun Anda.</AppText>
     </View>
-    <Modal visible={history} transparent animationType="fade" onRequestClose={() => setHistory(false)}>
-      <View style={{ flex: 1, backgroundColor: "rgba(18,26,22,0.4)", justifyContent: "center", padding: 20 }}><View accessibilityViewIsModal style={{ backgroundColor: "#fbfdfc", borderRadius: 24, padding: 20, maxHeight: "80%", width: "100%", maxWidth: 520, alignSelf: "center", gap: 12 }}>
-        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}><AppText weight="bold" style={{ fontSize: 24 }}>Riwayat chat</AppText><Pressable accessibilityRole="button" accessibilityLabel="Tutup riwayat" onPress={() => setHistory(false)} style={actionStyle}><LineIcon name="close" size={22} /></Pressable></View>
-        <AppText style={{ color: "#56605a", fontSize: 13 }}>Tersimpan di akun Anda, dapat dibuka di perangkat lain.</AppText>
-        <ScrollView keyboardShouldPersistTaps="handled"><View style={{ gap: 8 }}>{!threads.length && <AppText>Belum ada percakapan. Mulai chat pertama Anda.</AppText>}{threads.map(thread => <View key={thread.id} style={{ flexDirection: "row", alignItems: "center", borderBottomWidth: 1, borderBottomColor: "#e6eae7" }}><Pressable accessibilityRole="button" style={{ flex: 1, paddingVertical: 16, gap: 4 }} onPress={() => { setActive(thread.id); setDraft(""); setError(""); setHistory(false); }}><AppText weight="semibold" numberOfLines={2}>{thread.title}</AppText><AppText style={{ fontSize: 12, color: "#56605a" }}>{new Date(thread.updatedAt).toLocaleDateString("id-ID")} · {thread.messages.length} pesan</AppText></Pressable><Pressable accessibilityRole="button" accessibilityLabel={`Hapus chat ${thread.title}`} onPress={() => { const next = threads.filter(t => t.id !== thread.id); void persist(next).then(() => { if (active === thread.id) setActive(null); }).catch(() => setError("Riwayat gagal dihapus.")); }} style={actionStyle}><LineIcon name="trash" size={20} color="#b3301b" /></Pressable></View>)}</View></ScrollView>
-      </View></View>
-    </Modal>
+    <ModalSheet
+      visible={history}
+      onClose={() => setHistory(false)}
+      variant="dialog"
+      showHandle={false}
+      accessibilityLabel="Riwayat chat"
+      contentClassName="w-full max-w-[520px] max-h-[80%] bg-card rounded-[24px] p-5"
+      contentStyle={{ gap: 12 }}
+    >
+      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}><AppText weight="bold" style={{ fontSize: 24 }}>Riwayat chat</AppText><Pressable accessibilityRole="button" accessibilityLabel="Tutup riwayat" onPress={() => setHistory(false)} style={actionStyle}><LineIcon name="close" size={22} /></Pressable></View>
+      <AppText style={{ color: "#56605a", fontSize: 13 }}>Tersimpan di akun Anda, dapat dibuka di perangkat lain.</AppText>
+      <ScrollView keyboardShouldPersistTaps="handled"><View style={{ gap: 8 }}>{!threads.length && <AppText>Belum ada percakapan. Mulai chat pertama Anda.</AppText>}{threads.map(thread => <View key={thread.id} style={{ flexDirection: "row", alignItems: "center", borderBottomWidth: 1, borderBottomColor: "#e6eae7" }}><Pressable accessibilityRole="button" style={{ flex: 1, paddingVertical: 16, gap: 4 }} onPress={() => { setActive(thread.id); setDraft(""); setError(""); setHistory(false); }}><AppText weight="semibold" numberOfLines={2}>{thread.title}</AppText><AppText style={{ fontSize: 12, color: "#56605a" }}>{new Date(thread.updatedAt).toLocaleDateString("id-ID")} · {thread.messages.length} pesan</AppText></Pressable><Pressable accessibilityRole="button" accessibilityLabel={`Hapus chat ${thread.title}`} onPress={() => { const next = threads.filter(t => t.id !== thread.id); void persist(next).then(() => { if (active === thread.id) setActive(null); }).catch(() => setError("Riwayat gagal dihapus.")); }} style={actionStyle}><LineIcon name="trash" size={20} color="#b3301b" /></Pressable></View>)}</View></ScrollView>
+    </ModalSheet>
   </View>;
 }

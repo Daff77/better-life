@@ -1,17 +1,15 @@
 import React, { useState, useMemo, useEffect } from "react";
 import {
   View,
-  Modal,
   ScrollView,
   TextInput,
-  Pressable,
-  StyleSheet,
   Platform,
   KeyboardAvoidingView,
   Image,
   ActivityIndicator,
 } from "react-native";
 import { AppText } from "./AppText";
+import { ModalSheet } from "./ModalSheet";
 import { PressableScale } from "./PressableScale";
 import { FadeInView } from "./FadeInView";
 import { LineIcon } from "./LineIcon";
@@ -366,57 +364,37 @@ export const CreateRecipeModal: React.FC<CreateRecipeModalProps> = ({
     onClose();
   };
 
-  if (!visible) return null;
-
   const previewImageSource = imageUrl.trim()
     ? { uri: imageUrl.trim() }
     : getMealIllustration(category);
 
   return (
-    <Modal
+    <ModalSheet
       visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}
-      statusBarTranslucent
+      onClose={onClose}
+      variant="sheet"
+      accessibilityLabel="Tambah Resep"
+      contentClassName="w-full max-w-[520px] max-h-[90%] bg-card rounded-t-[28px] sm:rounded-[28px] border border-line overflow-hidden"
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={{ flex: 1 }}
+        className="w-full max-h-full"
       >
-        <View className="flex-1 justify-end sm:justify-center items-center p-0 sm:p-4">
-          <Pressable
-            style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(17, 24, 20, 0.52)" }]}
-            onPress={onClose}
-            accessibilityRole="button"
-            accessibilityLabel="Tutup"
-          />
-
-          <FadeInView
-            duration={240}
-            translateY={18}
-            className="w-full max-w-[520px] max-h-[90%] bg-card rounded-t-[28px] sm:rounded-[28px] border border-line overflow-hidden z-10"
+        {/* Minimalist Header */}
+        <View className="flex-row items-center justify-between px-5 pt-2.5 pb-3 border-b border-line">
+          <AppText
+            weight="semibold"
+            className="text-[19px] text-ink"
+            style={{ letterSpacing: -0.4 }}
           >
-            {/* Mobile Grab Handle */}
-            <View className="items-center pt-2.5 pb-1 sm:hidden">
-              <View className="w-10 h-1 rounded-full bg-line-2" />
-            </View>
+            Tambah Resep
+          </AppText>
+          <RingButton icon="close" onPress={onClose} accessibilityLabel="Tutup" />
+        </View>
 
-            {/* Minimalist Header */}
-            <View className="flex-row items-center justify-between px-5 pt-2.5 pb-3 border-b border-line">
-              <AppText
-                weight="semibold"
-                className="text-[19px] text-ink"
-                style={{ letterSpacing: -0.4 }}
-              >
-                Tambah Resep
-              </AppText>
-              <RingButton icon="close" onPress={onClose} accessibilityLabel="Tutup" />
-            </View>
-
-            <ScrollView
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
               contentContainerStyle={{ padding: 18, paddingBottom: 24 }}
             >
               {errorMsg && (
@@ -1030,10 +1008,8 @@ export const CreateRecipeModal: React.FC<CreateRecipeModalProps> = ({
                   className="flex-1"
                 />
               </View>
-            </ScrollView>
-          </FadeInView>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
-    </Modal>
+    </ModalSheet>
   );
 };

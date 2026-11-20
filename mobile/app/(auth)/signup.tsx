@@ -26,6 +26,7 @@ export default function SignupScreen() {
   const signup = useAuthStore((state) => state.signup);
 
   const [step, setStep] = useState<number>(1);
+const [stepDir, setStepDir] = useState<1 | -1>(1);
 
   // Step 1: Email
   const [email, setEmail] = useState("");
@@ -66,6 +67,7 @@ export default function SignupScreen() {
   const handleBack = () => {
     setGeneralError("");
     if (step > 1) {
+      setStepDir(-1);
       setStep(step - 1);
       return;
     }
@@ -119,6 +121,7 @@ export default function SignupScreen() {
       }
 
       generateNewCode();
+      setStepDir(1);
       setStep(2);
     } catch {
       setIsLoading(false);
@@ -138,6 +141,7 @@ export default function SignupScreen() {
       setOtpError(`Kode tidak sesuai. Gunakan kode ${generatedOtp}.`);
       return;
     }
+    setStepDir(1);
     setStep(3);
   };
 
@@ -157,6 +161,7 @@ export default function SignupScreen() {
       valid = false;
     }
     if (!valid) return;
+    setStepDir(1);
     setStep(4);
   };
 
@@ -273,7 +278,7 @@ export default function SignupScreen() {
 
       {/* STEP 1: EMAIL REGISTRATION */}
       {step === 1 && (
-        <FadeInView key="signup-step-1" index={0}>
+        <FadeInView key="signup-step-1" index={0} translateX={stepDir * 18} translateY={0}>
           <FlowTitle
             eyebrow="Langkah 1 dari 4 · Email"
             title="Daftarkan email Anda"
@@ -323,7 +328,7 @@ export default function SignupScreen() {
 
       {/* STEP 2: OTP VERIFICATION */}
       {step === 2 && (
-        <FadeInView key="signup-step-2" index={0}>
+        <FadeInView key="signup-step-2" index={0} translateX={stepDir * 18} translateY={0}>
           <FlowTitle
             eyebrow="Langkah 2 dari 4 · Verifikasi OTP"
             title="Masukkan kode 6 digit"
@@ -416,7 +421,10 @@ export default function SignupScreen() {
             <TextLink
               label="Ganti alamat email"
               muted
-              onPress={() => setStep(1)}
+              onPress={() => {
+                setStepDir(-1);
+                setStep(1);
+              }}
             />
             <TextLink
               label="Kirim ulang kode"
@@ -431,7 +439,7 @@ export default function SignupScreen() {
 
       {/* STEP 3: USERNAME / PROFILE CREATION */}
       {step === 3 && (
-        <FadeInView key="signup-step-3" index={0}>
+        <FadeInView key="signup-step-3" index={0} translateX={stepDir * 18} translateY={0}>
           <FlowTitle
             eyebrow="Langkah 3 dari 4 · Profil"
             title="Buat username Anda"
@@ -477,7 +485,7 @@ export default function SignupScreen() {
 
       {/* STEP 4: PASSWORD & CONFIRMATION */}
       {step === 4 && (
-        <FadeInView key="signup-step-4" index={0}>
+        <FadeInView key="signup-step-4" index={0} translateX={stepDir * 18} translateY={0}>
           <FlowTitle
             eyebrow="Langkah 4 dari 4 · Keamanan"
             title="Buat kata sandi"

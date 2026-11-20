@@ -1,10 +1,11 @@
 import React, { useEffect } from "react";
-import { View, ViewProps } from "react-native";
+import { LayoutChangeEvent, View, ViewProps } from "react-native";
 import Animated, {
   Easing,
   cancelAnimation,
-  useSharedValue,
   useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
   withTiming,
 } from "react-native-reanimated";
 import { Colors } from "@/constants/DesignTokens";
@@ -24,32 +25,64 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
   height = 6,
   className,
   style,
+  onLayout,
   ...props
 }) => {
+  const reduceMotion = useReducedMotion();
   // Normalize progress between 0 and 100
+  const safeProgress = Number.isFinite(progress) ? progress : 0;
   const normalized =
-    progress > 1
-      ? Math.min(100, progress)
-      : Math.min(100, Math.max(0, progress * 100));
+    safeProgress > 1
+      ? Math.min(100, safeProgress)
+      : Math.min(100, Math.max(0, safeProgress * 100));
+  const targetRatio = normalized / 100;
 
-  const animatedPct = useSharedValue(0);
+  const trackWidthSV = useSharedValue(0);
+  const animatedRatio = useSharedValue(reduceMotion ? targetRatio : 0);
 
   useEffect(() => {
-    animatedPct.value = withTiming(normalized, {
+    if (reduceMotion) {
+      cancelAnimation(animatedRatio);
+      animatedRatio.value = targetRatio;
+      return;
+    }
+
+    animatedRatio.value = withTiming(targetRatio, {
       duration: MotionDurations.fill,
       easing: Easing.bezier(...MotionCurves.out),
     });
     return () => {
-      cancelAnimation(animatedPct);
+      cancelAnimation(animatedRatio);
     };
-  }, [normalized, animatedPct]);
+  }, [targetRatio, animatedRatio, reduceMotion]);
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    width: `${Math.max(0, Math.min(100, animatedPct.value))}%`,
-  }));
+  const handleLayout = (event: LayoutChangeEvent) => {
+    const width = event.nativeEvent.layout.width;
+    if (width > 0 && width !== trackWidthSV.value) {
+      trackWidthSV.value = width;
+    }
+    onLayout?.(event);
+  };
+
+  // GPU-composited translateX once container width is measured; width% fallback before first layout
+  const animatedStyle = useAnimatedStyle(() => {
+    const ratio = Math.max(0, Math.min(1, animatedRatio.value));
+    const measuredWidth = trackWidthSV.value;
+    if (measuredWidth <= 0) {
+      return {
+        width: `${Math.round(ratio * 100)}%`,
+        transform: [{ translateX: 0 }],
+      };
+    }
+    return {
+      width: measuredWidth,
+      transform: [{ translateX: -measuredWidth * (1 - ratio) }],
+    };
+  });
 
   return (
     <View
+      onLayout={handleLayout}
       style={[{ height, borderRadius: height / 2, backgroundColor }, style]}
       className={`w-full overflow-hidden ${className || ""}`}
       accessibilityRole="progressbar"

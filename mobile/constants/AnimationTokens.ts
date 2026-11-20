@@ -75,6 +75,26 @@ export const AnimationEasings = {
       overshootClamping: true,
     };
   },
+
+  // Gentle entrance spring (critically damped, smooth settle without bounce)
+  get entranceSpringConfig() {
+    return {
+      damping: 28,
+      stiffness: 260,
+      mass: 0.7,
+      overshootClamping: true,
+    };
+  },
+
+  // Controlled celebratory bounce for 100% ring completion and favorite pop
+  get celebrationSpringConfig() {
+    return {
+      damping: 14,
+      stiffness: 340,
+      mass: 0.55,
+      overshootClamping: false,
+    };
+  },
 };
 
 export const AnimationScales = {
@@ -91,24 +111,43 @@ export const AnimationScales = {
  * Motion curves (Bezier control points) for Reanimated `Easing.bezier`.
  * - out: strong ease-out for entrances and data fills (fast start reads as responsive).
  * - inOut: on-screen movement between two resting states.
+ * - drawer: iOS sheet / drawer deceleration curve.
  */
 export const MotionCurves = {
   out: [0.23, 1, 0.32, 1] as const,
   inOut: [0.77, 0, 0.175, 1] as const,
+  drawer: [0.32, 0.72, 0, 1] as const,
 };
 
 /**
  * Durations for the redesign motion system (MOTION dial 2).
+ * - press: snappy pointer release return.
+ * - micro: icon/badge state switches.
+ * - exit: fast dismiss/collapse so exits never linger.
  * - enter: section reveal on first mount, orients the eye top to bottom.
  * - stagger: delay between sibling sections (kept short so nothing waits).
  * - fill: progress ring and macro bars, long enough to read the change after logging.
  */
 export const MotionDurations = {
-  press: 140,
-  enter: 320,
-  stagger: 45,
-  fill: 560,
+  press: 120,
+  micro: 150,
+  exit: 180,
+  enter: 260,
+  stagger: 35,
+  fill: 520,
 };
+
+/**
+ * Diminishing elastic resistance when dragging past a natural boundary (Apple Fluid Interfaces).
+ * Worklet-safe for Reanimated animations and gesture handlers.
+ */
+export function rubberband(offset: number, limit = 140, factor = 0.55): number {
+  "worklet";
+  if (limit <= 0) return 0;
+  const abs = Math.abs(offset);
+  const damped = (limit * factor * abs) / (limit + factor * abs);
+  return offset < 0 ? -damped : damped;
+}
 
 export const AnimationDistances = {
   cardHoverY: -2,

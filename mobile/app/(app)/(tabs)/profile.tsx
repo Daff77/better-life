@@ -17,6 +17,7 @@ import {
   Avatar,
   PressableScale,
   FadeInView,
+  ModalSheet,
   Surface,
   CardHead,
   RingButton,
@@ -542,36 +543,30 @@ export default function ProfileScreen() {
       </ScrollView>
 
       {/* Edit Profile & Personalization Modal */}
-      <Modal
+      <ModalSheet
         visible={editModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setEditModalVisible(false)}
+        onClose={() => !isSaving && setEditModalVisible(false)}
+        dismissible={!isSaving}
+        variant="sheet"
+        accessibilityLabel="Ubah data dan target"
+        contentClassName="w-full max-w-lg max-h-[90%] bg-card rounded-t-[26px] sm:rounded-[26px] border border-line overflow-hidden"
       >
-        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
-          <View className="flex-1 justify-end sm:justify-center items-center p-0 sm:p-6">
-            <Pressable
-              style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(18, 24, 20, 0.45)" }]}
-              onPress={() => !isSaving && setEditModalVisible(false)}
-              accessibilityRole="button"
-              accessibilityLabel="Tutup jendela edit"
-            />
-            <FadeInView duration={220} translateY={16} className="w-full max-w-lg max-h-[90%] z-10">
-              <Surface className="w-full rounded-t-[26px] sm:rounded-[26px] p-5 sm:p-6">
-                <CardHead
-                  title="Ubah data & target"
-                  caption="Target kalori dihitung ulang otomatis"
-                  right={
-                    <RingButton
-                      icon="close"
-                      disabled={isSaving}
-                      onPress={() => !isSaving && setEditModalVisible(false)}
-                      accessibilityLabel="Tutup"
-                    />
-                  }
+        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} className="w-full max-h-full">
+          <View className="w-full p-5 sm:p-6 pt-2">
+            <CardHead
+              title="Ubah data & target"
+              caption="Target kalori dihitung ulang otomatis"
+              right={
+                <RingButton
+                  icon="close"
+                  disabled={isSaving}
+                  onPress={() => !isSaving && setEditModalVisible(false)}
+                  accessibilityLabel="Tutup"
                 />
+              }
+            />
 
-                <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
                   {formError && (
                     <View className="p-3 mb-4 bg-bad-soft rounded-2xl">
                       <AppText weight="semibold" className="text-xs text-bad text-center">
@@ -747,48 +742,41 @@ export default function ProfileScreen() {
                       className="flex-1"
                     />
                   </View>
-                </ScrollView>
-              </Surface>
-            </FadeInView>
+            </ScrollView>
           </View>
         </KeyboardAvoidingView>
-      </Modal>
+      </ModalSheet>
 
       {/* Help & Documentation / About Us & Contact Us Modal */}
-      <Modal
+      <ModalSheet
         visible={infoModalType !== null}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setInfoModalType(null)}
+        onClose={() => setInfoModalType(null)}
+        variant="sheet"
+        accessibilityLabel={
+          infoModalType === "help" ? "Panduan Penggunaan" : "Tentang Better Life & Kontak"
+        }
+        contentClassName="w-full max-w-lg max-h-[85%] bg-card rounded-t-[26px] sm:rounded-[26px] border border-line overflow-hidden"
       >
-        <View className="flex-1 justify-end sm:justify-center items-center p-0 sm:p-6">
-          <Pressable
-            style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(18, 24, 20, 0.45)" }]}
-            onPress={() => setInfoModalType(null)}
-            accessibilityRole="button"
-            accessibilityLabel="Tutup"
-          />
-          <FadeInView duration={220} translateY={16} className="w-full max-w-lg max-h-[85%] z-10">
-            <Surface className="w-full rounded-t-[26px] sm:rounded-[26px] p-5 sm:p-6">
-              <CardHead
-                title={
-                  infoModalType === "help"
-                    ? "Panduan Penggunaan"
-                    : "Tentang Better Life & Kontak"
-                }
-                caption={
-                  infoModalType === "help"
-                    ? "Dokumentasi alur aplikasi Better Life"
-                    : "Informasi pengembang & layanan dukungan"
-                }
-                right={
-                  <RingButton
-                    icon="close"
-                    onPress={() => setInfoModalType(null)}
-                    accessibilityLabel="Tutup"
-                  />
-                }
+        <View className="w-full p-5 sm:p-6 pt-2">
+          <CardHead
+            title={
+              infoModalType === "help"
+                ? "Panduan Penggunaan"
+                : "Tentang Better Life & Kontak"
+            }
+            caption={
+              infoModalType === "help"
+                ? "Dokumentasi alur aplikasi Better Life"
+                : "Informasi pengembang & layanan dukungan"
+            }
+            right={
+              <RingButton
+                icon="close"
+                onPress={() => setInfoModalType(null)}
+                accessibilityLabel="Tutup"
               />
+            }
+          />
 
               <ScrollView showsVerticalScrollIndicator={false}>
                 {infoModalType === "help" ? (
@@ -858,44 +846,37 @@ export default function ProfileScreen() {
                     onPress={() => setInfoModalType(null)}
                   />
                 </View>
-              </ScrollView>
-            </Surface>
-          </FadeInView>
+          </ScrollView>
         </View>
-      </Modal>
+      </ModalSheet>
 
       {/* Export & Restore Account Backup Modal */}
-      <Modal
+      <ModalSheet
         visible={backupModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setBackupModalVisible(false)}
+        onClose={() => !backupBusy && setBackupModalVisible(false)}
+        dismissible={!backupBusy}
+        variant="sheet"
+        accessibilityLabel="Ekspor & pulihkan data"
+        contentClassName="w-full max-w-lg max-h-[90%] bg-card rounded-t-[26px] sm:rounded-[26px] border border-line overflow-hidden"
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : undefined}
-          className="flex-1 justify-end sm:justify-center items-center p-0 sm:p-6"
+          className="w-full max-h-full"
         >
-          <Pressable
-            style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(18, 24, 20, 0.45)" }]}
-            onPress={() => !backupBusy && setBackupModalVisible(false)}
-            accessibilityRole="button"
-            accessibilityLabel="Tutup cadangan akun"
-          />
-          <FadeInView duration={220} translateY={16} className="w-full max-w-lg max-h-[90%] z-10">
-            <Surface className="w-full rounded-t-[26px] sm:rounded-[26px] p-5 sm:p-6">
-              <CardHead
-                title="Ekspor & pulihkan data"
-                caption={`Khusus akun ${user?.email || "aktif"} · menolak file akun lain`}
-                right={
-                  <RingButton
-                    icon="close"
-                    onPress={() => !backupBusy && setBackupModalVisible(false)}
-                    accessibilityLabel="Tutup"
-                  />
-                }
-              />
+          <View className="w-full p-5 sm:p-6 pt-2">
+            <CardHead
+              title="Ekspor & pulihkan data"
+              caption={`Khusus akun ${user?.email || "aktif"} · menolak file akun lain`}
+              right={
+                <RingButton
+                  icon="close"
+                  onPress={() => !backupBusy && setBackupModalVisible(false)}
+                  accessibilityLabel="Tutup"
+                />
+              }
+            />
 
-              <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
                 <View className="gap-3">
                   {backupNotice && (
                     <View
@@ -969,11 +950,10 @@ export default function ProfileScreen() {
                     />
                   </View>
                 </View>
-              </ScrollView>
-            </Surface>
-          </FadeInView>
+            </ScrollView>
+          </View>
         </KeyboardAvoidingView>
-      </Modal>
+      </ModalSheet>
     </ScreenWrapper>
   );
 }

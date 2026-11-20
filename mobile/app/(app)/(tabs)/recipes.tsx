@@ -15,6 +15,7 @@ import {
   PressableScale,
   CreateRecipeModal,
   RingButton,
+  SkeletonPulse,
 } from "@/components/ui";
 import { useRecipes } from "@/hooks/useRecipesQuery";
 import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
@@ -182,11 +183,23 @@ export default function RecipesScreen() {
 
         <View className="mt-5">
           {isLoading ? (
-            <Surface className="items-center py-10">
-              <AppText weight="medium" className="text-sm text-muted">
-                Memuat koleksi resep...
-              </AppText>
-            </Surface>
+            <View className={isMobileStack ? "gap-3.5" : "flex-row flex-wrap -mx-2"}>
+              {[0, 1, 2, 3].map((idx) => (
+                <View
+                  key={idx}
+                  className={isMobileStack ? "w-full" : "w-1/2 md:w-1/3 lg:w-1/4 px-2 mb-4"}
+                >
+                  <Surface noPadding className="overflow-hidden">
+                    <SkeletonPulse height={132} borderRadius={0} />
+                    <View className="p-3.5 gap-2">
+                      <SkeletonPulse width="42%" height={12} borderRadius={6} />
+                      <SkeletonPulse width="82%" height={16} borderRadius={8} />
+                      <SkeletonPulse width="64%" height={12} borderRadius={6} />
+                    </View>
+                  </Surface>
+                </View>
+              ))}
+            </View>
           ) : isError ? (
             <Surface className="items-center py-10">
               <AppText weight="semibold" className="text-base text-ink">

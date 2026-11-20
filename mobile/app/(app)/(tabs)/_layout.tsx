@@ -1,10 +1,11 @@
-import React, { useRef, useMemo } from "react";
+import React, { useEffect, useRef, useMemo } from "react";
 import { View, PanResponder, useWindowDimensions } from "react-native";
 import { Tabs, useRouter } from "expo-router";
 import {
   Easing,
   cancelAnimation,
   useAnimatedStyle,
+  useReducedMotion,
   useSharedValue,
   withSpring,
   withTiming,
@@ -16,6 +17,7 @@ import {
   NAV_DOCK_GUTTER,
 } from "@/components/layout/ResponsiveTabBar";
 import { isHorizontalScrollActive, TabSwipeSceneContext } from "@/lib/tabSwipeGuard";
+import { MotionCurves, MotionDurations } from "@/constants/AnimationTokens";
 
 const TAB_ROUTES = ["index", "meals", "recipes", "profile"] as const;
 
@@ -26,8 +28,41 @@ const SETTLE_SPRING = {
   overshootClamping: true,
 };
 
+const outEase = Easing.bezier(...MotionCurves.out);
+
+const TabBarBridge: React.FC<{
+  tabBarProps: any;
+  onSyncNav: (props: any) => void;
+  onIndexChange: (prevIdx: number, nextIdx: number) => void;
+}> = ({ tabBarProps, onSyncNav, onIndexChange }) => {
+  const prevIdxRef = useRef<number>(tabBarProps.state.index);
+  const currentIdx = tabBarProps.state.index;
+  const onSyncNavRef = useRef(onSyncNav);
+  const onIndexChangeRef = useRef(onIndexChange);
+  const tabBarPropsRef = useRef(tabBarProps);
+
+  onSyncNavRef.current = onSyncNav;
+  onIndexChangeRef.current = onIndexChange;
+  tabBarPropsRef.current = tabBarProps;
+
+  useEffect(() => {
+    onSyncNavRef.current(tabBarPropsRef.current);
+  });
+
+  useEffect(() => {
+    const prevIdx = prevIdxRef.current;
+    prevIdxRef.current = currentIdx;
+    if (prevIdx !== currentIdx) {
+      onIndexChangeRef.current(prevIdx, currentIdx);
+    }
+  }, [currentIdx]);
+
+  return <ResponsiveTabBar {...tabBarProps} />;
+};
+
 export default function TabsLayout() {
   const router = useRouter();
+  const reduceMotion = Boolean(useReducedMotion());
   const { width } = useWindowDimensions();
   const isDesktop = width >= NAV_DESKTOP_BREAKPOINT;
 
@@ -49,10 +84,29 @@ export default function TabsLayout() {
   const sceneOpacity = useSharedValue(1);
   const sceneScale = useSharedValue(1);
 
+  useEffect(() => {
+    return () => {
+      cancelAnimation(translateX);
+      cancelAnimation(sceneOpacity);
+      cancelAnimation(sceneScale);
+    };
+  }, [translateX, sceneOpacity, sceneScale]);
+
   const animateSceneArrival = (direction: "next" | "prev", distance: number, velocity = 0) => {
     cancelAnimation(translateX);
     cancelAnimation(sceneOpacity);
     cancelAnimation(sceneScale);
+
+    if (reduceMotion) {
+      translateX.value = 0;
+      sceneScale.value = 1;
+      sceneOpacity.value = 0.86;
+      sceneOpacity.value = withTiming(1, {
+        duration: MotionDurations.micro,
+        easing: outEase,
+      });
+      return;
+    }
 
     translateX.value = direction === "next" ? distance : -distance;
     sceneOpacity.value = 0.86;
@@ -64,7 +118,7 @@ export default function TabsLayout() {
     });
     sceneOpacity.value = withTiming(1, {
       duration: 210,
-      easing: Easing.out(Easing.cubic),
+      easing: outEase,
     });
     sceneScale.value = withSpring(1, SETTLE_SPRING);
   };
@@ -98,8 +152,8 @@ export default function TabsLayout() {
 
     translateX.value = withSpring(0, SETTLE_SPRING);
     sceneOpacity.value = withTiming(1, {
-      duration: 180,
-      easing: Easing.out(Easing.cubic),
+      duration: MotionDurations.exit,
+      easing: outEase,
     });
     sceneScale.value = withSpring(1, SETTLE_SPRING);
   };
@@ -108,7 +162,7 @@ export default function TabsLayout() {
     () =>
       PanResponder.create({
         onMoveShouldSetPanResponderCapture: (_evt, gestureState) => {
-          if (isDesktop || isHorizontalScrollActive()) return false;
+          if (isDesktop || reduceMotion || isHorizontalScrollActive()) return false;
           const absDx = Math.abs(gestureState.dx);
           const absDy = Math.abs(gestureState.dy);
           // Smooth early capture for horizontal gestures while preserving vertical scroll
@@ -121,6 +175,7 @@ export default function TabsLayout() {
           cancelAnimation(sceneScale);
         },
         onPanResponderMove: (_evt, gestureState) => {
+          if (reduceMotion) return;
           const { index, routes } = navStateRef.current;
           // Subtract initial capture offset so the screen starts moving from 0px without jumping
           const effectiveDx = gestureState.dx - dragStartDxRef.current;
@@ -161,42 +216,51 @@ export default function TabsLayout() {
           resetPosition();
         },
       }),
-    [isDesktop, width]
+    [isDesktop, reduceMotion, width]
   );
 
   const animatedSceneStyle = useAnimatedStyle(() => ({
     opacity: sceneOpacity.value,
-    transform: [
-      { translateX: translateX.value },
-      { scale: sceneScale.value },
-    ],
+    transform: reduceMotion
+      ? []
+      : [
+          { translateX: translateX.value },
+          { scale: sceneScale.value },
+        ],
   }));
+
+  const handleSyncNavState = (props: any) => {
+    const anyProps = props as any;
+    navStateRef.current = {
+      index: props.state.index,
+      routes: props.state.routes,
+      navigation: anyProps.navigation,
+      navigateToTab: anyProps.navigateToTab,
+    };
+  };
+
+  const handleTabBarIndexChange = (prevIdx: number, nextIdx: number) => {
+    if (prevIdx !== nextIdx) {
+      if (swipeHandledIndexRef.current === nextIdx) {
+        swipeHandledIndexRef.current = null;
+      } else {
+        swipeHandledIndexRef.current = null;
+        animateSceneArrival(nextIdx > prevIdx ? "next" : "prev", 20);
+      }
+    }
+  };
 
   return (
     <TabSwipeSceneContext.Provider value={animatedSceneStyle}>
       <View style={{ flex: 1 }} {...panResponder.panHandlers}>
         <Tabs
-          tabBar={(props) => {
-            const anyProps = props as any;
-            const prevIdx = navStateRef.current.index;
-            const nextIdx = props.state.index;
-            navStateRef.current = {
-              index: nextIdx,
-              routes: props.state.routes,
-              navigation: anyProps.navigation,
-              navigateToTab: anyProps.navigateToTab,
-            };
-            // Only trigger tap-slide when the tab change was NOT already animated by a finger swipe
-            if (prevIdx !== nextIdx) {
-              if (swipeHandledIndexRef.current === nextIdx) {
-                swipeHandledIndexRef.current = null;
-              } else {
-                swipeHandledIndexRef.current = null;
-                animateSceneArrival(nextIdx > prevIdx ? "next" : "prev", 20);
-              }
-            }
-            return <ResponsiveTabBar {...props} />;
-          }}
+          tabBar={(props) => (
+            <TabBarBridge
+              tabBarProps={props}
+              onSyncNav={handleSyncNavState}
+              onIndexChange={handleTabBarIndexChange}
+            />
+          )}
           screenOptions={{
             headerShown: false,
             sceneStyle: {

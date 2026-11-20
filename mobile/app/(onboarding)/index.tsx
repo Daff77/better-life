@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { View, Pressable, Modal } from "react-native";
+import { View } from "react-native";
 import { useRouter } from "expo-router";
 import {
   AppText,
@@ -11,6 +11,7 @@ import {
   ChoiceTile,
   FormAlert,
   LineIcon,
+  ModalSheet,
   PressableScale,
   Surface,
   StatusPill,
@@ -64,6 +65,7 @@ export default function OnboardingScreen() {
 
   // Steps 1..7 are input steps; Step 8 is the Personalized Results screen (/(onboarding)/plan)
   const [currentStep, setCurrentStep] = useState(1);
+  const [stepDir, setStepDir] = useState<1 | -1>(1);
   const [stepError, setStepError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -228,6 +230,7 @@ export default function OnboardingScreen() {
     const payload = persistCurrentFields();
 
     if (currentStep < 7) {
+      setStepDir(1);
       setCurrentStep(currentStep + 1);
       return;
     }
@@ -249,6 +252,7 @@ export default function OnboardingScreen() {
     setStepError(null);
     persistCurrentFields();
     if (currentStep > 1) {
+      setStepDir(-1);
       setCurrentStep(currentStep - 1);
     } else if (router.canGoBack()) {
       router.back();
@@ -304,7 +308,7 @@ export default function OnboardingScreen() {
 
       {/* STEP 1: MAIN GOAL */}
       {currentStep === 1 && (
-        <FadeInView key="onboard-step-1" index={0}>
+        <FadeInView key="onboard-step-1" index={0} translateX={stepDir * 18} translateY={0}>
           <FlowTitle
             eyebrow="Langkah 1 dari 8 · Tujuan Utama"
             title="Apa tujuan kesehatan utama Anda?"
@@ -353,7 +357,7 @@ export default function OnboardingScreen() {
 
       {/* STEP 2: WEIGHT AND HEIGHT */}
       {currentStep === 2 && (
-        <FadeInView key="onboard-step-2" index={0}>
+        <FadeInView key="onboard-step-2" index={0} translateX={stepDir * 18} translateY={0}>
           <FlowTitle
             eyebrow="Langkah 2 dari 8 · Metrik Tubuh"
             title="Berapa berat dan tinggi badan Anda?"
@@ -556,7 +560,7 @@ export default function OnboardingScreen() {
 
       {/* STEP 3: GENDER */}
       {currentStep === 3 && (
-        <FadeInView key="onboard-step-3" index={0}>
+        <FadeInView key="onboard-step-3" index={0} translateX={stepDir * 18} translateY={0}>
           <FlowTitle
             eyebrow="Langkah 3 dari 8 · Profil Biologis"
             title="Apa jenis kelamin biologis Anda?"
@@ -593,7 +597,7 @@ export default function OnboardingScreen() {
 
       {/* STEP 4: BIRTH DATE */}
       {currentStep === 4 && (
-        <FadeInView key="onboard-step-4" index={0}>
+        <FadeInView key="onboard-step-4" index={0} translateX={stepDir * 18} translateY={0}>
           <FlowTitle
             eyebrow="Langkah 4 dari 8 · Tanggal Lahir"
             title="Kapan Anda lahir?"
@@ -674,7 +678,7 @@ export default function OnboardingScreen() {
 
       {/* STEP 5: COOKING SKILL LEVEL */}
       {currentStep === 5 && (
-        <FadeInView key="onboard-step-5" index={0}>
+        <FadeInView key="onboard-step-5" index={0} translateX={stepDir * 18} translateY={0}>
           <FlowTitle
             eyebrow="Langkah 5 dari 8 · Keahlian Memasak"
             title="Seberapa sering Anda memasak?"
@@ -711,7 +715,7 @@ export default function OnboardingScreen() {
 
       {/* STEP 6: DIET TYPE */}
       {currentStep === 6 && (
-        <FadeInView key="onboard-step-6" index={0}>
+        <FadeInView key="onboard-step-6" index={0} translateX={stepDir * 18} translateY={0}>
           <FlowTitle
             eyebrow="Langkah 6 dari 8 · Pola Makan"
             title="Apa preferensi diet Anda?"
@@ -760,7 +764,7 @@ export default function OnboardingScreen() {
 
       {/* STEP 7: FOOD ALLERGIES & INTOLERANCES */}
       {currentStep === 7 && (
-        <FadeInView key="onboard-step-7" index={0}>
+        <FadeInView key="onboard-step-7" index={0} translateX={stepDir * 18} translateY={0}>
           <FlowTitle
             eyebrow="Langkah 7 dari 8 · Alergi & Intoleransi"
             title="Apakah Anda memiliki alergi makanan?"
@@ -824,69 +828,59 @@ export default function OnboardingScreen() {
       )}
 
       {/* Month Picker Modal */}
-      <Modal
+      <ModalSheet
         visible={showMonthPicker}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowMonthPicker(false)}
+        onClose={() => setShowMonthPicker(false)}
+        variant="dialog"
+        showHandle={false}
+        accessibilityLabel="Pilih Bulan Lahir"
+        contentClassName="bg-card rounded-[24px] p-5 w-full max-w-sm border border-line"
       >
-        <Pressable
-          className="flex-1 bg-black/45 justify-center items-center p-5"
-          onPress={() => setShowMonthPicker(false)}
-        >
-          <FadeInView duration={220} translateY={12} className="w-full max-w-sm">
-            <Pressable
-              className="bg-card rounded-[24px] p-5 w-full border border-line"
-              onPress={(e) => e.stopPropagation()}
-            >
-              <View className="flex-row items-center justify-between mb-4">
-                <AppText weight="bold" className="text-[17px] text-ink">
-                  Pilih Bulan Lahir
-                </AppText>
-                <PressableScale
-                  onPress={() => setShowMonthPicker(false)}
-                  hitSlop={8}
-                  pressedScale={0.92}
-                  className="w-8 h-8 rounded-full bg-card-2 items-center justify-center"
-                  accessibilityLabel="Tutup"
-                >
-                  <LineIcon name="close" size={16} color="#56605a" />
-                </PressableScale>
-              </View>
+        <View className="flex-row items-center justify-between mb-4">
+          <AppText weight="bold" className="text-[17px] text-ink">
+            Pilih Bulan Lahir
+          </AppText>
+          <PressableScale
+            onPress={() => setShowMonthPicker(false)}
+            hitSlop={8}
+            pressedScale={0.92}
+            className="w-8 h-8 rounded-full bg-card-2 items-center justify-center"
+            accessibilityLabel="Tutup"
+          >
+            <LineIcon name="close" size={16} color="#56605a" />
+          </PressableScale>
+        </View>
 
-              <View className="flex-row flex-wrap gap-2 justify-between">
-                {MONTHS_LIST.map((m) => {
-                  const isSelected = birthMonth.trim().toLowerCase() === m.toLowerCase();
-                  return (
-                    <PressableScale
-                      key={m}
-                      onPress={() => {
-                        setBirthMonth(m);
-                        setShowMonthPicker(false);
-                      }}
-                      pressedScale={0.95}
-                      style={{
-                        width: "31%",
-                        backgroundColor: isSelected ? Colors.primary.DEFAULT : "#f0f4f1",
-                        borderColor: isSelected ? Colors.primary.DEFAULT : "#e6eae7",
-                        borderWidth: 1,
-                      }}
-                      className="py-3 px-2 rounded-[12px] items-center justify-center"
-                    >
-                      <AppText
-                        weight="semibold"
-                        className={`text-[13px] ${isSelected ? "text-white" : "text-ink"}`}
-                      >
-                        {(MONTHS_ID[m] || m).slice(0, 3)}
-                      </AppText>
-                    </PressableScale>
-                  );
-                })}
-              </View>
-            </Pressable>
-          </FadeInView>
-        </Pressable>
-      </Modal>
+        <View className="flex-row flex-wrap gap-2 justify-between">
+          {MONTHS_LIST.map((m) => {
+            const isSelected = birthMonth.trim().toLowerCase() === m.toLowerCase();
+            return (
+              <PressableScale
+                key={m}
+                onPress={() => {
+                  setBirthMonth(m);
+                  setShowMonthPicker(false);
+                }}
+                pressedScale={0.95}
+                style={{
+                  width: "31%",
+                  backgroundColor: isSelected ? Colors.primary.DEFAULT : "#f0f4f1",
+                  borderColor: isSelected ? Colors.primary.DEFAULT : "#e6eae7",
+                  borderWidth: 1,
+                }}
+                className="py-3 px-2 rounded-[12px] items-center justify-center"
+              >
+                <AppText
+                  weight="semibold"
+                  className={`text-[13px] ${isSelected ? "text-white" : "text-ink"}`}
+                >
+                  {(MONTHS_ID[m] || m).slice(0, 3)}
+                </AppText>
+              </PressableScale>
+            );
+          })}
+        </View>
+      </ModalSheet>
     </FlowScreen>
   );
 }

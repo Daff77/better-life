@@ -2,36 +2,22 @@ import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Image,
-  Modal,
   Pressable,
   KeyboardAvoidingView,
   ScrollView,
   TextInput,
   Platform,
-  StyleSheet,
   ViewStyle,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Animated, {
-  Easing,
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withTiming,
-} from "react-native-reanimated";
+import { AnimatedNumber } from "./AnimatedNumber";
 import { AppText } from "./AppText";
+import { ModalSheet } from "./ModalSheet";
 import { PressableScale } from "./PressableScale";
 import { LineIcon } from "./LineIcon";
 import { RingButton, PillButton, MixBar, StatusPill, SURFACE_SHADOW } from "./Surface";
 import { getMealIllustration } from "@/constants/Assets";
 import { Colors } from "@/constants/DesignTokens";
-import {
-  AnimationEasings,
-  AnimationScales,
-  AnimationDistances,
-  MotionCurves,
-  MotionDurations,
-} from "@/constants/AnimationTokens";
 import { mealLabel } from "@/constants/MealLabels";
 import { FoodItem, MOCK_RECIPES } from "@/data/mockRecipes";
 import { JournalCategory, JournalEntry } from "@/lib/schemas";
@@ -238,10 +224,6 @@ export const MealLogModal: React.FC<MealLogModalProps> = ({
   } | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const sheetScale = useSharedValue<number>(AnimationScales.modalEntry);
-  const sheetTranslateY = useSharedValue<number>(AnimationDistances.modalSlideY);
-  const sheetOpacity = useSharedValue<number>(0);
-
   const isSlotTrigger = !!meal?.id?.startsWith("custom-");
   const isDrinkSlot = meal?.id === "custom-drink" || meal?.category === "Drink" || meal?.svgIcon === "Drinks";
 
@@ -277,27 +259,8 @@ export const MealLogModal: React.FC<MealLogModalProps> = ({
         setCustomTitle(meal.title);
         setCustomCaloriesInput(String(meal.calories));
       }
-
-      sheetScale.value = AnimationScales.modalEntry;
-      sheetTranslateY.value = AnimationDistances.modalSlideY;
-      sheetOpacity.value = 0;
-
-      sheetScale.value = withSpring(1, AnimationEasings.appleDefaultSpring);
-      sheetTranslateY.value = withSpring(0, AnimationEasings.appleDefaultSpring);
-      sheetOpacity.value = withTiming(1, {
-        duration: MotionDurations.enter,
-        easing: Easing.bezier(...MotionCurves.out),
-      });
     }
   }, [visible, meal]);
-
-  const sheetAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: sheetOpacity.value,
-    transform: [
-      { translateY: sheetTranslateY.value },
-      { scale: sheetScale.value },
-    ],
-  }));
 
   const currentMeal = activeMeal || meal;
 
@@ -443,40 +406,31 @@ export const MealLogModal: React.FC<MealLogModalProps> = ({
   };
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <ModalSheet
+      visible={visible}
+      onClose={onClose}
+      variant="sheet"
+      accessibilityLabel="Catat makan"
+      contentClassName="w-full max-w-[480px] max-h-[92%] bg-card rounded-t-[26px] sm:rounded-[26px] border-t sm:border border-line overflow-hidden"
+      contentStyle={SURFACE_SHADOW ? ({ boxShadow: SURFACE_SHADOW } as ViewStyle) : undefined}
+    >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
-        className="flex-1 justify-end sm:justify-center items-center p-0 sm:p-4"
+        className="w-full max-h-full"
       >
-        <Pressable
-          onPress={onClose}
-          style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(18, 24, 20, 0.42)" }]}
-          accessibilityRole="button"
-          accessibilityLabel="Tutup jendela pencatatan"
-        />
-
-        <Animated.View
-          style={[sheetAnimatedStyle, { width: "100%", maxWidth: 480, maxHeight: "92%", zIndex: 10 }]}
+        <View
+          style={{ paddingBottom: Platform.OS === "web" ? 20 : Math.max(insets.bottom, 16) }}
+          className="w-full px-5 pt-2"
         >
-          <View
-            style={[
-              { boxShadow: SURFACE_SHADOW } as ViewStyle,
-              { paddingBottom: Platform.OS === "web" ? 20 : Math.max(insets.bottom, 16) },
-            ]}
-            className="w-full bg-card rounded-t-[26px] sm:rounded-[26px] px-5 pt-4 border-t sm:border border-line"
-          >
-            {/* Drag Handle Indicator on Mobile */}
-            <View className="w-10 h-1 rounded-full bg-line-2 self-center mb-3 sm:hidden" />
+          {/* Header */}
+          <View className="flex-row justify-between items-center pb-3 border-b border-line">
+            <AppText weight="semibold" className="text-[19px] text-ink" style={{ letterSpacing: -0.3 }}>
+              Catat makan
+            </AppText>
+            <RingButton icon="close" accessibilityLabel="Tutup" onPress={onClose} />
+          </View>
 
-            {/* Header */}
-            <View className="flex-row justify-between items-center pb-3 border-b border-line">
-              <AppText weight="semibold" className="text-[19px] text-ink" style={{ letterSpacing: -0.3 }}>
-                Catat makan
-              </AppText>
-              <RingButton icon="close" accessibilityLabel="Tutup" onPress={onClose} />
-            </View>
-
-            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" className="flex-shrink">
+          <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" className="flex-shrink">
               {confirmation ? (
                 <View className="my-5 p-6 rounded-[20px] bg-primary-light items-center justify-center">
                   <View className="w-12 h-12 rounded-full bg-primary items-center justify-center mb-3">
@@ -618,13 +572,14 @@ export const MealLogModal: React.FC<MealLogModalProps> = ({
                       </View>
 
                       <View className="items-end flex-shrink-0">
-                        <AppText
+                        <AnimatedNumber
+                          value={totalCalories}
+                          animateOnMount={false}
+                          duration={200}
                           weight="bold"
                           className="text-[24px] text-primary-text"
                           style={[tnum, { letterSpacing: -0.5, lineHeight: 26 }]}
-                        >
-                          {totalCalories}
-                        </AppText>
+                        />
                         <AppText weight="semibold" className="text-[11.5px] text-muted">
                           kcal
                         </AppText>
@@ -806,10 +761,9 @@ export const MealLogModal: React.FC<MealLogModalProps> = ({
                   </View>
                 </View>
               )}
-            </ScrollView>
-          </View>
-        </Animated.View>
+          </ScrollView>
+        </View>
       </KeyboardAvoidingView>
-    </Modal>
+    </ModalSheet>
   );
 };

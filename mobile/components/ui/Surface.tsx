@@ -1,10 +1,11 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { View, ViewProps, StyleProp, ViewStyle, Platform } from "react-native";
 import Animated, {
   Easing,
   cancelAnimation,
   interpolateColor,
   useAnimatedStyle,
+  useReducedMotion,
   useSharedValue,
   withSpring,
   withTiming,
@@ -13,7 +14,11 @@ import { AppText } from "./AppText";
 import { PressableScale } from "./PressableScale";
 import { LineIcon, LineIconName } from "./LineIcon";
 import { Colors } from "@/constants/DesignTokens";
-import { MotionCurves, MotionDurations } from "@/constants/AnimationTokens";
+import {
+  AnimationEasings,
+  MotionCurves,
+  MotionDurations,
+} from "@/constants/AnimationTokens";
 
 /*
  * Better Life surface kit.
@@ -277,17 +282,25 @@ const AnimatedMixSegment: React.FC<{
   height: number;
   outlined?: boolean;
 }> = ({ targetGrow, minSegmentWidth, color, height, outlined }) => {
-  const grow = useSharedValue(Math.max(1, targetGrow * 0.35));
+  const reduceMotion = useReducedMotion();
+  const safeTarget = Math.max(0.5, targetGrow);
+  const grow = useSharedValue(reduceMotion ? safeTarget : 1);
 
   useEffect(() => {
-    grow.value = withTiming(Math.max(0.5, targetGrow), {
+    if (reduceMotion) {
+      cancelAnimation(grow);
+      grow.value = safeTarget;
+      return;
+    }
+
+    grow.value = withTiming(safeTarget, {
       duration: MotionDurations.fill,
       easing: mixEaseOut,
     });
     return () => {
       cancelAnimation(grow);
     };
-  }, [targetGrow, grow]);
+  }, [safeTarget, reduceMotion, grow]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     flexGrow: grow.value,
@@ -496,33 +509,59 @@ const SegmentedOption: React.FC<{
   label: string;
   selected: boolean;
   stretch?: boolean;
+  showStaticThumb: boolean;
+  reduceMotion: boolean;
+  onMeasure: (rect: { x: number; width: number }) => void;
   onPress: () => void;
-}> = ({ label, selected, stretch, onPress }) => {
-  const activeScale = useSharedValue(selected ? 1 : 0.96);
+}> = ({
+  label,
+  selected,
+  stretch,
+  showStaticThumb,
+  reduceMotion,
+  onMeasure,
+  onPress,
+}) => {
+  const activeScale = useSharedValue(selected || reduceMotion ? 1 : 0.97);
 
   useEffect(() => {
-    activeScale.value = withSpring(selected ? 1 : 0.96, {
-      damping: 22,
+    if (reduceMotion) {
+      cancelAnimation(activeScale);
+      activeScale.value = 1;
+      return;
+    }
+
+    activeScale.value = withSpring(selected ? 1 : 0.97, {
+      damping: 24,
       stiffness: 340,
-      mass: 0.65,
+      mass: 0.6,
+      overshootClamping: true,
     });
     return () => {
       cancelAnimation(activeScale);
     };
-  }, [selected, activeScale]);
+  }, [selected, reduceMotion, activeScale]);
 
   const labelStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: activeScale.value }],
+    transform: [{ scale: reduceMotion ? 1 : activeScale.value }],
   }));
 
   return (
     <PressableScale
       onPress={onPress}
-      pressedScale={0.95}
+      onLayout={(e) => {
+        const { x, width } = e.nativeEvent.layout;
+        if (width > 0) onMeasure({ x, width });
+      }}
+      pressedScale={0.96}
       className={`h-9 px-3.5 rounded-full items-center justify-center ${stretch ? "flex-1" : ""} ${
-        selected ? "bg-card" : ""
+        showStaticThumb && selected ? "bg-card" : ""
       }`}
-      style={selected ? ({ boxShadow: "0px 1px 2px rgba(0,0,0,0.08)" } as ViewStyle) : undefined}
+      style={
+        showStaticThumb && selected
+          ? ({ boxShadow: "0px 1px 2px rgba(0,0,0,0.08)" } as ViewStyle)
+          : undefined
+      }
       accessibilityRole="radio"
       accessibilityState={{ selected }}
       accessibilityLabel={label}
@@ -540,20 +579,101 @@ const SegmentedOption: React.FC<{
   );
 };
 
-/** Pill segmented control. Selected segment lifts onto a card-coloured thumb. */
-export function Segmented<T extends string>({ options, value, onChange, accessibilityLabel, stretch }: SegmentedProps<T>) {
+/** Pill segmented control. Selected segment lifts onto a sliding card-coloured thumb. */
+export function Segmented<T extends string>({
+  options,
+  value,
+  onChange,
+  accessibilityLabel,
+  stretch,
+}: SegmentedProps<T>) {
+  const reduceMotion = Boolean(useReducedMotion());
+  const layoutsRef = useRef<Record<string, { x: number; width: number }>>({});
+  const hasMeasuredRef = useRef(false);
+  const [hasMeasured, setHasMeasured] = useState(false);
+
+  const thumbX = useSharedValue(0);
+  const thumbW = useSharedValue(0);
+
+  useEffect(() => {
+    const rect = layoutsRef.current[value];
+    if (!rect || rect.width <= 0) return;
+
+    if (reduceMotion || !hasMeasuredRef.current) {
+      cancelAnimation(thumbX);
+      cancelAnimation(thumbW);
+      thumbX.value = rect.x;
+      thumbW.value = rect.width;
+      hasMeasuredRef.current = true;
+    } else {
+      thumbX.value = withSpring(rect.x, AnimationEasings.tabSpringConfig);
+      thumbW.value = withSpring(rect.width, AnimationEasings.tabSpringConfig);
+    }
+  }, [value, reduceMotion, thumbX, thumbW]);
+
+  useEffect(() => {
+    return () => {
+      cancelAnimation(thumbX);
+      cancelAnimation(thumbW);
+    };
+  }, [thumbX, thumbW]);
+
+  const handleMeasure = (optValue: string, rect: { x: number; width: number }) => {
+    layoutsRef.current[optValue] = rect;
+    if (optValue === value) {
+      if (!hasMeasuredRef.current) {
+        thumbX.value = rect.x;
+        thumbW.value = rect.width;
+        hasMeasuredRef.current = true;
+        setHasMeasured(true);
+      } else if (reduceMotion) {
+        thumbX.value = rect.x;
+        thumbW.value = rect.width;
+      } else {
+        thumbX.value = withSpring(rect.x, AnimationEasings.tabSpringConfig);
+        thumbW.value = withSpring(rect.width, AnimationEasings.tabSpringConfig);
+      }
+    }
+  };
+
+  const thumbAnimatedStyle = useAnimatedStyle(() => ({
+    width: thumbW.value,
+    transform: [{ translateX: thumbX.value }],
+    opacity: thumbW.value > 0 ? 1 : 0,
+  }));
+
   return (
     <View
-      className={`flex-row bg-card-2 border border-line rounded-full p-[3px] ${stretch ? "w-full self-stretch" : "self-start"}`}
+      className={`relative flex-row bg-card-2 border border-line rounded-full p-[3px] ${stretch ? "w-full self-stretch" : "self-start"}`}
       accessibilityRole="radiogroup"
       accessibilityLabel={accessibilityLabel}
     >
+      {hasMeasured ? (
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            {
+              position: "absolute",
+              top: 3,
+              bottom: 3,
+              left: 0,
+              borderRadius: 999,
+              backgroundColor: "#fbfdfc",
+              boxShadow: "0px 1px 2px rgba(0,0,0,0.08)",
+            } as ViewStyle,
+            thumbAnimatedStyle,
+          ]}
+        />
+      ) : null}
       {options.map((o) => (
         <SegmentedOption
           key={o.value}
           label={o.label}
           selected={o.value === value}
           stretch={stretch}
+          showStaticThumb={!hasMeasured}
+          reduceMotion={reduceMotion}
+          onMeasure={(rect) => handleMeasure(o.value, rect)}
           onPress={() => onChange(o.value)}
         />
       ))}
@@ -644,18 +764,30 @@ export const ToggleSwitch: React.FC<ToggleSwitchProps> = ({
   inactiveColor = "#c6d0ca",
   accessibilityLabel = "Sakelar pengaturan",
 }) => {
+  const reduceMotion = useReducedMotion();
   const progress = useSharedValue(value ? 1 : 0);
+  const pressStretch = useSharedValue(0);
 
   useEffect(() => {
+    if (reduceMotion) {
+      cancelAnimation(progress);
+      cancelAnimation(pressStretch);
+      progress.value = value ? 1 : 0;
+      pressStretch.value = 0;
+      return;
+    }
+
     progress.value = withSpring(value ? 1 : 0, {
       damping: 22,
-      stiffness: 320,
-      mass: 0.6,
+      stiffness: 340,
+      mass: 0.55,
+      overshootClamping: true,
     });
     return () => {
       cancelAnimation(progress);
+      cancelAnimation(pressStretch);
     };
-  }, [value, progress]);
+  }, [value, reduceMotion, progress, pressStretch]);
 
   const trackAnimatedStyle = useAnimatedStyle(() => ({
     backgroundColor: interpolateColor(
@@ -665,15 +797,29 @@ export const ToggleSwitch: React.FC<ToggleSwitchProps> = ({
     ),
   }));
 
-  const thumbAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: progress.value * 20 }],
-  }));
+  const thumbAnimatedStyle = useAnimatedStyle(() => {
+    const stretchPx = reduceMotion ? 0 : pressStretch.value * 4;
+    return {
+      width: 22 + stretchPx,
+      transform: [{ translateX: progress.value * (20 - stretchPx) }],
+    };
+  });
 
   return (
     <PressableScale
       onPress={() => !disabled && onValueChange(!value)}
+      onPressIn={() => {
+        if (!disabled && !reduceMotion) {
+          pressStretch.value = withTiming(1, { duration: 90 });
+        }
+      }}
+      onPressOut={() => {
+        if (!reduceMotion) {
+          pressStretch.value = withTiming(0, { duration: 140 });
+        }
+      }}
       disabled={disabled}
-      pressedScale={0.94}
+      pressedScale={0.95}
       accessibilityRole="switch"
       accessibilityState={{ checked: value, disabled }}
       accessibilityLabel={accessibilityLabel}
@@ -694,7 +840,6 @@ export const ToggleSwitch: React.FC<ToggleSwitchProps> = ({
         <Animated.View
           style={[
             {
-              width: 22,
               height: 22,
               borderRadius: 999,
               backgroundColor: "#ffffff",

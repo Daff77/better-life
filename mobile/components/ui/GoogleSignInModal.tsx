@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
   View,
-  Modal,
-  Pressable,
   ActivityIndicator,
   Linking,
 } from "react-native";
@@ -11,6 +9,7 @@ import { AppText } from "./AppText";
 import { FadeInView } from "./FadeInView";
 import { Input } from "./Input";
 import { Button } from "./Button";
+import { ModalSheet } from "./ModalSheet";
 import { PressableScale } from "./PressableScale";
 import { IconRenderer, SettingsIconSvg, RefreshIconSvg, ZapIconSvg } from "@/constants/Assets";
 import { useAuthStore } from "@/stores/useAuthStore";
@@ -113,21 +112,14 @@ export const GoogleSignInModal: React.FC<GoogleSignInModalProps> = ({
   };
 
   return (
-    <Modal
+    <ModalSheet
       visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={handleModalClose}
+      onClose={handleModalClose}
+      variant="dialog"
+      showHandle={false}
+      accessibilityLabel="Google Authentication"
+      contentClassName="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl border border-neutral-border"
     >
-      <Pressable
-        className="flex-1 bg-black/50 justify-center items-center p-4"
-        onPress={handleModalClose}
-      >
-        <FadeInView duration={220} translateY={12} className="w-full max-w-md">
-          <Pressable
-            className="bg-white rounded-3xl p-6 w-full shadow-2xl border border-neutral-border"
-            onPress={(e) => e.stopPropagation()}
-          >
             {/* Header */}
             <View className="items-center mb-4">
               <View className="w-14 h-14 rounded-full bg-white shadow-sm border border-neutral-border items-center justify-center mb-2.5">
@@ -283,9 +275,6 @@ export const GoogleSignInModal: React.FC<GoogleSignInModalProps> = ({
                 Tutup
               </AppText>
             </PressableScale>
-          </Pressable>
-        </FadeInView>
-      </Pressable>
-    </Modal>
+    </ModalSheet>
   );
 };

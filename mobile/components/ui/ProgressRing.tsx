@@ -1,16 +1,24 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 import Animated, {
   Easing,
   cancelAnimation,
-  useSharedValue,
   useAnimatedProps,
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withSequence,
+  withSpring,
   withTiming,
 } from "react-native-reanimated";
 import { AppText } from "./AppText";
 import { Colors } from "@/constants/DesignTokens";
-import { MotionCurves, MotionDurations } from "@/constants/AnimationTokens";
+import {
+  AnimationEasings,
+  MotionCurves,
+  MotionDurations,
+} from "@/constants/AnimationTokens";
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -39,23 +47,48 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
   labelColor,
   children,
 }) => {
+  const reduceMotion = useReducedMotion();
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const clampedProgress = Math.min(100, Math.max(0, progress));
+  const clampedProgress = Math.min(100, Math.max(0, Number.isFinite(progress) ? progress : 0));
 
-  const animatedProgress = useSharedValue(0);
+  const animatedProgress = useSharedValue(reduceMotion ? clampedProgress : 0);
+  const ringScale = useSharedValue(1);
+  const prevProgressRef = useRef(clampedProgress);
 
   useEffect(() => {
+    if (reduceMotion) {
+      cancelAnimation(animatedProgress);
+      cancelAnimation(ringScale);
+      animatedProgress.value = clampedProgress;
+      ringScale.value = 1;
+      prevProgressRef.current = clampedProgress;
+      return;
+    }
+
     // Ease-out fill: the arc jumps toward the new value first, then settles,
     // so logging a meal reads as immediate feedback.
     animatedProgress.value = withTiming(clampedProgress, {
       duration: MotionDurations.fill,
       easing: Easing.bezier(...MotionCurves.out),
     });
+
+    if (prevProgressRef.current < 100 && clampedProgress >= 100) {
+      ringScale.value = withSequence(
+        withTiming(1.045, {
+          duration: 140,
+          easing: Easing.bezier(...MotionCurves.out),
+        }),
+        withSpring(1, AnimationEasings.celebrationSpringConfig)
+      );
+    }
+    prevProgressRef.current = clampedProgress;
+
     return () => {
       cancelAnimation(animatedProgress);
+      cancelAnimation(ringScale);
     };
-  }, [clampedProgress, animatedProgress]);
+  }, [clampedProgress, animatedProgress, ringScale, reduceMotion]);
 
   const animatedProps = useAnimatedProps(() => {
     const strokeDashoffset = circumference - (animatedProgress.value / 100) * circumference;
@@ -66,33 +99,39 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
     };
   });
 
+  const ringPulseStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: reduceMotion ? 1 : ringScale.value }],
+  }));
+
   const isCompact = size <= 84;
 
   return (
     <View style={{ width: size, height: size }} className="items-center justify-center">
-      <Svg width={size} height={size} style={{ transform: [{ rotate: "-90deg" }] }}>
-        {/* Background Track */}
-        <Circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          stroke={backgroundColor}
-          strokeWidth={strokeWidth}
-          fill="none"
-        />
-        {/* Active Animated Progress Arc */}
-        <AnimatedCircle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          stroke={color}
-          strokeWidth={strokeWidth}
-          strokeDasharray={`${circumference} ${circumference}`}
-          animatedProps={animatedProps}
-          strokeLinecap="round"
-          fill="none"
-        />
-      </Svg>
+      <Animated.View style={ringPulseStyle}>
+        <Svg width={size} height={size} style={{ transform: [{ rotate: "-90deg" }] }}>
+          {/* Background Track */}
+          <Circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke={backgroundColor}
+            strokeWidth={strokeWidth}
+            fill="none"
+          />
+          {/* Active Animated Progress Arc */}
+          <AnimatedCircle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke={color}
+            strokeWidth={strokeWidth}
+            strokeDasharray={`${circumference} ${circumference}`}
+            animatedProps={animatedProps}
+            strokeLinecap="round"
+            fill="none"
+          />
+        </Svg>
+      </Animated.View>
 
       {/* Center Value & Label */}
       <View style={{ pointerEvents: "none" }} className="absolute items-center justify-center">

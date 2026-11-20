@@ -18,6 +18,7 @@ import {
   PillButton,
   LineIcon,
   PressableScale,
+  SkeletonPulse,
 } from "@/components/ui";
 import { useRecipes } from "@/hooks/useRecipesQuery";
 import {
@@ -175,12 +176,37 @@ export default function MealsScreen() {
 
   const renderList = () => {
     if (isLoading) {
+      if (useRowCards) {
+        return (
+          <View className="gap-2.5">
+            {[0, 1, 2, 3].map((idx) => (
+              <Surface key={idx} dense className="flex-row items-center gap-3 p-3">
+                <SkeletonPulse width={64} height={64} borderRadius={13} />
+                <View className="flex-1 gap-2">
+                  <SkeletonPulse width="38%" height={11} borderRadius={6} />
+                  <SkeletonPulse width="76%" height={15} borderRadius={7} />
+                  <SkeletonPulse width="48%" height={12} borderRadius={6} />
+                </View>
+              </Surface>
+            ))}
+          </View>
+        );
+      }
       return (
-        <Surface className="items-center py-10">
-          <AppText weight="medium" className="text-sm text-muted">
-            Memuat daftar menu...
-          </AppText>
-        </Surface>
+        <View className="flex-row flex-wrap -mx-2">
+          {[0, 1, 2, 3].map((idx) => (
+            <View key={idx} className="mb-4 px-2 w-1/2 md:w-1/3 lg:w-1/4">
+              <Surface noPadding className="overflow-hidden">
+                <SkeletonPulse height={104} borderRadius={0} />
+                <View className="p-3 gap-2">
+                  <SkeletonPulse width="45%" height={11} borderRadius={6} />
+                  <SkeletonPulse width="80%" height={15} borderRadius={7} />
+                  <SkeletonPulse width="55%" height={12} borderRadius={6} />
+                </View>
+              </Surface>
+            </View>
+          ))}
+        </View>
       );
     }
     if (isError) {

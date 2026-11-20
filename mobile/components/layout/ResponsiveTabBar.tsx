@@ -1,18 +1,21 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { View, useWindowDimensions, Platform, ViewStyle } from "react-native";
 import { useRouter } from "expo-router";
 import Animated, {
   LinearTransition,
   cancelAnimation,
   useAnimatedStyle,
+  useReducedMotion,
   useSharedValue,
   withSpring,
+  withTiming,
 } from "react-native-reanimated";
 import { AppText } from "@/components/ui/AppText";
 import { FadeInView } from "@/components/ui/FadeInView";
 import { LineIcon, LineIconName } from "@/components/ui/LineIcon";
 import { PressableScale } from "@/components/ui/PressableScale";
 import { FLOAT_SHADOW, SURFACE_SHADOW } from "@/components/ui/Surface";
+import { AnimationEasings, MotionDurations } from "@/constants/AnimationTokens";
 import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
 import { useAuthStore } from "@/stores/useAuthStore";
 
@@ -56,11 +59,92 @@ const web = Platform.OS === "web";
 
 export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({ state, navigation, navigateToTab, insets }) => {
   const router = useRouter();
+  const reduceMotion = Boolean(useReducedMotion());
   const { width } = useWindowDimensions();
   const isDesktop = width >= NAV_DESKTOP_BREAKPOINT;
   const isPremium = useSubscriptionStore((s) => s.isPremium);
   const user = useAuthStore((s) => s.user);
-  const [hovered, setHovered] = React.useState<string | null>(null);
+  const [hovered, setHovered] = useState<string | null>(null);
+  const [instantTip, setInstantTip] = useState(false);
+  const dockActiveRef = useRef(false);
+  const warmHoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const tabLayoutsRef = useRef<Record<string, { x: number; width: number }>>({});
+  const hasMeasuredTabRef = useRef(false);
+  const [hasMeasuredTab, setHasMeasuredTab] = useState(false);
+  const thumbX = useSharedValue(0);
+  const thumbW = useSharedValue(0);
+
+  const activeRouteKey = state.routes[state.index]?.key;
+
+  useEffect(() => {
+    if (!isDesktop || !activeRouteKey) return;
+    const rect = tabLayoutsRef.current[activeRouteKey];
+    if (!rect || rect.width <= 0) return;
+
+    if (reduceMotion || !hasMeasuredTabRef.current) {
+      cancelAnimation(thumbX);
+      cancelAnimation(thumbW);
+      thumbX.value = rect.x;
+      thumbW.value = rect.width;
+      hasMeasuredTabRef.current = true;
+    } else {
+      thumbX.value = withSpring(rect.x, AnimationEasings.tabSpringConfig);
+      thumbW.value = withSpring(rect.width, AnimationEasings.tabSpringConfig);
+    }
+  }, [activeRouteKey, isDesktop, reduceMotion, thumbX, thumbW]);
+
+  useEffect(() => {
+    return () => {
+      if (warmHoverTimerRef.current) clearTimeout(warmHoverTimerRef.current);
+      cancelAnimation(thumbX);
+      cancelAnimation(thumbW);
+    };
+  }, [thumbX, thumbW]);
+
+  const handleTabLayout = (routeKey: string, rect: { x: number; width: number }) => {
+    if (rect.width <= 0) return;
+    tabLayoutsRef.current[routeKey] = rect;
+    if (routeKey === activeRouteKey) {
+      if (!hasMeasuredTabRef.current) {
+        thumbX.value = rect.x;
+        thumbW.value = rect.width;
+        hasMeasuredTabRef.current = true;
+        setHasMeasuredTab(true);
+      } else if (reduceMotion) {
+        thumbX.value = rect.x;
+        thumbW.value = rect.width;
+      } else {
+        thumbX.value = withSpring(rect.x, AnimationEasings.tabSpringConfig);
+        thumbW.value = withSpring(rect.width, AnimationEasings.tabSpringConfig);
+      }
+    }
+  };
+
+  const handleDockHoverIn = (key: string) => {
+    if (warmHoverTimerRef.current) {
+      clearTimeout(warmHoverTimerRef.current);
+      warmHoverTimerRef.current = null;
+    }
+    setInstantTip(dockActiveRef.current);
+    dockActiveRef.current = true;
+    setHovered(key);
+  };
+
+  const handleDockHoverOut = (key: string) => {
+    setHovered((prev) => (prev === key ? null : prev));
+    if (warmHoverTimerRef.current) clearTimeout(warmHoverTimerRef.current);
+    warmHoverTimerRef.current = setTimeout(() => {
+      dockActiveRef.current = false;
+      setInstantTip(false);
+    }, 180);
+  };
+
+  const desktopThumbStyle = useAnimatedStyle(() => ({
+    width: thumbW.value,
+    transform: [{ translateX: thumbX.value }],
+    opacity: thumbW.value > 0 ? 1 : 0,
+  }));
 
   const initials = React.useMemo(() => {
     const name = user?.name?.trim();
@@ -113,10 +197,26 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({ state, navig
 
           <View className="flex-1 items-center">
             <View
-              className="flex-row bg-card border border-line rounded-full p-1 gap-0.5"
+              className="relative flex-row bg-card border border-line rounded-full p-1 gap-0.5"
               style={{ boxShadow: SURFACE_SHADOW } as ViewStyle}
               accessibilityRole="tablist"
             >
+              {hasMeasuredTab ? (
+                <Animated.View
+                  pointerEvents="none"
+                  style={[
+                    {
+                      position: "absolute",
+                      top: 4,
+                      bottom: 4,
+                      left: 0,
+                      borderRadius: 999,
+                      backgroundColor: "#141c18",
+                    },
+                    desktopThumbStyle,
+                  ]}
+                />
+              ) : null}
               {state.routes.map((route, index) => {
                 const isFocused = state.index === index;
                 const m = meta(route.name);
@@ -124,9 +224,14 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({ state, navig
                   <PressableScale
                     key={route.key}
                     onPress={() => handleTabPress(route.key, route.name, isFocused)}
+                    onLayout={(e) => handleTabLayout(route.key, e.nativeEvent.layout)}
                     pressedScale={0.96}
                     className={`h-10 px-4 rounded-full flex-row items-center gap-2 ${
-                      isFocused ? "bg-block-ink" : web ? "hover:bg-card-2" : ""
+                      !hasMeasuredTab && isFocused
+                        ? "bg-block-ink"
+                        : !isFocused && web
+                        ? "hover:bg-card-2"
+                        : ""
                     }`}
                     accessibilityRole="tab"
                     accessibilityState={{ selected: isFocused }}
@@ -201,8 +306,8 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({ state, navig
               <View key={a.href}>
                 <PressableScale
                   onPress={() => router.push(a.href as any)}
-                  onHoverIn={() => setHovered(a.href)}
-                  onHoverOut={() => setHovered(null)}
+                  onHoverIn={() => handleDockHoverIn(a.href)}
+                  onHoverOut={() => handleDockHoverOut(a.href)}
                   pressedScale={0.93}
                   className={`w-11 h-11 rounded-full items-center justify-center ${
                     web ? "hover:bg-white/15" : ""
@@ -212,15 +317,17 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({ state, navig
                 >
                   <LineIcon name={a.icon} size={20} color="#ffffff" />
                 </PressableScale>
-                {hovered === a.href ? <DockTip label={a.label} /> : null}
+                {hovered === a.href ? (
+                  <DockTip label={a.label} instant={instantTip || reduceMotion} />
+                ) : null}
               </View>
             ))}
             <View className="h-px bg-white/20 mx-2.5 my-1" />
             <View>
               <PressableScale
                 onPress={() => router.push("/(app)/upgrade")}
-                onHoverIn={() => setHovered("premium")}
-                onHoverOut={() => setHovered(null)}
+                onHoverIn={() => handleDockHoverIn("premium")}
+                onHoverOut={() => handleDockHoverOut("premium")}
                 pressedScale={0.93}
                 className={`w-11 h-11 rounded-full items-center justify-center ${web ? "hover:bg-white/15" : ""}`}
                 accessibilityRole="link"
@@ -234,7 +341,12 @@ export const ResponsiveTabBar: React.FC<ResponsiveTabBarProps> = ({ state, navig
                   />
                 ) : null}
               </PressableScale>
-              {hovered === "premium" ? <DockTip label={isPremium ? "Premium aktif" : "Better Life Premium"} /> : null}
+              {hovered === "premium" ? (
+                <DockTip
+                  label={isPremium ? "Premium aktif" : "Better Life Premium"}
+                  instant={instantTip || reduceMotion}
+                />
+              ) : null}
             </View>
           </View>
         </View>
@@ -285,34 +397,44 @@ const PhoneTabItem: React.FC<{
   label: string;
   onPress: () => void;
 }> = ({ isFocused, icon, label, onPress }) => {
+  const reduceMotion = Boolean(useReducedMotion());
   const focusProgress = useSharedValue(isFocused ? 1 : 0);
 
   useEffect(() => {
-    focusProgress.value = withSpring(isFocused ? 1 : 0, {
-      damping: 26,
-      stiffness: 290,
-      mass: 0.6,
-      overshootClamping: true,
-    });
+    if (reduceMotion) {
+      cancelAnimation(focusProgress);
+      focusProgress.value = isFocused ? 1 : 0;
+      return;
+    }
+
+    focusProgress.value = withSpring(isFocused ? 1 : 0, AnimationEasings.tabSpringConfig);
     return () => {
       cancelAnimation(focusProgress);
     };
-  }, [isFocused, focusProgress]);
+  }, [isFocused, reduceMotion, focusProgress]);
 
   const iconAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: 0.94 + focusProgress.value * 0.08 }],
+    transform: [{ scale: reduceMotion ? 1 : 0.94 + focusProgress.value * 0.08 }],
   }));
 
   const labelAnimatedStyle = useAnimatedStyle(() => ({
     opacity: focusProgress.value,
-    transform: [
-      { translateX: (1 - focusProgress.value) * -6 },
-      { scale: 0.95 + focusProgress.value * 0.05 },
-    ],
+    transform: reduceMotion
+      ? []
+      : [
+          { translateX: (1 - focusProgress.value) * -6 },
+          { scale: 0.95 + focusProgress.value * 0.05 },
+        ],
   }));
 
   return (
-    <Animated.View layout={LinearTransition.springify().damping(26).stiffness(280).mass(0.6)}>
+    <Animated.View
+      layout={
+        reduceMotion
+          ? undefined
+          : LinearTransition.springify().damping(26).stiffness(280).mass(0.6)
+      }
+    >
       <PressableScale
         onPress={onPress}
         pressedScale={0.94}
@@ -343,18 +465,35 @@ const PhoneTabItem: React.FC<{
   );
 };
 
-const DockTip: React.FC<{ label: string }> = ({ label }) => (
-  <FadeInView
-    duration={150}
-    translateY={2}
-    className="absolute left-[58px] top-[7px] bg-card border border-line rounded-[10px] px-2.5 py-1.5"
-    style={{
-      pointerEvents: "none",
-      boxShadow: "0px 2px 6px rgba(16,22,40,0.08), 0px 24px 50px -26px rgba(16,22,40,0.42)",
-    } as ViewStyle}
-  >
-    <AppText weight="semibold" className="text-[12.5px] text-ink" numberOfLines={1} style={{ width: 170 } as any}>
-      {label}
-    </AppText>
-  </FadeInView>
-);
+const DockTip: React.FC<{ label: string; instant?: boolean }> = ({ label, instant }) => {
+  const tipStyle = {
+    pointerEvents: "none" as const,
+    boxShadow: "0px 2px 6px rgba(16,22,40,0.08), 0px 24px 50px -26px rgba(16,22,40,0.42)",
+  } as ViewStyle;
+
+  if (instant) {
+    return (
+      <View
+        className="absolute left-[58px] top-[7px] bg-card border border-line rounded-[10px] px-2.5 py-1.5"
+        style={tipStyle}
+      >
+        <AppText weight="semibold" className="text-[12.5px] text-ink" numberOfLines={1} style={{ width: 170 } as any}>
+          {label}
+        </AppText>
+      </View>
+    );
+  }
+
+  return (
+    <FadeInView
+      duration={MotionDurations.micro}
+      translateY={2}
+      className="absolute left-[58px] top-[7px] bg-card border border-line rounded-[10px] px-2.5 py-1.5"
+      style={tipStyle}
+    >
+      <AppText weight="semibold" className="text-[12.5px] text-ink" numberOfLines={1} style={{ width: 170 } as any}>
+        {label}
+      </AppText>
+    </FadeInView>
+  );
+};

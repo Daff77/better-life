@@ -2,8 +2,6 @@ import React, { useState, useEffect } from "react";
 import {
   View,
   ScrollView,
-  Modal,
-  Pressable,
   Alert,
   Platform,
   Linking,
@@ -14,6 +12,7 @@ import {
   AppText,
   FadeInView,
   Header,
+  ModalSheet,
   PressableScale,
   Surface,
   CardHead,
@@ -642,48 +641,40 @@ export default function UpgradeScreen() {
       </ScrollView>
 
       {/* Cancellation Confirmation Dialog */}
-      <Modal
+      <ModalSheet
         visible={cancelModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setCancelModalVisible(false)}
+        onClose={() => setCancelModalVisible(false)}
+        variant="dialog"
+        showHandle={false}
+        accessibilityLabel="Batalkan perpanjangan otomatis"
+        contentClassName="w-full max-w-[380px] bg-[#fbfdfc] rounded-[24px] border border-[#e6eae7] p-5"
+        contentStyle={{ boxShadow: SURFACE_SHADOW } as any}
       >
-        <Pressable
-          className="flex-1 bg-[#121a16]/50 items-center justify-center px-6"
-          onPress={() => setCancelModalVisible(false)}
-        >
-          <Pressable
-            onPress={(e) => e.stopPropagation()}
-            style={{ boxShadow: SURFACE_SHADOW } as any}
-            className="w-full max-w-[380px] bg-[#fbfdfc] rounded-[24px] border border-[#e6eae7] p-5"
-          >
-            <AppText weight="semibold" className="text-lg text-[#121a16] mb-1.5">
-              Batalkan perpanjangan otomatis?
-            </AppText>
-            <AppText weight="regular" className="text-xs text-[#56605a] leading-relaxed mb-5">
-              Anda tetap memiliki akses penuh ke fitur Premium hingga akhir periode penagihan saat ini. Riwayat makanan dan data profil Anda tidak akan pernah dihapus.
-            </AppText>
+        <AppText weight="semibold" className="text-lg text-[#121a16] mb-1.5">
+          Batalkan perpanjangan otomatis?
+        </AppText>
+        <AppText weight="regular" className="text-xs text-[#56605a] leading-relaxed mb-5">
+          Anda tetap memiliki akses penuh ke fitur Premium hingga akhir periode penagihan saat ini. Riwayat makanan dan data profil Anda tidak akan pernah dihapus.
+        </AppText>
 
-            <View className="flex-row justify-end gap-2.5">
-              <PillButton
-                label="Pertahankan"
-                variant="soft"
-                onPress={() => setCancelModalVisible(false)}
-              />
-              <PressableScale
-                onPress={handleCancelAutoRenew}
-                className="px-4 min-h-[44px] rounded-full bg-[#b3301b] items-center justify-center"
-                accessibilityRole="button"
-                accessibilityLabel="Konfirmasi batalkan perpanjangan otomatis"
-              >
-                <AppText weight="semibold" className="text-xs text-white">
-                  Ya, batalkan
-                </AppText>
-              </PressableScale>
-            </View>
-          </Pressable>
-        </Pressable>
-      </Modal>
+        <View className="flex-row justify-end gap-2.5">
+          <PillButton
+            label="Pertahankan"
+            variant="soft"
+            onPress={() => setCancelModalVisible(false)}
+          />
+          <PressableScale
+            onPress={handleCancelAutoRenew}
+            className="px-4 min-h-[44px] rounded-full bg-[#b3301b] items-center justify-center"
+            accessibilityRole="button"
+            accessibilityLabel="Konfirmasi batalkan perpanjangan otomatis"
+          >
+            <AppText weight="semibold" className="text-xs text-white">
+              Ya, batalkan
+            </AppText>
+          </PressableScale>
+        </View>
+      </ModalSheet>
     </ScreenWrapper>
   );
 }

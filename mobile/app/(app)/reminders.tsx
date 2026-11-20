@@ -2,9 +2,6 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
   ScrollView,
-  Modal,
-  Pressable,
-  StyleSheet,
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from "react-native";
@@ -14,6 +11,7 @@ import {
   AppText,
   FadeInView,
   Header,
+  ModalSheet,
   PressableScale,
   Surface,
   CardHead,
@@ -577,109 +575,100 @@ export default function RemindersScreen() {
       </ScrollView>
 
       {/* Wheel time picker */}
-      <Modal
+      <ModalSheet
         visible={editingTarget !== null}
-        transparent
-        animationType="fade"
-        onRequestClose={closePicker}
+        onClose={closePicker}
+        variant="sheet"
+        accessibilityLabel={editingTarget?.label || "Pengatur waktu"}
+        contentClassName="w-full max-w-md bg-card rounded-t-[28px] sm:rounded-[28px] border border-line overflow-hidden"
       >
-        <View className="flex-1 justify-end sm:justify-center items-center p-0 sm:p-6">
-          <Pressable
-            style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(18, 24, 20, 0.45)" }]}
-            onPress={closePicker}
-            accessibilityRole="button"
-            accessibilityLabel="Tutup pengatur waktu"
-          />
-          {editingTarget && (
-            <FadeInView duration={220} translateY={16} className="w-full max-w-md z-10">
-              <Surface className="w-full rounded-t-[28px] sm:rounded-[28px] p-5 sm:p-6">
-                <View className="items-center mb-4">
-                  {(() => {
-                    const phase = getDayPhase(preview);
-                    return (
-                      <View
-                        className="flex-row items-center gap-1.5 px-3 py-1 rounded-full mb-2"
-                        style={{ backgroundColor: phase.bg }}
-                      >
-                        <LineIcon name={phase.icon} size={14} color={phase.color} />
-                        <AppText weight="semibold" className="text-[12px]" style={{ color: phase.color }}>
-                          {phase.label}
-                        </AppText>
-                      </View>
-                    );
-                  })()}
-                  <AppText weight="medium" className="text-[13px] text-muted">
-                    {editingTarget.label}
-                  </AppText>
-                  <AppText
-                    weight="semibold"
-                    className="text-ink mt-1"
-                    style={{ ...tnum, fontSize: 40, lineHeight: 46, letterSpacing: -1 }}
-                  >
-                    {preview}
-                  </AppText>
-                </View>
-
-                {/* Wheels */}
-                <View
-                  className="bg-card-2 border border-line rounded-[20px] overflow-hidden flex-row items-center px-6"
-                  style={{ height: WHEEL_HEIGHT }}
-                >
+        {editingTarget && (
+          <View className="w-full p-5 sm:p-6 pt-2">
+            <View className="items-center mb-4">
+              {(() => {
+                const phase = getDayPhase(preview);
+                return (
                   <View
-                    pointerEvents="none"
-                    style={{
-                      position: "absolute",
-                      left: 12,
-                      right: 12,
-                      top: WHEEL_PADDING,
-                      height: ITEM_HEIGHT,
-                      borderRadius: 12,
-                      backgroundColor: "rgba(14, 122, 82, 0.09)",
-                    }}
-                  />
-                  <WheelColumn
-                    key={`h-${editingTarget.label}`}
-                    values={HOURS}
-                    initialIndex={selectedHour}
-                    onChange={setSelectedHour}
-                    accessibilityLabel="Pilih jam"
-                  />
-                  <AppText weight="bold" className="text-[26px] text-ink px-2" style={{ marginTop: -4 }}>
-                    :
-                  </AppText>
-                  <WheelColumn
-                    key={`m-${editingTarget.label}`}
-                    values={MINUTES}
-                    initialIndex={selectedMinute}
-                    onChange={setSelectedMinute}
-                    accessibilityLabel="Pilih menit"
-                  />
-                </View>
+                    className="flex-row items-center gap-1.5 px-3 py-1 rounded-full mb-2"
+                    style={{ backgroundColor: phase.bg }}
+                  >
+                    <LineIcon name={phase.icon} size={14} color={phase.color} />
+                    <AppText weight="semibold" className="text-[12px]" style={{ color: phase.color }}>
+                      {phase.label}
+                    </AppText>
+                  </View>
+                );
+              })()}
+              <AppText weight="medium" className="text-[13px] text-muted">
+                {editingTarget.label}
+              </AppText>
+              <AppText
+                weight="semibold"
+                className="text-ink mt-1"
+                style={{ ...tnum, fontSize: 40, lineHeight: 46, letterSpacing: -1 }}
+              >
+                {preview}
+              </AppText>
+            </View>
 
-                <View className="flex-row justify-around mt-2 mb-5 px-6">
-                  <AppText weight="semibold" className="text-[11px] text-muted">
-                    JAM
-                  </AppText>
-                  <AppText weight="semibold" className="text-[11px] text-muted">
-                    MENIT
-                  </AppText>
-                </View>
+            {/* Wheels */}
+            <View
+              className="bg-card-2 border border-line rounded-[20px] overflow-hidden flex-row items-center px-6"
+              style={{ height: WHEEL_HEIGHT }}
+            >
+              <View
+                pointerEvents="none"
+                style={{
+                  position: "absolute",
+                  left: 12,
+                  right: 12,
+                  top: WHEEL_PADDING,
+                  height: ITEM_HEIGHT,
+                  borderRadius: 12,
+                  backgroundColor: "rgba(14, 122, 82, 0.09)",
+                }}
+              />
+              <WheelColumn
+                key={`h-${editingTarget.label}`}
+                values={HOURS}
+                initialIndex={selectedHour}
+                onChange={setSelectedHour}
+                accessibilityLabel="Pilih jam"
+              />
+              <AppText weight="bold" className="text-[26px] text-ink px-2" style={{ marginTop: -4 }}>
+                :
+              </AppText>
+              <WheelColumn
+                key={`m-${editingTarget.label}`}
+                values={MINUTES}
+                initialIndex={selectedMinute}
+                onChange={setSelectedMinute}
+                accessibilityLabel="Pilih menit"
+              />
+            </View>
 
-                <View className="flex-row gap-2.5">
-                  <PillButton label="Batal" onPress={closePicker} className="flex-1" />
-                  <PillButton
-                    label="Simpan"
-                    variant="primary"
-                    icon="check"
-                    onPress={handleSave}
-                    className="flex-1"
-                  />
-                </View>
-              </Surface>
-            </FadeInView>
-          )}
-        </View>
-      </Modal>
+            <View className="flex-row justify-around mt-2 mb-5 px-6">
+              <AppText weight="semibold" className="text-[11px] text-muted">
+                JAM
+              </AppText>
+              <AppText weight="semibold" className="text-[11px] text-muted">
+                MENIT
+              </AppText>
+            </View>
+
+            <View className="flex-row gap-2.5">
+              <PillButton label="Batal" onPress={closePicker} className="flex-1" />
+              <PillButton
+                label="Simpan"
+                variant="primary"
+                icon="check"
+                onPress={handleSave}
+                className="flex-1"
+              />
+            </View>
+          </View>
+        )}
+      </ModalSheet>
     </ScreenWrapper>
   );
 }

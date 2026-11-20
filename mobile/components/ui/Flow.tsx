@@ -15,6 +15,7 @@ import Animated, {
   Easing,
   cancelAnimation,
   useAnimatedStyle,
+  useReducedMotion,
   useSharedValue,
   withSpring,
   withTiming,
@@ -24,7 +25,11 @@ import { PressableScale } from "./PressableScale";
 import { FadeInView } from "./FadeInView";
 import { LineIcon, LineIconName } from "./LineIcon";
 import { Colors } from "@/constants/DesignTokens";
-import { AnimationEasings, MotionCurves } from "@/constants/AnimationTokens";
+import {
+  AnimationEasings,
+  MotionCurves,
+  MotionDurations,
+} from "@/constants/AnimationTokens";
 
 /*
  * Flow kit: the shared shell for authentication and personalization screens.
@@ -38,25 +43,51 @@ const easeOut = Easing.bezier(...MotionCurves.out);
 /* ---------------------------------------------------------- StepProgress */
 
 const StepProgressSegment: React.FC<{ active: boolean }> = ({ active }) => {
+  const reduceMotion = useReducedMotion();
+  const trackWidthSV = useSharedValue(0);
   const fill = useSharedValue(active ? 1 : 0);
 
   useEffect(() => {
+    if (reduceMotion) {
+      cancelAnimation(fill);
+      fill.value = active ? 1 : 0;
+      return;
+    }
+
     fill.value = withTiming(active ? 1 : 0, {
-      duration: 280,
+      duration: MotionDurations.enter,
       easing: easeOut,
     });
     return () => {
       cancelAnimation(fill);
     };
-  }, [active, fill]);
+  }, [active, reduceMotion, fill]);
 
-  const fillStyle = useAnimatedStyle(() => ({
-    width: `${Math.round(fill.value * 100)}%`,
-    opacity: 0.35 + fill.value * 0.65,
-  }));
+  const fillStyle = useAnimatedStyle(() => {
+    const ratio = Math.max(0, Math.min(1, fill.value));
+    const measuredWidth = trackWidthSV.value;
+    if (measuredWidth <= 0) {
+      return {
+        width: `${Math.round(ratio * 100)}%`,
+        opacity: 0.35 + ratio * 0.65,
+        transform: [{ translateX: 0 }],
+      };
+    }
+    return {
+      width: measuredWidth,
+      opacity: 0.35 + ratio * 0.65,
+      transform: [{ translateX: -measuredWidth * (1 - ratio) }],
+    };
+  });
 
   return (
     <View
+      onLayout={(e) => {
+        const w = e.nativeEvent.layout.width;
+        if (w > 0 && w !== trackWidthSV.value) {
+          trackWidthSV.value = w;
+        }
+      }}
       className="flex-1 h-1.5 rounded-full overflow-hidden"
       style={{ backgroundColor: "#d5dbd7" }}
     >
@@ -289,17 +320,24 @@ export interface ChoiceTileProps {
 
 /** Single- or multi-select row. Selection reads from border, fill and the indicator. */
 export const ChoiceTile: React.FC<ChoiceTileProps> = ({ title, caption, leading, selected, multi, onPress }) => {
-  const checkScale = useSharedValue(selected ? 1 : 0.75);
+  const reduceMotion = useReducedMotion();
+  const checkScale = useSharedValue(reduceMotion ? 1 : selected ? 1 : 0.9);
 
   useEffect(() => {
-    checkScale.value = withSpring(selected ? 1 : 0.75, AnimationEasings.pressSpringConfig);
+    if (reduceMotion) {
+      cancelAnimation(checkScale);
+      checkScale.value = 1;
+      return;
+    }
+
+    checkScale.value = withSpring(selected ? 1 : 0.9, AnimationEasings.pressSpringConfig);
     return () => {
       cancelAnimation(checkScale);
     };
-  }, [selected, checkScale]);
+  }, [selected, reduceMotion, checkScale]);
 
   const indicatorAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: checkScale.value }],
+    transform: [{ scale: reduceMotion ? 1 : checkScale.value }],
   }));
 
   return (

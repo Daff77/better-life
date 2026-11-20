@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import {
   PressableProps,
   StyleProp,
@@ -9,6 +9,7 @@ import {
 import {
   cancelAnimation,
   useAnimatedStyle,
+  useReducedMotion,
   useSharedValue,
   withSpring,
   withTiming,
@@ -27,6 +28,12 @@ export interface PressableScaleProps extends Omit<PressableProps, "style"> {
   /** Optional subtle hover scale on Web; defaults to 1.006. */
   hoverScale?: number;
 }
+
+const canHoverFinePointer = () =>
+  Platform.OS === "web" &&
+  typeof window !== "undefined" &&
+  typeof window.matchMedia === "function" &&
+  window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 
 /**
  * Hardware-accelerated tactile press wrapper powered by Reanimated UI-thread springs
@@ -47,41 +54,58 @@ export const PressableScale: React.FC<PressableScaleProps> = ({
   onHoverOut,
   ...props
 }) => {
+  const reduceMotion = useReducedMotion();
+  const isHoveredRef = useRef(false);
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
 
   useEffect(() => {
+    if (reduceMotion) {
+      scale.value = 1;
+    }
     return () => {
       cancelAnimation(scale);
       cancelAnimation(opacity);
     };
-  }, [scale, opacity]);
+  }, [reduceMotion, scale, opacity]);
 
   const handlePressIn = (e: GestureResponderEvent) => {
     if (!disabled) {
-      scale.value = withSpring(pressedScale, AnimationEasings.pressSpringConfig);
-      opacity.value = withTiming(pressedOpacity, { duration: 90 });
+      if (!reduceMotion) {
+        scale.value = withSpring(pressedScale, AnimationEasings.pressSpringConfig);
+        opacity.value = withTiming(pressedOpacity, { duration: 80 });
+      } else {
+        opacity.value = withTiming(Math.min(pressedOpacity, 0.78), { duration: 80 });
+      }
     }
     onPressIn?.(e);
   };
 
   const handlePressOut = (e: GestureResponderEvent) => {
     if (!disabled) {
-      scale.value = withSpring(1, AnimationEasings.pressSpringConfig);
+      if (!reduceMotion) {
+        const restScale =
+          isHoveredRef.current && canHoverFinePointer() ? hoverScale : 1;
+        scale.value = withSpring(restScale, AnimationEasings.pressSpringConfig);
+      } else {
+        scale.value = 1;
+      }
       opacity.value = withTiming(1, { duration: 140 });
     }
     onPressOut?.(e);
   };
 
   const handleHoverIn = (e: any) => {
-    if (!disabled && Platform.OS === "web") {
+    isHoveredRef.current = true;
+    if (!disabled && !reduceMotion && canHoverFinePointer()) {
       scale.value = withSpring(hoverScale, AnimationEasings.microSpringConfig);
     }
     onHoverIn?.(e);
   };
 
   const handleHoverOut = (e: any) => {
-    if (!disabled && Platform.OS === "web") {
+    isHoveredRef.current = false;
+    if (!disabled && !reduceMotion && canHoverFinePointer()) {
       scale.value = withSpring(1, AnimationEasings.microSpringConfig);
     }
     onHoverOut?.(e);
@@ -89,7 +113,7 @@ export const PressableScale: React.FC<PressableScaleProps> = ({
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
-    transform: [{ scale: scale.value }],
+    transform: [{ scale: reduceMotion ? 1 : scale.value }],
   }));
 
   return (

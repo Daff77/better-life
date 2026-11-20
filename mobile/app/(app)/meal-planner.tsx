@@ -4,8 +4,6 @@ import {
   ScrollView,
   TextInput,
   ActivityIndicator,
-  Modal,
-  Pressable,
   Image,
 } from "react-native";
 import { useRouter } from "expo-router";
@@ -14,6 +12,7 @@ import {
   AppText,
   FadeInView,
   Header,
+  ModalSheet,
   PressableScale,
   Surface,
   CardHead,
@@ -828,21 +827,15 @@ export default function MealPlannerScreen() {
       </ScrollView>
 
       {/* Preferences Configuration Modal */}
-      <Modal
+      <ModalSheet
         visible={preferenceModalOpen}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setPreferenceModalOpen(false)}
+        onClose={() => setPreferenceModalOpen(false)}
+        variant="dialog"
+        showHandle={false}
+        accessibilityLabel="Preferensi rencana makan"
+        contentClassName="w-full max-w-[500px] bg-[#fbfdfc] rounded-[24px] border border-[#e6eae7] p-5 max-h-[90%] flex-col"
+        contentStyle={{ boxShadow: SURFACE_SHADOW } as any}
       >
-        <Pressable
-          className="flex-1 bg-[#121a16]/50 items-center justify-center px-4 py-8"
-          onPress={() => setPreferenceModalOpen(false)}
-        >
-          <Pressable
-            onPress={(e) => e.stopPropagation()}
-            style={{ boxShadow: SURFACE_SHADOW } as any}
-            className="w-full max-w-[500px] bg-[#fbfdfc] rounded-[24px] border border-[#e6eae7] p-5 max-h-[90%] flex-col"
-          >
             <View className="flex-row justify-between items-center mb-4 pb-3 border-b border-[#e6eae7] gap-2">
               <View className="flex-1 min-w-0">
                 <AppText weight="semibold" className="text-lg text-[#121a16]">
@@ -995,26 +988,18 @@ export default function MealPlannerScreen() {
                 disabled={isGenerating}
               />
             </View>
-          </Pressable>
-        </Pressable>
-      </Modal>
+      </ModalSheet>
 
       {/* Substitution Modal */}
-      <Modal
+      <ModalSheet
         visible={substitutionModal.isOpen}
-        transparent
-        animationType="fade"
-        onRequestClose={closeSubstitutionModal}
+        onClose={closeSubstitutionModal}
+        variant="dialog"
+        showHandle={false}
+        accessibilityLabel={`Ganti menu ${substitutionModal.slot}`}
+        contentClassName="w-full max-w-[480px] bg-[#fbfdfc] rounded-[24px] border border-[#e6eae7] p-5 max-h-[85%] flex-col"
+        contentStyle={{ boxShadow: SURFACE_SHADOW } as any}
       >
-        <Pressable
-          className="flex-1 bg-[#121a16]/50 items-center justify-center px-4 py-8"
-          onPress={closeSubstitutionModal}
-        >
-          <Pressable
-            onPress={(e) => e.stopPropagation()}
-            style={{ boxShadow: SURFACE_SHADOW } as any}
-            className="w-full max-w-[480px] bg-[#fbfdfc] rounded-[24px] border border-[#e6eae7] p-5 max-h-[85%] flex-col"
-          >
             <View className="flex-row justify-between items-center mb-3 pb-3 border-b border-[#e6eae7] gap-2">
               <View className="flex-1 min-w-0">
                 <AppText weight="semibold" className="text-base text-[#121a16]">
@@ -1066,9 +1051,7 @@ export default function MealPlannerScreen() {
                 ))}
               </ScrollView>
             )}
-          </Pressable>
-        </Pressable>
-      </Modal>
+      </ModalSheet>
     </ScreenWrapper>
   );
 }

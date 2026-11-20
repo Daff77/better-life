@@ -12,12 +12,14 @@ import Animated, {
   Easing,
   cancelAnimation,
   useAnimatedStyle,
+  useReducedMotion,
   useSharedValue,
   withDelay,
   withTiming,
 } from "react-native-reanimated";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
 import {
+  AnimatedNumber,
   AppText,
   FadeInView,
   Header,
@@ -33,6 +35,7 @@ import {
   PillButton,
   RingButton,
   LineIcon,
+  SkeletonPulse,
 } from "@/components/ui";
 import { MotionCurves, MotionDurations } from "@/constants/AnimationTokens";
 import { useAnalyticsStore } from "@/stores/useAnalyticsStore";
@@ -56,9 +59,16 @@ const AnimatedTrendBar: React.FC<{
   color: string;
   index: number;
 }> = ({ targetHeightPct, color, index }) => {
-  const heightPct = useSharedValue(0);
+  const reduceMotion = useReducedMotion();
+  const heightPct = useSharedValue(reduceMotion ? targetHeightPct : 0);
 
   useEffect(() => {
+    if (reduceMotion) {
+      cancelAnimation(heightPct);
+      heightPct.value = targetHeightPct;
+      return;
+    }
+
     heightPct.value = withDelay(
       Math.min(index, 14) * 24,
       withTiming(targetHeightPct, {
@@ -69,7 +79,7 @@ const AnimatedTrendBar: React.FC<{
     return () => {
       cancelAnimation(heightPct);
     };
-  }, [targetHeightPct, index, heightPct]);
+  }, [targetHeightPct, index, reduceMotion, heightPct]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     height: `${heightPct.value}%`,
@@ -93,17 +103,25 @@ const AnimatedTimingFill: React.FC<{
   targetPct: number;
   color: string;
 }> = ({ targetPct, color }) => {
-  const widthPct = useSharedValue(0);
+  const reduceMotion = useReducedMotion();
+  const clamped = Math.max(0, Math.min(100, targetPct));
+  const widthPct = useSharedValue(reduceMotion ? clamped : 0);
 
   useEffect(() => {
-    widthPct.value = withTiming(Math.max(0, Math.min(100, targetPct)), {
+    if (reduceMotion) {
+      cancelAnimation(widthPct);
+      widthPct.value = clamped;
+      return;
+    }
+
+    widthPct.value = withTiming(clamped, {
       duration: MotionDurations.fill,
       easing: barEaseOut,
     });
     return () => {
       cancelAnimation(widthPct);
     };
-  }, [targetPct, widthPct]);
+  }, [clamped, reduceMotion, widthPct]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     width: `${widthPct.value}%`,
@@ -649,12 +667,21 @@ export default function AnalyticsScreen() {
         )}
 
         {isLoading && !analyticsData ? (
-          <Surface className="py-16 items-center justify-center">
-            <ActivityIndicator size="large" color="#0e7a52" />
-            <AppText weight="medium" className="text-xs text-[#56605a] mt-3">
-              Menghitung tren nutrisi...
-            </AppText>
-          </Surface>
+          <View className="gap-4">
+            <Surface>
+              <SkeletonPulse width="48%" height={18} borderRadius={8} className="mb-3" />
+              <SkeletonPulse width="56%" height={38} borderRadius={10} className="mb-4" />
+              <View className="flex-col sm:flex-row gap-3">
+                <SkeletonPulse height={88} borderRadius={18} className="flex-1" />
+                <SkeletonPulse height={88} borderRadius={18} className="flex-1" />
+                <SkeletonPulse height={88} borderRadius={18} className="flex-1" />
+              </View>
+            </Surface>
+            <Surface>
+              <SkeletonPulse width="40%" height={18} borderRadius={8} className="mb-4" />
+              <SkeletonPulse height={150} borderRadius={14} />
+            </Surface>
+          </View>
         ) : error ? (
           <Surface className="py-10 items-center justify-center">
             <View className="w-11 h-11 rounded-2xl bg-[#fde9e7] items-center justify-center mb-3">
@@ -689,13 +716,14 @@ export default function AnalyticsScreen() {
                 />
 
                 <View className="flex-row items-baseline gap-2 mb-4 flex-wrap">
-                  <AppText
+                  <AnimatedNumber
+                    value={analyticsData?.summary.averageDailyCalories ?? 0}
+                    formatter={(v) => Math.round(v).toLocaleString("id-ID")}
+                    duration={420}
                     weight="semibold"
                     className="text-3xl sm:text-4xl text-[#121a16]"
                     style={{ fontVariant: ["tabular-nums"], letterSpacing: -1.1 }}
-                  >
-                    {analyticsData?.summary.averageDailyCalories.toLocaleString("id-ID")}
-                  </AppText>
+                  />
                   <AppText
                     weight="regular"
                     className="text-sm text-[#56605a]"
@@ -714,13 +742,14 @@ export default function AnalyticsScreen() {
                       </AppText>
                       <LineIcon name="target" size={15} color="#ffffff" />
                     </View>
-                    <AppText
+                    <AnimatedNumber
+                      value={analyticsData?.summary.adherenceScore ?? 0}
+                      formatter={(v) => `${Math.round(v)}%`}
+                      duration={420}
                       weight="semibold"
                       className="text-2xl text-white"
                       style={{ fontVariant: ["tabular-nums"], letterSpacing: -0.6 }}
-                    >
-                      {analyticsData?.summary.adherenceScore}%
-                    </AppText>
+                    />
                     <AppText weight="regular" className="text-[11px] text-white/80 mt-0.5">
                       Kalibrasi terhadap target
                     </AppText>

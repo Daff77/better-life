@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Linking, Platform, ScrollView, View } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
-import { AppText, Button, Header, Input, ProgressBar, Surface } from "@/components/ui";
+import { AnimatedNumber, AppText, Button, Header, Input, ProgressBar, Surface } from "@/components/ui";
 import {
   useActivityIdentity,
   useActivityStats,
@@ -139,13 +139,24 @@ export default function StepsScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <Surface style={{ gap: 12 }}>
-          <AppText
-            weight="bold"
-            className="text-[36px] text-ink"
-            style={{ fontVariant: ["tabular-nums"] }}
-          >
-            {activity.isPending ? "Memuat…" : steps.toLocaleString("id-ID")}
-          </AppText>
+          {activity.isPending ? (
+            <AppText
+              weight="bold"
+              className="text-[36px] text-ink"
+              style={{ fontVariant: ["tabular-nums"] }}
+            >
+              Memuat…
+            </AppText>
+          ) : (
+            <AnimatedNumber
+              value={steps}
+              formatter={(v) => Math.round(v).toLocaleString("id-ID")}
+              duration={420}
+              weight="bold"
+              className="text-[36px] text-ink"
+              style={{ fontVariant: ["tabular-nums"] }}
+            />
+          )}
           <AppText className="text-muted" style={{ fontVariant: ["tabular-nums"] }}>
             Target {goal.toLocaleString("id-ID")} langkah per hari
           </AppText>

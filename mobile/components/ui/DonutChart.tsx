@@ -5,6 +5,7 @@ import Animated, {
   Easing,
   cancelAnimation,
   useAnimatedProps,
+  useReducedMotion,
   useSharedValue,
   withTiming,
   type SharedValue,
@@ -42,12 +43,50 @@ const DonutArc: React.FC<{
   center: number;
   strokeWidth: number;
   gap: number;
-}> = ({ progress, start, fraction, color, radius, circumference, center, strokeWidth, gap }) => {
+  reduceMotion: boolean;
+}> = ({
+  progress,
+  start,
+  fraction,
+  color,
+  radius,
+  circumference,
+  center,
+  strokeWidth,
+  gap,
+  reduceMotion,
+}) => {
+  const animatedStart = useSharedValue(start);
+  const animatedFraction = useSharedValue(fraction);
+
+  useEffect(() => {
+    if (reduceMotion) {
+      cancelAnimation(animatedStart);
+      cancelAnimation(animatedFraction);
+      animatedStart.value = start;
+      animatedFraction.value = fraction;
+      return;
+    }
+
+    const timing = {
+      duration: MotionDurations.fill,
+      easing: Easing.bezier(...MotionCurves.out),
+    };
+    animatedStart.value = withTiming(start, timing);
+    animatedFraction.value = withTiming(fraction, timing);
+
+    return () => {
+      cancelAnimation(animatedStart);
+      cancelAnimation(animatedFraction);
+    };
+  }, [start, fraction, reduceMotion, animatedStart, animatedFraction]);
+
   const animatedProps = useAnimatedProps(() => {
-    const len = Math.max(0, fraction * circumference * progress.value - gap);
+    const sweep = progress.value;
+    const len = Math.max(0, animatedFraction.value * circumference * sweep - gap);
     return {
       strokeDasharray: `${len} ${circumference}`,
-      strokeDashoffset: -start * circumference * progress.value,
+      strokeDashoffset: -animatedStart.value * circumference * sweep,
       strokeOpacity: len > 0.5 ? 1 : 0,
     };
   });
@@ -68,7 +107,7 @@ const DonutArc: React.FC<{
 
 /**
  * Multi-segment donut. Each segment is drawn as an arc proportional to `value / total`,
- * sweeping in clockwise from 12 o'clock with an ease-out fill.
+ * sweeping in clockwise from 12 o'clock on mount and morphing smoothly on live updates.
  */
 export const DonutChart: React.FC<DonutChartProps> = ({
   segments,
@@ -80,25 +119,31 @@ export const DonutChart: React.FC<DonutChartProps> = ({
   children,
   accessibilityLabel,
 }) => {
+  const reduceMotion = Boolean(useReducedMotion());
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const center = size / 2;
 
-  const visible = segments.filter((s) => s.value > 0);
-  const sum = visible.reduce((acc, s) => acc + s.value, 0);
+  const visibleCount = segments.filter((s) => s.value > 0).length;
+  const sum = segments.reduce((acc, s) => acc + Math.max(0, s.value), 0);
   const denom = Math.max(total, sum, 1);
-  const effectiveGap = visible.length > 1 ? gap : 0;
+  const effectiveGap = visibleCount > 1 ? gap : 0;
 
-  const progress = useSharedValue(0);
-  const signature = visible.map((s) => `${s.key}:${Math.round(s.value)}`).join("|") + `/${denom}`;
+  const progress = useSharedValue(reduceMotion ? 1 : 0);
 
   useEffect(() => {
+    if (reduceMotion) {
+      cancelAnimation(progress);
+      progress.value = 1;
+      return;
+    }
+
     progress.value = withTiming(1, {
       duration: MotionDurations.fill,
       easing: Easing.bezier(...MotionCurves.out),
     });
     return () => cancelAnimation(progress);
-  }, [signature, progress]);
+  }, [reduceMotion, progress]);
 
   let cursor = 0;
 
@@ -111,8 +156,9 @@ export const DonutChart: React.FC<DonutChartProps> = ({
     >
       <Svg width={size} height={size} style={{ transform: [{ rotate: "-90deg" }] }}>
         <Circle cx={center} cy={center} r={radius} stroke={trackColor} strokeWidth={strokeWidth} fill="none" />
-        {visible.map((s) => {
-          const fraction = s.value / denom;
+        {segments.map((s) => {
+          const safeVal = Math.max(0, s.value);
+          const fraction = safeVal / denom;
           const start = cursor;
           cursor += fraction;
           return (
@@ -126,7 +172,8 @@ export const DonutChart: React.FC<DonutChartProps> = ({
               circumference={circumference}
               center={center}
               strokeWidth={strokeWidth}
-              gap={effectiveGap}
+              gap={safeVal > 0 ? effectiveGap : 0}
+              reduceMotion={reduceMotion}
             />
           );
         })}

@@ -5,6 +5,7 @@ import Animated, {
   cancelAnimation,
   useSharedValue,
   useAnimatedStyle,
+  useReducedMotion,
   withSpring,
 } from "react-native-reanimated";
 import {
@@ -27,9 +28,17 @@ export const AnimatedTabIcon: React.FC<AnimatedTabIconProps> = ({
   color,
   size = 22,
 }) => {
-  const scale = useSharedValue(focused ? AnimationScales.activeTab : 1);
+  const reduceMotion = useReducedMotion();
+  const scale = useSharedValue(
+    reduceMotion ? 1 : focused ? AnimationScales.activeTab : 1
+  );
 
   useEffect(() => {
+    if (reduceMotion) {
+      cancelAnimation(scale);
+      scale.value = 1;
+      return;
+    }
     scale.value = withSpring(
       focused ? AnimationScales.activeTab : 1,
       AnimationEasings.tabSpringConfig
@@ -37,10 +46,10 @@ export const AnimatedTabIcon: React.FC<AnimatedTabIconProps> = ({
     return () => {
       cancelAnimation(scale);
     };
-  }, [focused, scale]);
+  }, [focused, reduceMotion, scale]);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
+    transform: [{ scale: reduceMotion ? 1 : scale.value }],
   }));
 
   const iconColor = typeof color === "string" ? color : focused ? "#0e7a52" : "#94a3b8";

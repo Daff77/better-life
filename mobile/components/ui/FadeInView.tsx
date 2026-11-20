@@ -2,7 +2,6 @@ import React, { useEffect } from "react";
 import { ViewProps } from "react-native";
 import {
   Easing,
-  ReduceMotion,
   cancelAnimation,
   useAnimatedStyle,
   useReducedMotion,
@@ -12,11 +11,15 @@ import {
   withTiming,
 } from "react-native-reanimated";
 import { AnimatedView } from "@/lib/nativewindInterop";
-import { MotionCurves, MotionDurations } from "@/constants/AnimationTokens";
+import {
+  AnimationEasings,
+  MotionCurves,
+  MotionDurations,
+} from "@/constants/AnimationTokens";
 
 export interface FadeInViewProps extends ViewProps {
   children: React.ReactNode;
-  /** Position in a stagger group (0, 1, 2...). Multiplied by 45ms, capped at 240ms. */
+  /** Position in a stagger group (0, 1, 2...). Multiplied by 35ms, capped at 180ms. */
   index?: number;
   /** Explicit delay in ms (overrides index). */
   delay?: number;
@@ -24,22 +27,17 @@ export interface FadeInViewProps extends ViewProps {
   distance?: number;
   /** Alias for distance (initial downward translateY offset in px). */
   translateY?: number;
-  /** Entrance duration in ms; defaults to MotionDurations.enter (320ms). */
+  /** Initial horizontal offset in px (e.g. for directional step slides); defaults to 0. */
+  translateX?: number;
+  /** Entrance duration in ms; defaults to MotionDurations.enter (260ms). */
   duration?: number;
   className?: string;
 }
 
 const easeOut = Easing.bezier(...MotionCurves.out);
-const ENTRANCE_SPRING = {
-  damping: 26,
-  stiffness: 250,
-  mass: 0.62,
-  overshootClamping: true,
-  reduceMotion: ReduceMotion.Never,
-};
 
 /**
- * Staggered entrance animation (fade + physical spring upward slide) running on the
+ * Staggered entrance animation (fade + physical spring slide) running on the
  * Reanimated UI thread on both Expo Go (Android/iOS) and Web, while preserving
  * all NativeWind v4 `className` layout rules via `AnimatedView`.
  */
@@ -49,6 +47,7 @@ export const FadeInView: React.FC<FadeInViewProps> = ({
   delay,
   distance = 8,
   translateY,
+  translateX = 0,
   duration = MotionDurations.enter,
   className,
   style,
@@ -56,19 +55,31 @@ export const FadeInView: React.FC<FadeInViewProps> = ({
 }) => {
   const reduceMotion = useReducedMotion();
   const opacity = useSharedValue(0);
-  const offset = useSharedValue(1);
+  const offset = useSharedValue(reduceMotion ? 0 : 1);
   const resolvedDistance = translateY !== undefined ? translateY : distance;
 
   useEffect(() => {
+    if (reduceMotion) {
+      cancelAnimation(offset);
+      offset.value = 0;
+      opacity.value = withTiming(1, {
+        duration: Math.min(duration, MotionDurations.micro),
+        easing: easeOut,
+      });
+      return () => {
+        cancelAnimation(opacity);
+        cancelAnimation(offset);
+      };
+    }
+
     const startDelay =
       delay !== undefined
         ? delay
-        : Math.min(200, Math.max(0, index) * 36);
+        : Math.min(180, Math.max(0, index) * MotionDurations.stagger);
 
     const fadeConfig = {
-      duration: reduceMotion ? 120 : duration,
+      duration,
       easing: easeOut,
-      reduceMotion: ReduceMotion.Never,
     };
 
     opacity.value = 0;
@@ -76,10 +87,13 @@ export const FadeInView: React.FC<FadeInViewProps> = ({
 
     if (startDelay > 0) {
       opacity.value = withDelay(startDelay, withTiming(1, fadeConfig));
-      offset.value = withDelay(startDelay, withSpring(0, ENTRANCE_SPRING));
+      offset.value = withDelay(
+        startDelay,
+        withSpring(0, AnimationEasings.entranceSpringConfig)
+      );
     } else {
       opacity.value = withTiming(1, fadeConfig);
-      offset.value = withSpring(0, ENTRANCE_SPRING);
+      offset.value = withSpring(0, AnimationEasings.entranceSpringConfig);
     }
 
     return () => {
@@ -91,6 +105,9 @@ export const FadeInView: React.FC<FadeInViewProps> = ({
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
     transform: [
+      {
+        translateX: reduceMotion ? 0 : offset.value * translateX,
+      },
       {
         translateY: reduceMotion ? 0 : offset.value * resolvedDistance,
       },

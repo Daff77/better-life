@@ -5,14 +5,19 @@ import Animated, {
   Easing,
   cancelAnimation,
   useAnimatedStyle,
+  useReducedMotion,
   useSharedValue,
   withDelay,
   withSpring,
   withTiming,
 } from "react-native-reanimated";
 import { AppText } from "@/components/ui";
-import { BrandImages, IconRenderer } from "@/constants/Assets";
-import { MotionCurves } from "@/constants/AnimationTokens";
+import { BrandImages } from "@/constants/Assets";
+import {
+  AnimationEasings,
+  MotionCurves,
+  MotionDurations,
+} from "@/constants/AnimationTokens";
 import { useAuthStore } from "@/stores/useAuthStore";
 
 const easeOut = Easing.bezier(...MotionCurves.out);
@@ -42,15 +47,15 @@ function markEntrySplashSeen(): void {
 
 export default function SplashScreen() {
   const router = useRouter();
+  const reduceMotion = useReducedMotion();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const isLoading = useAuthStore((state) => state.isLoading);
   const onboardingCompleted = useAuthStore((state) => state.onboardingCompleted);
 
   // Reanimated shared values running on the UI thread
-  const logoScale = useSharedValue(0.88);
+  const logoScale = useSharedValue(0.92);
   const logoOpacity = useSharedValue(0);
   const hintOpacity = useSharedValue(0);
-  const bgOpacity = useSharedValue(0);
 
   // Track if navigation has occurred to prevent double-navigation
   const hasNavigated = useRef(false);
@@ -70,28 +75,34 @@ export default function SplashScreen() {
   };
 
   useEffect(() => {
-    // Run entrance sequence matching original splash.html CSS animations
-    bgOpacity.value = withTiming(1, { duration: 600, easing: easeOut });
-    logoScale.value = withDelay(
-      150,
-      withSpring(1, { damping: 16, stiffness: 180, mass: 0.9 })
-    );
-    logoOpacity.value = withDelay(
-      150,
-      withTiming(1, { duration: 500, easing: easeOut })
-    );
-    hintOpacity.value = withDelay(
-      1000,
-      withTiming(1, { duration: 400, easing: easeOut })
-    );
+    if (reduceMotion) {
+      logoScale.value = 1;
+      logoOpacity.value = withTiming(1, { duration: 120, easing: easeOut });
+      hintOpacity.value = withDelay(
+        200,
+        withTiming(1, { duration: MotionDurations.micro, easing: easeOut })
+      );
+    } else {
+      logoScale.value = withDelay(
+        80,
+        withSpring(1, AnimationEasings.entranceSpringConfig)
+      );
+      logoOpacity.value = withDelay(
+        80,
+        withTiming(1, { duration: 320, easing: easeOut })
+      );
+      hintOpacity.value = withDelay(
+        560,
+        withTiming(1, { duration: 280, easing: easeOut })
+      );
+    }
 
     return () => {
-      cancelAnimation(bgOpacity);
       cancelAnimation(logoScale);
       cancelAnimation(logoOpacity);
       cancelAnimation(hintOpacity);
     };
-  }, [bgOpacity, hintOpacity, logoOpacity, logoScale]);
+  }, [hintOpacity, logoOpacity, logoScale, reduceMotion]);
 
   useEffect(() => {
     if (isLoading) return;
@@ -104,13 +115,9 @@ export default function SplashScreen() {
     return () => clearTimeout(timer);
   }, [isLoading, isAuthenticated, onboardingCompleted]);
 
-  const bgAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: bgOpacity.value,
-  }));
-
   const logoAnimatedStyle = useAnimatedStyle(() => ({
     opacity: logoOpacity.value,
-    transform: [{ scale: logoScale.value }],
+    transform: reduceMotion ? [] : [{ scale: logoScale.value }],
   }));
 
   const hintAnimatedStyle = useAnimatedStyle(() => ({
@@ -124,26 +131,6 @@ export default function SplashScreen() {
       accessibilityRole="button"
       accessibilityLabel="Ketuk untuk melanjutkan"
     >
-      {/* Background Decorative Pattern */}
-      <Animated.View
-        style={[
-          {
-            position: "absolute",
-            width: "100%",
-            height: "100%",
-            pointerEvents: "none",
-          },
-          bgAnimatedStyle,
-        ]}
-      >
-        <IconRenderer
-          name="Group290"
-          width="100%"
-          height="100%"
-          preserveAspectRatio="none"
-        />
-      </Animated.View>
-
       {/* Brand Logo & Name */}
       <Animated.View
         style={[

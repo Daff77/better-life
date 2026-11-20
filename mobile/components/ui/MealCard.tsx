@@ -7,6 +7,7 @@ import {
 } from "react-native";
 import { AppText } from "./AppText";
 import { PressableScale } from "./PressableScale";
+import { AnimatedHeart } from "./AnimatedHeart";
 import { LineIcon } from "./LineIcon";
 import { PlusIconSvg, getMealIllustration } from "@/constants/Assets";
 import { SURFACE_SHADOW } from "./Surface";
@@ -81,11 +82,11 @@ export const MealCard: React.FC<MealCardProps> = ({
         isFavorite ? `Hapus ${displayTitle} dari favorit` : `Simpan ${displayTitle} ke favorit`
       }
     >
-      <LineIcon
-        name="heart"
-        size={14}
-        color={isFavorite ? "#b92d26" : "#6c7670"}
-        strokeWidth={isFavorite ? 2.2 : 1.75}
+      <AnimatedHeart
+        filled={isFavorite}
+        size={15}
+        activeColor="#b92d26"
+        inactiveColor="#6c7670"
       />
     </PressableScale>
   ) : null;

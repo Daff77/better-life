@@ -3,16 +3,18 @@ import {
   View,
   ScrollView,
   Image,
-  Modal,
-  Pressable,
   TextInput,
-  StyleSheet,
   KeyboardAvoidingView,
   Platform,
   useWindowDimensions,
   ViewStyle,
 } from "react-native";
-import Animated, { FadeIn, FadeOut, LinearTransition } from "react-native-reanimated";
+import Animated, {
+  FadeIn,
+  FadeOut,
+  LinearTransition,
+  useReducedMotion,
+} from "react-native-reanimated";
 import { useRouter } from "expo-router";
 import { ScreenWrapper } from "@/components/layout/ScreenWrapper";
 import {
@@ -23,6 +25,7 @@ import {
   AnimatedNumber,
   MealLogModal,
   MealCard,
+  ModalSheet,
   PressableScale,
   FadeInView,
   LineIcon,
@@ -139,6 +142,7 @@ export default function HomeScreen() {
   const isPremium = useSubscriptionStore((state) => state.isPremium);
 
   const todayDate = getTodayDateKey();
+  const reduceMotion = Boolean(useReducedMotion());
   const journals = useJournalStore((state) => state.journals);
   const lastUndoAction = useJournalStore((state) => state.lastUndoAction);
   const undoLastAction = useJournalStore((state) => state.undoLastAction);
@@ -918,9 +922,9 @@ export default function HomeScreen() {
               return (
                 <Animated.View
                   key={item.id}
-                  entering={FadeIn.duration(200)}
-                  exiting={FadeOut.duration(140)}
-                  layout={LinearTransition.duration(220)}
+                  entering={reduceMotion ? undefined : FadeIn.duration(200)}
+                  exiting={reduceMotion ? undefined : FadeOut.duration(140)}
+                  layout={reduceMotion ? undefined : LinearTransition.duration(220)}
                 >
                   <ListRow
                     last={i === allEntries.length - 1}
@@ -1169,110 +1173,104 @@ export default function HomeScreen() {
       <MealLogModal visible={isLogModalVisible} meal={selectedMealForLog} onClose={() => setIsLogModalVisible(false)} />
 
       {/* Edit Logged Entry Modal */}
-      <Modal
+      <ModalSheet
         visible={editingEntry !== null}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setEditingEntry(null)}
+        onClose={() => !isSavingEdit && setEditingEntry(null)}
+        dismissible={!isSavingEdit}
+        variant="sheet"
+        accessibilityLabel="Edit catatan makan"
+        contentClassName="w-full max-w-md bg-card rounded-t-[26px] sm:rounded-[26px] border border-line overflow-hidden"
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : undefined}
-          className="flex-1 justify-end sm:justify-center items-center p-0 sm:p-6"
+          className="w-full"
         >
-          <Pressable
-            style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(18, 24, 20, 0.45)" }]}
-            onPress={() => !isSavingEdit && setEditingEntry(null)}
-            accessibilityRole="button"
-            accessibilityLabel="Tutup edit catatan"
-          />
           {editingEntry && (
-            <FadeInView duration={220} translateY={14} className="w-full max-w-md z-10">
-              <Surface className="w-full rounded-t-[26px] sm:rounded-[26px] p-5">
-                <CardHead
-                  title="Edit catatan makan"
-                  caption="Ubah nama menu atau takaran porsi"
-                  right={
-                    <RingButton
-                      icon="close"
-                      onPress={() => !isSavingEdit && setEditingEntry(null)}
-                      accessibilityLabel="Tutup"
-                    />
-                  }
-                />
+            <View className="w-full p-5 pt-2">
+              <CardHead
+                title="Edit catatan makan"
+                caption="Ubah nama menu atau takaran porsi"
+                right={
+                  <RingButton
+                    icon="close"
+                    onPress={() => !isSavingEdit && setEditingEntry(null)}
+                    accessibilityLabel="Tutup"
+                  />
+                }
+              />
 
-                <View className="gap-3.5">
+              <View className="gap-3.5">
+                <View>
+                  <AppText weight="semibold" className="text-[12.5px] text-muted mb-1.5">
+                    Nama menu
+                  </AppText>
+                  <TextInput
+                    value={editTitle}
+                    onChangeText={setEditTitle}
+                    placeholder="Nama makanan"
+                    className="h-11 px-3.5 rounded-[14px] bg-card-2 border border-line text-ink text-sm"
+                    style={{ fontFamily: "Urbanist-SemiBold" }}
+                  />
+                </View>
+
+                <View className="flex-row items-center justify-between rounded-[16px] bg-card-2 border border-line px-3.5 py-2.5">
                   <View>
-                    <AppText weight="semibold" className="text-[12.5px] text-muted mb-1.5">
-                      Nama menu
+                    <AppText weight="semibold" className="text-[13.5px] text-ink">
+                      Jumlah porsi
                     </AppText>
-                    <TextInput
-                      value={editTitle}
-                      onChangeText={setEditTitle}
-                      placeholder="Nama makanan"
-                      className="h-11 px-3.5 rounded-[14px] bg-card-2 border border-line text-ink text-sm"
-                      style={{ fontFamily: "Urbanist-SemiBold" }}
-                    />
+                    <AppText weight="bold" className="text-xs text-primary-text mt-0.5" style={tnum}>
+                      Total {editPreviewCalories} kcal
+                    </AppText>
                   </View>
 
-                  <View className="flex-row items-center justify-between rounded-[16px] bg-card-2 border border-line px-3.5 py-2.5">
-                    <View>
-                      <AppText weight="semibold" className="text-[13.5px] text-ink">
-                        Jumlah porsi
-                      </AppText>
-                      <AppText weight="bold" className="text-xs text-primary-text mt-0.5" style={tnum}>
-                        Total {editPreviewCalories} kcal
-                      </AppText>
-                    </View>
-
-                    <View className="flex-row items-center gap-2">
-                      <PressableScale
-                        onPress={() =>
-                          setEditQuantity((q) => Math.max(0.25, Math.round((q - 0.25) * 100) / 100))
-                        }
-                        className="w-9 h-9 rounded-full bg-card border border-line items-center justify-center"
-                        accessibilityRole="button"
-                        accessibilityLabel="Kurangi porsi 0.25"
-                      >
-                        <LineIcon name="minus" size={14} color="#121a16" />
-                      </PressableScale>
-                      <AppText weight="bold" className="text-[15px] text-ink min-w-[46px] text-center" style={tnum}>
-                        {editQuantity}x
-                      </AppText>
-                      <PressableScale
-                        onPress={() =>
-                          setEditQuantity((q) => Math.min(10, Math.round((q + 0.25) * 100) / 100))
-                        }
-                        className="w-9 h-9 rounded-full bg-card border border-line items-center justify-center"
-                        accessibilityRole="button"
-                        accessibilityLabel="Tambah porsi 0.25"
-                      >
-                        <LineIcon name="plus" size={14} color="#121a16" />
-                      </PressableScale>
-                    </View>
-                  </View>
-
-                  <View className="flex-row gap-2.5 pt-1">
-                    <PillButton
-                      label="Batal"
-                      onPress={() => setEditingEntry(null)}
-                      disabled={isSavingEdit}
-                      className="flex-1"
-                    />
-                    <PillButton
-                      label={isSavingEdit ? "Menyimpan..." : "Simpan Perubahan"}
-                      variant="primary"
-                      icon="check"
-                      onPress={() => void handleSaveEditEntry()}
-                      disabled={isSavingEdit || !editTitle.trim()}
-                      className="flex-1"
-                    />
+                  <View className="flex-row items-center gap-2">
+                    <PressableScale
+                      onPress={() =>
+                        setEditQuantity((q) => Math.max(0.25, Math.round((q - 0.25) * 100) / 100))
+                      }
+                      className="w-9 h-9 rounded-full bg-card border border-line items-center justify-center"
+                      accessibilityRole="button"
+                      accessibilityLabel="Kurangi porsi 0.25"
+                    >
+                      <LineIcon name="minus" size={14} color="#121a16" />
+                    </PressableScale>
+                    <AppText weight="bold" className="text-[15px] text-ink min-w-[46px] text-center" style={tnum}>
+                      {editQuantity}x
+                    </AppText>
+                    <PressableScale
+                      onPress={() =>
+                        setEditQuantity((q) => Math.min(10, Math.round((q + 0.25) * 100) / 100))
+                      }
+                      className="w-9 h-9 rounded-full bg-card border border-line items-center justify-center"
+                      accessibilityRole="button"
+                      accessibilityLabel="Tambah porsi 0.25"
+                    >
+                      <LineIcon name="plus" size={14} color="#121a16" />
+                    </PressableScale>
                   </View>
                 </View>
-              </Surface>
-            </FadeInView>
+
+                <View className="flex-row gap-2.5 pt-1">
+                  <PillButton
+                    label="Batal"
+                    onPress={() => setEditingEntry(null)}
+                    disabled={isSavingEdit}
+                    className="flex-1"
+                  />
+                  <PillButton
+                    label={isSavingEdit ? "Menyimpan..." : "Simpan Perubahan"}
+                    variant="primary"
+                    icon="check"
+                    onPress={() => void handleSaveEditEntry()}
+                    disabled={isSavingEdit || !editTitle.trim()}
+                    className="flex-1"
+                  />
+                </View>
+              </View>
+            </View>
           )}
         </KeyboardAvoidingView>
-      </Modal>
+      </ModalSheet>
     </ScreenWrapper>
   );
 }
