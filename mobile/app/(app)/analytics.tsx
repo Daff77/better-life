@@ -217,7 +217,6 @@ export default function AnalyticsScreen() {
       <Surface>
         <CardHead
           title="Monitoring berat badan & target"
-          subtitle="Pantau progres menuju target berat badan ideal Anda"
           right={
             <StatusPill
               tone={isAtTargetWeight ? "ok" : "warn"}
@@ -368,7 +367,6 @@ export default function AnalyticsScreen() {
       <Surface>
         <CardHead
           title="Histori menu yang dikonsumsi"
-          subtitle="Riwayat makanan dan minuman yang telah Anda catat"
           right={
             <PressableScale
               onPress={() => router.push("/(app)/(tabs)")}
@@ -968,7 +966,6 @@ export default function AnalyticsScreen() {
                 <Surface>
                   <CardHead
                     title={`${selectedPoint.dayLabel} (${selectedPoint.date})`}
-                    subtitle="Rincian makronutrisi dan daftar makanan yang dicatat"
                     right={(() => {
                       const badge = getAdherenceBadge(selectedPoint.adherenceStatus);
                       const tone =
@@ -1345,7 +1342,6 @@ export default function AnalyticsScreen() {
             <Surface>
               <CardHead
                 title="Ringkasan & panduan nutrisi"
-                subtitle="Evaluasi otomatis dari pola asupan Anda"
               />
               <AppText weight="regular" className="text-[13px] text-[#2e3a33] leading-relaxed mb-3">
                 {analyticsData?.narrative}

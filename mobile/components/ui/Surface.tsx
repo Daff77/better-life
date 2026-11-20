@@ -86,7 +86,7 @@ export const RingButton: React.FC<RingButtonProps> = ({
   children,
 }) => {
   const dim = size === "sm" ? 36 : 44;
-  const slop = size === "sm" ? 4 : 0;
+  const slop = size === "sm" ? 6 : 2;
   const skin =
     variant === "solid"
       ? "bg-card border border-line"
@@ -136,7 +136,7 @@ export const CardHead: React.FC<CardHeadProps> = ({
 }) => {
   const resolvedCaption = caption ?? subtitle;
   return (
-    <View className={`flex-row items-center justify-between gap-3 mb-3.5 min-h-[36px] ${className ?? ""}`}>
+    <View className={`flex-row items-center justify-between flex-wrap gap-3 mb-3.5 min-h-[36px] ${className ?? ""}`}>
       <View className="flex-1 min-w-0">
         <AppText weight="semibold" className="text-[16px] text-ink leading-5" accessibilityRole="header">
           {title}
@@ -172,7 +172,7 @@ export const PageHead: React.FC<PageHeadProps> = ({
 }) => {
   const resolvedCaption = caption ?? subtitle;
   return (
-    <View className={`flex-row items-end justify-between gap-3 mb-4 ${className ?? ""}`}>
+    <View className={`flex-row items-end justify-between flex-wrap gap-3 mb-4 ${className ?? ""}`}>
       <View className="flex-1 min-w-0">
         {resolvedCaption ? (
           <AppText weight="medium" className="text-[13.5px] text-muted mb-1 capitalize" style={tnum}>
@@ -226,7 +226,7 @@ export const Stat: React.FC<StatProps> = ({ icon, value, label, accent, tag, cla
         </AppText>
         {tag}
       </View>
-      <AppText weight="medium" numberOfLines={1} className="text-[12px] text-muted leading-4 mt-0.5">
+      <AppText weight="medium" numberOfLines={2} className="text-[12px] text-muted leading-4 mt-0.5">
         {label}
       </AppText>
     </View>
@@ -254,7 +254,7 @@ export const StatusPill: React.FC<{ label: string; tone?: Tone; dot?: boolean; c
   dot = true,
   className,
 }) => (
-  <View className={`flex-row items-center gap-1.5 h-6 px-2.5 rounded-full self-start ${TONES[tone].bg} ${className ?? ""}`}>
+  <View className={`flex-row items-center gap-1.5 min-h-[26px] py-1 px-2.5 rounded-full self-start ${TONES[tone].bg} ${className ?? ""}`}>
     {dot ? <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: TONES[tone].fg }} /> : null}
     <AppText weight="semibold" className="text-[12px]" style={[{ color: TONES[tone].fg }, tnum]}>
       {label}

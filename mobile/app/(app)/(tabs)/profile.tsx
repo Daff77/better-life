@@ -34,13 +34,13 @@ import {
   calculatePersonalizedPlan,
   DEFAULT_PERSONALIZATION,
 } from "@/stores/useOnboardingStore";
-import { useJournalStore } from "@/stores/useJournalStore";
+import { useJournalStore, getTodayDateKey } from "@/stores/useJournalStore";
 import { useSubscriptionStore } from "@/stores/useSubscriptionStore";
 import { journalStorage } from "@/lib/journalStorage";
 import { sessionStorage } from "@/lib/sessionStorage";
 import { clearJournalSyncQueueForCurrentAccount } from "@/lib/journalSync";
+import { executeClearAllJournals } from "@/lib/journalReset";
 import { mealsApi } from "@/lib/api/mealsApi";
-import { useResetMealsMutation } from "@/hooks/useMealsQuery";
 import { confirmDestructive } from "@/lib/confirm";
 import {
   exportAccountBackupJson,
@@ -72,7 +72,6 @@ export default function ProfileScreen() {
   const personalization = useOnboardingStore((state) => state.personalization);
   const savePersonalization = useOnboardingStore((state) => state.savePersonalization);
   const logout = useAuthStore((state) => state.logout);
-  const resetMealsMutation = useResetMealsMutation();
   const isPremium = useSubscriptionStore((state) => state.isPremium);
 
   const currentYear = new Date().getFullYear();
@@ -84,6 +83,11 @@ export default function ProfileScreen() {
   const [backupJsonText, setBackupJsonText] = useState("");
   const [backupBusy, setBackupBusy] = useState(false);
   const [backupNotice, setBackupNotice] = useState<{ tone: "ok" | "err"; text: string } | null>(null);
+  const [isResettingJournal, setIsResettingJournal] = useState(false);
+  const [journalResetNotice, setJournalResetNotice] = useState<{
+    tone: "ok" | "err";
+    text: string;
+  } | null>(null);
 
   const [editGoal, setEditGoal] = useState<"Eat balanced" | "Lose weight" | "Gain muscle">(
     personalization.goal
@@ -199,25 +203,53 @@ export default function ProfileScreen() {
     }, 650);
   };
 
-  const handleResetData = () => {
+  const performClearJournal = async () => {
+    if (isResettingJournal) return;
+    setIsResettingJournal(true);
+    setJournalResetNotice(null);
+    try {
+      await executeClearAllJournals({
+        resetServerMeals: () => mealsApi.resetMeals(),
+        clearLocalSyncQueue: clearJournalSyncQueueForCurrentAccount,
+        clearLocalJournals: () => journalStorage.clearAllJournals(),
+        resetStoreState: () => {
+          const today = getTodayDateKey();
+          useJournalStore.setState({
+            journals: {
+              [today]: {
+                date: today,
+                targetCalories: personalization.targetCalories || 1950,
+                entries: [],
+              },
+            },
+            activeDate: today,
+            lastUndoAction: null,
+          });
+        },
+      });
+      setJournalResetNotice({
+        tone: "ok",
+        text: "Jurnal berhasil dikosongkan di perangkat dan server.",
+      });
+    } catch (err: any) {
+      setJournalResetNotice({
+        tone: "err",
+        text:
+          err?.message ||
+          "Gagal mengosongkan jurnal di server. Catatan Anda tetap dipertahankan.",
+      });
+    } finally {
+      setIsResettingJournal(false);
+    }
+  };
+
+  const handleClearJournal = () => {
     confirmDestructive(
-      "Reset Semua Data",
-      "Semua catatan jurnal harian dan target personalisasi akan dihapus.",
-      "Reset",
-      async () => {
-        resetMealsMutation.mutate();
-        await clearJournalSyncQueueForCurrentAccount();
-        try {
-          await mealsApi.resetMeals();
-        } catch {
-          // Offline reset still clears local journal and logs out cleanly
-        }
-        await journalStorage.clearAllJournals();
-        await sessionStorage.clearPersonalization();
-        useJournalStore.setState({ journals: {}, lastUndoAction: null });
-        useOnboardingStore.setState({ personalization: DEFAULT_PERSONALIZATION });
-        await logout();
-        router.replace("/(auth)/get-started");
+      "Kosongkan jurnal",
+      "Semua catatan makanan yang tersimpan di akun ini pada perangkat dan server akan dihapus. Profil dan preferensi Anda tetap disimpan.",
+      "Kosongkan jurnal",
+      () => {
+        void performClearJournal();
       }
     );
   };
@@ -404,7 +436,7 @@ export default function ProfileScreen() {
                 <AppText weight="medium" className="text-[12px] text-muted mb-2 px-0.5">
                   Target makro harian
                 </AppText>
-                <View className="flex-row gap-2">
+                <View className="flex-row flex-wrap gap-2">
                   {[
                     { label: "Protein", val: `${targetP}g`, color: "#0e7a52" },
                     { label: "Karbo", val: `${targetK}g`, color: "#f3b23c" },
@@ -412,7 +444,7 @@ export default function ProfileScreen() {
                   ].map((m) => (
                     <View
                       key={m.label}
-                      className="flex-1 min-w-0 bg-card-2 border border-line rounded-[13px] px-2.5 py-2 flex-row items-center justify-between gap-1.5"
+                      className="flex-1 min-w-[92px] bg-card-2 border border-line rounded-[13px] px-2.5 py-2 flex-row items-center justify-between gap-1.5"
                     >
                       <View className="flex-row items-center gap-1.5 min-w-0 flex-shrink">
                         <View className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: m.color }} />
@@ -432,6 +464,34 @@ export default function ProfileScreen() {
 
           {/* 2. Single Clean Action & Settings Group */}
           <FadeInView index={2}>
+            {journalResetNotice && (
+              <View
+                className={`mb-3 p-3.5 rounded-[18px] border flex-row items-center justify-between gap-3 flex-wrap ${
+                  journalResetNotice.tone === "ok"
+                    ? "bg-primary-light border-[#bfe0d2]"
+                    : "bg-bad-soft border-[#f5c2be]"
+                }`}
+              >
+                <AppText
+                  weight="semibold"
+                  className={`text-xs flex-1 min-w-[160px] ${
+                    journalResetNotice.tone === "ok" ? "text-primary-text" : "text-bad"
+                  }`}
+                >
+                  {journalResetNotice.text}
+                </AppText>
+                {journalResetNotice.tone === "err" && (
+                  <PillButton
+                    label={isResettingJournal ? "Mencoba..." : "Coba lagi"}
+                    size="sm"
+                    variant="primary"
+                    disabled={isResettingJournal}
+                    onPress={() => void performClearJournal()}
+                    accessibilityLabel="Coba lagi mengosongkan jurnal"
+                  />
+                )}
+              </View>
+            )}
             <Surface dense>
               <ListRow
                 onPress={() => router.push("/(app)/upgrade")}
@@ -455,17 +515,15 @@ export default function ProfileScreen() {
                 onPress={() => router.push("/(app)/analytics")}
                 accessibilityLabel="Lihat monitoring dan tren nutrisi"
                 leading={<RowIcon icon="chart" tone="accent" />}
-                title="Monitoring & analitik nutrisi"
-                subtitle="Statistik berat badan, histori menu & progres kalori"
+                title="Analitik nutrisi"
                 trailing={<LineIcon name="chevronRight" size={18} color="#7d8781" />}
               />
 
               <ListRow
                 onPress={() => router.push("/(app)/community" as any)}
-                accessibilityLabel="Buka komunitas dan konsultasi ahli gizi"
-                leading={<RowIcon icon="user" tone="accent" />}
-                title="Komunitas & konsultasi gizi"
-                subtitle="Postingan, tanya jawab ahli gizi & artikel kesehatan"
+                accessibilityLabel="Buka artikel dan tips sehat"
+                leading={<RowIcon icon="book" tone="accent" />}
+                title="Artikel & tips sehat"
                 trailing={<LineIcon name="chevronRight" size={18} color="#7d8781" />}
               />
 
@@ -474,16 +532,14 @@ export default function ProfileScreen() {
                 accessibilityLabel="Pengaturan notifikasi pengingat minum dan makan"
                 leading={<RowIcon icon="bell" tone="plain" />}
                 title="Pengingat minum & jam makan"
-                subtitle="Notifikasi harian untuk target 8 gelas air & waktu makan"
                 trailing={<LineIcon name="chevronRight" size={18} color="#7d8781" />}
               />
 
               <ListRow
                 onPress={() => router.push("/(onboarding)")}
-                accessibilityLabel="Kalibrasi ulang personalisasi"
+                accessibilityLabel="Atur ulang target nutrisi"
                 leading={<RowIcon icon="refresh" tone="plain" />}
                 title="Kalibrasi ulang personalisasi"
-                subtitle="Hitung ulang target berdasarkan tujuan baru"
                 trailing={<LineIcon name="chevronRight" size={18} color="#7d8781" />}
               />
 
@@ -491,8 +547,7 @@ export default function ProfileScreen() {
                 onPress={() => setInfoModalType("help")}
                 accessibilityLabel="Panduan penggunaan dan dokumentasi"
                 leading={<RowIcon icon="book" tone="plain" />}
-                title="Panduan penggunaan (Help)"
-                subtitle="Cara mencatat makanan, memantau kalori & memasak"
+                title="Panduan penggunaan"
                 trailing={<LineIcon name="chevronRight" size={18} color="#7d8781" />}
               />
 
@@ -501,7 +556,6 @@ export default function ProfileScreen() {
                 accessibilityLabel="Tentang Better Life dan kontak"
                 leading={<RowIcon icon="shield" tone="plain" />}
                 title="Tentang kami & kontak"
-                subtitle="Informasi pengembang Better Life & layanan bantuan"
                 trailing={<LineIcon name="chevronRight" size={18} color="#7d8781" />}
               />
 
@@ -513,15 +567,16 @@ export default function ProfileScreen() {
                 accessibilityLabel="Ekspor dan pulihkan data akun"
                 leading={<RowIcon icon="download" tone="accent" />}
                 title="Ekspor & pulihkan data akun"
-                subtitle="Cadangan JSON tervalidasi, khusus akun ini & bebas duplikat"
+                subtitle="Cadangan JSON untuk akun ini"
                 trailing={<LineIcon name="chevronRight" size={18} color="#7d8781" />}
               />
 
               <ListRow
-                onPress={handleResetData}
-                accessibilityLabel="Reset data jurnal"
+                onPress={handleClearJournal}
+                accessibilityLabel="Kosongkan jurnal"
                 leading={<RowIcon icon="trash" tone="plain" />}
-                title="Reset data jurnal"
+                title={isResettingJournal ? "Mengosongkan jurnal..." : "Kosongkan jurnal"}
+                subtitle="Hapus seluruh catatan makanan yang tersimpan di akun ini"
                 trailing={<LineIcon name="chevronRight" size={18} color="#7d8781" />}
               />
 
@@ -801,7 +856,7 @@ export default function ProfileScreen() {
                         3. Monitoring & Komunitas
                       </AppText>
                       <AppText weight="medium" className="text-[12.5px] text-muted leading-5">
-                        Evaluasi progres berat badan menuju Target BB dan histori menu di halaman Monitoring, serta berdiskusi atau berkonsultasi langsung dengan ahli gizi di halaman Komunitas.
+                        Evaluasi progres berat badan menuju Target BB dan histori menu di halaman Monitoring, serta baca panduan gizi seimbang di halaman Artikel & Tips.
                       </AppText>
                     </View>
                   </View>

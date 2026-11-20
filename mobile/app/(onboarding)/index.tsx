@@ -312,7 +312,7 @@ export default function OnboardingScreen() {
           <FlowTitle
             eyebrow="Langkah 1 dari 8 · Tujuan Utama"
             title="Apa tujuan kesehatan utama Anda?"
-            caption="Pilihan ini menentukan target kalori harian dan proporsi protein, karbohidrat, serta lemak Anda."
+            caption="Pilihan ini menentukan target kalori dan makro harian."
           />
 
           <View className="gap-3">
@@ -361,7 +361,7 @@ export default function OnboardingScreen() {
           <FlowTitle
             eyebrow="Langkah 2 dari 8 · Metrik Tubuh"
             title="Berapa berat dan tinggi badan Anda?"
-            caption="Digunakan dalam rumus metabolisme basal Mifflin-St Jeor untuk menghitung kebutuhan energi Anda."
+            caption="Data ini membantu menghitung kebutuhan energi Anda."
           />
 
           <View className="gap-4">
@@ -768,7 +768,7 @@ export default function OnboardingScreen() {
           <FlowTitle
             eyebrow="Langkah 7 dari 8 · Alergi & Intoleransi"
             title="Apakah Anda memiliki alergi makanan?"
-            caption="Pilih semua bahan yang perlu kami kecualikan dari rekomendasi menu Anda (opsional)."
+            caption="Pilih bahan yang perlu dihindari (opsional)."
           />
 
           <View className="gap-2.5">

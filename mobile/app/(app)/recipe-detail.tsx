@@ -276,7 +276,7 @@ export default function RecipeDetailScreen() {
         title={recipe.title}
         subtitle={`${mealLabel(recipe.category)} · ${recipe.prepTimeMinutes} mnt · ${diffLabel}`}
         rightComponent={
-          <View className="flex-row items-center gap-2">
+          <View className="flex-row items-center gap-3">
             <StatusPill
               tone={isCustomRecipe ? "good" : (recipe as any)?.isPremium ? "warn" : "ok"}
               label={
@@ -290,7 +290,8 @@ export default function RecipeDetailScreen() {
             <PressableScale
               onPress={() => void toggleFavorite(recipe)}
               pressedScale={0.93}
-              className={`w-9 h-9 rounded-full items-center justify-center border ${
+              hitSlop={4}
+              className={`w-10 h-10 rounded-full items-center justify-center border ${
                 isFavorited ? "bg-[#fde9e7] border-[#f5c2be]" : "bg-card border-line"
               }`}
               accessibilityRole="button"
@@ -301,7 +302,7 @@ export default function RecipeDetailScreen() {
             >
               <AnimatedHeart
                 filled={isFavorited}
-                size={15}
+                size={16}
                 activeColor="#b92d26"
                 inactiveColor="#121a16"
               />
@@ -409,7 +410,6 @@ export default function RecipeDetailScreen() {
             <Surface>
               <CardHead
                 title="Kesesuaian menu & pemeriksaan bahan"
-                subtitle="Evaluasi otomatis terhadap target dan profil pantangan Anda"
               />
               <View className="gap-2.5">
                 {(!allergyCheck.safe || !dietCheck.compliant) && (

@@ -138,7 +138,7 @@ const WheelColumn: React.FC<WheelColumnProps> = ({
 interface AlarmRowProps {
   time: string;
   label: string;
-  subtitle: string;
+  subtitle?: string;
   enabled: boolean;
   disabled: boolean;
   first?: boolean;
@@ -196,9 +196,11 @@ const AlarmRow: React.FC<AlarmRowProps> = ({
         >
           {label}
         </AppText>
-        <AppText weight="medium" numberOfLines={1} className="text-[12px] text-muted mt-0.5">
-          {subtitle}
-        </AppText>
+        {subtitle && (
+          <AppText weight="medium" numberOfLines={1} className="text-[12px] text-muted mt-0.5">
+            {subtitle}
+          </AppText>
+        )}
       </PressableScale>
 
       <ToggleSwitch
@@ -493,7 +495,6 @@ export default function RemindersScreen() {
               <AlarmRow
                 time={morningWaterTime}
                 label="Bangun tidur"
-                subtitle="Segelas air untuk awali pagi"
                 enabled={morningWaterEnabled}
                 disabled={!masterEnabled}
                 activeColor={BLUE}
@@ -513,7 +514,7 @@ export default function RemindersScreen() {
           {/* Meals */}
           <FadeInView index={3}>
             <Surface style={{ opacity: masterEnabled ? 1 : 0.6 }}>
-              <CardHead title="Jam makan" caption="Pengingat makan & catat jurnal" className="mb-1" />
+              <CardHead title="Jam makan" className="mb-1" />
               {mealSlots.map((slot, index) => (
                 <AlarmRow
                   key={slot.id}
@@ -535,7 +536,7 @@ export default function RemindersScreen() {
           {/* Evaluation */}
           <FadeInView index={4}>
             <Surface style={{ opacity: masterEnabled ? 1 : 0.6 }}>
-              <CardHead title="Evaluasi" caption="Jurnal harian & berat badan" className="mb-1" />
+              <CardHead title="Evaluasi" className="mb-1" />
               <AlarmRow
                 first
                 time={eveningJournalTime}

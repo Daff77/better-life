@@ -45,14 +45,14 @@ export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
 
   return (
     <SafeAreaView
-      className={`flex-1 ${className || "bg-neutral-bg"}`}
+      className={`flex-1 overflow-hidden ${className || "bg-neutral-bg"}`}
       style={[{ flex: 1, width: "100%" }, style]}
       edges={edges}
       {...props}
     >
       <StatusBar style={statusBarStyle || (isDarkBg ? "light" : "dark")} />
       <AnimatedView
-        className={`flex-1 w-full ${getMaxWidthClass()} self-center ${
+        className={`flex-1 w-full overflow-hidden ${getMaxWidthClass()} self-center ${
           noPadding ? "px-0" : "px-4 sm:px-6 lg:px-8"
         }`}
         animatedStyle={tabSwipeStyle || undefined}

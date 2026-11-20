@@ -188,7 +188,6 @@ export default function UpgradeScreen() {
       <Header
         onBack={() => router.back()}
         title="Better Life Premium"
-        subtitle="Perangkat nutrisi terkalibrasi untuk kebiasaan sehat berkelanjutan"
         rightComponent={
           <PillButton
             label="Pulihkan"

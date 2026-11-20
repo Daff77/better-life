@@ -73,7 +73,7 @@ export const MealCard: React.FC<MealCardProps> = ({
     <PressableScale
       onPress={onToggleFavorite}
       hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
-      className={`w-9 h-9 rounded-full items-center justify-center flex-shrink-0 border ${
+      className={`w-10 h-10 rounded-full items-center justify-center flex-shrink-0 border ${
         isFavorite ? "bg-[#fde9e7] border-[#f5c2be]" : "bg-card-2 border-line"
       }`}
       accessibilityRole="button"
@@ -84,7 +84,7 @@ export const MealCard: React.FC<MealCardProps> = ({
     >
       <AnimatedHeart
         filled={isFavorite}
-        size={15}
+        size={16}
         activeColor="#b92d26"
         inactiveColor="#6c7670"
       />
@@ -96,14 +96,14 @@ export const MealCard: React.FC<MealCardProps> = ({
       onPress={onLogMeal}
       disabled={isLogging}
       hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
-      className="w-9 h-9 rounded-full bg-primary items-center justify-center flex-shrink-0"
+      className="w-10 h-10 rounded-full bg-primary items-center justify-center flex-shrink-0"
       accessibilityRole="button"
       accessibilityLabel={`Catat ${displayTitle}`}
     >
       {isLogging ? (
         <ActivityIndicator size="small" color="#ffffff" />
       ) : (
-        <PlusIconSvg size={14} color="#ffffff" strokeWidth={2.5} />
+        <PlusIconSvg size={15} color="#ffffff" strokeWidth={2.5} />
       )}
     </PressableScale>
   ) : null;
@@ -131,7 +131,7 @@ export const MealCard: React.FC<MealCardProps> = ({
             <AppText weight="semibold" numberOfLines={2} className="text-[14.5px] text-ink leading-[19px] mt-0.5">
               {displayTitle}
             </AppText>
-            <View className="flex-row items-center gap-2 mt-1">
+            <View className="flex-row items-center flex-wrap gap-x-2 gap-y-0.5 mt-1">
               <AppText weight="bold" className="text-[13px] text-primary-text" style={tnum}>
                 {calories} kcal
               </AppText>
@@ -143,7 +143,7 @@ export const MealCard: React.FC<MealCardProps> = ({
             </View>
           </View>
         </PressableScale>
-        <View className="flex-row items-center gap-2 flex-shrink-0">
+        <View className="flex-row items-center gap-3 flex-shrink-0">
           {favoriteButton}
           {logButton}
         </View>
@@ -195,11 +195,11 @@ export const MealCard: React.FC<MealCardProps> = ({
           )}
         </View>
       </PressableScale>
-      <View className="px-3 pb-2.5 pt-2 flex-row items-center justify-between">
-        <AppText weight="semibold" numberOfLines={1} className="text-[12px] text-muted flex-1 mr-2" style={tnum}>
+      <View className="px-3 pb-2.5 pt-2 flex-row items-center justify-between gap-2">
+        <AppText weight="semibold" numberOfLines={2} className="text-[12px] text-muted flex-1 min-w-0" style={tnum}>
           {estimatedCostIdr !== undefined ? `Rp ${estimatedCostIdr.toLocaleString("id-ID")}` : `${calories} kcal`}
         </AppText>
-        <View className="flex-row items-center gap-2">
+        <View className="flex-row items-center gap-3 flex-shrink-0">
           {favoriteButton}
           {logButton}
         </View>

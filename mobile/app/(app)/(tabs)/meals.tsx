@@ -308,7 +308,7 @@ export default function MealsScreen() {
           <PageHead
             title="Catat makan"
             right={
-              <View className="flex-row items-center gap-2">
+              <View className="flex-row items-center gap-2 flex-wrap justify-end">
                 <StatusPill
                   label={
                     aggregates.remainingCalories < 0
@@ -320,6 +320,7 @@ export default function MealsScreen() {
                 <PressableScale
                   onPress={() => setIsCreateModalVisible(true)}
                   pressedScale={0.93}
+                  hitSlop={4}
                   className="w-10 h-10 rounded-full bg-primary items-center justify-center"
                   accessibilityRole="button"
                   accessibilityLabel="Tambah resep"
@@ -351,7 +352,7 @@ export default function MealsScreen() {
           />
         </FadeInView>
 
-        <FadeInView index={2} className="mt-3.5">
+        <FadeInView index={2} className="mt-3.5 w-full overflow-hidden">
           {/* Illustrated Category Cards Strip */}
           <ScrollView
             horizontal
@@ -432,7 +433,7 @@ export default function MealsScreen() {
 
         {/* Quick Re-log Recent Meals Strip */}
         {!searchQuery && recentLoggedMeals.length > 0 && (
-          <FadeInView index={3} className="mt-4">
+          <FadeInView index={3} className="mt-4 w-full overflow-hidden">
             <View className="flex-row items-center justify-between mb-2 px-0.5">
               <AppText weight="semibold" className="text-[15px] text-ink">
                 Terakhir dicatat
@@ -490,7 +491,7 @@ export default function MealsScreen() {
               accessibilityLabel="Buka rencana makan 7 hari"
               leading={<RowIcon icon="calendar" tone="accent" />}
               title="Rencana makan 7 hari"
-              caption="Jadwal otomatis sesuai kalori, alergi, dan budget"
+              caption="Sesuai target, alergi, dan anggaran"
               trailing={
                 <View className="flex-row items-center gap-2">
                   {!isPremium && <StatusPill label="Premium" tone="warn" dot={false} />}

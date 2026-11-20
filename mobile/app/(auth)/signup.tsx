@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { View, Pressable, Image } from "react-native";
+import { View, Image } from "react-native";
 import { useRouter } from "expo-router";
 import {
   AppText,
@@ -19,33 +19,27 @@ import { useAuthStore } from "@/stores/useAuthStore";
 import { BrandImages, IconRenderer } from "@/constants/Assets";
 import { Colors } from "@/constants/DesignTokens";
 
-const TOTAL_SIGNUP_STEPS = 4;
+const TOTAL_SIGNUP_STEPS = 3;
 
 export default function SignupScreen() {
   const router = useRouter();
   const signup = useAuthStore((state) => state.signup);
 
   const [step, setStep] = useState<number>(1);
-const [stepDir, setStepDir] = useState<1 | -1>(1);
+  const [stepDir, setStepDir] = useState<1 | -1>(1);
 
   // Step 1: Email
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
 
-  // Step 2: OTP Verification
-  const [generatedOtp, setGeneratedOtp] = useState("482910");
-  const [otpInput, setOtpInput] = useState("");
-  const [otpError, setOtpError] = useState("");
-  const otpRef = useRef<any>(null);
-
-  // Step 3: Username / Name & Phone
+  // Step 2: Username / Name & Phone
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [fullNameError, setFullNameError] = useState("");
   const [phoneError, setPhoneError] = useState("");
   const phoneRef = useRef<any>(null);
 
-  // Step 4: Password & Confirmation
+  // Step 3: Password & Confirmation
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordError, setPasswordError] = useState("");
@@ -55,14 +49,6 @@ const [stepDir, setStepDir] = useState<1 | -1>(1);
   const [generalError, setGeneralError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showGoogleModal, setShowGoogleModal] = useState(false);
-
-  const generateNewCode = () => {
-    const code = String(Math.floor(100000 + Math.random() * 900000));
-    setGeneratedOtp(code);
-    setOtpInput("");
-    setOtpError("");
-    return code;
-  };
 
   const handleBack = () => {
     setGeneralError("");
@@ -120,7 +106,6 @@ const [stepDir, setStepDir] = useState<1 | -1>(1);
         }
       }
 
-      generateNewCode();
       setStepDir(1);
       setStep(2);
     } catch {
@@ -129,23 +114,7 @@ const [stepDir, setStepDir] = useState<1 | -1>(1);
     }
   };
 
-  const handleStep2Continue = () => {
-    setOtpError("");
-    setGeneralError("");
-    const cleaned = otpInput.replace(/[^0-9]/g, "");
-    if (cleaned.length < 6) {
-      setOtpError("Masukkan 6 digit kode verifikasi.");
-      return;
-    }
-    if (cleaned !== generatedOtp && cleaned !== "123456") {
-      setOtpError(`Kode tidak sesuai. Gunakan kode ${generatedOtp}.`);
-      return;
-    }
-    setStepDir(1);
-    setStep(3);
-  };
-
-  const handleStep3Continue = () => {
+  const handleStep2ProfileContinue = () => {
     setFullNameError("");
     setPhoneError("");
     setGeneralError("");
@@ -162,7 +131,7 @@ const [stepDir, setStepDir] = useState<1 | -1>(1);
     }
     if (!valid) return;
     setStepDir(1);
-    setStep(4);
+    setStep(3);
   };
 
   const handleFinalSignup = async () => {
@@ -218,17 +187,16 @@ const [stepDir, setStepDir] = useState<1 | -1>(1);
 
   const handlePrimaryAction = () => {
     if (step === 1) handleStep1Continue();
-    else if (step === 2) handleStep2Continue();
-    else if (step === 3) handleStep3Continue();
+    else if (step === 2) handleStep2ProfileContinue();
     else handleFinalSignup();
   };
 
   const primaryTitle =
     step === 1
-      ? "Kirim Kode Verifikasi"
+      ? isLoading
+        ? "Memeriksa Email..."
+        : "Lanjutkan"
       : step === 2
-      ? "Verifikasi Kode"
-      : step === 3
       ? "Lanjutkan ke Kata Sandi"
       : isLoading
       ? "Membuat Akun..."
@@ -280,9 +248,9 @@ const [stepDir, setStepDir] = useState<1 | -1>(1);
       {step === 1 && (
         <FadeInView key="signup-step-1" index={0} translateX={stepDir * 18} translateY={0}>
           <FlowTitle
-            eyebrow="Langkah 1 dari 4 · Email"
+            eyebrow="Langkah 1 dari 3 · Email"
             title="Daftarkan email Anda"
-            caption="Kami akan mengirimkan 6 digit kode verifikasi untuk mengamankan akun Better Life Anda."
+            caption="Gunakan alamat email aktif untuk membuat akun dan menyinkronkan catatan harian Anda."
           />
 
           <TextField
@@ -326,124 +294,12 @@ const [stepDir, setStepDir] = useState<1 | -1>(1);
         </FadeInView>
       )}
 
-      {/* STEP 2: OTP VERIFICATION */}
+      {/* STEP 2: USERNAME / PROFILE CREATION */}
       {step === 2 && (
         <FadeInView key="signup-step-2" index={0} translateX={stepDir * 18} translateY={0}>
           <FlowTitle
-            eyebrow="Langkah 2 dari 4 · Verifikasi OTP"
-            title="Masukkan kode 6 digit"
-            caption={`Kode verifikasi telah dikirim ke ${email.trim()}.`}
-          />
-
-          {/* Interactive 6-box visual OTP display */}
-          <Pressable
-            onPress={() => otpRef.current?.focus()}
-            className="flex-row justify-between gap-2 mb-3"
-            accessibilityRole="button"
-            accessibilityLabel="Ketuk untuk memasukkan 6 digit kode OTP"
-          >
-            {Array.from({ length: 6 }).map((_, idx) => {
-              const digit = otpInput[idx] || "";
-              const isActive = otpInput.length === idx;
-              return (
-                <View
-                  key={idx}
-                  className="flex-1 h-[58px] rounded-[14px] bg-card items-center justify-center"
-                  style={{
-                    borderWidth: isActive || digit ? 1.5 : 1,
-                    borderColor: otpError
-                      ? "#b3301b"
-                      : isActive || digit
-                      ? Colors.primary.DEFAULT
-                      : "#d5dbd7",
-                  }}
-                >
-                  <AppText
-                    weight="bold"
-                    className="text-[22px] text-ink"
-                    style={{ fontVariant: ["tabular-nums"] }}
-                  >
-                    {digit}
-                  </AppText>
-                </View>
-              );
-            })}
-          </Pressable>
-
-          <TextField
-            ref={otpRef}
-            label="Kode OTP (6 digit)"
-            placeholder="Masukkan 6 digit angka"
-            value={otpInput}
-            onChangeText={(val) => {
-              const digits = val.replace(/[^0-9]/g, "").slice(0, 6);
-              setOtpInput(digits);
-              if (otpError) setOtpError("");
-            }}
-            error={otpError}
-            keyboardType="number-pad"
-            maxLength={6}
-            returnKeyType="done"
-            onSubmitEditing={handleStep2Continue}
-            accessibilityLabel="Input 6 digit kode OTP"
-          />
-
-          {/* Instant helper banner for local/demo OTP verification */}
-          <View className="mt-4 p-3.5 rounded-[16px] bg-primary-light flex-row items-center justify-between gap-3">
-            <View className="flex-1 min-w-0">
-              <AppText weight="semibold" className="text-[12.5px] text-primary-text">
-                Kode verifikasi aktif:{" "}
-                <AppText weight="extrabold" style={{ fontVariant: ["tabular-nums"] }}>
-                  {generatedOtp}
-                </AppText>
-              </AppText>
-              <AppText weight="medium" className="text-[11.5px] text-muted mt-0.5">
-                Ketuk tombol di samping untuk mengisi otomatis
-              </AppText>
-            </View>
-            <PressableScale
-              onPress={() => {
-                setOtpInput(generatedOtp);
-                setOtpError("");
-              }}
-              pressedScale={0.95}
-              className="px-3.5 py-2 rounded-full bg-primary"
-              accessibilityRole="button"
-              accessibilityLabel="Isi kode OTP otomatis"
-            >
-              <AppText weight="bold" className="text-[12px] text-white">
-                Isi Otomatis
-              </AppText>
-            </PressableScale>
-          </View>
-
-          <View className="flex-row items-center justify-between mt-4">
-            <TextLink
-              label="Ganti alamat email"
-              muted
-              onPress={() => {
-                setStepDir(-1);
-                setStep(1);
-              }}
-            />
-            <TextLink
-              label="Kirim ulang kode"
-              onPress={() => {
-                const next = generateNewCode();
-                setOtpInput(next);
-              }}
-            />
-          </View>
-        </FadeInView>
-      )}
-
-      {/* STEP 3: USERNAME / PROFILE CREATION */}
-      {step === 3 && (
-        <FadeInView key="signup-step-3" index={0} translateX={stepDir * 18} translateY={0}>
-          <FlowTitle
-            eyebrow="Langkah 3 dari 4 · Profil"
+            eyebrow="Langkah 2 dari 3 · Profil"
             title="Buat username Anda"
-            caption="Nama ini akan digunakan untuk menyapa Anda di jurnal harian dan profil Better Life."
           />
 
           <View className="gap-4">
@@ -475,7 +331,7 @@ const [stepDir, setStepDir] = useState<1 | -1>(1);
               error={phoneError}
               keyboardType="phone-pad"
               returnKeyType="done"
-              onSubmitEditing={handleStep3Continue}
+              onSubmitEditing={handleStep2ProfileContinue}
               hint="Digunakan hanya untuk pemulihan akun."
               accessibilityLabel="Input nomor telepon opsional"
             />
@@ -483,13 +339,13 @@ const [stepDir, setStepDir] = useState<1 | -1>(1);
         </FadeInView>
       )}
 
-      {/* STEP 4: PASSWORD & CONFIRMATION */}
-      {step === 4 && (
-        <FadeInView key="signup-step-4" index={0} translateX={stepDir * 18} translateY={0}>
+      {/* STEP 3: PASSWORD & CONFIRMATION */}
+      {step === 3 && (
+        <FadeInView key="signup-step-3" index={0} translateX={stepDir * 18} translateY={0}>
           <FlowTitle
-            eyebrow="Langkah 4 dari 4 · Keamanan"
+            eyebrow="Langkah 3 dari 3 · Keamanan"
             title="Buat kata sandi"
-            caption="Gunakan minimal 6 karakter untuk melindungi data kesehatan dan target nutrisi Anda."
+            caption="Gunakan minimal 6 karakter."
           />
 
           <View className="gap-4">

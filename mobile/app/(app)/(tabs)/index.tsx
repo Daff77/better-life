@@ -65,6 +65,7 @@ import { MealIllustrations, getMealIllustration } from "@/constants/Assets";
 import { NAV_DESKTOP_BREAKPOINT } from "@/components/layout/ResponsiveTabBar";
 import { MOCK_RECIPES, FoodItem } from "@/data/mockRecipes";
 import { JournalEntry } from "@/lib/schemas";
+import { shiftCalendarDateKey } from "@better-life/shared";
 import { confirmDestructive } from "@/lib/confirm";
 import { horizontalScrollTouchProps } from "@/lib/tabSwipeGuard";
 
@@ -130,6 +131,17 @@ const MEAL_SLOTS: ReadonlyArray<{
 const fmt = (n: number) => Math.round(n).toLocaleString("id-ID");
 const tnum = { fontVariant: ["tabular-nums" as const] };
 
+function formatJournalDateLabel(dateKey: string): string {
+  const parts = dateKey.split("-").map(Number);
+  if (parts.length !== 3 || parts.some((n) => !Number.isFinite(n))) return dateKey;
+  const local = new Date(parts[0], parts[1] - 1, parts[2]);
+  return new Intl.DateTimeFormat("id-ID", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  }).format(local);
+}
+
 export default function HomeScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
@@ -144,10 +156,18 @@ export default function HomeScreen() {
   const todayDate = getTodayDateKey();
   const reduceMotion = Boolean(useReducedMotion());
   const journals = useJournalStore((state) => state.journals);
+  const activeDate = useJournalStore((state) => state.activeDate);
+  const setActiveDate = useJournalStore((state) => state.setActiveDate);
+  const selectedDate = activeDate || todayDate;
+  const isViewingToday = selectedDate === todayDate;
+  const selectedDateLabel = useMemo(
+    () => formatJournalDateLabel(selectedDate),
+    [selectedDate]
+  );
   const lastUndoAction = useJournalStore((state) => state.lastUndoAction);
   const undoLastAction = useJournalStore((state) => state.undoLastAction);
   const dismissUndo = useJournalStore((state) => state.dismissUndo);
-  const todayJournal = journals[todayDate];
+  const todayJournal = journals[selectedDate];
   const aggregates = useMemo(
     () => computeJournalAggregates(todayJournal, personalization.targetCalories),
     [todayJournal, personalization.targetCalories]
@@ -298,7 +318,7 @@ export default function HomeScreen() {
             title: cleanedTitle,
             quantity: editQuantity,
           },
-          todayDate
+          selectedDate
         );
       setEditingEntry(null);
     } finally {
@@ -307,18 +327,23 @@ export default function HomeScreen() {
   };
 
   const handleDeleteEntry = (entryId: string, title: string) => {
-    confirmDestructive("Hapus makanan", `Hapus "${title}" dari jurnal hari ini?`, "Hapus", () => {
-      void useJournalStore.getState().removeEntry(entryId, todayDate);
-    });
+    confirmDestructive(
+      "Hapus makanan",
+      `Hapus "${title}" dari jurnal ${isViewingToday ? "hari ini" : selectedDateLabel}?`,
+      "Hapus",
+      () => {
+        void useJournalStore.getState().removeEntry(entryId, selectedDate);
+      }
+    );
   };
 
   const handleClearToday = () => {
     confirmDestructive(
-      "Reset jurnal hari ini",
-      "Semua catatan makanan pada tanggal hari ini akan dikosongkan. Anda masih bisa mengurungkannya sesaat setelah dihapus.",
-      "Reset hari ini",
+      isViewingToday ? "Kosongkan jurnal hari ini" : `Kosongkan jurnal ${selectedDateLabel}`,
+      `Semua catatan makanan pada ${isViewingToday ? "tanggal hari ini" : selectedDateLabel} akan dikosongkan. Anda masih bisa mengurungkannya sesaat setelah dihapus.`,
+      "Kosongkan",
       () => {
-        void useJournalStore.getState().clearDay(todayDate);
+        void useJournalStore.getState().clearDay(selectedDate);
       }
     );
   };
@@ -692,14 +717,18 @@ export default function HomeScreen() {
     return (
       <Surface>
         <CardHead
-          title="Jurnal hari ini"
+          title={isViewingToday ? "Jurnal hari ini" : "Riwayat jurnal"}
           caption={
-            aggregates.entryCount === 0
-              ? "Pilih waktu makan untuk mulai mencatat"
-              : `${aggregates.entryCount} menu tercatat hari ini`
+            isViewingToday
+              ? aggregates.entryCount === 0
+                ? "Pilih waktu makan untuk mulai mencatat"
+                : `${aggregates.entryCount} menu tercatat hari ini`
+              : aggregates.entryCount === 0
+              ? `Tidak ada catatan pada ${selectedDateLabel}`
+              : `${aggregates.entryCount} menu tercatat pada ${selectedDateLabel}`
           }
           right={
-            <View className="flex-row items-center gap-2">
+            <View className="flex-row items-center gap-2 flex-wrap justify-end">
               <StatusPill label={syncDisplay.label} tone={syncDisplay.tone} />
               <RingButton
                 accessibilityLabel="Lihat semua menu"
@@ -708,6 +737,80 @@ export default function HomeScreen() {
             </View>
           }
         />
+
+        {/* Date selector to browse journal history while distinguishing today */}
+        <View
+          className={`mb-3.5 p-2 rounded-[16px] border flex-row items-center justify-between gap-2 flex-wrap ${
+            isViewingToday
+              ? "bg-card-2 border-line"
+              : "bg-warn-soft border-[#f3dfb8]"
+          }`}
+        >
+          <View className="flex-row items-center gap-1.5 flex-1 min-w-[180px]">
+            <PressableScale
+              onPress={() => setActiveDate(shiftCalendarDateKey(selectedDate, -1))}
+              pressedScale={0.93}
+              hitSlop={4}
+              className="w-11 h-11 rounded-full bg-card border border-line items-center justify-center flex-shrink-0"
+              accessibilityRole="button"
+              accessibilityLabel="Lihat jurnal hari sebelumnya"
+            >
+              <LineIcon name="arrowLeft" size={16} color="#121a16" />
+            </PressableScale>
+
+            <View className="flex-1 min-w-0 px-2">
+              <AppText
+                weight="bold"
+                className={`text-[13px] ${
+                  isViewingToday ? "text-ink" : "text-[#8f4e00]"
+                }`}
+                style={tnum}
+              >
+                {isViewingToday
+                  ? `Hari ini · ${selectedDateLabel}`
+                  : `Riwayat · ${selectedDateLabel}`}
+              </AppText>
+              {!isViewingToday && (
+                <AppText weight="medium" className="text-[11px] text-[#8f4e00]">
+                  Bukan hari ini · catatan tanggal lampau
+                </AppText>
+              )}
+            </View>
+
+            <PressableScale
+              onPress={() => {
+                if (selectedDate < todayDate) {
+                  setActiveDate(shiftCalendarDateKey(selectedDate, 1));
+                }
+              }}
+              disabled={selectedDate >= todayDate}
+              pressedScale={0.93}
+              hitSlop={4}
+              className={`w-11 h-11 rounded-full bg-card border border-line items-center justify-center flex-shrink-0 ${
+                selectedDate >= todayDate ? "opacity-40" : ""
+              }`}
+              accessibilityRole="button"
+              accessibilityLabel="Lihat jurnal hari berikutnya"
+            >
+              <LineIcon name="chevronRight" size={16} color="#121a16" />
+            </PressableScale>
+          </View>
+
+          {!isViewingToday && (
+            <PressableScale
+              onPress={() => setActiveDate(todayDate)}
+              pressedScale={0.95}
+              hitSlop={4}
+              className="min-h-[40px] px-3.5 rounded-full bg-primary items-center justify-center flex-shrink-0"
+              accessibilityRole="button"
+              accessibilityLabel="Kembali ke jurnal hari ini"
+            >
+              <AppText weight="semibold" className="text-[12px] text-white">
+                Hari ini
+              </AppText>
+            </PressableScale>
+          )}
+        </View>
 
         {/* Sync Failure Recovery Banner */}
         {syncState.status === "failed" && (
@@ -893,18 +996,19 @@ export default function HomeScreen() {
 
         {allEntries.length > 0 && (
           <View className="mt-4">
-            <View className="flex-row items-center justify-between mb-1">
+            <View className="flex-row items-center justify-between gap-2 mb-1 flex-wrap">
               <AppText weight="semibold" className="text-[12.5px] text-muted">
-                Tercatat hari ini
+                {isViewingToday ? "Tercatat hari ini" : `Tercatat (${selectedDateLabel})`}
               </AppText>
               <PressableScale
                 onPress={handleClearToday}
                 hitSlop={8}
+                className="min-h-[40px] justify-center px-1"
                 accessibilityRole="button"
-                accessibilityLabel="Reset jurnal hari ini"
+                accessibilityLabel={isViewingToday ? "Kosongkan jurnal hari ini" : `Kosongkan jurnal ${selectedDateLabel}`}
               >
                 <AppText weight="semibold" className="text-[12px] text-bad">
-                  Reset hari ini
+                  {isViewingToday ? "Kosongkan hari ini" : "Kosongkan tanggal ini"}
                 </AppText>
               </PressableScale>
             </View>
@@ -941,7 +1045,7 @@ export default function HomeScreen() {
                     title={`${item.quantity !== 1 ? `${item.quantity}x ` : ""}${item.title}`}
                     caption={`${slot.label} · ${item.calories} kcal · P ${Math.round((item.proteinGrams || 0) * 10) / 10}g · K ${Math.round((item.carbsGrams || 0) * 10) / 10}g · L ${Math.round((item.fatGrams || 0) * 10) / 10}g`}
                     trailing={
-                      <View className="flex-row items-center gap-1.5">
+                      <View className="flex-row items-center gap-3">
                         <RingButton
                           icon="edit"
                           size="sm"
@@ -1029,25 +1133,24 @@ export default function HomeScreen() {
   /* ------------------------------------------------------------ Planning */
   const renderPlanning = () => {
     const rows = [
-      { title: "Asisten AI", caption: "Tanya nutrisi dan estimasi kalori dari foto", icon: "heart" as const, premiumBadge: false, onPress: () => router.push("/(app)/assistant") },
+      { title: "Asisten AI", caption: "Tanya soal makanan", icon: "heart" as const, premiumBadge: false, onPress: () => router.push("/(app)/assistant") },
       {
         title: "Rencana makan 7 hari",
-        caption: "Kalender menu sesuai target kalori dan budget",
+        caption: "Sesuai target dan anggaran",
         icon: "calendar" as const,
         premiumBadge: !isPremium,
         onPress: () => router.push("/(app)/meal-planner"),
       },
       {
-        title: "Monitoring & statistik perkembangan",
-        caption: "Grafik berat badan, kalori, dan histori menu",
+        title: "Analitik nutrisi",
+        caption: "Berat badan dan tren kalori",
         icon: "chart" as const,
         premiumBadge: false,
         onPress: () => router.push("/(app)/analytics"),
       },
       {
-        title: "Komunitas, konsultasi & artikel",
-        caption: "Berbagi motivasi, tanya ahli gizi, dan tips sehat",
-        icon: "heart" as const,
+        title: "Artikel & panduan sehat",
+        icon: "book" as const,
         premiumBadge: false,
         onPress: () => router.push("/(app)/community"),
       },

@@ -92,7 +92,7 @@ export default function AssistantScreen() {
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: "#d5dbd7" }}>
         <Pressable accessibilityRole="button" accessibilityLabel="Kembali" onPress={() => router.back()} style={{ width: 48, height: 48, alignItems: "center", justifyContent: "center" }}><LineIcon name="arrowLeft" size={23} /></Pressable>
-        <View style={{ flex: 1 }}><AppText weight="bold" style={{ fontSize: 21 }}>Asisten AI</AppText><AppText style={{ fontSize: 12, color: "#56605a" }}>Nutrisi & kebiasaan sehat</AppText></View>
+        <View style={{ flex: 1, minWidth: 0 }}><AppText weight="bold" numberOfLines={1} style={{ fontSize: 21 }}>Asisten AI</AppText><AppText numberOfLines={1} style={{ fontSize: 12, color: "#56605a" }}>Nutrisi & kebiasaan sehat</AppText></View>
         <Pressable accessibilityRole="button" accessibilityLabel="Foto makanan Premium" onPress={() => setMode("photo")} style={{ minHeight: 48, minWidth: 48, alignItems: "center", justifyContent: "center", paddingHorizontal: 8 }}><LineIcon name="camera" size={22} color={AssistantColors.primary.DEFAULT} /><AppText style={{ fontSize: 12, color: AssistantColors.primary.DEFAULT }}>Premium</AppText></Pressable>
       </View>
       <AssistantChat request={request} />
@@ -120,7 +120,7 @@ export default function AssistantScreen() {
           </View>
           {estimate && <View style={{ padding: 20, backgroundColor: "#fbfdfc", borderRadius: 22, gap: 14 }}>
             <AppText weight="bold" style={{ fontSize: 22 }}>Periksa hasil estimasi</AppText>
-            <AppText style={{ color: AssistantColors.primary.DEFAULT, fontSize: 28 }}>{estimate.calorieMin}â€“{estimate.calorieMax} kkal</AppText>
+            <AppText style={{ color: AssistantColors.primary.DEFAULT, fontSize: 28 }}>{estimate.calorieMin}–{estimate.calorieMax} kkal</AppText>
             <AppText>{estimate.portion}</AppText><AppText>{estimate.notes}</AppText>
             <AppText style={{ fontSize: 13, color: "#56605a" }}>Nilai berikut untuk satu porsi foto. Minyak, gula, dan bahan tersembunyi dapat mengubah hasil. Foto tidak memastikan keamanan alergi.</AppText>
             <Input label="Nama makanan" value={estimate.title} editable={!saved && !busy} onChangeText={title => setEstimate({ ...estimate, title })} maxLength={150} />

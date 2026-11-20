@@ -179,7 +179,6 @@ export default function PersonalizedPlanScreen() {
           <Surface>
             <CardHead
               title="Rekomendasi makronutrisi"
-              subtitle="Proporsi harian untuk energi dan pemulihan"
             />
 
             <MixBar
@@ -200,7 +199,6 @@ export default function PersonalizedPlanScreen() {
                   </RowIcon>
                 }
                 title="Protein (25%)"
-                subtitle="Pemulihan jaringan & sintesis otot"
                 right={
                   <AppText
                     weight="bold"
@@ -218,7 +216,6 @@ export default function PersonalizedPlanScreen() {
                   </RowIcon>
                 }
                 title="Karbohidrat (50%)"
-                subtitle="Sumber energi utama aktivitas harian"
                 right={
                   <AppText
                     weight="bold"
@@ -237,7 +234,6 @@ export default function PersonalizedPlanScreen() {
                   </RowIcon>
                 }
                 title="Lemak Sehat (25%)"
-                subtitle="Keseimbangan hormon & penyerapan vitamin"
                 right={
                   <AppText
                     weight="bold"

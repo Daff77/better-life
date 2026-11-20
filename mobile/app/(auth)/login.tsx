@@ -1,7 +1,6 @@
 import React, { useState, useRef } from "react";
 import { View, Image } from "react-native";
 import { useRouter } from "expo-router";
-import { showAlert } from "@/lib/confirm";
 import {
   AppText,
   Button,
@@ -13,11 +12,9 @@ import {
   TextField,
   FormAlert,
   TextLink,
-  LineIcon,
   PressableScale,
 } from "@/components/ui";
 import { useAuthStore } from "@/stores/useAuthStore";
-import { DEMO_LOGIN_HINT } from "@/lib/sessionStorage";
 import { BrandImages, IconRenderer } from "@/constants/Assets";
 
 export default function LoginScreen() {
@@ -143,7 +140,6 @@ export default function LoginScreen() {
         <FlowTitle
           eyebrow="Selamat datang kembali"
           title="Masuk ke akun Anda"
-          caption="Lanjutkan catatan kalori, rencana menu mingguan, dan progres kesehatan Anda."
         />
       </FadeInView>
 
@@ -191,39 +187,7 @@ export default function LoginScreen() {
           />
         </View>
 
-        <View className="flex-row items-center justify-between mt-3 mb-5">
-          <PressableScale
-            onPress={() => {
-              setIdentifier(DEMO_LOGIN_HINT.email);
-              setPassword(DEMO_LOGIN_HINT.password);
-              setIdentifierError("");
-              setPasswordError("");
-              setGeneralError("");
-              if (sessionNotice) clearSessionNotice();
-            }}
-            pressedScale={0.96}
-            className="flex-row items-center gap-1.5 py-1.5 px-3 rounded-full bg-primary-light"
-            accessibilityRole="button"
-            accessibilityLabel="Isi cepat akun contoh"
-          >
-            <LineIcon name="sparkle" size={14} color="#0b6b47" />
-            <AppText weight="semibold" className="text-[12.5px] text-primary-text">
-              Isi Akun Demo
-            </AppText>
-          </PressableScale>
-
-          <TextLink
-            label="Lupa kata sandi?"
-            onPress={() =>
-              showAlert(
-                "Pemulihan Kata Sandi",
-                "Untuk akun demo gunakan email 'daffa@gmail.com' dan kata sandi 'password123', atau gunakan kata sandi yang Anda buat saat pendaftaran."
-              )
-            }
-          />
-        </View>
-
-        <Divider label="ATAU" className="my-3" />
+        <Divider label="ATAU" className="my-5" />
 
         <PressableScale
           onPress={() => setShowGoogleModal(true)}

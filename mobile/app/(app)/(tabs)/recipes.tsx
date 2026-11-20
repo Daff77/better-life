@@ -96,6 +96,7 @@ export default function RecipesScreen() {
               <PressableScale
                 onPress={() => setIsCreateModalVisible(true)}
                 pressedScale={0.93}
+                hitSlop={4}
                 className="w-10 h-10 rounded-full bg-primary items-center justify-center"
                 accessibilityRole="button"
                 accessibilityLabel="Tambah resep"

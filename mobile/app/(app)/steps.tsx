@@ -126,7 +126,6 @@ export default function StepsScreen() {
       <Header
         onBack={handleBack}
         title="Langkah hari ini"
-        subtitle="Perbanyak langkah, sedikit demi sedikit"
       />
       <ScrollView
         contentContainerStyle={{

@@ -52,7 +52,7 @@ export const NAV_DOCK_GUTTER = 92;
 const QUICK_ACTIONS: Array<{ icon: LineIconName; label: string; href: string }> = [
   { icon: "calendar", label: "Rencana makan 7 hari", href: "/(app)/meal-planner" },
   { icon: "chart", label: "Monitoring & statistik", href: "/(app)/analytics" },
-  { icon: "heart", label: "Komunitas & konsultasi", href: "/(app)/community" },
+  { icon: "book", label: "Artikel & tips sehat", href: "/(app)/community" },
 ];
 
 const web = Platform.OS === "web";

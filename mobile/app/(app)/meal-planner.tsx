@@ -176,7 +176,7 @@ export default function MealPlannerScreen() {
         <Header
           onBack={() => router.back()}
           title="Rencana makan 7 hari"
-          subtitle="Jadwal menu otomatis, filter alergi, dan optimasi anggaran belanja"
+          subtitle="Menu sesuai target, alergi, dan anggaran"
           rightComponent={<StatusPill tone="warn" label="Premium" />}
         />
 
@@ -334,7 +334,6 @@ export default function MealPlannerScreen() {
       <Header
         onBack={() => router.back()}
         title="Rencana makan 7 hari"
-        subtitle="Jadwal nutrisi mingguan yang dikalibrasi dengan target Anda"
         rightComponent={
           <PillButton
             label="Preferensi"
@@ -738,7 +737,7 @@ export default function MealPlannerScreen() {
               <Surface>
                 <CardHead
                   title="Daftar belanja terkonsolidasi"
-                  subtitle="Akumulasi kebutuhan bahan untuk jadwal 7 hari penuh"
+                  subtitle="Total bahan untuk 7 hari"
                   right={
                     checkedShoppingItemIds.length > 0 ? (
                       <PillButton
