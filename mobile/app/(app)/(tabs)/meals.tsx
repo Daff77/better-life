@@ -456,7 +456,7 @@ export default function MealsScreen() {
                     <AppText weight="medium" className="text-[11px] text-muted">
                       {mealLabel(rec.category)} · {rec.quantity > 1 ? `${rec.quantity}x ` : "1x "}porsi
                     </AppText>
-                    <AppText weight="semibold" numberOfLines={1} className="text-[14px] text-ink mt-0.5">
+                    <AppText weight="semibold" numberOfLines={2} className="text-[14px] text-ink mt-0.5">
                       {rec.title}
                     </AppText>
                     <AppText weight="bold" className="text-[12.5px] text-primary-text mt-1" style={tnum}>
@@ -517,7 +517,7 @@ export default function MealsScreen() {
               <AppText weight="semibold" numberOfLines={1} className="text-[15.5px] text-ink mt-0.5">
                 {mealLabel(selectedSlot)}
               </AppText>
-              <AppText weight="medium" numberOfLines={1} className="text-[12px] text-muted">
+              <AppText weight="medium" className="text-[12px] text-muted">
                 {filteredMeals.length} pilihan menu tersedia
               </AppText>
             </View>

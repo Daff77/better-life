@@ -89,7 +89,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
         </AppText>
         <AppText
           weight="semibold"
-          numberOfLines={1}
+          numberOfLines={2}
           className="text-[16px] text-ink leading-5 mt-1"
         >
           {title}

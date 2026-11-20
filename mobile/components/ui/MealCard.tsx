@@ -179,7 +179,7 @@ export const MealCard: React.FC<MealCardProps> = ({
           </AppText>
           <AppText
             weight="semibold"
-            numberOfLines={1}
+            numberOfLines={2}
             className="text-[14.5px] text-ink leading-[19px] mt-0.5"
           >
             {displayTitle}

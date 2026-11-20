@@ -328,13 +328,12 @@ export default function ProfileScreen() {
                   <View className="flex-1 min-w-0">
                     <AppText
                       weight="semibold"
-                      numberOfLines={1}
                       className="text-[18.5px] text-ink"
                       style={{ letterSpacing: -0.3 }}
                     >
                       {user?.name || "Pengguna Better Life"}
                     </AppText>
-                    <AppText weight="medium" numberOfLines={1} className="text-[13px] text-muted mt-0.5">
+                    <AppText weight="medium" className="text-[13px] text-muted mt-0.5">
                       {user?.email || "Akun tersimpan di perangkat"}
                     </AppText>
                   </View>
@@ -352,12 +351,12 @@ export default function ProfileScreen() {
               >
                 <View className="flex-row items-center">
                   <View className="flex-1 min-w-0 pr-3">
-                    <AppText weight="medium" className="text-[11.5px] text-muted">
+                    <AppText weight="medium" className="text-[12px] text-muted">
                       Target energi
                     </AppText>
-                    <AppText weight="bold" numberOfLines={1} className="text-[16px] text-ink mt-0.5" style={tnum}>
+                    <AppText weight="bold" className="text-[16px] text-ink mt-0.5" style={tnum}>
                       {targetKcal.toLocaleString("id-ID")}{" "}
-                      <AppText weight="semibold" className="text-[11.5px] text-muted">
+                      <AppText weight="semibold" className="text-[12px] text-muted">
                         kcal
                       </AppText>
                     </AppText>
@@ -366,10 +365,10 @@ export default function ProfileScreen() {
                   <View className="w-px h-8 bg-line" />
 
                   <View className="flex-1 min-w-0 pl-3.5">
-                    <AppText weight="medium" className="text-[11.5px] text-muted">
+                    <AppText weight="medium" className="text-[12px] text-muted">
                       Fokus utama
                     </AppText>
-                    <AppText weight="bold" numberOfLines={1} className="text-[15px] text-ink mt-0.5">
+                    <AppText weight="bold" className="text-[15px] text-ink mt-0.5">
                       {GOAL_LABELS[personalization.goal] ?? personalization.goal}
                     </AppText>
                   </View>
@@ -379,10 +378,10 @@ export default function ProfileScreen() {
 
                 <View className="flex-row items-center">
                   <View className="flex-1 min-w-0 pr-3">
-                    <AppText weight="medium" className="text-[11.5px] text-muted">
+                    <AppText weight="medium" className="text-[12px] text-muted">
                       Berat & target BB
                     </AppText>
-                    <AppText weight="bold" numberOfLines={1} className="text-[15px] text-ink mt-0.5" style={tnum}>
+                    <AppText weight="bold" className="text-[15px] text-ink mt-0.5" style={tnum}>
                       {personalization.weight} → {personalization.targetWeight ?? personalization.weight} kg
                     </AppText>
                   </View>
@@ -390,10 +389,10 @@ export default function ProfileScreen() {
                   <View className="w-px h-8 bg-line" />
 
                   <View className="flex-1 min-w-0 pl-3.5">
-                    <AppText weight="medium" className="text-[11.5px] text-muted">
+                    <AppText weight="medium" className="text-[12px] text-muted">
                       Profil fisik
                     </AppText>
-                    <AppText weight="bold" numberOfLines={1} className="text-[15px] text-ink mt-0.5" style={tnum}>
+                    <AppText weight="bold" className="text-[15px] text-ink mt-0.5" style={tnum}>
                       {personalization.height} cm · {userAge} thn
                     </AppText>
                   </View>
@@ -417,7 +416,7 @@ export default function ProfileScreen() {
                     >
                       <View className="flex-row items-center gap-1.5 min-w-0 flex-shrink">
                         <View className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: m.color }} />
-                        <AppText weight="medium" numberOfLines={1} className="text-[11.5px] text-muted">
+                        <AppText weight="medium" className="text-[12px] text-muted">
                           {m.label}
                         </AppText>
                       </View>

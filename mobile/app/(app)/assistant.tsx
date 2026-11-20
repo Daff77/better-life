@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { Colors as AssistantColors } from "@/constants/DesignTokens";
 import { Image, KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
@@ -90,9 +91,9 @@ export default function AssistantScreen() {
   if (mode === "chat") return <ScreenWrapper maxWidth="narrow" edges={["top", "left", "right", "bottom"]} style={{ backgroundColor: "#edf1ee" }}>
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: "#d5dbd7" }}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Kembali" onPress={() => router.back()} style={{ width: 44, height: 44, alignItems: "center", justifyContent: "center" }}><LineIcon name="arrowLeft" size={23} /></Pressable>
+        <Pressable accessibilityRole="button" accessibilityLabel="Kembali" onPress={() => router.back()} style={{ width: 48, height: 48, alignItems: "center", justifyContent: "center" }}><LineIcon name="arrowLeft" size={23} /></Pressable>
         <View style={{ flex: 1 }}><AppText weight="bold" style={{ fontSize: 21 }}>Asisten AI</AppText><AppText style={{ fontSize: 12, color: "#56605a" }}>Nutrisi & kebiasaan sehat</AppText></View>
-        <Pressable accessibilityRole="button" accessibilityLabel="Foto makanan Premium" onPress={() => setMode("photo")} style={{ minHeight: 44, alignItems: "center", justifyContent: "center", paddingHorizontal: 8 }}><LineIcon name="camera" size={22} color="#0e7a52" /><AppText style={{ fontSize: 10, color: "#0e7a52" }}>Premium</AppText></Pressable>
+        <Pressable accessibilityRole="button" accessibilityLabel="Foto makanan Premium" onPress={() => setMode("photo")} style={{ minHeight: 48, minWidth: 48, alignItems: "center", justifyContent: "center", paddingHorizontal: 8 }}><LineIcon name="camera" size={22} color={AssistantColors.primary.DEFAULT} /><AppText style={{ fontSize: 12, color: AssistantColors.primary.DEFAULT }}>Premium</AppText></Pressable>
       </View>
       <AssistantChat request={request} />
     </KeyboardAvoidingView>
@@ -119,7 +120,7 @@ export default function AssistantScreen() {
           </View>
           {estimate && <View style={{ padding: 20, backgroundColor: "#fbfdfc", borderRadius: 22, gap: 14 }}>
             <AppText weight="bold" style={{ fontSize: 22 }}>Periksa hasil estimasi</AppText>
-            <AppText style={{ color: "#0e7a52", fontSize: 28 }}>{estimate.calorieMin}â€“{estimate.calorieMax} kkal</AppText>
+            <AppText style={{ color: AssistantColors.primary.DEFAULT, fontSize: 28 }}>{estimate.calorieMin}â€“{estimate.calorieMax} kkal</AppText>
             <AppText>{estimate.portion}</AppText><AppText>{estimate.notes}</AppText>
             <AppText style={{ fontSize: 13, color: "#56605a" }}>Nilai berikut untuk satu porsi foto. Minyak, gula, dan bahan tersembunyi dapat mengubah hasil. Foto tidak memastikan keamanan alergi.</AppText>
             <Input label="Nama makanan" value={estimate.title} editable={!saved && !busy} onChangeText={title => setEstimate({ ...estimate, title })} maxLength={150} />

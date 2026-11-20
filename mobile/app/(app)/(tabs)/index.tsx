@@ -420,7 +420,7 @@ export default function HomeScreen() {
         >
           <LineIcon name={item.icon} size={14} color={item.color} strokeWidth={1.85} />
         </View>
-        <AppText weight="semibold" numberOfLines={1} className="text-[12.5px] text-muted flex-1">
+        <AppText weight="semibold" className="text-[12.5px] text-muted flex-1">
           {item.title}
         </AppText>
         {item.hasAddAction && (
@@ -452,7 +452,7 @@ export default function HomeScreen() {
               </AppText>
             )}
           </View>
-          <AppText weight="medium" numberOfLines={1} className="text-[11px] text-muted mt-0.5" style={tnum}>
+          <AppText weight="medium" className="text-[12px] text-muted mt-0.5" style={tnum}>
             {item.caption}
           </AppText>
         </View>
@@ -647,11 +647,11 @@ export default function HomeScreen() {
                 <View className="flex-row items-center justify-between mb-1.5 gap-2">
                   <View className="flex-row items-center gap-1.5 flex-shrink">
                     <View className="w-2 h-2 rounded-full" style={{ backgroundColor: m.color }} />
-                    <AppText weight="semibold" numberOfLines={1} className="text-[12.5px] text-ink">
+                    <AppText weight="semibold" className="text-[12.5px] text-ink">
                       {m.label}
                     </AppText>
                   </View>
-                  <AppText weight="semibold" numberOfLines={1} className="text-[12px] text-ink" style={tnum}>
+                  <AppText weight="semibold" className="text-[12px] text-ink" style={tnum}>
                     {Math.round(m.value)}
                     <AppText weight="medium" className="text-[11px] text-muted">
                       /{m.target}g
