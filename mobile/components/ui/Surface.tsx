@@ -270,10 +270,10 @@ const TONES: Record<Tone, { bg: string; fg: string }> = {
 export const StatusPill: React.FC<{ label: string; tone?: Tone; dot?: boolean; className?: string }> = ({
   label,
   tone = "accent",
-  dot = true,
+  dot = false,
   className,
 }) => (
-  <View className={`flex-row items-center gap-1.5 min-h-[26px] py-1 px-2.5 rounded-full self-start ${TONES[tone].bg} ${className ?? ""}`}>
+  <View className={`flex-row items-center gap-1.5 py-1 px-2 rounded self-start ${TONES[tone].bg} ${className ?? ""}`}>
     {dot ? <View className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: TONES[tone].fg }} /> : null}
     <AppText weight="semibold" className="text-[12px]" style={[{ color: TONES[tone].fg }, tnum]}>
       {label}
